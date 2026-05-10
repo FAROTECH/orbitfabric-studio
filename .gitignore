@@ -1,0 +1,68 @@
+# OrbitFabric Studio
+# v0.0.0 is documentation-only.
+# This file intentionally avoids assuming a concrete app scaffold.
+
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Python cache / tooling artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node / frontend artifacts
+# Kept for future Studio implementation, but no frontend scaffold exists in v0.0.0.
+node_modules/
+dist/
+build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tauri / Rust artifacts
+# Kept for future Studio implementation, but no Tauri scaffold exists in v0.0.0.
+target/
+src-tauri/target/
+
+# Generated local exports
+generated/
+tmp/
+temp/
+
+# Local packaged artifacts
+*.zip
+*.tar.gz
+*.tgz
+*.dmg
+*.AppImage
+*.exe
+*.msi
