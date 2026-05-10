@@ -36,12 +36,17 @@ select {
   padding: 64px 0;
 }
 
-.hero-panel {
+.hero-panel,
+.inspection-panel {
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 28px;
   padding: 48px;
   background: rgba(15, 23, 42, 0.78);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.inspection-panel {
+  margin-top: 18px;
 }
 
 .eyebrow {
@@ -55,6 +60,7 @@ select {
 
 h1,
 h2,
+h3,
 p {
   margin-top: 0;
 }
@@ -73,6 +79,12 @@ h2 {
   letter-spacing: -0.02em;
 }
 
+h3 {
+  margin-bottom: 12px;
+  color: #f8fafc;
+  font-size: 0.95rem;
+}
+
 .release {
   margin-bottom: 24px;
   color: #93c5fd;
@@ -80,11 +92,32 @@ h2 {
 }
 
 .summary {
-  max-width: 760px;
-  margin-bottom: 0;
+  max-width: 780px;
   color: #cbd5e1;
   font-size: 1.08rem;
   line-height: 1.8;
+}
+
+.primary-action {
+  margin-top: 10px;
+  border: 1px solid rgba(103, 232, 249, 0.5);
+  border-radius: 999px;
+  padding: 12px 18px;
+  color: #031525;
+  background: #67e8f9;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary-action:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.error-text {
+  margin-top: 16px;
+  margin-bottom: 0;
+  color: #fca5a5;
 }
 
 .grid {
@@ -103,12 +136,16 @@ h2 {
 }
 
 .card p,
-.card li {
+.card li,
+.inspection-panel p,
+.inspection-panel li {
   color: #cbd5e1;
   line-height: 1.65;
 }
 
-.card ul {
+.card ul,
+.warning-box ul,
+.missing-list {
   margin: 0;
   padding-left: 1.2rem;
 }
@@ -130,6 +167,142 @@ h2 {
   border-color: rgba(251, 191, 36, 0.28);
 }
 
+.inspection-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.inspection-header p {
+  margin-bottom: 0;
+  word-break: break-all;
+}
+
+.status-pill,
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-pill {
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.18);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.62);
+}
+
+.summary-item span {
+  display: block;
+  margin-bottom: 8px;
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+
+.summary-item strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 0.86rem;
+  word-break: break-all;
+}
+
+.warning-box,
+.entry-section {
+  margin-top: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.warning-box,
+.muted-section {
+  border-color: rgba(251, 191, 36, 0.24);
+}
+
+.entry-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-list li {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 8px 12px;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.entry-name {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.entry-path {
+  grid-column: 1 / -1;
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+.category-sourceModel {
+  color: #dcfce7;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.category-scenarioSource {
+  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.category-derivedReport {
+  color: #fef3c7;
+  background: rgba(245, 158, 11, 0.16);
+}
+
+.category-generatedOutput {
+  color: #ede9fe;
+  background: rgba(139, 92, 246, 0.16);
+}
+
+.empty-text {
+  margin-bottom: 0;
+  color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 760px) {
   .studio-shell {
     width: min(100% - 28px, 1120px);
@@ -137,12 +310,18 @@ h2 {
   }
 
   .hero-panel,
-  .card {
+  .card,
+  .inspection-panel {
     border-radius: 20px;
     padding: 24px;
   }
 
-  .grid {
+  .grid,
+  .entry-list li {
     grid-template-columns: 1fr;
+  }
+
+  .inspection-header {
+    flex-direction: column;
   }
 }

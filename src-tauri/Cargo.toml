@@ -12,9 +12,12 @@ name = "orbitfabric_studio_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "=2.0.0", features = [] }
+tauri-utils = "=2.0.0"
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "=2.0.0", features = [] }
+tauri-plugin-dialog = "=2.0.0"
+tauri-utils = "=2.0.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

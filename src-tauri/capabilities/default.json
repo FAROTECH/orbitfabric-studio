@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Minimal default capability for the initial OrbitFabric Studio shell. No filesystem, dialog or shell execution permissions are granted in this scaffold PR.",
+  "description": "Default capability for v0.1.0 workspace opening. It allows only the directory selection dialog plus the core baseline permission. Filesystem traversal is performed by the dedicated Rust inspection command.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "dialog:allow-open"]
 }
