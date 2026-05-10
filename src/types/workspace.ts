@@ -24,3 +24,11 @@ export interface WorkspaceInspection {
   generated_locations: ProjectEntry[];
   warnings: string[];
 }
+
+export interface FileContent {
+  name: string;
+  path: string;
+  language: string;
+  content: string;
+  size_bytes: number;
+}
