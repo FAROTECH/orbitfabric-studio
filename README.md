@@ -13,18 +13,20 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-v0.0.0 — Studio Charter
+v0.1.0 — Read-only Mission Project Viewer, in development
 ```
 
-This repository currently contains the architecture-first foundation for OrbitFabric Studio.
+The `v0.0.0 — Studio Charter` baseline has been created, tagged and released.
 
-No production application is available yet.
+The repository is now entering the first implementation slice.
 
-No frontend scaffold is included.
+The v0.1.0 goal is deliberately narrow:
 
-No Tauri, React, TypeScript or package manager setup is included in this release.
+```text
+Open -> Inspect
+```
 
-The purpose of `v0.0.0` is to define the project charter, boundaries, architecture principles, UX principles, risk model, roadmap and initial architecture decisions before implementation starts.
+Studio v0.1.0 must prove that it can open a real OrbitFabric mission workspace and inspect its structure without editing it and without becoming a second model engine.
 
 ---
 
@@ -73,6 +75,12 @@ The first product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Understand
+```
+
+The v0.1.0 implementation loop is narrower:
+
+```text
+Open -> Inspect
 ```
 
 The long-term authoring loop is:
@@ -139,35 +147,50 @@ UI state          = local representation used by Studio
 
 ---
 
-## v0.0.0 Deliverables
+## v0.1.0 Scope
 
-This Charter release includes:
+The first implementation slice is the Read-only Mission Project Viewer.
 
-- project roadmap;
-- project charter;
-- vision document;
-- explicit non-goals;
-- architecture principles;
-- data boundary definition;
-- UX principles;
-- risk register;
-- architecture decision records;
-- mockup policy;
-- example policy;
-- completion checklist;
-- changelog;
-- repository hygiene files.
+Candidate capabilities:
+
+- open a local OrbitFabric mission directory;
+- detect expected Mission Model files;
+- display a project tree;
+- display YAML files in read-only mode;
+- detect generated artifact directories;
+- display basic project metadata where available;
+- show available reports and generated outputs;
+- invoke OrbitFabric Core through a controlled local command path;
+- show raw command result status.
+
+Explicit v0.1.0 non-goals:
+
+- no editing;
+- no visual model editing;
+- no graph view;
+- no scenario runner;
+- no generator workbench;
+- no plugin support;
+- no independent model validation;
+- no deep semantic parsing inside Studio;
+- no mission-control UI;
+- no live telemetry;
+- no command uplink;
+- no ground segment behavior;
+- no external compatibility claims.
 
 ---
 
 ## Repository Structure
+
+Current documentation-first structure:
 
 ```text
 orbitfabric-studio/
 ├── README.md
 ├── ROADMAP.md
 ├── CHANGELOG.md
-├── V0_0_COMPLETION_CHECKLIST.md
+├── V0_1_RELEASE_CHECKLIST.md
 ├── LICENSE
 ├── .gitignore
 ├── docs/
@@ -178,17 +201,22 @@ orbitfabric-studio/
 │   ├── DATA_BOUNDARIES.md
 │   ├── UX_PRINCIPLES.md
 │   ├── RISK_REGISTER.md
-│   └── ADR/
-│       ├── 0001-separate-repository.md
-│       ├── 0002-downstream-visual-workbench.md
-│       ├── 0003-core-delegated-validation.md
-│       ├── 0004-initial-technology-direction.md
-│       └── 0005-read-only-first-controlled-authoring-later.md
+│   ├── ADR/
+│   │   ├── 0001-separate-repository.md
+│   │   ├── 0002-downstream-visual-workbench.md
+│   │   ├── 0003-core-delegated-validation.md
+│   │   ├── 0004-initial-technology-direction.md
+│   │   ├── 0005-read-only-first-controlled-authoring-later.md
+│   │   └── 0006-v0-1-implementation-stack.md
+│   └── releases/
+│       └── v0.0.0-completion-checklist.md
 ├── mockups/
 │   └── README.md
 └── examples/
     └── README.md
 ```
+
+Implementation directories will be introduced only as required by the v0.1.0 application slice.
 
 ---
 
@@ -214,22 +242,22 @@ See [`ROADMAP.md`](ROADMAP.md) for details.
 
 ---
 
-## Initial Technology Direction
+## Implementation Stack for v0.1.0
 
-The initial candidate technology direction is:
+The v0.1.0 implementation stack is:
 
 ```text
-Tauri
+Tauri 2
 React
 TypeScript
-React Flow
+Vite
 Monaco Editor
-OrbitFabric CLI or sidecar invocation
+OrbitFabric CLI invocation through a controlled local command path
 ```
 
-This is a direction, not yet an implementation commitment.
+React Flow is explicitly deferred because graph rendering is not part of v0.1.0.
 
-The final implementation stack will be confirmed before `v0.1.0`.
+See [`docs/ADR/0006-v0-1-implementation-stack.md`](docs/ADR/0006-v0-1-implementation-stack.md).
 
 ---
 
@@ -244,9 +272,11 @@ Key documents:
 - [`docs/DATA_BOUNDARIES.md`](docs/DATA_BOUNDARIES.md)
 - [`docs/UX_PRINCIPLES.md`](docs/UX_PRINCIPLES.md)
 - [`docs/RISK_REGISTER.md`](docs/RISK_REGISTER.md)
-- [`V0_0_COMPLETION_CHECKLIST.md`](V0_0_COMPLETION_CHECKLIST.md)
+- [`V0_1_RELEASE_CHECKLIST.md`](V0_1_RELEASE_CHECKLIST.md)
 
 Architecture decisions are stored in [`docs/ADR/`](docs/ADR/).
+
+Archived release records are stored in [`docs/releases/`](docs/releases/).
 
 ---
 
