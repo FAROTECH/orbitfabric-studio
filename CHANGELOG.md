@@ -34,6 +34,9 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 - Added Monaco Editor integration in read-only mode.
 - Added workspace containment checks for file viewing.
 - Added maximum file-size and supported text-file checks for the file viewer.
+- Added controlled OrbitFabric Core command status commands.
+- Added raw stdout, stderr and exit-code display for fixed Core commands.
+- Added UI controls for `orbitfabric --version` and `orbitfabric inspect mission`.
 
 ### Changed
 
@@ -42,6 +45,7 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 - Updated the README with initial development commands and scaffold structure.
 - Updated the development notes to describe the workspace inspection slice.
 - Updated the development notes to describe the read-only file viewer slice.
+- Updated the development notes to describe the controlled Core command status slice.
 - Updated Tauri capabilities to allow only the directory selection dialog in addition to the baseline core permission.
 
 ### Removed
@@ -50,10 +54,10 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 
 ### Not Included Yet
 
-- No OrbitFabric Core command invocation.
 - No validation diagnostics UI.
 - No graph rendering.
 - No scenario execution.
+- No generator workflow.
 - No editing.
 
 ---
