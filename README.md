@@ -13,42 +13,61 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-v0.1.0 — Read-only Mission Project Viewer, in development
+v0.1.0 - Read-only Mission Project Viewer, release candidate
 ```
 
-The `v0.0.0 — Studio Charter` baseline has been created, tagged and released.
+The `v0.0.0 - Studio Charter` baseline has been created, tagged and released.
 
-The repository is now entering the first implementation slice.
-
-The v0.1.0 goal is deliberately narrow:
+The first implementation milestone is now focused on the narrow product loop:
 
 ```text
 Open -> Inspect
 ```
 
-Studio v0.1.0 must prove that it can open a real OrbitFabric mission workspace and inspect its structure without editing it and without becoming a second model engine.
+Studio v0.1.0 proves that it can open a real OrbitFabric mission workspace and inspect its structure without editing it and without becoming a second model engine.
 
 ---
 
 ## Current Implementation State
 
-This branch contains the first minimal application scaffold:
+v0.1.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
 React frontend
-TypeScript configuration
+TypeScript application code
 Vite build setup
-Minimal static Studio shell screen
-Minimal Tauri backend entrypoint
-Minimal default Tauri capability
+Monaco Editor read-only file viewer
+Local directory selection
+Structural OrbitFabric workspace inspection
+Mission Model file detection
+Scenario source detection
+Generated / derived location detection
+Source / scenario / derived / generated labels
+Controlled OrbitFabric Core command status panel
 ```
 
-The scaffold is intentionally not a workspace viewer yet.
+The implemented loop is intentionally conservative:
 
-It does not yet implement local directory opening, filesystem traversal, file viewing, generated artifact discovery or OrbitFabric Core command invocation.
+```text
+Open workspace
+    -> inspect structure
+    -> view source/scenario files read-only
+    -> check Core availability/version
+    -> run Core inspect mission as raw status output
+```
 
-Those capabilities are introduced only in later v0.1.0 slices.
+Studio does not validate the Mission Model.
+
+Studio does not infer mission semantics from YAML.
+
+Studio does not generate artifacts.
+
+Studio does not execute scenarios.
+
+Studio does not edit files.
+
+OrbitFabric Core remains authoritative.
 
 ---
 
@@ -68,9 +87,20 @@ The frontend-only development command is:
 npm run dev
 ```
 
-The initial Tauri capability grants only `core:default`.
+The Tauri capability grants:
 
-No filesystem, dialog or shell execution permissions are granted by the scaffold.
+```text
+core:default
+dialog:allow-open
+```
+
+The dialog permission is used for local directory selection.
+
+No broad frontend filesystem permission is granted.
+
+No Tauri shell plugin permission is granted.
+
+Workspace inspection, read-only text loading and fixed OrbitFabric Core command status are exposed through dedicated Rust commands.
 
 ---
 
@@ -193,19 +223,22 @@ UI state          = local representation used by Studio
 
 ## v0.1.0 Scope
 
-The first implementation slice is the Read-only Mission Project Viewer.
+The v0.1.0 milestone is the Read-only Mission Project Viewer.
 
-Candidate capabilities:
+Implemented capabilities:
 
-- open a local OrbitFabric mission directory;
+- open a local OrbitFabric workspace or mission directory;
 - detect expected Mission Model files;
-- display a project tree;
-- display YAML files in read-only mode;
-- detect generated artifact directories;
-- display basic project metadata where available;
-- show available reports and generated outputs;
-- invoke OrbitFabric Core through a controlled local command path;
-- show raw command result status.
+- detect scenario YAML files;
+- detect generated documentation, report, log and runtime artifact directories when present;
+- label source model files, scenario sources, derived reports and generated outputs;
+- display supported text files in Monaco Editor read-only mode;
+- enforce workspace containment for read-only file loading;
+- enforce a bounded text file size for the viewer;
+- configure an OrbitFabric Core executable path;
+- run `orbitfabric --version` as a fixed command;
+- run `orbitfabric inspect mission <mission_dir>` as a fixed command;
+- display raw Core stdout, stderr, success status and exit code.
 
 Explicit v0.1.0 non-goals:
 
@@ -217,17 +250,20 @@ Explicit v0.1.0 non-goals:
 - no plugin support;
 - no independent model validation;
 - no deep semantic parsing inside Studio;
+- no lint diagnostics UI;
 - no mission-control UI;
 - no live telemetry;
 - no command uplink;
 - no ground segment behavior;
+- no arbitrary command execution;
+- no arbitrary OrbitFabric CLI argument entry;
 - no external compatibility claims.
 
 ---
 
 ## Repository Structure
 
-Current scaffold structure:
+Current implementation structure:
 
 ```text
 orbitfabric-studio/
@@ -236,19 +272,26 @@ orbitfabric-studio/
 ├── CHANGELOG.md
 ├── V0_1_RELEASE_CHECKLIST.md
 ├── package.json
+├── package-lock.json
 ├── index.html
 ├── vite.config.ts
 ├── tsconfig.json
+├── assets/
+│   └── app-icon.png
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
-│   └── styles.css
+│   ├── styles.css
+│   └── types/
+│       └── workspace.ts
 ├── src-tauri/
 │   ├── Cargo.toml
+│   ├── Cargo.lock
 │   ├── build.rs
 │   ├── tauri.conf.json
 │   ├── capabilities/
 │   │   └── default.json
+│   ├── icons/
 │   └── src/
 │       ├── lib.rs
 │       └── main.rs
@@ -302,7 +345,7 @@ React
 TypeScript
 Vite
 Monaco Editor
-OrbitFabric CLI invocation through a controlled local command path
+OrbitFabric CLI invocation through fixed local command paths
 ```
 
 React Flow is explicitly deferred because graph rendering is not part of v0.1.0.
@@ -323,6 +366,7 @@ Key documents:
 - [`docs/UX_PRINCIPLES.md`](docs/UX_PRINCIPLES.md)
 - [`docs/RISK_REGISTER.md`](docs/RISK_REGISTER.md)
 - [`docs/development/v0.1.0-scaffold.md`](docs/development/v0.1.0-scaffold.md)
+- [`docs/releases/v0.1.0-release-notes.md`](docs/releases/v0.1.0-release-notes.md)
 - [`V0_1_RELEASE_CHECKLIST.md`](V0_1_RELEASE_CHECKLIST.md)
 
 Architecture decisions are stored in [`docs/ADR/`](docs/ADR/).
