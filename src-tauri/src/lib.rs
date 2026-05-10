@@ -1,6 +1,246 @@
+use serde::Serialize;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+const EXPECTED_MISSION_FILES: &[&str] = &[
+    "spacecraft.yaml",
+    "subsystems.yaml",
+    "modes.yaml",
+    "telemetry.yaml",
+    "commands.yaml",
+    "events.yaml",
+    "faults.yaml",
+    "packets.yaml",
+    "policies.yaml",
+    "payloads.yaml",
+    "data_products.yaml",
+    "contacts.yaml",
+    "commandability.yaml",
+];
+
+const GENERATED_DIRS: &[&str] = &[
+    "docs",
+    "reports",
+    "logs",
+    "runtime",
+    "runtime/cpp17",
+];
+
+#[derive(Debug, Serialize)]
+struct WorkspaceInspection {
+    selected_path: String,
+    mission_dir: Option<String>,
+    scenarios_dir: Option<String>,
+    generated_dir: Option<String>,
+    source_model_files: Vec<ProjectEntry>,
+    missing_expected_source_files: Vec<String>,
+    scenario_files: Vec<ProjectEntry>,
+    generated_locations: Vec<ProjectEntry>,
+    warnings: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ProjectEntry {
+    name: String,
+    path: String,
+    kind: EntryKind,
+    category: EntryCategory,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum EntryKind {
+    File,
+    Directory,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum EntryCategory {
+    SourceModel,
+    ScenarioSource,
+    DerivedReport,
+    GeneratedOutput,
+}
+
+#[tauri::command]
+fn inspect_workspace(path: String) -> Result<WorkspaceInspection, String> {
+    let selected = PathBuf::from(path);
+
+    if !selected.exists() {
+        return Err("Selected path does not exist.".to_string());
+    }
+
+    if !selected.is_dir() {
+        return Err("Selected path is not a directory.".to_string());
+    }
+
+    let mission_dir = detect_mission_dir(&selected);
+    let scenarios_dir = detect_child_dir(&selected, "scenarios");
+    let generated_dir = detect_child_dir(&selected, "generated");
+
+    let mut warnings = Vec::new();
+
+    if mission_dir.is_none() {
+        warnings.push(
+            "No OrbitFabric mission directory was detected structurally. This is not a Core validation result."
+                .to_string(),
+        );
+    }
+
+    let (source_model_files, missing_expected_source_files) = match &mission_dir {
+        Some(dir) => inspect_mission_files(dir),
+        None => (Vec::new(), EXPECTED_MISSION_FILES.iter().map(|file| file.to_string()).collect()),
+    };
+
+    let scenario_files = scenarios_dir
+        .as_ref()
+        .map(|dir| list_yaml_files(dir, EntryCategory::ScenarioSource))
+        .unwrap_or_default();
+
+    let generated_locations = generated_dir
+        .as_ref()
+        .map(|dir| inspect_generated_locations(dir))
+        .unwrap_or_default();
+
+    Ok(WorkspaceInspection {
+        selected_path: display_path(&selected),
+        mission_dir: mission_dir.as_ref().map(|dir| display_path(dir)),
+        scenarios_dir: scenarios_dir.as_ref().map(|dir| display_path(dir)),
+        generated_dir: generated_dir.as_ref().map(|dir| display_path(dir)),
+        source_model_files,
+        missing_expected_source_files,
+        scenario_files,
+        generated_locations,
+        warnings,
+    })
+}
+
+fn detect_mission_dir(selected: &Path) -> Option<PathBuf> {
+    let direct_score = count_expected_files(selected);
+
+    if direct_score > 0 {
+        return Some(selected.to_path_buf());
+    }
+
+    let child = selected.join("mission");
+
+    if child.is_dir() && count_expected_files(&child) > 0 {
+        return Some(child);
+    }
+
+    None
+}
+
+fn detect_child_dir(selected: &Path, name: &str) -> Option<PathBuf> {
+    let child = selected.join(name);
+
+    if child.is_dir() {
+        Some(child)
+    } else {
+        None
+    }
+}
+
+fn count_expected_files(dir: &Path) -> usize {
+    EXPECTED_MISSION_FILES
+        .iter()
+        .filter(|file| dir.join(file).is_file())
+        .count()
+}
+
+fn inspect_mission_files(dir: &Path) -> (Vec<ProjectEntry>, Vec<String>) {
+    let mut found = Vec::new();
+    let mut missing = Vec::new();
+
+    for file in EXPECTED_MISSION_FILES {
+        let path = dir.join(file);
+
+        if path.is_file() {
+            found.push(ProjectEntry {
+                name: (*file).to_string(),
+                path: display_path(&path),
+                kind: EntryKind::File,
+                category: EntryCategory::SourceModel,
+            });
+        } else {
+            missing.push((*file).to_string());
+        }
+    }
+
+    (found, missing)
+}
+
+fn list_yaml_files(dir: &Path, category: EntryCategory) -> Vec<ProjectEntry> {
+    let mut entries = Vec::new();
+
+    if let Ok(read_dir) = fs::read_dir(dir) {
+        for entry in read_dir.flatten() {
+            let path = entry.path();
+            let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+                continue;
+            };
+
+            if path.is_file() && (name.ends_with(".yaml") || name.ends_with(".yml")) {
+                entries.push(ProjectEntry {
+                    name: name.to_string(),
+                    path: display_path(&path),
+                    kind: EntryKind::File,
+                    category: clone_category(&category),
+                });
+            }
+        }
+    }
+
+    entries.sort_by(|left, right| left.name.cmp(&right.name));
+    entries
+}
+
+fn inspect_generated_locations(dir: &Path) -> Vec<ProjectEntry> {
+    let mut entries = Vec::new();
+
+    for relative in GENERATED_DIRS {
+        let path = dir.join(relative);
+
+        if path.is_dir() {
+            entries.push(ProjectEntry {
+                name: (*relative).to_string(),
+                path: display_path(&path),
+                kind: EntryKind::Directory,
+                category: generated_category(relative),
+            });
+        }
+    }
+
+    entries
+}
+
+fn generated_category(relative: &str) -> EntryCategory {
+    if relative == "reports" || relative == "logs" {
+        EntryCategory::DerivedReport
+    } else {
+        EntryCategory::GeneratedOutput
+    }
+}
+
+fn clone_category(category: &EntryCategory) -> EntryCategory {
+    match category {
+        EntryCategory::SourceModel => EntryCategory::SourceModel,
+        EntryCategory::ScenarioSource => EntryCategory::ScenarioSource,
+        EntryCategory::DerivedReport => EntryCategory::DerivedReport,
+        EntryCategory::GeneratedOutput => EntryCategory::GeneratedOutput,
+    }
+}
+
+fn display_path(path: &Path) -> String {
+    path.to_string_lossy().to_string()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .invoke_handler(tauri::generate_handler![inspect_workspace])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
 }
