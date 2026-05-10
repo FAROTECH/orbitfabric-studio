@@ -1,9 +1,8 @@
-const scopeItems = [
-  "Open a local OrbitFabric mission workspace",
-  "Inspect mission files and generated artifact locations",
-  "Display source and outputs in read-only form",
-  "Invoke OrbitFabric Core through a controlled local command path",
-];
+import { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+
+import type { ProjectEntry, WorkspaceInspection } from "./types/workspace";
 
 const nonGoalItems = [
   "No editing",
@@ -14,45 +13,68 @@ const nonGoalItems = [
 ];
 
 function App() {
+  const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isOpening, setIsOpening] = useState(false);
+
+  async function handleOpenWorkspace() {
+    setError(null);
+    setIsOpening(true);
+
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: "Open OrbitFabric mission workspace",
+      });
+
+      if (typeof selected !== "string") {
+        return;
+      }
+
+      const inspection = await invoke<WorkspaceInspection>("inspect_workspace", {
+        path: selected,
+      });
+
+      setWorkspace(inspection);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsOpening(false);
+    }
+  }
+
   return (
     <main className="studio-shell">
       <section className="hero-panel" aria-labelledby="studio-title">
         <div className="eyebrow">OrbitFabric Studio</div>
         <h1 id="studio-title">Read-only Mission Project Viewer</h1>
-        <p className="release">v0.1.0 development scaffold</p>
+        <p className="release">v0.1.0 workspace inspection slice</p>
         <p className="summary">
-          Local-first visual engineering workbench for OrbitFabric Mission Data
-          Contracts. This scaffold is intentionally narrow: it establishes the
-          application shell before workspace inspection logic is introduced.
+          Open a local OrbitFabric workspace and inspect its source model files,
+          scenario sources and generated artifact locations. This view is
+          structural only: OrbitFabric Core remains authoritative for validation
+          and engineering meaning.
         </p>
+        <button
+          className="primary-action"
+          type="button"
+          onClick={handleOpenWorkspace}
+          disabled={isOpening}
+        >
+          {isOpening ? "Opening..." : "Open workspace"}
+        </button>
+        {error ? <p className="error-text">{error}</p> : null}
       </section>
 
-      <section className="grid" aria-label="v0.1.0 boundaries">
+      <section className="grid" aria-label="workspace inspection">
         <article className="card">
           <h2>Primary loop</h2>
           <div className="loop">Open -&gt; Inspect</div>
           <p>
-            Studio must inspect an existing OrbitFabric mission workspace without
-            becoming a second model engine.
+            Studio classifies files and directories conservatively. It does not
+            validate the Mission Model and does not infer mission semantics.
           </p>
-        </article>
-
-        <article className="card">
-          <h2>Authority model</h2>
-          <ul>
-            <li>Mission Model remains the source of truth.</li>
-            <li>OrbitFabric Core remains authoritative.</li>
-            <li>Studio remains downstream and presentation-oriented.</li>
-          </ul>
-        </article>
-
-        <article className="card">
-          <h2>v0.1.0 scope</h2>
-          <ul>
-            {scopeItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
         </article>
 
         <article className="card warning-card">
@@ -64,8 +86,146 @@ function App() {
           </ul>
         </article>
       </section>
+
+      {workspace ? <WorkspacePanel workspace={workspace} /> : <EmptyState />}
     </main>
   );
+}
+
+function EmptyState() {
+  return (
+    <section className="inspection-panel" aria-label="No workspace selected">
+      <h2>No workspace selected</h2>
+      <p>
+        Select an OrbitFabric workspace or mission directory to inspect its
+        structural layout. No files are modified by this operation.
+      </p>
+    </section>
+  );
+}
+
+function WorkspacePanel({ workspace }: { workspace: WorkspaceInspection }) {
+  return (
+    <section className="inspection-panel" aria-label="Workspace inspection result">
+      <div className="inspection-header">
+        <div>
+          <h2>Workspace inspection</h2>
+          <p>{workspace.selected_path}</p>
+        </div>
+        <span className="status-pill">Structural only</span>
+      </div>
+
+      <div className="summary-grid">
+        <SummaryItem label="Mission directory" value={workspace.mission_dir} />
+        <SummaryItem label="Scenarios directory" value={workspace.scenarios_dir} />
+        <SummaryItem label="Generated directory" value={workspace.generated_dir} />
+      </div>
+
+      {workspace.warnings.length > 0 ? (
+        <div className="warning-box">
+          <h3>Warnings</h3>
+          <ul>
+            {workspace.warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <EntrySection
+        title="Source model files"
+        entries={workspace.source_model_files}
+        emptyText="No expected Mission Model files detected."
+      />
+
+      <MissingFiles files={workspace.missing_expected_source_files} />
+
+      <EntrySection
+        title="Scenario sources"
+        entries={workspace.scenario_files}
+        emptyText="No scenario YAML files detected."
+      />
+
+      <EntrySection
+        title="Generated and derived locations"
+        entries={workspace.generated_locations}
+        emptyText="No generated artifact locations detected."
+      />
+    </section>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="summary-item">
+      <span>{label}</span>
+      <strong>{value ?? "Not detected"}</strong>
+    </div>
+  );
+}
+
+function EntrySection({
+  title,
+  entries,
+  emptyText,
+}: {
+  title: string;
+  entries: ProjectEntry[];
+  emptyText: string;
+}) {
+  return (
+    <section className="entry-section">
+      <h3>{title}</h3>
+      {entries.length > 0 ? (
+        <ul className="entry-list">
+          {entries.map((entry) => (
+            <li key={entry.path}>
+              <span className="entry-name">{entry.name}</span>
+              <span className={`category-badge category-${entry.category}`}>
+                {formatCategory(entry.category)}
+              </span>
+              <span className="entry-path">{entry.path}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty-text">{emptyText}</p>
+      )}
+    </section>
+  );
+}
+
+function MissingFiles({ files }: { files: string[] }) {
+  if (files.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="entry-section muted-section">
+      <h3>Expected source files not detected</h3>
+      <p>
+        Missing files are reported structurally. This is not a validation result.
+      </p>
+      <ul className="missing-list">
+        {files.map((file) => (
+          <li key={file}>{file}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function formatCategory(category: ProjectEntry["category"]) {
+  switch (category) {
+    case "sourceModel":
+      return "source model";
+    case "scenarioSource":
+      return "scenario source";
+    case "derivedReport":
+      return "derived report";
+    case "generatedOutput":
+      return "generated output";
+  }
 }
 
 export default App;
