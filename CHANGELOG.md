@@ -23,12 +23,21 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 - Added a minimal Tauri backend entrypoint.
 - Added a minimal Tauri capability granting only `core:default`.
 - Added development notes for the v0.1.0 scaffold under `docs/development/`.
+- Added local directory selection for workspace opening.
+- Added structural workspace inspection through a dedicated Rust command.
+- Added Mission Model file detection based on expected OrbitFabric filenames.
+- Added scenario YAML file detection.
+- Added generated and derived location detection.
+- Added source model, scenario source, derived report and generated output labels.
+- Added a read-only workspace inspection UI.
 
 ### Changed
 
 - Updated the README status from the v0.0.0 Charter baseline to v0.1.0 development.
 - Clarified that v0.1.0 is governed by the narrower `Open -> Inspect` implementation loop.
 - Updated the README with initial development commands and scaffold structure.
+- Updated the development notes to describe the workspace inspection slice.
+- Updated Tauri capabilities to allow only the directory selection dialog in addition to the baseline core permission.
 
 ### Removed
 
@@ -36,10 +45,8 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 
 ### Not Included Yet
 
-- No local directory opening.
-- No filesystem traversal.
-- No file viewer.
-- No generated artifact discovery.
+- No file content viewer.
+- No Monaco Editor integration.
 - No OrbitFabric Core command invocation.
 - No validation diagnostics UI.
 - No graph rendering.
