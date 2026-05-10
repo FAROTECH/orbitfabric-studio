@@ -3,7 +3,12 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import type { FileContent, ProjectEntry, WorkspaceInspection } from "./types/workspace";
+import type {
+  CoreCommandResult,
+  FileContent,
+  ProjectEntry,
+  WorkspaceInspection,
+} from "./types/workspace";
 
 const nonGoalItems = [
   "No editing",
@@ -16,15 +21,21 @@ const nonGoalItems = [
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
+  const [coreExecutable, setCoreExecutable] = useState("orbitfabric");
+  const [coreResult, setCoreResult] = useState<CoreCommandResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
+  const [coreError, setCoreError] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
   const [isReadingFile, setIsReadingFile] = useState(false);
+  const [isRunningCoreCommand, setIsRunningCoreCommand] = useState(false);
 
   async function handleOpenWorkspace() {
     setError(null);
     setViewerError(null);
+    setCoreError(null);
     setSelectedFile(null);
+    setCoreResult(null);
     setIsOpening(true);
 
     try {
@@ -69,6 +80,37 @@ function App() {
       setViewerError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsReadingFile(false);
+    }
+  }
+
+  async function handleCoreVersion() {
+    await runCoreCommand("run_core_version", { executable: coreExecutable });
+  }
+
+  async function handleCoreInspectMission() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core inspection.");
+      return;
+    }
+
+    await runCoreCommand("run_core_inspect_mission", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+  }
+
+  async function runCoreCommand(commandName: string, payload: Record<string, string>) {
+    setCoreError(null);
+    setCoreResult(null);
+    setIsRunningCoreCommand(true);
+
+    try {
+      const result = await invoke<CoreCommandResult>(commandName, payload);
+      setCoreResult(result);
+    } catch (caught) {
+      setCoreError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsRunningCoreCommand(false);
     }
   }
 
@@ -121,6 +163,13 @@ function App() {
           selectedFile={selectedFile}
           viewerError={viewerError}
           isReadingFile={isReadingFile}
+          coreExecutable={coreExecutable}
+          coreResult={coreResult}
+          coreError={coreError}
+          isRunningCoreCommand={isRunningCoreCommand}
+          onCoreExecutableChange={setCoreExecutable}
+          onCoreVersion={handleCoreVersion}
+          onCoreInspectMission={handleCoreInspectMission}
           onOpenFile={handleOpenFile}
         />
       ) : (
@@ -147,12 +196,26 @@ function WorkspacePanel({
   selectedFile,
   viewerError,
   isReadingFile,
+  coreExecutable,
+  coreResult,
+  coreError,
+  isRunningCoreCommand,
+  onCoreExecutableChange,
+  onCoreVersion,
+  onCoreInspectMission,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
   selectedFile: FileContent | null;
   viewerError: string | null;
   isReadingFile: boolean;
+  coreExecutable: string;
+  coreResult: CoreCommandResult | null;
+  coreError: string | null;
+  isRunningCoreCommand: boolean;
+  onCoreExecutableChange: (value: string) => void;
+  onCoreVersion: () => void;
+  onCoreInspectMission: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -181,6 +244,17 @@ function WorkspacePanel({
           </ul>
         </div>
       ) : null}
+
+      <CoreStatusPanel
+        executable={coreExecutable}
+        result={coreResult}
+        error={coreError}
+        isRunning={isRunningCoreCommand}
+        hasMissionDir={Boolean(workspace.mission_dir)}
+        onExecutableChange={onCoreExecutableChange}
+        onVersion={onCoreVersion}
+        onInspectMission={onCoreInspectMission}
+      />
 
       <div className="workspace-layout">
         <div>
@@ -223,6 +297,85 @@ function SummaryItem({ label, value }: { label: string; value: string | null }) 
     <div className="summary-item">
       <span>{label}</span>
       <strong>{value ?? "Not detected"}</strong>
+    </div>
+  );
+}
+
+function CoreStatusPanel({
+  executable,
+  result,
+  error,
+  isRunning,
+  hasMissionDir,
+  onExecutableChange,
+  onVersion,
+  onInspectMission,
+}: {
+  executable: string;
+  result: CoreCommandResult | null;
+  error: string | null;
+  isRunning: boolean;
+  hasMissionDir: boolean;
+  onExecutableChange: (value: string) => void;
+  onVersion: () => void;
+  onInspectMission: () => void;
+}) {
+  return (
+    <section className="core-panel" aria-label="OrbitFabric Core command status">
+      <div className="file-viewer-header">
+        <div>
+          <h3>OrbitFabric Core command status</h3>
+          <p>
+            Runs only fixed Core commands and displays raw process output. Studio
+            does not interpret this output as validation diagnostics.
+          </p>
+        </div>
+        <span className="status-pill">Raw output</span>
+      </div>
+
+      <label className="command-label" htmlFor="core-executable">
+        OrbitFabric executable
+      </label>
+      <input
+        id="core-executable"
+        className="command-input"
+        type="text"
+        value={executable}
+        onChange={(event) => onExecutableChange(event.target.value)}
+        spellCheck={false}
+      />
+
+      <div className="command-actions">
+        <button type="button" onClick={onVersion} disabled={isRunning}>
+          Run --version
+        </button>
+        <button
+          type="button"
+          onClick={onInspectMission}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run inspect mission
+        </button>
+      </div>
+
+      {error ? <p className="error-text">{error}</p> : null}
+      {isRunning ? <p className="empty-text">Running Core command...</p> : null}
+      {result ? <CoreCommandOutput result={result} /> : null}
+    </section>
+  );
+}
+
+function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
+  return (
+    <div className="command-output">
+      <div className="command-meta">
+        <strong>{result.command}</strong>
+        <span>{result.args.join(" ") || "no args"}</span>
+        <span>{result.success ? "success" : "failed"}</span>
+        <span>exit code: {result.exit_code ?? "not available"}</span>
+      </div>
+      <pre>{result.stdout || "<empty stdout>"}</pre>
+      {result.stderr ? <pre className="stderr-output">{result.stderr}</pre> : null}
     </div>
   );
 }
