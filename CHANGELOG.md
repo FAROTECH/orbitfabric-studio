@@ -4,15 +4,19 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Viewer` development phase.
+OrbitFabric Studio is currently at `v0.1.0 - Read-only Mission Project Viewer` release candidate stage.
 
 ---
 
-## Unreleased
+## v0.1.0 - Read-only Mission Project Viewer
+
+First runnable OrbitFabric Studio application.
+
+This release implements the narrow `Open -> Inspect` loop without editing, without graph rendering and without independent model validation.
 
 ### Added
 
-- Accepted `ADR-0006 — v0.1 Implementation Stack and Read-only Shell`.
+- Accepted `ADR-0006 - v0.1 Implementation Stack and Read-only Shell`.
 - Confirmed the v0.1.0 stack: Tauri 2, React, TypeScript, Vite, Monaco Editor and controlled OrbitFabric CLI invocation.
 - Deferred React Flow until graph views become part of the roadmap scope.
 - Added `V0_1_RELEASE_CHECKLIST.md` as the release gate for the Read-only Mission Project Viewer.
@@ -37,32 +41,36 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 - Added controlled OrbitFabric Core command status commands.
 - Added raw stdout, stderr and exit-code display for fixed Core commands.
 - Added UI controls for `orbitfabric --version` and `orbitfabric inspect mission`.
+- Added v0.1.0 release notes.
 
 ### Changed
 
-- Updated the README status from the v0.0.0 Charter baseline to v0.1.0 development.
+- Updated the README status from the v0.0.0 Charter baseline to the v0.1.0 release candidate state.
 - Clarified that v0.1.0 is governed by the narrower `Open -> Inspect` implementation loop.
-- Updated the README with initial development commands and scaffold structure.
+- Updated the README with implemented capabilities, current structure and development commands.
 - Updated the development notes to describe the workspace inspection slice.
 - Updated the development notes to describe the read-only file viewer slice.
 - Updated the development notes to describe the controlled Core command status slice.
 - Updated Tauri capabilities to allow only the directory selection dialog in addition to the baseline core permission.
+- Completed the v0.1.0 release checklist.
 
 ### Removed
 
 - Removed the archived v0.0.0 completion checklist from the repository root.
 
-### Not Included Yet
+### Not Included
 
 - No validation diagnostics UI.
 - No graph rendering.
 - No scenario execution.
 - No generator workflow.
 - No editing.
+- No arbitrary command execution.
+- No arbitrary OrbitFabric CLI argument entry.
 
 ---
 
-## v0.0.0 — Studio Charter
+## v0.0.0 - Studio Charter
 
 Initial architecture-first baseline for OrbitFabric Studio.
 
@@ -89,11 +97,11 @@ It establishes the project foundation for a future visual engineering workbench 
 
 ### Architecture Decisions
 
-- `ADR-0001` — Separate Repository.
-- `ADR-0002` — Downstream Visual Workbench.
-- `ADR-0003` — Core-delegated Validation.
-- `ADR-0004` — Initial Technology Direction.
-- `ADR-0005` — Read-only First, Controlled Authoring Later.
+- `ADR-0001` - Separate Repository.
+- `ADR-0002` - Downstream Visual Workbench.
+- `ADR-0003` - Core-delegated Validation.
+- `ADR-0004` - Initial Technology Direction.
+- `ADR-0005` - Read-only First, Controlled Authoring Later.
 
 ### Core Principles Established
 
