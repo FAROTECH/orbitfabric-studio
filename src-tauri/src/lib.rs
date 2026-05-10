@@ -1,6 +1,7 @@
 use serde::Serialize;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 const MAX_TEXT_FILE_BYTES: u64 = 1_048_576;
 
@@ -56,6 +57,16 @@ struct FileContent {
     language: String,
     content: String,
     size_bytes: u64,
+}
+
+#[derive(Debug, Serialize)]
+struct CoreCommandResult {
+    command: String,
+    args: Vec<String>,
+    exit_code: Option<i32>,
+    success: bool,
+    stdout: String,
+    stderr: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -161,6 +172,43 @@ fn read_text_file(workspace_path: String, file_path: String) -> Result<FileConte
         language: language_for_path(&file),
         content,
         size_bytes: metadata.len(),
+    })
+}
+
+#[tauri::command]
+fn run_core_version(executable: String) -> Result<CoreCommandResult, String> {
+    run_core_command(executable, &["--version"])
+}
+
+#[tauri::command]
+fn run_core_inspect_mission(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    run_core_command(executable, &["inspect", "mission", mission_display.as_str()])
+}
+
+fn run_core_command(executable: String, args: &[&str]) -> Result<CoreCommandResult, String> {
+    let command = executable.trim();
+
+    if command.is_empty() {
+        return Err("OrbitFabric executable path is empty.".to_string());
+    }
+
+    let output = Command::new(command)
+        .args(args)
+        .output()
+        .map_err(|error| format!("Unable to execute OrbitFabric Core command: {error}"))?;
+
+    Ok(CoreCommandResult {
+        command: command.to_string(),
+        args: args.iter().map(|arg| (*arg).to_string()).collect(),
+        exit_code: output.status.code(),
+        success: output.status.success(),
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
     })
 }
 
@@ -334,7 +382,12 @@ fn display_path(path: &Path) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![inspect_workspace, read_text_file])
+        .invoke_handler(tauri::generate_handler![
+            inspect_workspace,
+            read_text_file,
+            run_core_version,
+            run_core_inspect_mission
+        ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
 }
