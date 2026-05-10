@@ -1,8 +1,9 @@
 import { useState } from "react";
+import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import type { ProjectEntry, WorkspaceInspection } from "./types/workspace";
+import type { FileContent, ProjectEntry, WorkspaceInspection } from "./types/workspace";
 
 const nonGoalItems = [
   "No editing",
@@ -14,11 +15,16 @@ const nonGoalItems = [
 
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
+  const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewerError, setViewerError] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
+  const [isReadingFile, setIsReadingFile] = useState(false);
 
   async function handleOpenWorkspace() {
     setError(null);
+    setViewerError(null);
+    setSelectedFile(null);
     setIsOpening(true);
 
     try {
@@ -41,6 +47,28 @@ function App() {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsOpening(false);
+    }
+  }
+
+  async function handleOpenFile(entry: ProjectEntry) {
+    if (!workspace || entry.kind !== "file") {
+      return;
+    }
+
+    setViewerError(null);
+    setIsReadingFile(true);
+
+    try {
+      const file = await invoke<FileContent>("read_text_file", {
+        workspacePath: workspace.selected_path,
+        filePath: entry.path,
+      });
+
+      setSelectedFile(file);
+    } catch (caught) {
+      setViewerError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsReadingFile(false);
     }
   }
 
@@ -87,7 +115,17 @@ function App() {
         </article>
       </section>
 
-      {workspace ? <WorkspacePanel workspace={workspace} /> : <EmptyState />}
+      {workspace ? (
+        <WorkspacePanel
+          workspace={workspace}
+          selectedFile={selectedFile}
+          viewerError={viewerError}
+          isReadingFile={isReadingFile}
+          onOpenFile={handleOpenFile}
+        />
+      ) : (
+        <EmptyState />
+      )}
     </main>
   );
 }
@@ -104,7 +142,19 @@ function EmptyState() {
   );
 }
 
-function WorkspacePanel({ workspace }: { workspace: WorkspaceInspection }) {
+function WorkspacePanel({
+  workspace,
+  selectedFile,
+  viewerError,
+  isReadingFile,
+  onOpenFile,
+}: {
+  workspace: WorkspaceInspection;
+  selectedFile: FileContent | null;
+  viewerError: string | null;
+  isReadingFile: boolean;
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
   return (
     <section className="inspection-panel" aria-label="Workspace inspection result">
       <div className="inspection-header">
@@ -132,25 +182,38 @@ function WorkspacePanel({ workspace }: { workspace: WorkspaceInspection }) {
         </div>
       ) : null}
 
-      <EntrySection
-        title="Source model files"
-        entries={workspace.source_model_files}
-        emptyText="No expected Mission Model files detected."
-      />
+      <div className="workspace-layout">
+        <div>
+          <EntrySection
+            title="Source model files"
+            entries={workspace.source_model_files}
+            emptyText="No expected Mission Model files detected."
+            onOpenFile={onOpenFile}
+          />
 
-      <MissingFiles files={workspace.missing_expected_source_files} />
+          <MissingFiles files={workspace.missing_expected_source_files} />
 
-      <EntrySection
-        title="Scenario sources"
-        entries={workspace.scenario_files}
-        emptyText="No scenario YAML files detected."
-      />
+          <EntrySection
+            title="Scenario sources"
+            entries={workspace.scenario_files}
+            emptyText="No scenario YAML files detected."
+            onOpenFile={onOpenFile}
+          />
 
-      <EntrySection
-        title="Generated and derived locations"
-        entries={workspace.generated_locations}
-        emptyText="No generated artifact locations detected."
-      />
+          <EntrySection
+            title="Generated and derived locations"
+            entries={workspace.generated_locations}
+            emptyText="No generated artifact locations detected."
+            onOpenFile={onOpenFile}
+          />
+        </div>
+
+        <FileViewer
+          selectedFile={selectedFile}
+          viewerError={viewerError}
+          isReadingFile={isReadingFile}
+        />
+      </div>
     </section>
   );
 }
@@ -168,10 +231,12 @@ function EntrySection({
   title,
   entries,
   emptyText,
+  onOpenFile,
 }: {
   title: string;
   entries: ProjectEntry[];
   emptyText: string;
+  onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
     <section className="entry-section">
@@ -180,10 +245,19 @@ function EntrySection({
         <ul className="entry-list">
           {entries.map((entry) => (
             <li key={entry.path}>
-              <span className="entry-name">{entry.name}</span>
-              <span className={`category-badge category-${entry.category}`}>
-                {formatCategory(entry.category)}
-              </span>
+              <div className="entry-main">
+                <button
+                  className="entry-button"
+                  type="button"
+                  onClick={() => onOpenFile(entry)}
+                  disabled={entry.kind !== "file"}
+                >
+                  {entry.name}
+                </button>
+                <span className={`category-badge category-${entry.category}`}>
+                  {formatCategory(entry.category)}
+                </span>
+              </div>
               <span className="entry-path">{entry.path}</span>
             </li>
           ))}
@@ -192,6 +266,64 @@ function EntrySection({
         <p className="empty-text">{emptyText}</p>
       )}
     </section>
+  );
+}
+
+function FileViewer({
+  selectedFile,
+  viewerError,
+  isReadingFile,
+}: {
+  selectedFile: FileContent | null;
+  viewerError: string | null;
+  isReadingFile: boolean;
+}) {
+  return (
+    <aside className="file-viewer" aria-label="Read-only file viewer">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Read-only file viewer</h3>
+          <p>
+            Files are displayed as text only. Studio does not edit or validate
+            their content.
+          </p>
+        </div>
+        <span className="status-pill">Read-only</span>
+      </div>
+
+      {viewerError ? <p className="error-text">{viewerError}</p> : null}
+
+      {isReadingFile ? <p className="empty-text">Reading file...</p> : null}
+
+      {!selectedFile && !isReadingFile ? (
+        <p className="empty-text">Select a source or scenario file to inspect it.</p>
+      ) : null}
+
+      {selectedFile ? (
+        <div className="editor-shell">
+          <div className="editor-meta">
+            <strong>{selectedFile.name}</strong>
+            <span>{selectedFile.size_bytes} bytes</span>
+            <span>{selectedFile.path}</span>
+          </div>
+          <Editor
+            height="520px"
+            language={selectedFile.language}
+            value={selectedFile.content}
+            theme="vs-dark"
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              fontSize: 13,
+              lineNumbers: "on",
+              scrollBeyondLastLine: false,
+              wordWrap: "on",
+              automaticLayout: true,
+            }}
+          />
+        </div>
+      ) : null}
+    </aside>
   );
 }
 
