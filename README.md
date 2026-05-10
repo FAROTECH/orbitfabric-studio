@@ -30,6 +30,50 @@ Studio v0.1.0 must prove that it can open a real OrbitFabric mission workspace a
 
 ---
 
+## Current Implementation State
+
+This branch contains the first minimal application scaffold:
+
+```text
+Tauri 2 desktop shell
+React frontend
+TypeScript configuration
+Vite build setup
+Minimal static Studio shell screen
+Minimal Tauri backend entrypoint
+Minimal default Tauri capability
+```
+
+The scaffold is intentionally not a workspace viewer yet.
+
+It does not yet implement local directory opening, filesystem traversal, file viewing, generated artifact discovery or OrbitFabric Core command invocation.
+
+Those capabilities are introduced only in later v0.1.0 slices.
+
+---
+
+## Development Commands
+
+After installing Node dependencies:
+
+```bash
+npm install
+npm run build
+npm run tauri:dev
+```
+
+The frontend-only development command is:
+
+```bash
+npm run dev
+```
+
+The initial Tauri capability grants only `core:default`.
+
+No filesystem, dialog or shell execution permissions are granted by the scaffold.
+
+---
+
 ## Relationship with OrbitFabric Core
 
 OrbitFabric Core is the Mission Data Contract framework.
@@ -183,7 +227,7 @@ Explicit v0.1.0 non-goals:
 
 ## Repository Structure
 
-Current documentation-first structure:
+Current scaffold structure:
 
 ```text
 orbitfabric-studio/
@@ -191,8 +235,23 @@ orbitfabric-studio/
 ├── ROADMAP.md
 ├── CHANGELOG.md
 ├── V0_1_RELEASE_CHECKLIST.md
-├── LICENSE
-├── .gitignore
+├── package.json
+├── index.html
+├── vite.config.ts
+├── tsconfig.json
+├── src/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── styles.css
+├── src-tauri/
+│   ├── Cargo.toml
+│   ├── build.rs
+│   ├── tauri.conf.json
+│   ├── capabilities/
+│   │   └── default.json
+│   └── src/
+│       ├── lib.rs
+│       └── main.rs
 ├── docs/
 │   ├── CHARTER.md
 │   ├── VISION.md
@@ -201,22 +260,13 @@ orbitfabric-studio/
 │   ├── DATA_BOUNDARIES.md
 │   ├── UX_PRINCIPLES.md
 │   ├── RISK_REGISTER.md
+│   ├── development/
+│   │   └── v0.1.0-scaffold.md
 │   ├── ADR/
-│   │   ├── 0001-separate-repository.md
-│   │   ├── 0002-downstream-visual-workbench.md
-│   │   ├── 0003-core-delegated-validation.md
-│   │   ├── 0004-initial-technology-direction.md
-│   │   ├── 0005-read-only-first-controlled-authoring-later.md
-│   │   └── 0006-v0-1-implementation-stack.md
 │   └── releases/
-│       └── v0.0.0-completion-checklist.md
 ├── mockups/
-│   └── README.md
 └── examples/
-    └── README.md
 ```
-
-Implementation directories will be introduced only as required by the v0.1.0 application slice.
 
 ---
 
@@ -272,6 +322,7 @@ Key documents:
 - [`docs/DATA_BOUNDARIES.md`](docs/DATA_BOUNDARIES.md)
 - [`docs/UX_PRINCIPLES.md`](docs/UX_PRINCIPLES.md)
 - [`docs/RISK_REGISTER.md`](docs/RISK_REGISTER.md)
+- [`docs/development/v0.1.0-scaffold.md`](docs/development/v0.1.0-scaffold.md)
 - [`V0_1_RELEASE_CHECKLIST.md`](V0_1_RELEASE_CHECKLIST.md)
 
 Architecture decisions are stored in [`docs/ADR/`](docs/ADR/).

@@ -17,15 +17,33 @@ OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Vie
 - Deferred React Flow until graph views become part of the roadmap scope.
 - Added `V0_1_RELEASE_CHECKLIST.md` as the release gate for the Read-only Mission Project Viewer.
 - Archived the v0.0.0 completion checklist under `docs/releases/`.
+- Added the first minimal Tauri 2 application scaffold.
+- Added a React, TypeScript and Vite frontend scaffold.
+- Added a static Studio shell screen that states the v0.1.0 boundaries.
+- Added a minimal Tauri backend entrypoint.
+- Added a minimal Tauri capability granting only `core:default`.
+- Added development notes for the v0.1.0 scaffold under `docs/development/`.
 
 ### Changed
 
 - Updated the README status from the v0.0.0 Charter baseline to v0.1.0 development.
 - Clarified that v0.1.0 is governed by the narrower `Open -> Inspect` implementation loop.
+- Updated the README with initial development commands and scaffold structure.
 
 ### Removed
 
 - Removed the archived v0.0.0 completion checklist from the repository root.
+
+### Not Included Yet
+
+- No local directory opening.
+- No filesystem traversal.
+- No file viewer.
+- No generated artifact discovery.
+- No OrbitFabric Core command invocation.
+- No validation diagnostics UI.
+- No graph rendering.
+- No editing.
 
 ---
 
