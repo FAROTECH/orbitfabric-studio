@@ -4,7 +4,28 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently in the `v0.0.0 — Studio Charter` phase.
+OrbitFabric Studio is currently in the `v0.1.0 — Read-only Mission Project Viewer` development phase.
+
+---
+
+## Unreleased
+
+### Added
+
+- Accepted `ADR-0006 — v0.1 Implementation Stack and Read-only Shell`.
+- Confirmed the v0.1.0 stack: Tauri 2, React, TypeScript, Vite, Monaco Editor and controlled OrbitFabric CLI invocation.
+- Deferred React Flow until graph views become part of the roadmap scope.
+- Added `V0_1_RELEASE_CHECKLIST.md` as the release gate for the Read-only Mission Project Viewer.
+- Archived the v0.0.0 completion checklist under `docs/releases/`.
+
+### Changed
+
+- Updated the README status from the v0.0.0 Charter baseline to v0.1.0 development.
+- Clarified that v0.1.0 is governed by the narrower `Open -> Inspect` implementation loop.
+
+### Removed
+
+- Removed the archived v0.0.0 completion checklist from the repository root.
 
 ---
 
