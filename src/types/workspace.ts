@@ -32,3 +32,12 @@ export interface FileContent {
   content: string;
   size_bytes: number;
 }
+
+export interface CoreCommandResult {
+  command: string;
+  args: string[];
+  exit_code: number | null;
+  success: boolean;
+  stdout: string;
+  stderr: string;
+}
