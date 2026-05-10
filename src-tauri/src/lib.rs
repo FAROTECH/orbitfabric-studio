@@ -2,6 +2,8 @@ use serde::Serialize;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+const MAX_TEXT_FILE_BYTES: u64 = 1_048_576;
+
 const EXPECTED_MISSION_FILES: &[&str] = &[
     "spacecraft.yaml",
     "subsystems.yaml",
@@ -45,6 +47,15 @@ struct ProjectEntry {
     path: String,
     kind: EntryKind,
     category: EntryCategory,
+}
+
+#[derive(Debug, Serialize)]
+struct FileContent {
+    name: String,
+    path: String,
+    language: String,
+    content: String,
+    size_bytes: u64,
 }
 
 #[derive(Debug, Serialize)]
@@ -114,6 +125,89 @@ fn inspect_workspace(path: String) -> Result<WorkspaceInspection, String> {
         generated_locations,
         warnings,
     })
+}
+
+#[tauri::command]
+fn read_text_file(workspace_path: String, file_path: String) -> Result<FileContent, String> {
+    let workspace = canonicalize_existing_dir(&workspace_path)?;
+    let file = canonicalize_existing_file(&file_path)?;
+
+    if !file.starts_with(&workspace) {
+        return Err("Requested file is outside the selected workspace.".to_string());
+    }
+
+    let metadata = fs::metadata(&file).map_err(|error| format!("Unable to read file metadata: {error}"))?;
+
+    if metadata.len() > MAX_TEXT_FILE_BYTES {
+        return Err(format!(
+            "File is too large for the read-only viewer. Maximum supported size is {MAX_TEXT_FILE_BYTES} bytes."
+        ));
+    }
+
+    if !is_supported_text_file(&file) {
+        return Err("File type is not supported by the read-only text viewer.".to_string());
+    }
+
+    let content = fs::read_to_string(&file).map_err(|error| format!("Unable to read file as UTF-8 text: {error}"))?;
+    let name = file
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("selected file")
+        .to_string();
+
+    Ok(FileContent {
+        name,
+        path: display_path(&file),
+        language: language_for_path(&file),
+        content,
+        size_bytes: metadata.len(),
+    })
+}
+
+fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
+    let candidate = PathBuf::from(path);
+
+    if !candidate.is_dir() {
+        return Err("Workspace path is not a directory.".to_string());
+    }
+
+    candidate
+        .canonicalize()
+        .map_err(|error| format!("Unable to resolve workspace path: {error}"))
+}
+
+fn canonicalize_existing_file(path: &str) -> Result<PathBuf, String> {
+    let candidate = PathBuf::from(path);
+
+    if !candidate.is_file() {
+        return Err("Requested path is not a file.".to_string());
+    }
+
+    candidate
+        .canonicalize()
+        .map_err(|error| format!("Unable to resolve file path: {error}"))
+}
+
+fn is_supported_text_file(path: &Path) -> bool {
+    match path.extension().and_then(|value| value.to_str()) {
+        Some("yaml" | "yml" | "json" | "md" | "txt" | "log" | "hpp" | "cpp" | "h" | "c") => true,
+        _ => path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .is_some_and(|name| name == "CMakeLists.txt"),
+    }
+}
+
+fn language_for_path(path: &Path) -> String {
+    match path.extension().and_then(|value| value.to_str()) {
+        Some("yaml" | "yml") => "yaml",
+        Some("json") => "json",
+        Some("md") => "markdown",
+        Some("hpp" | "cpp" | "h" | "c") => "cpp",
+        Some("log" | "txt") => "plaintext",
+        _ => "plaintext",
+    }
+    .to_string()
 }
 
 fn detect_mission_dir(selected: &Path) -> Option<PathBuf> {
@@ -240,7 +334,7 @@ fn display_path(path: &Path) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![inspect_workspace])
+        .invoke_handler(tauri::generate_handler![inspect_workspace, read_text_file])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
 }
