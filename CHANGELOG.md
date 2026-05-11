@@ -4,7 +4,60 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.1.0 - Read-only Mission Project Viewer` release candidate stage.
+OrbitFabric Studio is currently at `v0.1.0 - Read-only Mission Project Viewer`.
+
+The next planned milestone is `v0.2.0 - Validation and Diagnostics Workbench`.
+
+---
+
+## Unreleased - v0.2.0 - Validation and Diagnostics Workbench
+
+Planning baseline for the Core-derived validation and diagnostics milestone.
+
+This milestone will extend the narrow v0.1.0 `Open -> Inspect` loop toward:
+
+```text
+Open -> Inspect -> Validate -> Understand
+```
+
+The v0.2.0 implementation must remain downstream from OrbitFabric Core.
+
+Studio may invoke fixed Core validation commands and render Core-derived reports.
+
+Studio must not become an independent validator or semantic Mission Model parser.
+
+### Planned
+
+- Add a fixed Core lint invocation path for `orbitfabric lint <mission_dir> --json <path>`.
+- Use the OrbitFabric Core JSON lint report as the only structured diagnostics source.
+- Display lint result, summary counts and findings as Core-derived diagnostics.
+- Preserve raw stdout, stderr and exit-code visibility.
+- Distinguish Studio structural inspection from Core validation/lint result.
+- Distinguish Core JSON reports from source Mission Model files.
+- Link diagnostics to files only when Core provides file references and they are safely resolvable inside the selected workspace.
+
+### Scope Boundaries
+
+- No editing.
+- No graph view.
+- No scenario runner.
+- No generator workflow.
+- No ground artifact generation UI.
+- No ground artifact explorer.
+- No arbitrary command execution.
+- No arbitrary Core CLI argument entry.
+- No semantic YAML parsing inside Studio.
+- No duplicate validation engine.
+- No stdout diagnostics scraping when JSON exists.
+- No quick fixes or suppressions.
+
+### Core Baseline
+
+- OrbitFabric Core v0.8.0 is the planning baseline.
+- `orbitfabric --version` remains a fixed status command.
+- `orbitfabric inspect mission <mission_dir>` remains a fixed inspection command.
+- `orbitfabric lint <mission_dir> --json <path>` is the validation/lint surface for v0.2.0.
+- `orbitfabric gen ground <mission_dir>` exists in Core v0.8.0, but remains out of scope for Studio v0.2.0.
 
 ---
 
