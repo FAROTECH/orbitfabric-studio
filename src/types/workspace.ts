@@ -40,4 +40,6 @@ export interface CoreCommandResult {
   success: boolean;
   stdout: string;
   stderr: string;
+  json_report_path: string | null;
+  json_report_available: boolean;
 }
