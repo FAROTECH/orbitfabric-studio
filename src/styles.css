@@ -307,6 +307,22 @@ h3 {
   cursor: default;
 }
 
+.inline-link-button {
+  border: 0;
+  padding: 0;
+  color: #67e8f9;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.inline-link-button:hover,
+.inline-link-button:focus-visible {
+  color: #cffafe;
+}
+
 .entry-path {
   color: #94a3b8;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
