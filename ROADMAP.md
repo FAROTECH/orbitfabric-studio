@@ -215,7 +215,7 @@ v0.1.0 is complete only when Studio can:
 
 # v0.2.0 — Validation and Diagnostics Workbench
 
-Status: Release readiness candidate  
+Status: Completed  
 Nature: validation visibility slice  
 Primary loop: Open -> Inspect -> Validate -> Understand
 
