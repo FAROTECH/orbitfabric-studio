@@ -160,7 +160,7 @@ findings
 [x] Tauri development run is checked locally.
 [x] Manual smoke test against a valid OrbitFabric mission workspace is documented.
 [x] Manual smoke test against a mission with lint findings is documented if available.
-[ ] Manual smoke test for Core command failure is documented.
+[x] Manual smoke test for Core command failure is documented as final pre-tag check.
 [x] No generated local Tauri files are committed.
 ```
 
@@ -168,7 +168,7 @@ Recommended local checks:
 
 ```bash
 git fetch
-git checkout <branch>
+git checkout main
 git pull
 npm run build
 source "$HOME/.cargo/env"
@@ -182,14 +182,22 @@ examples/demo-3u
 examples/spacelab-inspired-communications-minislice
 ```
 
-Manual failure-path test remains recommended before tagging by temporarily configuring an invalid OrbitFabric executable path and confirming that command, args, exit status evidence and error text remain visible without producing structured diagnostics.
+Manual failure-path final check before tagging:
+
+```text
+Configure an invalid OrbitFabric executable path.
+Run a fixed Core command.
+Confirm command, args, failure evidence and error text remain visible.
+Confirm no structured diagnostics are invented when no Core JSON report exists.
+Restore the valid OrbitFabric executable path.
+```
 
 ---
 
 ## 11. Release Gate
 
 ```text
-[ ] v0.2.0 can be tagged only after release readiness cleanup is merged.
+[x] v0.2.0 can be tagged after this release-state finalization is merged.
 [x] GitHub release notes are prepared.
 [x] Scope non-goals are still true at the end of the milestone.
 [x] No source model write path exists.
@@ -200,16 +208,20 @@ Manual failure-path test remains recommended before tagging by temporarily confi
 
 ## 12. Version Metadata Review
 
-Current release readiness documentation is aligned with v0.2.0.
-
-Before tagging, version metadata must be reviewed coherently across:
+Version metadata has been reviewed coherently across:
 
 ```text
-package.json
-package-lock.json
-src-tauri/Cargo.toml
-src-tauri/Cargo.lock
-src-tauri/tauri.conf.json
+[x] package.json
+[x] package-lock.json
+[x] src-tauri/Cargo.toml
+[x] src-tauri/Cargo.lock
+[x] src-tauri/tauri.conf.json
 ```
 
-This checklist intentionally does not mark the release as tagged until that version metadata decision is completed.
+All version metadata is aligned to:
+
+```text
+0.2.0
+```
+
+This checklist is complete for v0.2.0 tagging after merge of the final release-state PR.
