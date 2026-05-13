@@ -16,7 +16,9 @@ Studio is where mission semantics become inspectable.
 v0.2.0 - Validation and Diagnostics Workbench
 ```
 
-The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer` and `v0.2.0 - Validation and Diagnostics Workbench` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter` and `v0.1.0 - Read-only Mission Project Viewer` baselines have been created, tagged and released.
+
+The `v0.2.0 - Validation and Diagnostics Workbench` baseline is complete and ready for final tagging.
 
 The current implementation loop is:
 
