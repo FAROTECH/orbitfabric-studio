@@ -193,6 +193,10 @@ h3 {
   text-transform: uppercase;
 }
 
+.category-badge {
+  flex-shrink: 0;
+}
+
 .status-pill {
   color: #cffafe;
   background: rgba(8, 145, 178, 0.18);
@@ -264,6 +268,7 @@ h3 {
 
 .entry-list li {
   display: grid;
+  min-width: 0;
   gap: 8px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 14px;
@@ -273,18 +278,22 @@ h3 {
 
 .entry-main {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
 .entry-button {
+  min-width: 0;
   border: 0;
   padding: 0;
   color: #f8fafc;
   background: transparent;
   font-weight: 800;
   text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   cursor: pointer;
 }
 
