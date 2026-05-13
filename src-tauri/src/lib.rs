@@ -69,6 +69,7 @@ struct CoreCommandResult {
     stderr: String,
     json_report_path: Option<String>,
     json_report_available: bool,
+    json_report_content: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -229,6 +230,11 @@ fn run_core_command(
         .as_ref()
         .is_some_and(|path| path.is_file());
 
+    let json_report_content = match &json_report_path {
+        Some(path) if path.is_file() => fs::read_to_string(path).ok(),
+        _ => None,
+    };
+
     Ok(CoreCommandResult {
         command: command.to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
@@ -238,6 +244,7 @@ fn run_core_command(
         stderr: String::from_utf8_lossy(&output.stderr).to_string(),
         json_report_path: json_report_path.as_ref().map(|path| display_path(path)),
         json_report_available,
+        json_report_content,
     })
 }
 
