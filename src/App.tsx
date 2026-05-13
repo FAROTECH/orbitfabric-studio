@@ -5,6 +5,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 import type {
   CoreCommandResult,
+  CoreLintFinding,
   CoreLintReport,
   FileContent,
   ProjectEntry,
@@ -347,7 +348,7 @@ function CoreStatusPanel({
           <p>
             Runs only fixed Core commands and displays raw process output. The
             lint command writes a Core JSON report as a derived report. This
-            slice separates the Core validation summary from raw output.
+            slice displays Core-provided findings without file linking.
           </p>
         </div>
         <span className="status-pill">Raw output</span>
@@ -471,8 +472,54 @@ function CoreValidationSummary({
         <SummaryItem label="Info" value={String(report.summary.info)} />
         <SummaryItem label="Findings" value={String(report.findings.length)} />
       </div>
+
+      <CoreFindingsList findings={report.findings} />
     </section>
   );
+}
+
+function CoreFindingsList({ findings }: { findings: CoreLintFinding[] }) {
+  if (findings.length === 0) {
+    return (
+      <section className="entry-section muted-section" aria-label="Core findings list">
+        <h3>Core findings</h3>
+        <p>No findings reported by OrbitFabric Core.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="entry-section" aria-label="Core findings list">
+      <h3>Core findings</h3>
+      <p>
+        Read-only list of findings provided by OrbitFabric Core. Studio does not
+        infer missing fields and does not create file links in this slice.
+      </p>
+      <ul className="entry-list">
+        {findings.map((finding, index) => (
+          <li key={`${finding.code}-${finding.object_id ?? index}`}>
+            <div className="entry-main">
+              <span className={`category-badge category-${severityCategory(finding.severity)}`}>
+                {finding.severity}
+              </span>
+              <strong>{finding.code}</strong>
+            </div>
+            <p>{finding.message}</p>
+            <div className="command-meta">
+              {finding.file ? <span>file: {finding.file}</span> : null}
+              {finding.domain ? <span>domain: {finding.domain}</span> : null}
+              {finding.object_id ? <span>object: {finding.object_id}</span> : null}
+            </div>
+            {finding.suggestion ? <p>Suggestion: {finding.suggestion}</p> : null}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function severityCategory(severity: string): ProjectEntry["category"] {
+  return severity === "ERROR" ? "derivedReport" : "generatedOutput";
 }
 
 function parseCoreLintReport(content: string | null): CoreLintReport | null {
