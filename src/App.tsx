@@ -268,10 +268,12 @@ function WorkspacePanel({
         error={coreError}
         isRunning={isRunningCoreCommand}
         hasMissionDir={Boolean(workspace.mission_dir)}
+        sourceModelFiles={workspace.source_model_files}
         onExecutableChange={onCoreExecutableChange}
         onVersion={onCoreVersion}
         onInspectMission={onCoreInspectMission}
         onLintMission={onCoreLintMission}
+        onOpenFile={onOpenFile}
       />
 
       <div className="workspace-layout">
@@ -325,20 +327,24 @@ function CoreStatusPanel({
   error,
   isRunning,
   hasMissionDir,
+  sourceModelFiles,
   onExecutableChange,
   onVersion,
   onInspectMission,
   onLintMission,
+  onOpenFile,
 }: {
   executable: string;
   result: CoreCommandResult | null;
   error: string | null;
   isRunning: boolean;
   hasMissionDir: boolean;
+  sourceModelFiles: ProjectEntry[];
   onExecutableChange: (value: string) => void;
   onVersion: () => void;
   onInspectMission: () => void;
   onLintMission: () => void;
+  onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
     <section className="core-panel" aria-label="OrbitFabric Core command status">
@@ -348,7 +354,7 @@ function CoreStatusPanel({
           <p>
             Runs only fixed Core commands and displays raw process output. The
             lint command writes a Core JSON report as a derived report. This
-            slice displays Core-provided findings without file linking.
+            slice opens Core-referenced source files only when the match is safe.
           </p>
         </div>
         <span className="status-pill">Raw output</span>
@@ -388,12 +394,26 @@ function CoreStatusPanel({
 
       {error ? <p className="error-text">{error}</p> : null}
       {isRunning ? <p className="empty-text">Running Core command...</p> : null}
-      {result ? <CoreCommandOutput result={result} /> : null}
+      {result ? (
+        <CoreCommandOutput
+          result={result}
+          sourceModelFiles={sourceModelFiles}
+          onOpenFile={onOpenFile}
+        />
+      ) : null}
     </section>
   );
 }
 
-function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
+function CoreCommandOutput({
+  result,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  result: CoreCommandResult;
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
   const parsedReport = parseCoreLintReport(result.json_report_content);
 
   return (
@@ -415,6 +435,8 @@ function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
         <CoreValidationSummary
           report={parsedReport}
           rawContent={result.json_report_content}
+          sourceModelFiles={sourceModelFiles}
+          onOpenFile={onOpenFile}
         />
       ) : null}
       <pre>{result.stdout || "<empty stdout>"}</pre>
@@ -426,9 +448,13 @@ function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
 function CoreValidationSummary({
   report,
   rawContent,
+  sourceModelFiles,
+  onOpenFile,
 }: {
   report: CoreLintReport | null;
   rawContent: string;
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
 }) {
   if (!report) {
     return (
@@ -473,12 +499,24 @@ function CoreValidationSummary({
         <SummaryItem label="Findings" value={String(report.findings.length)} />
       </div>
 
-      <CoreFindingsList findings={report.findings} />
+      <CoreFindingsList
+        findings={report.findings}
+        sourceModelFiles={sourceModelFiles}
+        onOpenFile={onOpenFile}
+      />
     </section>
   );
 }
 
-function CoreFindingsList({ findings }: { findings: CoreLintFinding[] }) {
+function CoreFindingsList({
+  findings,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  findings: CoreLintFinding[];
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
   if (findings.length === 0) {
     return (
       <section className="entry-section muted-section" aria-label="Core findings list">
@@ -492,29 +530,62 @@ function CoreFindingsList({ findings }: { findings: CoreLintFinding[] }) {
     <section className="entry-section" aria-label="Core findings list">
       <h3>Core findings</h3>
       <p>
-        Read-only list of findings provided by OrbitFabric Core. Studio does not
-        infer missing fields and does not create file links in this slice.
+        Read-only list of findings provided by OrbitFabric Core. File references
+        are opened only when they match a known source model file in this workspace.
       </p>
       <ul className="entry-list">
-        {findings.map((finding, index) => (
-          <li key={`${finding.code}-${finding.object_id ?? index}`}>
-            <div className="entry-main">
-              <span className={`category-badge category-${severityCategory(finding.severity)}`}>
-                {finding.severity}
-              </span>
-              <strong>{finding.code}</strong>
-            </div>
-            <p>{finding.message}</p>
-            <div className="command-meta">
-              {finding.file ? <span>file: {finding.file}</span> : null}
-              {finding.domain ? <span>domain: {finding.domain}</span> : null}
-              {finding.object_id ? <span>object: {finding.object_id}</span> : null}
-            </div>
-            {finding.suggestion ? <p>Suggestion: {finding.suggestion}</p> : null}
-          </li>
-        ))}
+        {findings.map((finding, index) => {
+          const linkedFile = findSourceModelFile(finding.file, sourceModelFiles);
+
+          return (
+            <li key={`${finding.code}-${finding.object_id ?? index}`}>
+              <div className="entry-main">
+                <span className={`category-badge category-${severityCategory(finding.severity)}`}>
+                  {finding.severity}
+                </span>
+                <strong>{finding.code}</strong>
+              </div>
+              <p>{finding.message}</p>
+              <div className="command-meta">
+                {finding.file ? (
+                  <span>
+                    file: {linkedFile ? (
+                      <button
+                        className="inline-link-button"
+                        type="button"
+                        onClick={() => onOpenFile(linkedFile)}
+                      >
+                        {finding.file}
+                      </button>
+                    ) : (
+                      finding.file
+                    )}
+                  </span>
+                ) : null}
+                {finding.domain ? <span>domain: {finding.domain}</span> : null}
+                {finding.object_id ? <span>object: {finding.object_id}</span> : null}
+              </div>
+              {finding.suggestion ? <p>Suggestion: {finding.suggestion}</p> : null}
+            </li>
+          );
+        })}
       </ul>
     </section>
+  );
+}
+
+function findSourceModelFile(
+  findingFile: string | null,
+  sourceModelFiles: ProjectEntry[],
+): ProjectEntry | null {
+  if (!findingFile) {
+    return null;
+  }
+
+  return (
+    sourceModelFiles.find(
+      (entry) => entry.kind === "file" && entry.name === findingFile,
+    ) ?? null
   );
 }
 
