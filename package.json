@@ -1,7 +1,7 @@
 {
   "name": "orbitfabric-studio",
   "private": true,
-  "version": "0.1.0-dev.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Local-first visual engineering workbench for OrbitFabric Mission Data Contracts.",
   "scripts": {
