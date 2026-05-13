@@ -94,6 +94,7 @@ A user must always understand which category they are looking at.
 Planned        = part of the intended roadmap
 Experimental   = may change significantly
 Stable target  = expected to become part of the v1.0 workbench
+Completed      = implemented and documented
 Deferred       = intentionally postponed
 Out of scope   = not part of Studio identity
 ```
@@ -102,9 +103,9 @@ Out of scope   = not part of Studio identity
 
 # v0.0.0 — Studio Charter
 
-Status: Planned initial release  
+Status: Completed  
 Nature: documentation-only  
-Implementation: none
+Implementation: released
 
 ## Goal
 
@@ -156,7 +157,7 @@ v0.0.0 is complete only when:
 
 # v0.1.0 — Read-only Mission Project Viewer
 
-Status: Planned  
+Status: Completed  
 Nature: first application slice  
 Primary loop: Open -> Inspect
 
@@ -166,16 +167,18 @@ Open an existing OrbitFabric mission workspace and inspect its structure without
 
 This release proves that Studio can operate on a real OrbitFabric project without becoming a second model engine.
 
-## Candidate Capabilities
+## Implemented Capabilities
 
 - open a local OrbitFabric mission directory
 - detect expected Mission Model files
-- display a project tree
-- display YAML files in read-only mode
+- display source files in read-only mode
+- detect scenario source files
 - detect generated artifact directories
-- display basic project metadata where available
-- show available reports and generated outputs
-- invoke OrbitFabric Core through a controlled local command path
+- show generated and derived locations
+- show source, scenario, derived and generated labels
+- invoke OrbitFabric Core through controlled local command paths
+- run `orbitfabric --version`
+- run `orbitfabric inspect mission <mission_dir>`
 - show raw command result status
 
 ## OrbitFabric Core Surfaces Consumed
@@ -184,7 +187,7 @@ This release proves that Studio can operate on a real OrbitFabric project withou
 - Mission Model files
 - generated reports, if already present
 - generated documentation, if already present
-- `orbitfabric lint` command availability
+- fixed Core status and inspection commands
 
 ## Explicit Non-goals
 
@@ -212,9 +215,9 @@ v0.1.0 is complete only when Studio can:
 
 # v0.2.0 — Validation and Diagnostics Workbench
 
-Status: Planned  
+Status: Release readiness candidate  
 Nature: validation visibility slice  
-Primary loop: Open -> Validate -> Inspect Diagnostics
+Primary loop: Open -> Inspect -> Validate -> Understand
 
 ## Goal
 
@@ -222,36 +225,45 @@ Make OrbitFabric validation results first-class and inspectable.
 
 This release turns validation from a terminal-only operation into a structured engineering surface.
 
-## Candidate Capabilities
+## Implemented Capabilities
 
-- run validation on demand
-- display validation pass/fail status
-- display structured diagnostics where available
-- group diagnostics by file
-- group diagnostics by domain
-- group diagnostics by severity
-- display lint/report JSON outputs
-- open the related source file where location metadata exists
-- distinguish source model from derived validation report
-- preserve raw output access for transparency
+- run Core lint on demand through a fixed command
+- display validation pass, warning or failure status from Core JSON
+- display Core JSON report path and availability
+- display structured diagnostics from the Core JSON lint report
+- display errors, warnings and info counts
+- display finding severity, code, message, file, domain, object ID and suggestion
+- open related source model files read-only when the Core-provided file reference exactly matches a known source model file
+- preserve raw stdout, stderr and exit code access for transparency
+- distinguish source model files from derived validation reports
+- distinguish Studio structural inspection from Core validation result
 
 ## OrbitFabric Core Surfaces Consumed
 
-- validation command
+- `orbitfabric lint <mission_dir> --json <path>`
 - JSON lint report
 - diagnostic messages
-- rule identifiers, if available
-- file and line references, if available
-- model summary output, if available
+- rule identifiers
+- file references when available
+- validation result
+- summary counts
+- model and Core version fields
 
 ## Explicit Non-goals
 
 - no independent validation rules
 - no hidden diagnostic inference
+- no stdout diagnostics scraping when JSON exists
 - no automatic fixes
+- no suppressions
 - no model mutation
 - no editing
-- no suppression mechanism unless supported by Core
+- no graph view
+- no scenario runner
+- no generator workflow
+- no ground artifact generation UI
+- no ground artifact explorer
+- no line or column navigation unless Core later provides line or column metadata
 
 ## Exit Criteria
 
