@@ -67,6 +67,8 @@ struct CoreCommandResult {
     success: bool,
     stdout: String,
     stderr: String,
+    json_report_path: Option<String>,
+    json_report_available: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -177,7 +179,7 @@ fn read_text_file(workspace_path: String, file_path: String) -> Result<FileConte
 
 #[tauri::command]
 fn run_core_version(executable: String) -> Result<CoreCommandResult, String> {
-    run_core_command(executable, &["--version"])
+    run_core_command(executable, &["--version"], None)
 }
 
 #[tauri::command]
@@ -187,10 +189,31 @@ fn run_core_inspect_mission(
 ) -> Result<CoreCommandResult, String> {
     let mission = canonicalize_existing_dir(&mission_dir)?;
     let mission_display = display_path(&mission);
-    run_core_command(executable, &["inspect", "mission", mission_display.as_str()])
+    run_core_command(executable, &["inspect", "mission", mission_display.as_str()], None)
 }
 
-fn run_core_command(executable: String, args: &[&str]) -> Result<CoreCommandResult, String> {
+#[tauri::command]
+fn run_core_lint_mission(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    let report_path = lint_report_path_for_mission(&mission)?;
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &["lint", mission_display.as_str(), "--json", report_display.as_str()],
+        Some(report_path),
+    )
+}
+
+fn run_core_command(
+    executable: String,
+    args: &[&str],
+    json_report_path: Option<PathBuf>,
+) -> Result<CoreCommandResult, String> {
     let command = executable.trim();
 
     if command.is_empty() {
@@ -202,6 +225,10 @@ fn run_core_command(executable: String, args: &[&str]) -> Result<CoreCommandResu
         .output()
         .map_err(|error| format!("Unable to execute OrbitFabric Core command: {error}"))?;
 
+    let json_report_available = json_report_path
+        .as_ref()
+        .is_some_and(|path| path.is_file());
+
     Ok(CoreCommandResult {
         command: command.to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
@@ -209,7 +236,19 @@ fn run_core_command(executable: String, args: &[&str]) -> Result<CoreCommandResu
         success: output.status.success(),
         stdout: String::from_utf8_lossy(&output.stdout).to_string(),
         stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+        json_report_path: json_report_path.as_ref().map(|path| display_path(path)),
+        json_report_available,
     })
+}
+
+fn lint_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    let workspace = mission.parent().unwrap_or(mission);
+    let reports_dir = workspace.join("generated").join("reports");
+
+    fs::create_dir_all(&reports_dir)
+        .map_err(|error| format!("Unable to create Studio lint report directory: {error}"))?;
+
+    Ok(reports_dir.join("orbitfabric_studio_lint_report.json"))
 }
 
 fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
@@ -386,7 +425,8 @@ pub fn run() {
             inspect_workspace,
             read_text_file,
             run_core_version,
-            run_core_inspect_mission
+            run_core_inspect_mission,
+            run_core_lint_mission
         ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
