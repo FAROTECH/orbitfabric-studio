@@ -13,12 +13,12 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-v0.2.0 - Validation and Diagnostics Workbench, release readiness candidate
+v0.2.0 - Validation and Diagnostics Workbench
 ```
 
-The `v0.0.0 - Studio Charter` and `v0.1.0 - Read-only Mission Project Viewer` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer` and `v0.2.0 - Validation and Diagnostics Workbench` baselines have been created, tagged and released.
 
-The current implementation milestone extends the product loop to:
+The current implementation loop is:
 
 ```text
 Open -> Inspect -> Validate -> Understand
