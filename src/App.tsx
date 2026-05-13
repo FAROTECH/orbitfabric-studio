@@ -99,6 +99,18 @@ function App() {
     });
   }
 
+  async function handleCoreLintMission() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core lint.");
+      return;
+    }
+
+    await runCoreCommand("run_core_lint_mission", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+  }
+
   async function runCoreCommand(commandName: string, payload: Record<string, string>) {
     setCoreError(null);
     setCoreResult(null);
@@ -170,6 +182,7 @@ function App() {
           onCoreExecutableChange={setCoreExecutable}
           onCoreVersion={handleCoreVersion}
           onCoreInspectMission={handleCoreInspectMission}
+          onCoreLintMission={handleCoreLintMission}
           onOpenFile={handleOpenFile}
         />
       ) : (
@@ -203,6 +216,7 @@ function WorkspacePanel({
   onCoreExecutableChange,
   onCoreVersion,
   onCoreInspectMission,
+  onCoreLintMission,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -216,6 +230,7 @@ function WorkspacePanel({
   onCoreExecutableChange: (value: string) => void;
   onCoreVersion: () => void;
   onCoreInspectMission: () => void;
+  onCoreLintMission: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -254,6 +269,7 @@ function WorkspacePanel({
         onExecutableChange={onCoreExecutableChange}
         onVersion={onCoreVersion}
         onInspectMission={onCoreInspectMission}
+        onLintMission={onCoreLintMission}
       />
 
       <div className="workspace-layout">
@@ -310,6 +326,7 @@ function CoreStatusPanel({
   onExecutableChange,
   onVersion,
   onInspectMission,
+  onLintMission,
 }: {
   executable: string;
   result: CoreCommandResult | null;
@@ -319,6 +336,7 @@ function CoreStatusPanel({
   onExecutableChange: (value: string) => void;
   onVersion: () => void;
   onInspectMission: () => void;
+  onLintMission: () => void;
 }) {
   return (
     <section className="core-panel" aria-label="OrbitFabric Core command status">
@@ -326,8 +344,9 @@ function CoreStatusPanel({
         <div>
           <h3>OrbitFabric Core command status</h3>
           <p>
-            Runs only fixed Core commands and displays raw process output. Studio
-            does not interpret this output as validation diagnostics.
+            Runs only fixed Core commands and displays raw process output. The
+            lint command writes a Core JSON report as a derived report. This
+            slice does not parse diagnostics yet.
           </p>
         </div>
         <span className="status-pill">Raw output</span>
@@ -356,6 +375,13 @@ function CoreStatusPanel({
         >
           Run inspect mission
         </button>
+        <button
+          type="button"
+          onClick={onLintMission}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run lint mission
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -374,6 +400,13 @@ function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
         <span>{result.success ? "success" : "failed"}</span>
         <span>exit code: {result.exit_code ?? "not available"}</span>
       </div>
+      {result.json_report_path ? (
+        <div className="command-meta">
+          <strong>Core JSON report</strong>
+          <span>{result.json_report_available ? "available" : "not available"}</span>
+          <span>{result.json_report_path}</span>
+        </div>
+      ) : null}
       <pre>{result.stdout || "<empty stdout>"}</pre>
       {result.stderr ? <pre className="stderr-output">{result.stderr}</pre> : null}
     </div>
