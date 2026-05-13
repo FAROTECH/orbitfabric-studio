@@ -5,6 +5,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 import type {
   CoreCommandResult,
+  CoreLintReport,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
@@ -346,7 +347,7 @@ function CoreStatusPanel({
           <p>
             Runs only fixed Core commands and displays raw process output. The
             lint command writes a Core JSON report as a derived report. This
-            slice does not parse diagnostics yet.
+            slice reads the report shape but does not interpret diagnostics yet.
           </p>
         </div>
         <span className="status-pill">Raw output</span>
@@ -392,6 +393,8 @@ function CoreStatusPanel({
 }
 
 function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
+  const parsedReport = parseCoreLintReport(result.json_report_content);
+
   return (
     <div className="command-output">
       <div className="command-meta">
@@ -407,10 +410,80 @@ function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
           <span>{result.json_report_path}</span>
         </div>
       ) : null}
+      {result.json_report_content ? (
+        <CoreLintReportPreview
+          report={parsedReport}
+          rawContent={result.json_report_content}
+        />
+      ) : null}
       <pre>{result.stdout || "<empty stdout>"}</pre>
       {result.stderr ? <pre className="stderr-output">{result.stderr}</pre> : null}
     </div>
   );
+}
+
+function CoreLintReportPreview({
+  report,
+  rawContent,
+}: {
+  report: CoreLintReport | null;
+  rawContent: string;
+}) {
+  if (!report) {
+    return (
+      <div className="command-meta">
+        <strong>Core JSON report content</strong>
+        <span>available but not recognized as current lint report shape</span>
+        <span>{rawContent.length} bytes</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="command-output">
+      <div className="command-meta">
+        <strong>Typed Core lint report</strong>
+        <span>{report.tool}</span>
+        <span>Core {report.version}</span>
+        <span>mission: {report.mission}</span>
+        <span>model: {report.model_version}</span>
+        <span>result: {report.result}</span>
+      </div>
+      <div className="command-meta">
+        <strong>Report summary</strong>
+        <span>errors: {report.summary.errors}</span>
+        <span>warnings: {report.summary.warnings}</span>
+        <span>info: {report.summary.info}</span>
+        <span>findings: {report.findings.length}</span>
+      </div>
+    </div>
+  );
+}
+
+function parseCoreLintReport(content: string | null): CoreLintReport | null {
+  if (!content) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(content) as Partial<CoreLintReport>;
+
+    if (
+      typeof parsed.tool !== "string" ||
+      typeof parsed.version !== "string" ||
+      typeof parsed.mission !== "string" ||
+      typeof parsed.model_version !== "string" ||
+      typeof parsed.result !== "string" ||
+      !parsed.summary ||
+      !Array.isArray(parsed.findings)
+    ) {
+      return null;
+    }
+
+    return parsed as CoreLintReport;
+  } catch {
+    return null;
+  }
 }
 
 function EntrySection({

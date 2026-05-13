@@ -42,4 +42,32 @@ export interface CoreCommandResult {
   stderr: string;
   json_report_path: string | null;
   json_report_available: boolean;
+  json_report_content: string | null;
+}
+
+export interface CoreLintReport {
+  tool: string;
+  version: string;
+  mission: string;
+  model_version: string;
+  result: string;
+  loaded: Record<string, number>;
+  summary: CoreLintSummary;
+  findings: CoreLintFinding[];
+}
+
+export interface CoreLintSummary {
+  errors: number;
+  warnings: number;
+  info: number;
+}
+
+export interface CoreLintFinding {
+  severity: string;
+  code: string;
+  file: string | null;
+  domain: string | null;
+  object_id: string | null;
+  message: string;
+  suggestion: string | null;
 }
