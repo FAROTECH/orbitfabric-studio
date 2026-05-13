@@ -4,7 +4,7 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.2.0 - Validation and Diagnostics Workbench` release readiness candidate.
+OrbitFabric Studio is currently at `v0.2.0 - Validation and Diagnostics Workbench`.
 
 The next planned milestone is `v0.3.0 - Contract Navigation Surface`.
 
@@ -52,13 +52,14 @@ Studio does not become an independent validator or semantic Mission Model parser
 
 ### Changed
 
-- Updated the README status from v0.1.0 to v0.2.0 release readiness candidate.
+- Updated the README status from v0.1.0 to v0.2.0.
 - Updated the README implementation state to describe Core-derived validation diagnostics.
 - Updated the README scope from `Open -> Inspect` to `Open -> Inspect -> Validate -> Understand`.
 - Updated documentation to state OrbitFabric Core v0.8.0 as the v0.2.0 baseline.
 - Updated documentation to clarify that Core JSON is the only structured diagnostics source.
 - Updated documentation to clarify that raw stdout and stderr remain visible but are not parsed as diagnostics when JSON exists.
 - Updated documentation to keep OrbitFabric Core v0.8.0 ground artifacts out of v0.2.0 scope.
+- Updated package, Cargo and Tauri version metadata to `0.2.0` before tagging.
 
 ### Not Included
 
