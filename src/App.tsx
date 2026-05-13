@@ -347,7 +347,7 @@ function CoreStatusPanel({
           <p>
             Runs only fixed Core commands and displays raw process output. The
             lint command writes a Core JSON report as a derived report. This
-            slice reads the report shape but does not interpret diagnostics yet.
+            slice separates the Core validation summary from raw output.
           </p>
         </div>
         <span className="status-pill">Raw output</span>
@@ -411,7 +411,7 @@ function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
         </div>
       ) : null}
       {result.json_report_content ? (
-        <CoreLintReportPreview
+        <CoreValidationSummary
           report={parsedReport}
           rawContent={result.json_report_content}
         />
@@ -422,7 +422,7 @@ function CoreCommandOutput({ result }: { result: CoreCommandResult }) {
   );
 }
 
-function CoreLintReportPreview({
+function CoreValidationSummary({
   report,
   rawContent,
 }: {
@@ -431,32 +431,47 @@ function CoreLintReportPreview({
 }) {
   if (!report) {
     return (
-      <div className="command-meta">
-        <strong>Core JSON report content</strong>
-        <span>available but not recognized as current lint report shape</span>
-        <span>{rawContent.length} bytes</span>
-      </div>
+      <section className="entry-section muted-section" aria-label="Core JSON report status">
+        <h3>Core validation summary</h3>
+        <p>
+          A Core JSON report was produced, but Studio did not recognize it as
+          the current lint report shape. No diagnostics are inferred.
+        </p>
+        <div className="command-meta">
+          <strong>Core JSON report content</strong>
+          <span>{rawContent.length} bytes</span>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="command-output">
-      <div className="command-meta">
-        <strong>Typed Core lint report</strong>
-        <span>{report.tool}</span>
-        <span>Core {report.version}</span>
-        <span>mission: {report.mission}</span>
-        <span>model: {report.model_version}</span>
-        <span>result: {report.result}</span>
+    <section className="entry-section" aria-label="Core validation summary">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Core validation summary</h3>
+          <p>
+            Derived from the OrbitFabric Core JSON lint report. Studio displays
+            these fields without running independent validation.
+          </p>
+        </div>
+        <span className="status-pill">Core-derived</span>
       </div>
-      <div className="command-meta">
-        <strong>Report summary</strong>
-        <span>errors: {report.summary.errors}</span>
-        <span>warnings: {report.summary.warnings}</span>
-        <span>info: {report.summary.info}</span>
-        <span>findings: {report.findings.length}</span>
+
+      <div className="summary-grid">
+        <SummaryItem label="Result" value={report.result} />
+        <SummaryItem label="Mission" value={report.mission} />
+        <SummaryItem label="Model version" value={report.model_version} />
+        <SummaryItem label="Core version" value={report.version} />
       </div>
-    </div>
+
+      <div className="summary-grid">
+        <SummaryItem label="Errors" value={String(report.summary.errors)} />
+        <SummaryItem label="Warnings" value={String(report.summary.warnings)} />
+        <SummaryItem label="Info" value={String(report.summary.info)} />
+        <SummaryItem label="Findings" value={String(report.findings.length)} />
+      </div>
+    </section>
   );
 }
 
