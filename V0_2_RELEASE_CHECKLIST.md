@@ -15,18 +15,18 @@ Open -> Inspect -> Validate -> Understand
 ## 1. Scope Discipline
 
 ```text
-[ ] v0.2.0 remains read-only.
-[ ] v0.2.0 does not implement source model editing.
-[ ] v0.2.0 does not implement graph views.
-[ ] v0.2.0 does not implement scenario running.
-[ ] v0.2.0 does not implement generator workflows.
-[ ] v0.2.0 does not implement ground artifact generation UI.
-[ ] v0.2.0 does not implement ground artifact explorer UI.
-[ ] v0.2.0 does not implement plugin support.
-[ ] v0.2.0 does not implement live telemetry.
-[ ] v0.2.0 does not implement command uplink.
-[ ] v0.2.0 does not imply ground segment behavior.
-[ ] v0.2.0 does not make unsupported compatibility claims.
+[x] v0.2.0 remains read-only.
+[x] v0.2.0 does not implement source model editing.
+[x] v0.2.0 does not implement graph views.
+[x] v0.2.0 does not implement scenario running.
+[x] v0.2.0 does not implement generator workflows.
+[x] v0.2.0 does not implement ground artifact generation UI.
+[x] v0.2.0 does not implement ground artifact explorer UI.
+[x] v0.2.0 does not implement plugin support.
+[x] v0.2.0 does not implement live telemetry.
+[x] v0.2.0 does not implement command uplink.
+[x] v0.2.0 does not imply ground segment behavior.
+[x] v0.2.0 does not make unsupported compatibility claims.
 ```
 
 ---
@@ -34,13 +34,13 @@ Open -> Inspect -> Validate -> Understand
 ## 2. Architecture Boundary
 
 ```text
-[ ] The Mission Model remains the source of truth.
-[ ] OrbitFabric Core remains authoritative for validation and linting.
-[ ] Studio remains downstream.
-[ ] Studio does not duplicate Core validation.
-[ ] Studio does not implement semantic YAML parsing.
-[ ] Studio does not infer diagnostics from stdout when a Core JSON report exists.
-[ ] Missing Core report fields are recorded as Core enhancement needs, not reimplemented inside Studio.
+[x] The Mission Model remains the source of truth.
+[x] OrbitFabric Core remains authoritative for validation and linting.
+[x] Studio remains downstream.
+[x] Studio does not duplicate Core validation.
+[x] Studio does not implement semantic YAML parsing.
+[x] Studio does not infer diagnostics from stdout when a Core JSON report exists.
+[x] Missing Core report fields are recorded as Core enhancement needs, not reimplemented inside Studio.
 ```
 
 ---
@@ -48,12 +48,12 @@ Open -> Inspect -> Validate -> Understand
 ## 3. Core Baseline
 
 ```text
-[ ] OrbitFabric Core v0.8.0 is treated as the planning baseline.
-[ ] `orbitfabric --version` remains available as a fixed status command.
-[ ] `orbitfabric inspect mission <mission_dir>` remains available as a fixed inspection command.
-[ ] `orbitfabric lint <mission_dir> --json <path>` is the validation command consumed by v0.2.0.
-[ ] `orbitfabric gen ground <mission_dir>` is acknowledged as a Core v0.8.0 feature.
-[ ] `orbitfabric gen ground <mission_dir>` remains out of scope for Studio v0.2.0.
+[x] OrbitFabric Core v0.8.0 is treated as the planning baseline.
+[x] `orbitfabric --version` remains available as a fixed status command.
+[x] `orbitfabric inspect mission <mission_dir>` remains available as a fixed inspection command.
+[x] `orbitfabric lint <mission_dir> --json <path>` is the validation command consumed by v0.2.0.
+[x] `orbitfabric gen ground <mission_dir>` is acknowledged as a Core v0.8.0 feature.
+[x] `orbitfabric gen ground <mission_dir>` remains out of scope for Studio v0.2.0.
 ```
 
 ---
@@ -61,14 +61,14 @@ Open -> Inspect -> Validate -> Understand
 ## 4. Controlled Command Invocation
 
 ```text
-[ ] Lint invocation is fixed and allowlisted.
-[ ] No arbitrary command execution is introduced.
-[ ] No arbitrary CLI argument field is introduced.
-[ ] The user can still see command, args, stdout, stderr and exit code.
-[ ] Core command failures are not hidden.
-[ ] A failed process is not reinterpreted as Mission Model semantics.
-[ ] JSON report output is written to a Studio-controlled path.
-[ ] Source Mission Model files are not modified.
+[x] Lint invocation is fixed and allowlisted.
+[x] No arbitrary command execution is introduced.
+[x] No arbitrary CLI argument field is introduced.
+[x] The user can still see command, args, stdout, stderr and exit code.
+[x] Core command failures are not hidden.
+[x] A failed process is not reinterpreted as Mission Model semantics.
+[x] JSON report output is written to a Studio-controlled path.
+[x] Source Mission Model files are not modified.
 ```
 
 ---
@@ -89,14 +89,14 @@ findings
 ```
 
 ```text
-[ ] The report is labeled as a derived report.
-[ ] The report producer is shown as `orbitfabric-lint` when available.
-[ ] The OrbitFabric Core version field is shown.
-[ ] The Mission Model version field is shown separately.
-[ ] Result values are displayed without redefining their meaning.
-[ ] Summary counts are read from Core JSON.
-[ ] Findings are read from Core JSON.
-[ ] Studio does not invent missing fields.
+[x] The report is labeled as a derived report.
+[x] The report producer is shown as `orbitfabric-lint` when available.
+[x] The OrbitFabric Core version field is shown.
+[x] The Mission Model version field is shown separately.
+[x] Result values are displayed without redefining their meaning.
+[x] Summary counts are read from Core JSON.
+[x] Findings are read from Core JSON.
+[x] Studio does not invent missing fields.
 ```
 
 ---
@@ -104,12 +104,12 @@ findings
 ## 6. Diagnostics Presentation
 
 ```text
-[ ] Diagnostics summary displays errors, warnings and info counts from Core JSON.
-[ ] Diagnostics list displays severity, code, message, domain, object ID and suggestion where available.
-[ ] File references are shown only when provided by Core JSON.
-[ ] Source file opening from a diagnostic is allowed only when the referenced file exists inside the selected workspace.
-[ ] No fake line or column information is displayed.
-[ ] No quick fix or suppression mechanism is introduced.
+[x] Diagnostics summary displays errors, warnings and info counts from Core JSON.
+[x] Diagnostics list displays severity, code, message, domain, object ID and suggestion where available.
+[x] File references are shown only when provided by Core JSON.
+[x] Source file opening from a diagnostic is allowed only when the referenced file exists inside the selected workspace.
+[x] No fake line or column information is displayed.
+[x] No quick fix or suppression mechanism is introduced.
 ```
 
 ---
@@ -117,12 +117,12 @@ findings
 ## 7. Source / Derived / Generated / Raw Output Labels
 
 ```text
-[ ] Structural inspection remains labeled as Studio structural inspection.
-[ ] Lint status remains labeled as Core validation/lint result.
-[ ] JSON lint report remains labeled as Core JSON report / derived report.
-[ ] stdout and stderr remain labeled as Core raw output.
-[ ] Generated outputs remain distinct from source model files.
-[ ] UI state is not confused with Mission Model state.
+[x] Structural inspection remains labeled as Studio structural inspection.
+[x] Lint status remains labeled as Core validation/lint result.
+[x] JSON lint report remains labeled as Core JSON report / derived report.
+[x] stdout and stderr remain labeled as Core raw output.
+[x] Generated outputs remain distinct from source model files.
+[x] UI state is not confused with Mission Model state.
 ```
 
 ---
@@ -130,10 +130,10 @@ findings
 ## 8. Compatibility with Core v0.8.0 Generated Areas
 
 ```text
-[ ] Existing generated docs, reports, logs and runtime detection still works.
-[ ] Presence of `generated/ground/generic/` does not break workspace inspection.
-[ ] `generated/ground/generic/` is not promoted to a v0.2.0 UI workflow.
-[ ] Ground artifacts are documented as future backlog for generated or ground artifact inspection.
+[x] Existing generated docs, reports, logs and runtime detection still works.
+[x] Presence of `generated/ground/generic/` does not break workspace inspection.
+[x] `generated/ground/generic/` is not promoted to a v0.2.0 UI workflow.
+[x] Ground artifacts are documented as future backlog for generated or ground artifact inspection.
 ```
 
 ---
@@ -141,13 +141,13 @@ findings
 ## 9. Documentation
 
 ```text
-[ ] README describes v0.2.0 accurately after implementation.
-[ ] CHANGELOG includes v0.2.0.
-[ ] ROADMAP remains aligned with the implemented scope.
-[ ] ADR-0007 exists and is accepted.
-[ ] Development notes describe the v0.2.0 slices.
-[ ] Release notes are prepared before tagging.
-[ ] Known limitations are documented.
+[x] README describes v0.2.0 accurately after implementation.
+[x] CHANGELOG includes v0.2.0.
+[x] ROADMAP remains aligned with the implemented scope.
+[x] ADR-0007 exists and is accepted.
+[x] Development notes describe the v0.2.0 slices.
+[x] Release notes are prepared before tagging.
+[x] Known limitations are documented.
 ```
 
 ---
@@ -155,13 +155,13 @@ findings
 ## 10. Verification
 
 ```text
-[ ] TypeScript checks pass.
-[ ] Frontend build passes.
-[ ] Tauri development run is checked locally.
-[ ] Manual smoke test against a valid OrbitFabric mission workspace is documented.
-[ ] Manual smoke test against a mission with lint findings is documented if available.
+[x] TypeScript checks pass.
+[x] Frontend build passes.
+[x] Tauri development run is checked locally.
+[x] Manual smoke test against a valid OrbitFabric mission workspace is documented.
+[x] Manual smoke test against a mission with lint findings is documented if available.
 [ ] Manual smoke test for Core command failure is documented.
-[ ] No generated local Tauri files are committed.
+[x] No generated local Tauri files are committed.
 ```
 
 Recommended local checks:
@@ -175,14 +175,41 @@ source "$HOME/.cargo/env"
 npm run tauri:dev
 ```
 
+Manual positive-path tests performed:
+
+```text
+examples/demo-3u
+examples/spacelab-inspired-communications-minislice
+```
+
+Manual failure-path test remains recommended before tagging by temporarily configuring an invalid OrbitFabric executable path and confirming that command, args, exit status evidence and error text remain visible without producing structured diagnostics.
+
 ---
 
 ## 11. Release Gate
 
 ```text
 [ ] v0.2.0 can be tagged only after release readiness cleanup is merged.
-[ ] GitHub release notes are prepared.
-[ ] Scope non-goals are still true at the end of the milestone.
-[ ] No source model write path exists.
-[ ] No arbitrary command path exists beyond configured executable plus fixed command arguments.
+[x] GitHub release notes are prepared.
+[x] Scope non-goals are still true at the end of the milestone.
+[x] No source model write path exists.
+[x] No arbitrary command path exists beyond configured executable plus fixed command arguments.
 ```
+
+---
+
+## 12. Version Metadata Review
+
+Current release readiness documentation is aligned with v0.2.0.
+
+Before tagging, version metadata must be reviewed coherently across:
+
+```text
+package.json
+package-lock.json
+src-tauri/Cargo.toml
+src-tauri/Cargo.lock
+src-tauri/tauri.conf.json
+```
+
+This checklist intentionally does not mark the release as tagged until that version metadata decision is completed.
