@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
+import { parseCoreLintReport } from "./coreReports";
 import type {
   CoreCommandResult,
   CoreLintFinding,
@@ -591,32 +592,6 @@ function findSourceModelFile(
 
 function severityCategory(severity: string): ProjectEntry["category"] {
   return severity === "ERROR" ? "derivedReport" : "generatedOutput";
-}
-
-function parseCoreLintReport(content: string | null): CoreLintReport | null {
-  if (!content) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(content) as Partial<CoreLintReport>;
-
-    if (
-      typeof parsed.tool !== "string" ||
-      typeof parsed.version !== "string" ||
-      typeof parsed.mission !== "string" ||
-      typeof parsed.model_version !== "string" ||
-      typeof parsed.result !== "string" ||
-      !parsed.summary ||
-      !Array.isArray(parsed.findings)
-    ) {
-      return null;
-    }
-
-    return parsed as CoreLintReport;
-  } catch {
-    return null;
-  }
 }
 
 function EntrySection({
