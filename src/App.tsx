@@ -3,9 +3,16 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import { parseCoreLintReport, parseCoreModelSummary } from "./coreReports";
+import {
+  parseCoreEntityIndex,
+  parseCoreLintReport,
+  parseCoreModelSummary,
+} from "./coreReports";
 import type {
   CoreCommandResult,
+  CoreEntityIndex,
+  CoreEntityIndexDomain,
+  CoreEntityIndexEntity,
   CoreLintFinding,
   CoreLintReport,
   CoreModelSummary,
@@ -128,6 +135,18 @@ function App() {
     });
   }
 
+  async function handleCoreExportEntityIndex() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core entity index export.");
+      return;
+    }
+
+    await runCoreCommand("run_core_export_entity_index", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+  }
+
   async function runCoreCommand(commandName: string, payload: Record<string, string>) {
     setCoreError(null);
     setCoreResult(null);
@@ -201,6 +220,7 @@ function App() {
           onCoreInspectMission={handleCoreInspectMission}
           onCoreLintMission={handleCoreLintMission}
           onCoreExportModelSummary={handleCoreExportModelSummary}
+          onCoreExportEntityIndex={handleCoreExportEntityIndex}
           onOpenFile={handleOpenFile}
         />
       ) : (
@@ -236,6 +256,7 @@ function WorkspacePanel({
   onCoreInspectMission,
   onCoreLintMission,
   onCoreExportModelSummary,
+  onCoreExportEntityIndex,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -251,6 +272,7 @@ function WorkspacePanel({
   onCoreInspectMission: () => void;
   onCoreLintMission: () => void;
   onCoreExportModelSummary: () => void;
+  onCoreExportEntityIndex: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -292,6 +314,7 @@ function WorkspacePanel({
         onInspectMission={onCoreInspectMission}
         onLintMission={onCoreLintMission}
         onExportModelSummary={onCoreExportModelSummary}
+        onExportEntityIndex={onCoreExportEntityIndex}
         onOpenFile={onOpenFile}
       />
 
@@ -352,6 +375,7 @@ function CoreStatusPanel({
   onInspectMission,
   onLintMission,
   onExportModelSummary,
+  onExportEntityIndex,
   onOpenFile,
 }: {
   executable: string;
@@ -365,6 +389,7 @@ function CoreStatusPanel({
   onInspectMission: () => void;
   onLintMission: () => void;
   onExportModelSummary: () => void;
+  onExportEntityIndex: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -418,6 +443,13 @@ function CoreStatusPanel({
         >
           Run export model-summary
         </button>
+        <button
+          type="button"
+          onClick={onExportEntityIndex}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run export entity-index
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -444,7 +476,9 @@ function CoreCommandOutput({
 }) {
   const parsedLintReport = parseCoreLintReport(result.json_report_content);
   const parsedModelSummary = parseCoreModelSummary(result.json_report_content);
+  const parsedEntityIndex = parseCoreEntityIndex(result.json_report_content);
   const isModelSummaryCommand = result.args.includes("model-summary");
+  const isEntityIndexCommand = result.args.includes("entity-index");
 
   return (
     <div className="command-output">
@@ -476,7 +510,14 @@ function CoreCommandOutput({
           onOpenFile={onOpenFile}
         />
       ) : null}
-      {result.json_report_content && !parsedLintReport && !parsedModelSummary ? (
+      {parsedEntityIndex ? (
+        <CoreEntityIndexPanel
+          index={parsedEntityIndex}
+          sourceModelFiles={sourceModelFiles}
+          onOpenFile={onOpenFile}
+        />
+      ) : null}
+      {result.json_report_content && !parsedLintReport && !parsedModelSummary && !parsedEntityIndex ? (
         <UnrecognizedCoreReport rawContent={result.json_report_content} />
       ) : null}
       {isModelSummaryCommand && !result.json_report_available ? (
@@ -485,6 +526,15 @@ function CoreCommandOutput({
           <p>
             Core did not produce a model summary report. Domain navigation requires
             OrbitFabric Core v0.8.1 or newer and a successful fixed export command.
+          </p>
+        </section>
+      ) : null}
+      {isEntityIndexCommand && !result.json_report_available ? (
+        <section className="entry-section muted-section" aria-label="Core entity index unavailable">
+          <h3>Contract entities unavailable</h3>
+          <p>
+            Core did not produce an entity index report. Entity navigation requires
+            OrbitFabric Core v0.8.2 or newer and a successful fixed export command.
           </p>
         </section>
       ) : null}
@@ -658,6 +708,205 @@ function DomainList({
       </ul>
     </section>
   );
+}
+
+function CoreEntityIndexPanel({
+  index,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  index: CoreEntityIndex;
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  return (
+    <section className="entry-section" aria-label="Contract entity navigation">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Contract entities</h3>
+          <p>
+            Derived from Core `entity_index.json`. Studio lists entity records
+            exactly as reported by Core. It does not infer relationships, graph
+            edges, YAML AST nodes or source locations.
+          </p>
+        </div>
+        <span className="status-pill">Core entity index</span>
+      </div>
+
+      <div className="summary-grid">
+        <SummaryItem label="Mission" value={index.mission.name} />
+        <SummaryItem label="Mission ID" value={index.mission.id} />
+        <SummaryItem label="Total entities" value={String(index.counts.total_entities)} />
+      </div>
+
+      <EntityDomainSummary
+        domains={index.domains}
+        sourceModelFiles={sourceModelFiles}
+        onOpenFile={onOpenFile}
+      />
+
+      <EntityList
+        domains={index.domains}
+        entities={index.entities}
+        sourceModelFiles={sourceModelFiles}
+        onOpenFile={onOpenFile}
+      />
+    </section>
+  );
+}
+
+function EntityDomainSummary({
+  domains,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  domains: CoreEntityIndexDomain[];
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  return (
+    <section className="entry-section" aria-label="Entity index domain summary">
+      <h3>Domain index summary</h3>
+      <p>
+        Domain summaries are reported by Core. Domains marked as not indexed are
+        shown without synthetic entity records.
+      </p>
+      <ul className="entry-list">
+        {domains.map((domain) => {
+          const linkedFile = findSourceModelFile(domain.source_file, sourceModelFiles);
+
+          return (
+            <li key={domain.id}>
+              <div className="entry-main">
+                <strong>{domain.display_name}</strong>
+                <span className={`category-badge category-${domain.indexed ? "sourceModel" : "derivedReport"}`}>
+                  {domain.indexed ? "indexed" : "not indexed"}
+                </span>
+              </div>
+              <div className="command-meta">
+                <span>id: {domain.id}</span>
+                <span>present: {String(domain.present)}</span>
+                <span>required: {String(domain.required)}</span>
+                <span>model count: {domain.model_count}</span>
+                <span>entity count: {domain.entity_count}</span>
+                <span>count provenance: {domain.count_provenance}</span>
+                <span>
+                  source file: {linkedFile ? (
+                    <button
+                      className="inline-link-button"
+                      type="button"
+                      onClick={() => onOpenFile(linkedFile)}
+                    >
+                      {domain.source_file}
+                    </button>
+                  ) : (
+                    domain.source_file
+                  )}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function EntityList({
+  domains,
+  entities,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  domains: CoreEntityIndexDomain[];
+  entities: CoreEntityIndexEntity[];
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  if (entities.length === 0) {
+    return (
+      <section className="entry-section muted-section" aria-label="No entity records">
+        <h3>Entity records</h3>
+        <p>Core entity index did not report any entity records.</p>
+      </section>
+    );
+  }
+
+  const entitiesByDomain = groupEntitiesByDomain(entities);
+
+  return (
+    <section className="entry-section" aria-label="Entity records">
+      <h3>Entity records</h3>
+      <p>
+        Entity records are grouped by Core-reported domain. Only records present
+        in `entity_index.entities` are rendered.
+      </p>
+      {domains.map((domain) => {
+        const domainEntities = entitiesByDomain[domain.id] ?? [];
+
+        if (domainEntities.length === 0) {
+          return null;
+        }
+
+        return (
+          <section className="entry-section" key={domain.id} aria-label={`${domain.display_name} entities`}>
+            <div className="entry-main">
+              <h3>{domain.display_name}</h3>
+              <span className="category-badge category-sourceModel">
+                {domainEntities.length} entities
+              </span>
+            </div>
+            <ul className="entry-list">
+              {domainEntities.map((entity) => {
+                const linkedFile = findSourceModelFile(entity.source_file, sourceModelFiles);
+
+                return (
+                  <li key={`${entity.domain}-${entity.id}`}>
+                    <div className="entry-main">
+                      <strong>{entity.display_name}</strong>
+                      <span className="category-badge category-generatedOutput">
+                        {entity.entity_type}
+                      </span>
+                    </div>
+                    <div className="command-meta">
+                      <span>id: {entity.id}</span>
+                      <span>domain: {entity.domain}</span>
+                      <span>present: {String(entity.present)}</span>
+                      <span>required domain: {String(entity.required_domain)}</span>
+                      <span>provenance: {entity.provenance}</span>
+                      <span>
+                        source file: {linkedFile ? (
+                          <button
+                            className="inline-link-button"
+                            type="button"
+                            onClick={() => onOpenFile(linkedFile)}
+                          >
+                            {entity.source_file}
+                          </button>
+                        ) : (
+                          entity.source_file
+                        )}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
+    </section>
+  );
+}
+
+function groupEntitiesByDomain(
+  entities: CoreEntityIndexEntity[],
+): Record<string, CoreEntityIndexEntity[]> {
+  return entities.reduce<Record<string, CoreEntityIndexEntity[]>>((grouped, entity) => {
+    grouped[entity.domain] = grouped[entity.domain] ?? [];
+    grouped[entity.domain].push(entity);
+    return grouped;
+  }, {});
 }
 
 function CoreFindingsList({

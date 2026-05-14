@@ -63,6 +63,12 @@ Studio will not become an independent model parser, validator, entity extractor,
 - Added Core-derived Contract Domains panel from `model_summary.json`.
 - Added safe read-only source-file links from Core model summary domain records.
 - Added missing or unsupported Core model summary fallback text.
+- Added frontend action for fixed Core `export entity-index`.
+- Added Core-derived Contract Entities panel from `entity_index.json`.
+- Added Core-derived domain index summary with indexed and not-indexed states.
+- Added entity records grouped by Core-reported domain.
+- Added safe read-only source-file links from Core entity index domain and entity records.
+- Added missing or unsupported Core entity index fallback text.
 
 ### Changed
 
