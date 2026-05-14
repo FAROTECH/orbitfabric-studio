@@ -53,6 +53,12 @@ Studio will not become an independent model parser, validator, entity extractor,
 - Added `ADR-0008 - v0.3 Core-derived Contract Navigation`.
 - Added `docs/development/v0.3.0-contract-navigation-surface.md`.
 - Added `V0_3_RELEASE_CHECKLIST.md`.
+- Added fixed backend command for Core `export model-summary`.
+- Added fixed backend command for Core `export entity-index`.
+- Added Studio-controlled report paths for Core model summary and entity index exports.
+- Added TypeScript model for Core `model_summary.json`.
+- Added TypeScript model for Core `entity_index.json`.
+- Added minimal read-only report parsers for Core lint, model summary and entity index reports.
 
 ### Changed
 
@@ -60,6 +66,7 @@ Studio will not become an independent model parser, validator, entity extractor,
 - Updated the README to describe Core-derived model summary and entity index consumption.
 - Updated the roadmap to gate v0.3.0 on Core v0.8.1 and v0.8.2 surfaces.
 - Updated the roadmap to defer graph and relationship navigation until Core exposes a relationship surface.
+- Refactored Core lint report parsing into a shared report parser module.
 
 ### Not Included
 
@@ -330,5 +337,3 @@ Documentation-only.
 Architecture-first.
 
 Boundary-first.
-
-Charter release.
