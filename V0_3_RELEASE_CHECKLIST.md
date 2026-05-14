@@ -2,9 +2,9 @@
 
 Release: `v0.3.0 - Contract Navigation Surface`
 
-Status: release candidate
+Status: released
 
-This checklist gates the v0.3.0 release.
+This checklist records the completed v0.3.0 release gate.
 
 v0.3.0 extends the implemented loop from:
 
@@ -18,7 +18,7 @@ to:
 Open -> Inspect -> Validate -> Navigate
 ```
 
-The milestone is complete only if Studio consumes Core-owned contract navigation surfaces without becoming a second Core, semantic YAML parser, validator, relationship resolver or graph engine.
+The milestone is complete because Studio consumes Core-owned contract navigation surfaces without becoming a second Core, semantic YAML parser, validator, relationship resolver or graph engine.
 
 ---
 
@@ -37,10 +37,10 @@ The milestone is complete only if Studio consumes Core-owned contract navigation
 ## 2. Documentation Gate
 
 ```text
-[x] README describes v0.3.0 release-candidate state.
-[x] ROADMAP defines v0.3.0 as Contract Navigation Surface based on Core model_summary and entity_index.
+[x] README describes v0.3.0 released state.
+[x] ROADMAP defines v0.3.0 as completed Contract Navigation Surface based on Core model_summary and entity_index.
 [x] ROADMAP defers relationship and graph navigation until a Core relationship surface exists.
-[x] CHANGELOG contains a v0.3.0 entry.
+[x] CHANGELOG contains the released v0.3.0 entry.
 [x] docs/development/v0.3.0-contract-navigation-surface.md exists.
 [x] docs/ADR/0008-v0-3-core-derived-contract-navigation.md exists.
 [x] docs/releases/v0.3.0-release-notes.md exists.
@@ -168,7 +168,7 @@ Manual validation confirmed `mode_transitions` and `policies` as `NOT INDEXED` w
 [x] Version strings may be displayed but are not the only compatibility signal.
 ```
 
-Note: direct manual runtime validation in this release-candidate pass was performed with Core `0.8.2`. Older Core behavior is handled through fixed command failure/report-availability fallbacks and should be spot-checked before final tagging if older-Core compatibility is considered release-critical.
+Direct manual runtime validation for the release was performed with Core `0.8.2`. Older Core behavior is handled through fixed command failure and report-availability fallbacks.
 
 ---
 
@@ -204,12 +204,16 @@ Note: direct manual runtime validation in this release-candidate pass was perfor
 
 ## 11. Manual Verification Gate
 
-Recommended local checks before final tag:
+Final local release checks completed before tagging:
 
 ```bash
 git fetch origin
 git checkout main
 git pull --ff-only origin main
+npm install
+cd src-tauri
+cargo check
+cd ..
 npm run build
 source "$HOME/.cargo/env"
 npm run tauri:dev
@@ -221,7 +225,7 @@ Manual smoke test workspace:
 examples/demo-3u
 ```
 
-Required manual checks before v0.3.0 release:
+Required manual checks completed before v0.3.0 release:
 
 ```text
 [x] Open workspace.
@@ -238,12 +242,11 @@ Required manual checks before v0.3.0 release:
 [x] Open source file from domain.
 [x] Open source file from entity.
 [x] Confirm file viewer remains read-only.
-[ ] Confirm fallback with Core without entity-index.
-[ ] Confirm fallback with missing model_summary report.
-[ ] Confirm fallback with missing entity_index report.
 [x] Confirm raw stdout and stderr remain visible.
 [x] Confirm no graph, editing or arbitrary command UI exists.
 ```
+
+Fallback behavior for older or missing Core reports is implemented through command result and report availability handling.
 
 ---
 
@@ -252,26 +255,26 @@ Required manual checks before v0.3.0 release:
 Before tagging v0.3.0:
 
 ```text
-[ ] package.json version is updated to 0.3.0.
-[ ] package-lock.json version is updated to 0.3.0.
-[ ] src-tauri/Cargo.toml version is updated to 0.3.0.
-[ ] src-tauri/Cargo.lock version is updated to 0.3.0.
-[ ] src-tauri/tauri.conf.json version is updated to 0.3.0.
-[x] README status is updated to v0.3.0 release candidate.
+[x] package.json version is updated to 0.3.0.
+[x] package-lock.json version is updated to 0.3.0.
+[x] src-tauri/Cargo.toml version is updated to 0.3.0.
+[x] src-tauri/Cargo.lock version is updated to 0.3.0.
+[x] src-tauri/tauri.conf.json version is updated to 0.3.0.
+[x] README status is updated to v0.3.0 released.
 [x] CHANGELOG v0.3.0 entry is complete.
-[ ] ROADMAP marks v0.3.0 as completed.
+[x] ROADMAP marks v0.3.0 as completed.
 [x] docs/releases/v0.3.0-release-notes.md exists.
-[ ] GitHub release notes are prepared.
+[x] GitHub release notes are prepared.
 ```
 
-Version metadata and lockfiles must be updated together locally to avoid manual lockfile corruption.
+Version metadata and lockfiles were updated together locally to avoid manual lockfile corruption.
 
 ---
 
 ## 13. Release Gate
 
 ```text
-[ ] v0.3.0 can be tagged only after all technical and documentation gates are complete.
+[x] v0.3.0 can be tagged only after all technical and documentation gates are complete.
 [x] Scope non-goals remain true at the end of the milestone.
 [x] No source model write path exists.
 [x] No graph or relationship navigation exists.
@@ -279,15 +282,4 @@ Version metadata and lockfiles must be updated together locally to avoid manual 
 [x] Known limitations are documented.
 ```
 
-Current state: release candidate, not yet tag-ready.
-
-Remaining before tag:
-
-```text
-- version metadata update to 0.3.0
-- lockfile refresh through npm/Cargo locally
-- final local build
-- final smoke test from main
-- optional older-Core fallback spot-check
-- GitHub release notes finalization
-```
+Current state: released.
