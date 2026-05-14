@@ -166,13 +166,14 @@ function App() {
     <main className="studio-shell">
       <section className="hero-panel" aria-labelledby="studio-title">
         <div className="eyebrow">OrbitFabric Studio</div>
-        <h1 id="studio-title">Read-only Mission Project Viewer</h1>
-        <p className="release">v0.1.0 workspace inspection slice</p>
+        <h1 id="studio-title">Contract Navigation Surface</h1>
+        <p className="release">v0.3.0 contract navigation slice</p>
         <p className="summary">
-          Open a local OrbitFabric workspace and inspect its source model files,
-          scenario sources and generated artifact locations. This view is
-          structural only: OrbitFabric Core remains authoritative for validation
-          and engineering meaning.
+          Open a local OrbitFabric workspace, inspect its Mission Model files,
+          run fixed OrbitFabric Core validation and export commands, and navigate
+          Core-derived contract domains and entities. Studio remains read-only:
+          OrbitFabric Core remains authoritative for validation and engineering
+          meaning.
         </p>
         <button
           className="primary-action"
@@ -188,10 +189,11 @@ function App() {
       <section className="grid" aria-label="workspace inspection">
         <article className="card">
           <h2>Primary loop</h2>
-          <div className="loop">Open -&gt; Inspect</div>
+          <div className="loop">Open -&gt; Inspect -&gt; Validate -&gt; Navigate</div>
           <p>
-            Studio classifies files and directories conservatively. It does not
-            validate the Mission Model and does not infer mission semantics.
+            Studio classifies workspace files conservatively and renders Core-derived
+            validation, domain and entity reports. It does not validate the Mission
+            Model independently and does not infer mission semantics.
           </p>
         </article>
 
