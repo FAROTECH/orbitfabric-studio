@@ -210,6 +210,52 @@ fn run_core_lint_mission(
     )
 }
 
+#[tauri::command]
+fn run_core_export_model_summary(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    let report_path = model_summary_report_path_for_mission(&mission)?;
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &[
+            "export",
+            "model-summary",
+            mission_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
+#[tauri::command]
+fn run_core_export_entity_index(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    let report_path = entity_index_report_path_for_mission(&mission)?;
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &[
+            "export",
+            "entity-index",
+            mission_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
 fn run_core_command(
     executable: String,
     args: &[&str],
@@ -249,13 +295,41 @@ fn run_core_command(
 }
 
 fn lint_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    report_path_for_mission(
+        mission,
+        "orbitfabric_studio_lint_report.json",
+        "Studio lint report directory",
+    )
+}
+
+fn model_summary_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    report_path_for_mission(
+        mission,
+        "orbitfabric_studio_model_summary.json",
+        "Studio model summary report directory",
+    )
+}
+
+fn entity_index_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    report_path_for_mission(
+        mission,
+        "orbitfabric_studio_entity_index.json",
+        "Studio entity index report directory",
+    )
+}
+
+fn report_path_for_mission(
+    mission: &Path,
+    report_file_name: &str,
+    report_directory_description: &str,
+) -> Result<PathBuf, String> {
     let workspace = mission.parent().unwrap_or(mission);
     let reports_dir = workspace.join("generated").join("reports");
 
     fs::create_dir_all(&reports_dir)
-        .map_err(|error| format!("Unable to create Studio lint report directory: {error}"))?;
+        .map_err(|error| format!("Unable to create {report_directory_description}: {error}"))?;
 
-    Ok(reports_dir.join("orbitfabric_studio_lint_report.json"))
+    Ok(reports_dir.join(report_file_name))
 }
 
 fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
@@ -433,7 +507,9 @@ pub fn run() {
             read_text_file,
             run_core_version,
             run_core_inspect_mission,
-            run_core_lint_mission
+            run_core_lint_mission,
+            run_core_export_model_summary,
+            run_core_export_entity_index
         ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
