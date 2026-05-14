@@ -243,7 +243,7 @@ This release turns validation from a terminal-only operation into a structured e
 
 # v0.3.0 - Contract Navigation Surface
 
-Status: Release candidate  
+Status: Completed  
 Nature: structured navigation slice  
 Primary loop: Open -> Inspect -> Validate -> Navigate
 
@@ -348,7 +348,7 @@ Version strings may be displayed, but they must not be the only compatibility si
 
 ## Exit Criteria
 
-v0.3.0 is release-candidate complete when Studio can:
+v0.3.0 is complete because Studio can:
 
 1. consume Core `model_summary.json` without inventing domains;
 2. consume Core `entity_index.json` without inventing entities;
@@ -357,17 +357,6 @@ v0.3.0 is release-candidate complete when Studio can:
 5. link domains and entities to source files only through Core-provided source_file values;
 6. handle Core v0.8.0, v0.8.1 and v0.8.2 behavior states through command behavior and report availability;
 7. avoid relationship, graph and dependency claims.
-
-Remaining before final tag:
-
-```text
-- version metadata update to 0.3.0
-- lockfile refresh through npm/Cargo locally
-- final local build
-- final smoke test from main
-- optional older-Core fallback spot-check
-- GitHub release notes finalization
-```
 
 ---
 

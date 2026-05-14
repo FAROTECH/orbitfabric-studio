@@ -13,12 +13,12 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-v0.3.0 - Contract Navigation Surface, release candidate
+v0.3.0 - Contract Navigation Surface, released
 ```
 
-The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer` and `v0.2.0 - Validation and Diagnostics Workbench` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench` and `v0.3.0 - Contract Navigation Surface` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.3.0 release candidate.
+The current implementation baseline is v0.3.0.
 
 The implemented product loop is:
 

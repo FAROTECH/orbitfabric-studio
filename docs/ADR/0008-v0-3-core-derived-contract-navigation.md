@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for v0.3.0 planning.
+Accepted and implemented in v0.3.0.
 
 ## Context
 
@@ -14,13 +14,13 @@ Open -> Inspect -> Validate -> Understand
 
 It invokes fixed OrbitFabric Core commands, displays Core-derived lint reports and preserves raw stdout, stderr and exit code evidence.
 
-The next milestone is:
+The v0.3.0 milestone is:
 
 ```text
 v0.3.0 - Contract Navigation Surface
 ```
 
-The intended loop becomes:
+The implemented loop becomes:
 
 ```text
 Open -> Inspect -> Validate -> Navigate
@@ -93,7 +93,7 @@ new Mission Model semantics
 
 ## Decision
 
-For v0.3.0, Studio will consume two fixed Core export commands:
+For v0.3.0, Studio consumes two fixed Core export commands:
 
 ```text
 orbitfabric export model-summary <mission_dir> --json <studio_controlled_report_path>
@@ -102,11 +102,11 @@ orbitfabric export entity-index <mission_dir> --json <studio_controlled_report_p
 
 The command invocations remain allowlisted.
 
-The frontend will not expose arbitrary CLI argument entry.
+The frontend does not expose arbitrary CLI argument entry.
 
-The report paths will be controlled by Studio.
+The report paths are controlled by Studio.
 
-The UI will distinguish:
+The UI distinguishes:
 
 ```text
 source model
@@ -127,7 +127,7 @@ Studio must not infer relationships between entities.
 
 ## Model Summary Fields
 
-The v0.3.0 planning baseline for domain navigation is the Core v0.8.1 model summary shape.
+The v0.3.0 implementation baseline for domain navigation is the Core v0.8.1 model summary shape.
 
 Studio may consume:
 
@@ -156,7 +156,7 @@ Studio must not invent additional domain fields.
 
 ## Entity Index Fields
 
-The v0.3.0 planning baseline for entity navigation is the Core v0.8.2 entity index shape.
+The v0.3.0 implementation baseline for entity navigation is the Core v0.8.2 entity index shape.
 
 Studio may consume:
 
@@ -237,7 +237,7 @@ Studio must not synthesize entity records for them.
 
 ## Compatibility Handling
 
-Studio v0.3.0 must support three runtime states:
+Studio v0.3.0 supports three runtime states:
 
 ```text
 Core v0.8.0 behavior:
@@ -280,7 +280,7 @@ Studio must not infer a line or column.
 
 ## Consequences
 
-- v0.3.0 can provide useful contract navigation without semantic drift.
+- v0.3.0 provides useful contract navigation without semantic drift.
 - Core remains the only authority for contract introspection and entity indexing.
 - Studio becomes a navigation surface, not a model engine.
 - Core v0.8.1 enables domain navigation.
