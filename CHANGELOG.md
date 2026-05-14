@@ -59,6 +59,10 @@ Studio will not become an independent model parser, validator, entity extractor,
 - Added TypeScript model for Core `model_summary.json`.
 - Added TypeScript model for Core `entity_index.json`.
 - Added minimal read-only report parsers for Core lint, model summary and entity index reports.
+- Added frontend action for fixed Core `export model-summary`.
+- Added Core-derived Contract Domains panel from `model_summary.json`.
+- Added safe read-only source-file links from Core model summary domain records.
+- Added missing or unsupported Core model summary fallback text.
 
 ### Changed
 
@@ -67,6 +71,7 @@ Studio will not become an independent model parser, validator, entity extractor,
 - Updated the roadmap to gate v0.3.0 on Core v0.8.1 and v0.8.2 surfaces.
 - Updated the roadmap to defer graph and relationship navigation until Core exposes a relationship surface.
 - Refactored Core lint report parsing into a shared report parser module.
+- Updated the Core command panel copy to include Core export reports as derived reports.
 
 ### Not Included
 
