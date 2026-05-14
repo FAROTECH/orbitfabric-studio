@@ -4,9 +4,88 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.2.0 - Validation and Diagnostics Workbench`.
+OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface` planning baseline.
 
-The next planned milestone is `v0.3.0 - Contract Navigation Surface`.
+The current released baseline is `v0.2.0 - Validation and Diagnostics Workbench`.
+
+---
+
+## v0.3.0 - Contract Navigation Surface
+
+Planning baseline for the next milestone.
+
+This milestone extends the product loop toward:
+
+```text
+Open -> Inspect -> Validate -> Navigate
+```
+
+v0.3.0 remains downstream from OrbitFabric Core.
+
+Studio will consume Core-owned contract navigation reports.
+
+Studio will not become an independent model parser, validator, entity extractor, relationship resolver or graph engine.
+
+### Planned
+
+- Add fixed backend command for `orbitfabric export model-summary <mission_dir> --json <report_path>`.
+- Add fixed backend command for `orbitfabric export entity-index <mission_dir> --json <report_path>` when supported by Core.
+- Add read-only loading for Core `model_summary.json`.
+- Add read-only loading for Core `entity_index.json`.
+- Add TypeScript models aligned to Core v0.8.1 `model_summary.json` fields.
+- Add TypeScript models aligned to Core v0.8.2 `entity_index.json` fields.
+- Add a Contract Navigation Surface.
+- Display contract domains from Core `model_summary.domains`.
+- Display contract entities from Core `entity_index.entities`.
+- Display domain detail panels.
+- Display entity detail panels.
+- Display domain summaries from Core entity index when available.
+- Display indexed and not-indexed domain states.
+- Display summarized but non entity-indexed domains without creating synthetic entities.
+- Add safe read-only source-file links from Core `source_file` fields when resolvable inside the workspace.
+- Add graceful fallback when Core does not support `model-summary`.
+- Add graceful fallback when Core does not support `entity-index`.
+- Add graceful fallback when reports are missing or invalid.
+- Keep raw stdout, stderr and exit-code visible for Core export commands.
+
+### Added
+
+- Added `ADR-0008 - v0.3 Core-derived Contract Navigation`.
+- Added `docs/development/v0.3.0-contract-navigation-surface.md`.
+- Added `V0_3_RELEASE_CHECKLIST.md`.
+
+### Changed
+
+- Updated the README status to v0.3.0 planning baseline.
+- Updated the README to describe Core-derived model summary and entity index consumption.
+- Updated the roadmap to gate v0.3.0 on Core v0.8.1 and v0.8.2 surfaces.
+- Updated the roadmap to defer graph and relationship navigation until Core exposes a relationship surface.
+
+### Not Included
+
+- No editing.
+- No visual model editing.
+- No semantic YAML parser.
+- No private entity extraction.
+- No private domain registry when Core `model_summary.json` is available.
+- No private relationship resolver.
+- No graph view.
+- No relationship navigation.
+- No dependency graph.
+- No line or column navigation.
+- No fake source span.
+- No quick fixes.
+- No suppressions.
+- No scenario runner.
+- No generator workflow beyond fixed Core-owned report exports.
+- No ground artifact explorer.
+- No runtime artifact explorer.
+- No plugin UI.
+- No arbitrary command execution.
+- No arbitrary OrbitFabric CLI argument entry.
+- No mission-control UI.
+- No live telemetry.
+- No command uplink.
 
 ---
 
