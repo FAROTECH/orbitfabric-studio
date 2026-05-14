@@ -52,6 +52,7 @@ pnpm-debug.log*
 # Kept for future Studio implementation, but no Tauri scaffold exists in v0.0.0.
 target/
 src-tauri/target/
+src-tauri/gen/
 
 # Generated local exports
 generated/
