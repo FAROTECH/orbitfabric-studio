@@ -71,3 +71,101 @@ export interface CoreLintFinding {
   message: string;
   suggestion: string | null;
 }
+
+export interface CoreReportMissionIdentity {
+  id: string;
+  name: string;
+  model_version: string;
+}
+
+export interface CoreReportSource {
+  mission_dir: string;
+}
+
+export interface CoreModelSummary {
+  summary_version: string;
+  kind: "orbitfabric.model_summary";
+  orbitfabric_version: string;
+  mission: CoreReportMissionIdentity;
+  source: CoreReportSource;
+  boundaries: CoreModelSummaryBoundaries;
+  counts: Record<string, number>;
+  domains: CoreModelSummaryDomain[];
+}
+
+export interface CoreModelSummaryBoundaries {
+  source_of_truth: string;
+  core_derived_report: boolean;
+  contains_entity_index: boolean;
+  contains_relationship_manifest: boolean;
+  contains_plugin_api: boolean;
+  contains_runtime_behavior: boolean;
+  contains_ground_behavior: boolean;
+}
+
+export interface CoreModelSummaryDomain {
+  id: string;
+  display_name: string;
+  source_file: string;
+  required: boolean;
+  present: boolean;
+  count: number;
+  count_provenance: string;
+}
+
+export interface CoreEntityIndex {
+  index_version: string;
+  kind: "orbitfabric.entity_index";
+  orbitfabric_version: string;
+  mission: CoreReportMissionIdentity;
+  source: CoreReportSource;
+  boundaries: CoreEntityIndexBoundaries;
+  counts: CoreEntityIndexCounts;
+  domains: CoreEntityIndexDomain[];
+  entities: CoreEntityIndexEntity[];
+}
+
+export interface CoreEntityIndexBoundaries {
+  source_of_truth: string;
+  core_derived_report: boolean;
+  read_only: boolean;
+  contains_entity_index: boolean;
+  contains_entity_records: boolean;
+  contains_relationship_manifest: boolean;
+  contains_relationship_graph: boolean;
+  contains_dependency_graph: boolean;
+  contains_yaml_ast: boolean;
+  contains_source_locations: boolean;
+  contains_plugin_api: boolean;
+  contains_studio_api: boolean;
+  contains_runtime_behavior: boolean;
+  contains_ground_behavior: boolean;
+}
+
+export interface CoreEntityIndexCounts {
+  total_entities: number;
+  domains: Record<string, number>;
+}
+
+export interface CoreEntityIndexDomain {
+  id: string;
+  display_name: string;
+  source_file: string;
+  required: boolean;
+  present: boolean;
+  indexed: boolean;
+  model_count: number;
+  entity_count: number;
+  count_provenance: string;
+}
+
+export interface CoreEntityIndexEntity {
+  id: string;
+  domain: string;
+  entity_type: string;
+  display_name: string;
+  source_file: string;
+  provenance: string;
+  required_domain: boolean;
+  present: boolean;
+}
