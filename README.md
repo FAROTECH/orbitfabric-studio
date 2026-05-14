@@ -13,34 +13,32 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-v0.3.0 - Contract Navigation Surface, planning baseline
+v0.3.0 - Contract Navigation Surface, release candidate
 ```
 
 The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer` and `v0.2.0 - Validation and Diagnostics Workbench` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.2.0.
+The current implementation baseline is v0.3.0 release candidate.
 
-The active planning milestone is v0.3.0.
-
-The product loop becomes:
+The implemented product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate
 ```
 
-Studio v0.3.0 is planned as a Core-derived Contract Navigation Surface.
+Studio v0.3.0 is a Core-derived Contract Navigation Surface.
 
-It will consume OrbitFabric Core `model_summary.json` and `entity_index.json` reports when produced by Core.
+It consumes OrbitFabric Core `model_summary.json` and `entity_index.json` reports when produced by Core.
 
-It will not parse Mission Model YAML semantically.
+It does not parse Mission Model YAML semantically.
 
-It will not infer entities, relationships, source locations or graph structure privately.
+It does not infer entities, relationships, source locations or graph structure privately.
 
 ---
 
 ## Current Implementation State
 
-v0.2.0 currently implements:
+v0.3.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
@@ -58,15 +56,25 @@ Controlled OrbitFabric Core command status panel
 Fixed Core --version command
 Fixed Core inspect mission command
 Fixed Core lint mission command
+Fixed Core export model-summary command
+Fixed Core export entity-index command
 Core JSON lint report availability display
 Typed Core lint report preview
 Core validation summary panel
 Read-only Core findings list
 Safe source-file links from Core findings
+Typed Core model summary parsing
+Typed Core entity index parsing
+Core-derived Contract Domains panel
+Core-derived Contract Entities panel
+Core-derived domain index summary
+Indexed / not-indexed domain states
+Entity records grouped by Core-reported domain
+Safe source-file links from Core domain and entity records
 Raw stdout / stderr / exit-code display
 ```
 
-The implemented v0.2.0 loop remains conservative:
+The implemented v0.3.0 loop remains conservative:
 
 ```text
 Open workspace
@@ -77,17 +85,11 @@ Open workspace
     -> run Core lint mission
     -> inspect Core-derived validation summary
     -> inspect Core-provided findings
+    -> run Core export model-summary
+    -> inspect Core-derived contract domains
+    -> run Core export entity-index
+    -> inspect Core-derived contract entities
     -> open referenced source files read-only when safely resolvable
-```
-
-The v0.3.0 planning loop adds:
-
-```text
-run Core export model-summary
-run Core export entity-index when supported
-inspect Core-derived contract domains
-inspect Core-derived contract entities
-open Core-indicated source files read-only when safely resolvable
 ```
 
 Studio does not validate the Mission Model independently.
@@ -226,6 +228,7 @@ OrbitFabric Studio is not:
 - a private Mission Model parser;
 - a private entity extractor;
 - a private relationship resolver;
+- a graph engine;
 - a flight software framework;
 - an OBC runtime;
 - a ground segment;
@@ -269,17 +272,19 @@ UI state          = local representation used by Studio
 
 The v0.3.0 milestone is the Contract Navigation Surface.
 
-Planned capabilities:
+Implemented capabilities:
 
 - run `orbitfabric export model-summary <mission_dir> --json <report_path>` as a fixed command;
-- run `orbitfabric export entity-index <mission_dir> --json <report_path>` as a fixed command when supported by Core;
-- detect and load `model_summary.json` read-only;
-- detect and load `entity_index.json` read-only;
+- run `orbitfabric export entity-index <mission_dir> --json <report_path>` as a fixed command;
+- load `model_summary.json` read-only when produced by Core;
+- load `entity_index.json` read-only when produced by Core;
 - display contract domains from Core `model_summary.domains`;
 - display contract entities from Core `entity_index.entities`;
-- display domain detail panels read-only;
-- display entity detail panels read-only;
-- display Core provenance for every domain and entity surface;
+- display Core-derived domain summary records;
+- display Core-derived entity records grouped by domain;
+- display Core provenance for domain and entity surfaces;
+- display indexed and not-indexed domain states;
+- avoid synthetic entity records for summarized-only domains such as `mode_transitions` and `policies`;
 - link domains and entities to Core-indicated source files when safely resolvable inside the workspace;
 - display graceful fallback when Core does not support `model-summary`;
 - display graceful fallback when Core does not support `entity-index`;
@@ -307,7 +312,7 @@ Core v0.8.2:
   entity navigation enabled
 ```
 
-Compatibility must be based on command behavior and report availability, not only version-string parsing.
+Compatibility is based on command behavior and report availability, not only version-string parsing.
 
 Explicit v0.3.0 non-goals:
 
@@ -339,25 +344,29 @@ Explicit v0.3.0 non-goals:
 
 ## Current Known Limitations
 
-The current OrbitFabric Core lint report does not provide:
+The current OrbitFabric Core lint and navigation reports do not provide:
 
 ```text
 line metadata
 column metadata
-schema version
+schema version for lint reports
 report timestamp
 Git SHA
 JSON Schema URL
 absolute source path
+relationship manifest
+relationship graph
+dependency graph
+YAML AST
 ```
 
 Studio therefore does not show line or column jumps.
 
 Studio does not infer file references from domains, object IDs or messages.
 
-Studio links a finding to a file only when the Core-provided `file` field exactly matches a detected source model file.
+Studio links a finding, domain or entity to a file only when the Core-provided file field exactly matches a detected source model file.
 
-For v0.3.0, Studio must also avoid inferring entity relationships because Core v0.8.2 does not expose a relationship manifest, relationship graph or dependency graph.
+Studio does not infer entity relationships because Core v0.8.2 does not expose a relationship manifest, relationship graph or dependency graph.
 
 ---
 
@@ -382,6 +391,7 @@ orbitfabric-studio/
 │   └── app-icon.png
 ├── src/
 │   ├── App.tsx
+│   ├── coreReports.ts
 │   ├── main.tsx
 │   ├── styles.css
 │   └── types/
@@ -473,6 +483,7 @@ Key documents:
 - [`docs/development/v0.3.0-contract-navigation-surface.md`](docs/development/v0.3.0-contract-navigation-surface.md)
 - [`docs/releases/v0.1.0-release-notes.md`](docs/releases/v0.1.0-release-notes.md)
 - [`docs/releases/v0.2.0-release-notes.md`](docs/releases/v0.2.0-release-notes.md)
+- [`docs/releases/v0.3.0-release-notes.md`](docs/releases/v0.3.0-release-notes.md)
 - [`V0_1_RELEASE_CHECKLIST.md`](V0_1_RELEASE_CHECKLIST.md)
 - [`V0_2_RELEASE_CHECKLIST.md`](V0_2_RELEASE_CHECKLIST.md)
 - [`V0_3_RELEASE_CHECKLIST.md`](V0_3_RELEASE_CHECKLIST.md)
