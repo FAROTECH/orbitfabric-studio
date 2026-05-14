@@ -4,15 +4,15 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface` release candidate.
+OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface`.
 
-The current released baseline is `v0.2.0 - Validation and Diagnostics Workbench`.
+The current released baseline is `v0.3.0 - Contract Navigation Surface`.
 
 ---
 
 ## v0.3.0 - Contract Navigation Surface
 
-Release candidate for the next milestone.
+Released milestone.
 
 This milestone extends the product loop toward:
 
@@ -48,15 +48,20 @@ Studio does not become an independent model parser, validator, entity extractor,
 - Added entity records grouped by Core-reported domain.
 - Added safe read-only source-file links from Core entity index domain and entity records.
 - Added missing or unsupported Core entity index fallback text.
+- Added `src-tauri/gen/` to `.gitignore` as a generated Tauri artifact path.
 
 ### Changed
 
-- Updated the README status to v0.3.0 release candidate.
+- Updated the README status to v0.3.0 released.
 - Updated the README to describe implemented Core-derived model summary and entity index consumption.
-- Updated the roadmap to gate v0.3.0 on Core v0.8.1 and v0.8.2 surfaces.
+- Updated the roadmap to mark v0.3.0 as completed.
 - Updated the roadmap to defer graph and relationship navigation until Core exposes a relationship surface.
 - Refactored Core lint report parsing into a shared report parser module.
 - Updated the Core command panel copy to include Core export reports as derived reports.
+- Updated the Studio landing copy from the v0.1.0 inspection slice to the v0.3.0 Contract Navigation Surface.
+- Updated the visible primary loop to `Open -> Inspect -> Validate -> Navigate`.
+- Updated package, Cargo and Tauri version metadata to `0.3.0` before tagging.
+- Refreshed generated lockfiles through local npm and Cargo workflows before tagging.
 
 ### Validated Manually
 
@@ -95,6 +100,15 @@ Display indexed and not-indexed domain states
 Display mode_transitions and policies without synthetic entity records
 Open Core-indicated source files read-only
 Preserve raw stdout, stderr and exit code
+```
+
+Final local release checks completed before tagging:
+
+```text
+npm install
+cargo check
+npm run build
+npm run tauri:dev
 ```
 
 ### Not Included
