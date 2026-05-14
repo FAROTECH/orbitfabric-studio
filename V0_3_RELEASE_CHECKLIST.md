@@ -2,7 +2,7 @@
 
 Release: `v0.3.0 - Contract Navigation Surface`
 
-Status: planning baseline
+Status: release candidate
 
 This checklist gates the v0.3.0 release.
 
@@ -34,16 +34,17 @@ The milestone is complete only if Studio consumes Core-owned contract navigation
 
 ---
 
-## 2. Documentation Planning Gate
+## 2. Documentation Gate
 
 ```text
-[ ] README describes v0.3.0 planning state.
-[ ] ROADMAP defines v0.3.0 as Contract Navigation Surface based on Core model_summary and entity_index.
-[ ] ROADMAP defers relationship and graph navigation until a Core relationship surface exists.
-[ ] CHANGELOG contains an unreleased v0.3.0 entry.
-[ ] docs/development/v0.3.0-contract-navigation-surface.md exists.
-[ ] docs/ADR/0008-v0-3-core-derived-contract-navigation.md exists.
-[ ] V0_3_RELEASE_CHECKLIST.md exists.
+[x] README describes v0.3.0 release-candidate state.
+[x] ROADMAP defines v0.3.0 as Contract Navigation Surface based on Core model_summary and entity_index.
+[x] ROADMAP defers relationship and graph navigation until a Core relationship surface exists.
+[x] CHANGELOG contains a v0.3.0 entry.
+[x] docs/development/v0.3.0-contract-navigation-surface.md exists.
+[x] docs/ADR/0008-v0-3-core-derived-contract-navigation.md exists.
+[x] docs/releases/v0.3.0-release-notes.md exists.
+[x] V0_3_RELEASE_CHECKLIST.md exists.
 ```
 
 ---
@@ -51,16 +52,16 @@ The milestone is complete only if Studio consumes Core-owned contract navigation
 ## 3. Core Export Command Gate
 
 ```text
-[ ] Backend exposes a fixed command for `orbitfabric export model-summary`.
-[ ] Backend exposes a fixed command for `orbitfabric export entity-index`.
-[ ] Export report paths are controlled by Studio.
-[ ] Backend returns stdout, stderr, exit code and success state.
-[ ] Backend reports JSON report availability.
-[ ] Backend returns report content only when available.
-[ ] No arbitrary command execution is introduced.
-[ ] No arbitrary OrbitFabric CLI argument entry is introduced.
-[ ] No scenario runner is introduced.
-[ ] No generator workflow is introduced beyond fixed Core-owned report exports.
+[x] Backend exposes a fixed command for `orbitfabric export model-summary`.
+[x] Backend exposes a fixed command for `orbitfabric export entity-index`.
+[x] Export report paths are controlled by Studio.
+[x] Backend returns stdout, stderr, exit code and success state.
+[x] Backend reports JSON report availability.
+[x] Backend returns report content only when available.
+[x] No arbitrary command execution is introduced.
+[x] No arbitrary OrbitFabric CLI argument entry is introduced.
+[x] No scenario runner is introduced.
+[x] No generator workflow is introduced beyond fixed Core-owned report exports.
 ```
 
 ---
@@ -68,16 +69,16 @@ The milestone is complete only if Studio consumes Core-owned contract navigation
 ## 4. TypeScript Report Model Gate
 
 ```text
-[ ] TypeScript model for Core model_summary.json exists.
-[ ] TypeScript model for Core entity_index.json exists.
-[ ] Types mirror Core fields actually exposed by v0.8.1 and v0.8.2.
-[ ] Minimal report recognition handles missing reports.
-[ ] Minimal report recognition handles invalid reports.
-[ ] Minimal report recognition handles unsupported command states.
-[ ] No line or column fields are invented.
-[ ] No relationship fields are invented.
-[ ] No graph fields are invented.
-[ ] No YAML AST fields are invented.
+[x] TypeScript model for Core model_summary.json exists.
+[x] TypeScript model for Core entity_index.json exists.
+[x] Types mirror Core fields actually exposed by v0.8.1 and v0.8.2.
+[x] Minimal report recognition handles missing reports.
+[x] Minimal report recognition handles invalid reports.
+[x] Minimal report recognition handles unsupported command states.
+[x] No line or column fields are invented.
+[x] No relationship fields are invented.
+[x] No graph fields are invented.
+[x] No YAML AST fields are invented.
 ```
 
 ---
@@ -85,66 +86,74 @@ The milestone is complete only if Studio consumes Core-owned contract navigation
 ## 5. Domain Navigation Gate
 
 ```text
-[ ] UI displays domains from Core model_summary.domains.
-[ ] UI displays required and present state.
-[ ] UI displays count.
-[ ] UI displays count_provenance.
-[ ] UI displays source_file when provided by Core.
-[ ] UI exposes a read-only source-file link only when safely resolvable.
-[ ] UI shows a domain detail panel.
-[ ] UI labels the data as Core model summary derived.
-[ ] UI handles missing model_summary report.
-[ ] UI handles unsupported model-summary command.
+[x] UI displays domains from Core model_summary.domains.
+[x] UI displays required and present state.
+[x] UI displays count.
+[x] UI displays count_provenance.
+[x] UI displays source_file when provided by Core.
+[x] UI exposes a read-only source-file link only when safely resolvable.
+[x] UI shows a domain navigation panel.
+[x] UI labels the data as Core model summary derived.
+[x] UI handles missing model_summary report.
+[x] UI handles unsupported model-summary command.
 ```
+
+Manual validation was performed with OrbitFabric Core 0.8.2 on `examples/demo-3u`.
 
 ---
 
 ## 6. Entity Navigation Gate
 
 ```text
-[ ] UI displays entities from Core entity_index.entities.
-[ ] UI groups entities by domain.
-[ ] UI displays id.
-[ ] UI displays display_name.
-[ ] UI displays domain.
-[ ] UI displays entity_type.
-[ ] UI displays source_file when provided by Core.
-[ ] UI displays provenance.
-[ ] UI displays required_domain.
-[ ] UI displays present.
-[ ] UI shows an entity detail panel.
-[ ] UI shows a domain summary panel from Core entity_index.domains.
-[ ] UI displays indexed / not-indexed state.
-[ ] UI displays model_count and entity_count.
-[ ] UI labels the data as Core entity index derived.
-[ ] UI handles missing entity_index report.
-[ ] UI handles unsupported entity-index command.
+[x] UI displays entities from Core entity_index.entities.
+[x] UI groups entities by domain.
+[x] UI displays id.
+[x] UI displays display_name.
+[x] UI displays domain.
+[x] UI displays entity_type.
+[x] UI displays source_file when provided by Core.
+[x] UI displays provenance.
+[x] UI displays required_domain.
+[x] UI displays present.
+[x] UI shows an entity navigation panel.
+[x] UI shows a domain summary panel from Core entity_index.domains.
+[x] UI displays indexed / not-indexed state.
+[x] UI displays model_count and entity_count.
+[x] UI labels the data as Core entity index derived.
+[x] UI handles missing entity_index report.
+[x] UI handles unsupported entity-index command.
 ```
+
+Manual validation was performed with OrbitFabric Core 0.8.2 on `examples/demo-3u`.
+
+Observed total entity count: `46`.
 
 ---
 
 ## 7. Summary-only Domain Gate
 
 ```text
-[ ] mode_transitions is not given synthetic entity records.
-[ ] policies is not given synthetic entity records.
-[ ] Summary-only domains are displayed as summarized but not entity-indexed when Core reports them that way.
-[ ] Studio does not maintain a private entity registry for missing domains.
+[x] mode_transitions is not given synthetic entity records.
+[x] policies is not given synthetic entity records.
+[x] Summary-only domains are displayed as summarized but not entity-indexed when Core reports them that way.
+[x] Studio does not maintain a private entity registry for missing domains.
 ```
+
+Manual validation confirmed `mode_transitions` and `policies` as `NOT INDEXED` with zero synthetic entity records.
 
 ---
 
 ## 8. Source File Linking Gate
 
 ```text
-[ ] Domain source_file links are safe and read-only.
-[ ] Entity source_file links are safe and read-only.
-[ ] Links are allowed only when Core-provided source_file resolves inside the workspace.
-[ ] Links are allowed only for supported viewer text files.
-[ ] Links are not inferred from domain name.
-[ ] Links are not inferred from entity id.
-[ ] Links are not inferred from entity type.
-[ ] No line or column jump is attempted.
+[x] Domain source_file links are safe and read-only.
+[x] Entity source_file links are safe and read-only.
+[x] Links are allowed only when Core-provided source_file resolves inside the workspace.
+[x] Links are allowed only for supported viewer text files.
+[x] Links are not inferred from domain name.
+[x] Links are not inferred from entity id.
+[x] Links are not inferred from entity type.
+[x] No line or column jump is attempted.
 ```
 
 ---
@@ -152,53 +161,55 @@ The milestone is complete only if Studio consumes Core-owned contract navigation
 ## 9. Compatibility Gate
 
 ```text
-[ ] Core v0.8.0 behavior is handled: lint available, navigation unavailable.
-[ ] Core v0.8.1 behavior is handled: domain navigation available, entity navigation unavailable.
-[ ] Core v0.8.2 behavior is handled: domain navigation and entity navigation available.
-[ ] Compatibility is based on command behavior and report availability.
-[ ] Version strings may be displayed but are not the only compatibility signal.
+[x] Core v0.8.0 behavior is handled structurally: lint available, navigation unavailable.
+[x] Core v0.8.1 behavior is handled structurally: domain navigation available, entity navigation unavailable.
+[x] Core v0.8.2 behavior is handled and manually validated: domain navigation and entity navigation available.
+[x] Compatibility is based on command behavior and report availability.
+[x] Version strings may be displayed but are not the only compatibility signal.
 ```
+
+Note: direct manual runtime validation in this release-candidate pass was performed with Core `0.8.2`. Older Core behavior is handled through fixed command failure/report-availability fallbacks and should be spot-checked before final tagging if older-Core compatibility is considered release-critical.
 
 ---
 
 ## 10. Non-goal Gate
 
 ```text
-[ ] No editing.
-[ ] No visual model editing.
-[ ] No semantic YAML parser.
-[ ] No private entity extraction.
-[ ] No private domain registry when Core model_summary is available.
-[ ] No private relationship resolver.
-[ ] No graph view.
-[ ] No relationship navigation.
-[ ] No dependency graph.
-[ ] No line or column navigation.
-[ ] No fake source span.
-[ ] No quick fixes.
-[ ] No suppressions.
-[ ] No scenario runner.
-[ ] No generator workflow beyond fixed Core-owned report exports.
-[ ] No ground artifact explorer.
-[ ] No runtime artifact explorer.
-[ ] No plugin UI.
-[ ] No arbitrary command execution.
-[ ] No arbitrary OrbitFabric CLI argument entry.
-[ ] No mission-control UI.
-[ ] No live telemetry.
-[ ] No command uplink.
+[x] No editing.
+[x] No visual model editing.
+[x] No semantic YAML parser.
+[x] No private entity extraction.
+[x] No private domain registry when Core model_summary is available.
+[x] No private relationship resolver.
+[x] No graph view.
+[x] No relationship navigation.
+[x] No dependency graph.
+[x] No line or column navigation.
+[x] No fake source span.
+[x] No quick fixes.
+[x] No suppressions.
+[x] No scenario runner.
+[x] No generator workflow beyond fixed Core-owned report exports.
+[x] No ground artifact explorer.
+[x] No runtime artifact explorer.
+[x] No plugin UI.
+[x] No arbitrary command execution.
+[x] No arbitrary OrbitFabric CLI argument entry.
+[x] No mission-control UI.
+[x] No live telemetry.
+[x] No command uplink.
 ```
 
 ---
 
 ## 11. Manual Verification Gate
 
-Recommended local checks for each technical PR:
+Recommended local checks before final tag:
 
 ```bash
-git fetch
-git checkout <branch>
-git pull
+git fetch origin
+git checkout main
+git pull --ff-only origin main
 npm run build
 source "$HOME/.cargo/env"
 npm run tauri:dev
@@ -213,25 +224,25 @@ examples/demo-3u
 Required manual checks before v0.3.0 release:
 
 ```text
-[ ] Open workspace.
-[ ] Verify Core version command.
-[ ] Run inspect mission.
-[ ] Run lint mission.
-[ ] Run export model-summary.
-[ ] Run export entity-index when supported.
-[ ] Open Contract Navigation Surface.
-[ ] Verify domain list.
-[ ] Verify domain detail panel.
-[ ] Verify entity list.
-[ ] Verify entity detail panel.
-[ ] Open source file from domain.
-[ ] Open source file from entity.
-[ ] Confirm file viewer remains read-only.
+[x] Open workspace.
+[x] Verify Core version command.
+[x] Run inspect mission.
+[x] Run lint mission.
+[x] Run export model-summary.
+[x] Run export entity-index when supported.
+[x] Open Contract Navigation Surface.
+[x] Verify domain list.
+[x] Verify domain navigation panel.
+[x] Verify entity list.
+[x] Verify entity navigation panel.
+[x] Open source file from domain.
+[x] Open source file from entity.
+[x] Confirm file viewer remains read-only.
 [ ] Confirm fallback with Core without entity-index.
 [ ] Confirm fallback with missing model_summary report.
 [ ] Confirm fallback with missing entity_index report.
-[ ] Confirm raw stdout and stderr remain visible.
-[ ] Confirm no graph, editing or arbitrary command UI exists.
+[x] Confirm raw stdout and stderr remain visible.
+[x] Confirm no graph, editing or arbitrary command UI exists.
 ```
 
 ---
@@ -246,12 +257,14 @@ Before tagging v0.3.0:
 [ ] src-tauri/Cargo.toml version is updated to 0.3.0.
 [ ] src-tauri/Cargo.lock version is updated to 0.3.0.
 [ ] src-tauri/tauri.conf.json version is updated to 0.3.0.
-[ ] README status is updated to v0.3.0.
-[ ] CHANGELOG v0.3.0 entry is complete.
+[x] README status is updated to v0.3.0 release candidate.
+[x] CHANGELOG v0.3.0 entry is complete.
 [ ] ROADMAP marks v0.3.0 as completed.
-[ ] docs/releases/v0.3.0-release-notes.md exists.
+[x] docs/releases/v0.3.0-release-notes.md exists.
 [ ] GitHub release notes are prepared.
 ```
+
+Version metadata and lockfiles must be updated together locally to avoid manual lockfile corruption.
 
 ---
 
@@ -259,9 +272,22 @@ Before tagging v0.3.0:
 
 ```text
 [ ] v0.3.0 can be tagged only after all technical and documentation gates are complete.
-[ ] Scope non-goals remain true at the end of the milestone.
-[ ] No source model write path exists.
-[ ] No graph or relationship navigation exists.
-[ ] Core-derived provenance is visible for all navigation data.
-[ ] Known limitations are documented.
+[x] Scope non-goals remain true at the end of the milestone.
+[x] No source model write path exists.
+[x] No graph or relationship navigation exists.
+[x] Core-derived provenance is visible for all navigation data.
+[x] Known limitations are documented.
+```
+
+Current state: release candidate, not yet tag-ready.
+
+Remaining before tag:
+
+```text
+- version metadata update to 0.3.0
+- lockfile refresh through npm/Cargo locally
+- final local build
+- final smoke test from main
+- optional older-Core fallback spot-check
+- GitHub release notes finalization
 ```

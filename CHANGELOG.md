@@ -4,7 +4,7 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface` planning baseline.
+OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface` release candidate.
 
 The current released baseline is `v0.2.0 - Validation and Diagnostics Workbench`.
 
@@ -12,7 +12,7 @@ The current released baseline is `v0.2.0 - Validation and Diagnostics Workbench`
 
 ## v0.3.0 - Contract Navigation Surface
 
-Planning baseline for the next milestone.
+Release candidate for the next milestone.
 
 This milestone extends the product loop toward:
 
@@ -22,36 +22,15 @@ Open -> Inspect -> Validate -> Navigate
 
 v0.3.0 remains downstream from OrbitFabric Core.
 
-Studio will consume Core-owned contract navigation reports.
+Studio consumes Core-owned contract navigation reports.
 
-Studio will not become an independent model parser, validator, entity extractor, relationship resolver or graph engine.
-
-### Planned
-
-- Add fixed backend command for `orbitfabric export model-summary <mission_dir> --json <report_path>`.
-- Add fixed backend command for `orbitfabric export entity-index <mission_dir> --json <report_path>` when supported by Core.
-- Add read-only loading for Core `model_summary.json`.
-- Add read-only loading for Core `entity_index.json`.
-- Add TypeScript models aligned to Core v0.8.1 `model_summary.json` fields.
-- Add TypeScript models aligned to Core v0.8.2 `entity_index.json` fields.
-- Add a Contract Navigation Surface.
-- Display contract domains from Core `model_summary.domains`.
-- Display contract entities from Core `entity_index.entities`.
-- Display domain detail panels.
-- Display entity detail panels.
-- Display domain summaries from Core entity index when available.
-- Display indexed and not-indexed domain states.
-- Display summarized but non entity-indexed domains without creating synthetic entities.
-- Add safe read-only source-file links from Core `source_file` fields when resolvable inside the workspace.
-- Add graceful fallback when Core does not support `model-summary`.
-- Add graceful fallback when Core does not support `entity-index`.
-- Add graceful fallback when reports are missing or invalid.
-- Keep raw stdout, stderr and exit-code visible for Core export commands.
+Studio does not become an independent model parser, validator, entity extractor, relationship resolver or graph engine.
 
 ### Added
 
 - Added `ADR-0008 - v0.3 Core-derived Contract Navigation`.
 - Added `docs/development/v0.3.0-contract-navigation-surface.md`.
+- Added `docs/releases/v0.3.0-release-notes.md`.
 - Added `V0_3_RELEASE_CHECKLIST.md`.
 - Added fixed backend command for Core `export model-summary`.
 - Added fixed backend command for Core `export entity-index`.
@@ -72,12 +51,51 @@ Studio will not become an independent model parser, validator, entity extractor,
 
 ### Changed
 
-- Updated the README status to v0.3.0 planning baseline.
-- Updated the README to describe Core-derived model summary and entity index consumption.
+- Updated the README status to v0.3.0 release candidate.
+- Updated the README to describe implemented Core-derived model summary and entity index consumption.
 - Updated the roadmap to gate v0.3.0 on Core v0.8.1 and v0.8.2 surfaces.
 - Updated the roadmap to defer graph and relationship navigation until Core exposes a relationship surface.
 - Refactored Core lint report parsing into a shared report parser module.
 - Updated the Core command panel copy to include Core export reports as derived reports.
+
+### Validated Manually
+
+Manual smoke tests were performed with OrbitFabric Core 0.8.2 on:
+
+```text
+examples/demo-3u
+```
+
+Observed outcomes:
+
+```text
+model-summary:
+  result: passed
+  mission: demo-3u
+  model_version: 0.1.0
+
+entity-index:
+  result: passed
+  mission: demo-3u
+  model_version: 0.1.0
+  total_entities: 46
+```
+
+Validated UI behavior:
+
+```text
+Run --version
+Run inspect mission
+Run lint mission
+Run export model-summary
+Run export entity-index
+Display Contract domains
+Display Contract entities
+Display indexed and not-indexed domain states
+Display mode_transitions and policies without synthetic entity records
+Open Core-indicated source files read-only
+Preserve raw stdout, stderr and exit code
+```
 
 ### Not Included
 
