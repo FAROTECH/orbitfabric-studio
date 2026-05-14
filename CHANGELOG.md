@@ -185,6 +185,13 @@ Studio does not become an independent validator or semantic Mission Model parser
 Manual smoke tests were performed with OrbitFabric Core 0.8.0 on:
 
 ```text
+examples/demo-3u
+examples/spacelab-inspired-communications-minislice
+```
+
+Observed outcomes:
+
+```text
 demo-3u:
   result: passed
   findings: 0
