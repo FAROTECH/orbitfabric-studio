@@ -243,7 +243,7 @@ This release turns validation from a terminal-only operation into a structured e
 
 # v0.3.0 - Contract Navigation Surface
 
-Status: Planned  
+Status: Release candidate  
 Nature: structured navigation slice  
 Primary loop: Open -> Inspect -> Validate -> Navigate
 
@@ -266,12 +266,12 @@ How are these entities related?
 
 Relationship navigation requires a future Core-owned relationship surface.
 
-## Planned Capabilities
+## Implemented Capabilities
 
 - run `orbitfabric export model-summary <mission_dir> --json <path>` through a fixed backend command
-- run `orbitfabric export entity-index <mission_dir> --json <path>` through a fixed backend command when supported by Core
-- detect and load `model_summary.json` read-only
-- detect and load `entity_index.json` read-only
+- run `orbitfabric export entity-index <mission_dir> --json <path>` through a fixed backend command
+- detect and load `model_summary.json` read-only when produced by Core
+- detect and load `entity_index.json` read-only when produced by Core
 - display domains from Core `model_summary.domains`
 - display count, required, present, source_file and count_provenance for domains
 - display entities from Core `entity_index.entities`
@@ -279,10 +279,11 @@ Relationship navigation requires a future Core-owned relationship surface.
 - display entity id, display_name, domain, entity_type, source_file, provenance, required_domain and present
 - display domain summaries from Core `entity_index.domains`
 - distinguish indexed domains from summarized-only domains
-- show `mode_transitions` and `policies` as summarized but not entity-indexed if Core reports them that way
+- show `mode_transitions` and `policies` as summarized but not entity-indexed when Core reports them that way
 - open a source file read-only only when the Core-provided `source_file` safely resolves to a known source model file
 - show clear provenance labels for Core model summary and Core entity index data
 - handle missing, invalid and unsupported reports gracefully
+- preserve raw stdout, stderr and exit code for Core export commands
 
 ## OrbitFabric Core Surfaces Consumed
 
@@ -315,7 +316,7 @@ Core v0.8.2:
   entity navigation enabled
 ```
 
-Compatibility must be based on command behavior and report availability.
+Compatibility is based on command behavior and report availability.
 
 Version strings may be displayed, but they must not be the only compatibility signal.
 
@@ -347,15 +348,26 @@ Version strings may be displayed, but they must not be the only compatibility si
 
 ## Exit Criteria
 
-v0.3.0 is complete only when Studio can:
+v0.3.0 is release-candidate complete when Studio can:
 
 1. consume Core `model_summary.json` without inventing domains;
 2. consume Core `entity_index.json` without inventing entities;
 3. present contract domains by Core-derived summary;
 4. present contract entities by Core-derived index;
 5. link domains and entities to source files only through Core-provided source_file values;
-6. handle Core v0.8.0, v0.8.1 and v0.8.2 behavior states;
+6. handle Core v0.8.0, v0.8.1 and v0.8.2 behavior states through command behavior and report availability;
 7. avoid relationship, graph and dependency claims.
+
+Remaining before final tag:
+
+```text
+- version metadata update to 0.3.0
+- lockfile refresh through npm/Cargo locally
+- final local build
+- final smoke test from main
+- optional older-Core fallback spot-check
+- GitHub release notes finalization
+```
 
 ---
 
