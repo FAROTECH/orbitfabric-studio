@@ -3,11 +3,13 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import { parseCoreLintReport } from "./coreReports";
+import { parseCoreLintReport, parseCoreModelSummary } from "./coreReports";
 import type {
   CoreCommandResult,
   CoreLintFinding,
   CoreLintReport,
+  CoreModelSummary,
+  CoreModelSummaryDomain,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
@@ -114,6 +116,18 @@ function App() {
     });
   }
 
+  async function handleCoreExportModelSummary() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core model summary export.");
+      return;
+    }
+
+    await runCoreCommand("run_core_export_model_summary", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+  }
+
   async function runCoreCommand(commandName: string, payload: Record<string, string>) {
     setCoreError(null);
     setCoreResult(null);
@@ -186,6 +200,7 @@ function App() {
           onCoreVersion={handleCoreVersion}
           onCoreInspectMission={handleCoreInspectMission}
           onCoreLintMission={handleCoreLintMission}
+          onCoreExportModelSummary={handleCoreExportModelSummary}
           onOpenFile={handleOpenFile}
         />
       ) : (
@@ -220,6 +235,7 @@ function WorkspacePanel({
   onCoreVersion,
   onCoreInspectMission,
   onCoreLintMission,
+  onCoreExportModelSummary,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -234,6 +250,7 @@ function WorkspacePanel({
   onCoreVersion: () => void;
   onCoreInspectMission: () => void;
   onCoreLintMission: () => void;
+  onCoreExportModelSummary: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -274,6 +291,7 @@ function WorkspacePanel({
         onVersion={onCoreVersion}
         onInspectMission={onCoreInspectMission}
         onLintMission={onCoreLintMission}
+        onExportModelSummary={onCoreExportModelSummary}
         onOpenFile={onOpenFile}
       />
 
@@ -333,6 +351,7 @@ function CoreStatusPanel({
   onVersion,
   onInspectMission,
   onLintMission,
+  onExportModelSummary,
   onOpenFile,
 }: {
   executable: string;
@@ -345,6 +364,7 @@ function CoreStatusPanel({
   onVersion: () => void;
   onInspectMission: () => void;
   onLintMission: () => void;
+  onExportModelSummary: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -354,8 +374,8 @@ function CoreStatusPanel({
           <h3>OrbitFabric Core command status</h3>
           <p>
             Runs only fixed Core commands and displays raw process output. The
-            lint command writes a Core JSON report as a derived report. This
-            slice opens Core-referenced source files only when the match is safe.
+            lint and export commands write Core JSON reports as derived reports.
+            Studio does not parse Mission Model YAML semantically.
           </p>
         </div>
         <span className="status-pill">Raw output</span>
@@ -391,6 +411,13 @@ function CoreStatusPanel({
         >
           Run lint mission
         </button>
+        <button
+          type="button"
+          onClick={onExportModelSummary}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run export model-summary
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -415,7 +442,9 @@ function CoreCommandOutput({
   sourceModelFiles: ProjectEntry[];
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
-  const parsedReport = parseCoreLintReport(result.json_report_content);
+  const parsedLintReport = parseCoreLintReport(result.json_report_content);
+  const parsedModelSummary = parseCoreModelSummary(result.json_report_content);
+  const isModelSummaryCommand = result.args.includes("model-summary");
 
   return (
     <div className="command-output">
@@ -432,17 +461,53 @@ function CoreCommandOutput({
           <span>{result.json_report_path}</span>
         </div>
       ) : null}
-      {result.json_report_content ? (
+      {parsedLintReport ? (
         <CoreValidationSummary
-          report={parsedReport}
-          rawContent={result.json_report_content}
+          report={parsedLintReport}
+          rawContent={result.json_report_content ?? ""}
           sourceModelFiles={sourceModelFiles}
           onOpenFile={onOpenFile}
         />
       ) : null}
+      {parsedModelSummary ? (
+        <CoreModelSummaryPanel
+          summary={parsedModelSummary}
+          sourceModelFiles={sourceModelFiles}
+          onOpenFile={onOpenFile}
+        />
+      ) : null}
+      {result.json_report_content && !parsedLintReport && !parsedModelSummary ? (
+        <UnrecognizedCoreReport rawContent={result.json_report_content} />
+      ) : null}
+      {isModelSummaryCommand && !result.json_report_available ? (
+        <section className="entry-section muted-section" aria-label="Core model summary unavailable">
+          <h3>Contract domains unavailable</h3>
+          <p>
+            Core did not produce a model summary report. Domain navigation requires
+            OrbitFabric Core v0.8.1 or newer and a successful fixed export command.
+          </p>
+        </section>
+      ) : null}
       <pre>{result.stdout || "<empty stdout>"}</pre>
       {result.stderr ? <pre className="stderr-output">{result.stderr}</pre> : null}
     </div>
+  );
+}
+
+function UnrecognizedCoreReport({ rawContent }: { rawContent: string }) {
+  return (
+    <section className="entry-section muted-section" aria-label="Core JSON report status">
+      <h3>Core JSON report</h3>
+      <p>
+        A Core JSON report was produced, but Studio did not recognize it as a
+        supported report shape for this view. No diagnostics, domains or entities
+        are inferred.
+      </p>
+      <div className="command-meta">
+        <strong>Core JSON report content</strong>
+        <span>{rawContent.length} bytes</span>
+      </div>
+    </section>
   );
 }
 
@@ -458,19 +523,7 @@ function CoreValidationSummary({
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   if (!report) {
-    return (
-      <section className="entry-section muted-section" aria-label="Core JSON report status">
-        <h3>Core validation summary</h3>
-        <p>
-          A Core JSON report was produced, but Studio did not recognize it as
-          the current lint report shape. No diagnostics are inferred.
-        </p>
-        <div className="command-meta">
-          <strong>Core JSON report content</strong>
-          <span>{rawContent.length} bytes</span>
-        </div>
-      </section>
-    );
+    return <UnrecognizedCoreReport rawContent={rawContent} />;
   }
 
   return (
@@ -505,6 +558,104 @@ function CoreValidationSummary({
         sourceModelFiles={sourceModelFiles}
         onOpenFile={onOpenFile}
       />
+    </section>
+  );
+}
+
+function CoreModelSummaryPanel({
+  summary,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  summary: CoreModelSummary;
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  return (
+    <section className="entry-section" aria-label="Contract domain navigation">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Contract domains</h3>
+          <p>
+            Derived from Core `model_summary.json`. Studio lists domains and
+            source files exactly as reported by Core. It does not infer entities,
+            relationships or source locations.
+          </p>
+        </div>
+        <span className="status-pill">Core model summary</span>
+      </div>
+
+      <div className="summary-grid">
+        <SummaryItem label="Mission" value={summary.mission.name} />
+        <SummaryItem label="Mission ID" value={summary.mission.id} />
+        <SummaryItem label="Core version" value={summary.orbitfabric_version} />
+      </div>
+
+      <DomainList
+        domains={summary.domains}
+        sourceModelFiles={sourceModelFiles}
+        onOpenFile={onOpenFile}
+      />
+    </section>
+  );
+}
+
+function DomainList({
+  domains,
+  sourceModelFiles,
+  onOpenFile,
+}: {
+  domains: CoreModelSummaryDomain[];
+  sourceModelFiles: ProjectEntry[];
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  if (domains.length === 0) {
+    return (
+      <section className="entry-section muted-section" aria-label="No contract domains">
+        <h3>Contract domain list</h3>
+        <p>Core model summary did not report any domains.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="entry-section" aria-label="Contract domain list">
+      <h3>Domain list</h3>
+      <ul className="entry-list">
+        {domains.map((domain) => {
+          const linkedFile = findSourceModelFile(domain.source_file, sourceModelFiles);
+
+          return (
+            <li key={domain.id}>
+              <div className="entry-main">
+                <strong>{domain.display_name}</strong>
+                <span className={`category-badge category-${domain.present ? "sourceModel" : "derivedReport"}`}>
+                  {domain.present ? "present" : "missing"}
+                </span>
+              </div>
+              <div className="command-meta">
+                <span>id: {domain.id}</span>
+                <span>required: {String(domain.required)}</span>
+                <span>count: {domain.count}</span>
+                <span>count provenance: {domain.count_provenance}</span>
+                <span>
+                  source file: {linkedFile ? (
+                    <button
+                      className="inline-link-button"
+                      type="button"
+                      onClick={() => onOpenFile(linkedFile)}
+                    >
+                      {domain.source_file}
+                    </button>
+                  ) : (
+                    domain.source_file
+                  )}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
@@ -576,16 +727,16 @@ function CoreFindingsList({
 }
 
 function findSourceModelFile(
-  findingFile: string | null,
+  sourceFile: string | null,
   sourceModelFiles: ProjectEntry[],
 ): ProjectEntry | null {
-  if (!findingFile) {
+  if (!sourceFile) {
     return null;
   }
 
   return (
     sourceModelFiles.find(
-      (entry) => entry.kind === "file" && entry.name === findingFile,
+      (entry) => entry.kind === "file" && entry.name === sourceFile,
     ) ?? null
   );
 }
