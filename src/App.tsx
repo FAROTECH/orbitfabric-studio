@@ -19,6 +19,7 @@ import type {
   CoreModelSummary,
   CoreModelSummaryDomain,
   CoreRelationshipManifest,
+  CoreRelationshipType,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
@@ -869,15 +870,167 @@ function CoreRelationshipManifestPanel({
         </ul>
       </section>
 
+      <RelationshipTypeSummary relationshipTypes={manifest.relationship_types} />
+
       <section className="entry-section" aria-label="Relationship manifest raw preview">
         <h3>Raw relationship_manifest.json preview</h3>
         <p>
-          Raw report content is shown for transparency. Structured relationship
-          type and record navigation are intentionally deferred to later PRs.
+          Raw report content is shown for transparency. Relationship record
+          navigation is intentionally deferred to a later PR.
         </p>
         <pre>{rawContent || "<empty relationship manifest>"}</pre>
       </section>
     </section>
+  );
+}
+
+
+function RelationshipTypeSummary({
+  relationshipTypes,
+}: {
+  relationshipTypes: CoreRelationshipType[];
+}) {
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedFromDomain, setSelectedFromDomain] = useState("");
+  const [selectedToDomain, setSelectedToDomain] = useState("");
+
+  const relationshipTypeOptions = uniqueSorted(
+    relationshipTypes.map((item) => item.relationship_type),
+  );
+  const fromDomainOptions = uniqueSorted(
+    relationshipTypes.map((item) => item.from_domain),
+  );
+  const toDomainOptions = uniqueSorted(
+    relationshipTypes.map((item) => item.to_domain),
+  );
+
+  const filteredRelationshipTypes = relationshipTypes.filter((item) => {
+    return (
+      (!selectedType || item.relationship_type === selectedType) &&
+      (!selectedFromDomain || item.from_domain === selectedFromDomain) &&
+      (!selectedToDomain || item.to_domain === selectedToDomain)
+    );
+  });
+
+  const filteredCount = filteredRelationshipTypes.reduce(
+    (total, item) => total + item.relationship_count,
+    0,
+  );
+
+  return (
+    <section className="entry-section" aria-label="Relationship type summary">
+      <h3>Relationship type summary</h3>
+      <p>
+        Relationship types are listed exactly as reported by Core. Studio does
+        not add relationship families, infer extra edges or interpret runtime
+        behavior.
+      </p>
+
+      <div className="summary-grid">
+        <SummaryItem
+          label="Reported types"
+          value={String(relationshipTypes.length)}
+        />
+        <SummaryItem
+          label="Visible types"
+          value={String(filteredRelationshipTypes.length)}
+        />
+        <SummaryItem
+          label="Visible relationships"
+          value={String(filteredCount)}
+        />
+      </div>
+
+      <div className="command-actions">
+        <label className="command-label">
+          Type
+          <select
+            className="command-input"
+            value={selectedType}
+            onChange={(event) => setSelectedType(event.target.value)}
+          >
+            <option value="">All relationship types</option>
+            {relationshipTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="command-label">
+          From domain
+          <select
+            className="command-input"
+            value={selectedFromDomain}
+            onChange={(event) => setSelectedFromDomain(event.target.value)}
+          >
+            <option value="">All from domains</option>
+            {fromDomainOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="command-label">
+          To domain
+          <select
+            className="command-input"
+            value={selectedToDomain}
+            onChange={(event) => setSelectedToDomain(event.target.value)}
+          >
+            <option value="">All to domains</option>
+            {toDomainOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedType("");
+            setSelectedFromDomain("");
+            setSelectedToDomain("");
+          }}
+        >
+          Clear relationship filters
+        </button>
+      </div>
+
+      {filteredRelationshipTypes.length > 0 ? (
+        <ul className="entry-list">
+          {filteredRelationshipTypes.map((item) => (
+            <li key={item.relationship_type}>
+              <div className="entry-main">
+                <strong>{item.display_name}</strong>
+                <span className="category-badge category-sourceModel">
+                  {item.relationship_count} relationships
+                </span>
+              </div>
+              <div className="command-meta">
+                <span>type: {item.relationship_type}</span>
+                <span>from: {item.from_domain}</span>
+                <span>to: {item.to_domain}</span>
+                <span>derived from: {item.derived_from.model_field}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty-text">No relationship types match the active filters.</p>
+      )}
+    </section>
+  );
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(new Set(values)).sort((left, right) =>
+    left.localeCompare(right),
   );
 }
 
