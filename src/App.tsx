@@ -19,6 +19,7 @@ import type {
   CoreModelSummary,
   CoreModelSummaryDomain,
   CoreRelationshipManifest,
+  CoreRelationshipRecord,
   CoreRelationshipType,
   FileContent,
   ProjectEntry,
@@ -872,6 +873,8 @@ function CoreRelationshipManifestPanel({
 
       <RelationshipTypeSummary relationshipTypes={manifest.relationship_types} />
 
+      <RelationshipRecordsNavigation relationships={manifest.relationships} />
+
       <section className="entry-section" aria-label="Relationship manifest raw preview">
         <h3>Raw relationship_manifest.json preview</h3>
         <p>
@@ -884,6 +887,138 @@ function CoreRelationshipManifestPanel({
   );
 }
 
+
+
+function RelationshipRecordsNavigation({
+  relationships,
+}: {
+  relationships: CoreRelationshipRecord[];
+}) {
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedFromDomain, setSelectedFromDomain] = useState("");
+  const [selectedToDomain, setSelectedToDomain] = useState("");
+
+  const relationshipTypeOptions = uniqueSorted(
+    relationships.map((item) => item.relationship_type),
+  );
+  const fromDomainOptions = uniqueSorted(
+    relationships.map((item) => item.from.domain),
+  );
+  const toDomainOptions = uniqueSorted(
+    relationships.map((item) => item.to.domain),
+  );
+
+  const filteredRelationships = relationships.filter((item) => {
+    return (
+      (!selectedType || item.relationship_type === selectedType) &&
+      (!selectedFromDomain || item.from.domain === selectedFromDomain) &&
+      (!selectedToDomain || item.to.domain === selectedToDomain)
+    );
+  });
+
+  return (
+    <section className="entry-section" aria-label="Relationship records navigation">
+      <h3>Relationship records</h3>
+      <p>
+        Relationship records are rendered exactly as reported by Core. Studio
+        does not infer additional records, create synthetic nodes or resolve
+        endpoint links in this slice.
+      </p>
+
+      <div className="summary-grid">
+        <SummaryItem label="Reported records" value={String(relationships.length)} />
+        <SummaryItem label="Visible records" value={String(filteredRelationships.length)} />
+      </div>
+
+      <div className="command-actions">
+        <label className="command-label">
+          Type
+          <select
+            className="command-input"
+            value={selectedType}
+            onChange={(event) => setSelectedType(event.target.value)}
+          >
+            <option value="">All relationship types</option>
+            {relationshipTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="command-label">
+          From domain
+          <select
+            className="command-input"
+            value={selectedFromDomain}
+            onChange={(event) => setSelectedFromDomain(event.target.value)}
+          >
+            <option value="">All from domains</option>
+            {fromDomainOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="command-label">
+          To domain
+          <select
+            className="command-input"
+            value={selectedToDomain}
+            onChange={(event) => setSelectedToDomain(event.target.value)}
+          >
+            <option value="">All to domains</option>
+            {toDomainOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedType("");
+            setSelectedFromDomain("");
+            setSelectedToDomain("");
+          }}
+        >
+          Clear record filters
+        </button>
+      </div>
+
+      {filteredRelationships.length > 0 ? (
+        <ul className="entry-list">
+          {filteredRelationships.map((relationship) => (
+            <li key={relationship.relationship_id}>
+              <div className="entry-main">
+                <strong>{relationship.relationship_id}</strong>
+                <span className="category-badge category-sourceModel">
+                  {relationship.relationship_type}
+                </span>
+              </div>
+              <div className="command-meta">
+                <span>
+                  from: {relationship.from.domain}:{relationship.from.id}
+                </span>
+                <span>
+                  to: {relationship.to.domain}:{relationship.to.id}
+                </span>
+                <span>derived from: {relationship.derived_from.model_field}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty-text">No relationship records match the active filters.</p>
+      )}
+    </section>
+  );
+}
 
 function RelationshipTypeSummary({
   relationshipTypes,
