@@ -897,6 +897,7 @@ function RelationshipRecordsNavigation({
   const [selectedType, setSelectedType] = useState("");
   const [selectedFromDomain, setSelectedFromDomain] = useState("");
   const [selectedToDomain, setSelectedToDomain] = useState("");
+  const [selectedRelationshipId, setSelectedRelationshipId] = useState("");
 
   const relationshipTypeOptions = uniqueSorted(
     relationships.map((item) => item.relationship_type),
@@ -916,6 +917,11 @@ function RelationshipRecordsNavigation({
     );
   });
 
+  const selectedRelationship =
+    filteredRelationships.find(
+      (item) => item.relationship_id === selectedRelationshipId,
+    ) ?? null;
+
   return (
     <section className="entry-section" aria-label="Relationship records navigation">
       <h3>Relationship records</h3>
@@ -928,6 +934,10 @@ function RelationshipRecordsNavigation({
       <div className="summary-grid">
         <SummaryItem label="Reported records" value={String(relationships.length)} />
         <SummaryItem label="Visible records" value={String(filteredRelationships.length)} />
+        <SummaryItem
+          label="Selected record"
+          value={selectedRelationship ? selectedRelationship.relationship_id : "None"}
+        />
       </div>
 
       <div className="command-actions">
@@ -936,7 +946,10 @@ function RelationshipRecordsNavigation({
           <select
             className="command-input"
             value={selectedType}
-            onChange={(event) => setSelectedType(event.target.value)}
+            onChange={(event) => {
+              setSelectedType(event.target.value);
+              setSelectedRelationshipId("");
+            }}
           >
             <option value="">All relationship types</option>
             {relationshipTypeOptions.map((option) => (
@@ -952,7 +965,10 @@ function RelationshipRecordsNavigation({
           <select
             className="command-input"
             value={selectedFromDomain}
-            onChange={(event) => setSelectedFromDomain(event.target.value)}
+            onChange={(event) => {
+              setSelectedFromDomain(event.target.value);
+              setSelectedRelationshipId("");
+            }}
           >
             <option value="">All from domains</option>
             {fromDomainOptions.map((option) => (
@@ -968,7 +984,10 @@ function RelationshipRecordsNavigation({
           <select
             className="command-input"
             value={selectedToDomain}
-            onChange={(event) => setSelectedToDomain(event.target.value)}
+            onChange={(event) => {
+              setSelectedToDomain(event.target.value);
+              setSelectedRelationshipId("");
+            }}
           >
             <option value="">All to domains</option>
             {toDomainOptions.map((option) => (
@@ -985,6 +1004,7 @@ function RelationshipRecordsNavigation({
             setSelectedType("");
             setSelectedFromDomain("");
             setSelectedToDomain("");
+            setSelectedRelationshipId("");
           }}
         >
           Clear record filters
@@ -993,32 +1013,127 @@ function RelationshipRecordsNavigation({
 
       {filteredRelationships.length > 0 ? (
         <ul className="entry-list">
-          {filteredRelationships.map((relationship) => (
-            <li key={relationship.relationship_id}>
-              <div className="entry-main">
-                <strong>{relationship.relationship_id}</strong>
-                <span className="category-badge category-sourceModel">
-                  {relationship.relationship_type}
-                </span>
-              </div>
-              <div className="command-meta">
-                <span>
-                  from: {relationship.from.domain}:{relationship.from.id}
-                </span>
-                <span>
-                  to: {relationship.to.domain}:{relationship.to.id}
-                </span>
-                <span>derived from: {relationship.derived_from.model_field}</span>
-              </div>
-            </li>
-          ))}
+          {filteredRelationships.map((relationship) => {
+            const isSelected =
+              relationship.relationship_id === selectedRelationshipId;
+
+            return (
+              <li key={relationship.relationship_id}>
+                <div className="entry-main">
+                  <button
+                    className="entry-button"
+                    type="button"
+                    onClick={() =>
+                      setSelectedRelationshipId(relationship.relationship_id)
+                    }
+                  >
+                    {relationship.relationship_id}
+                  </button>
+                  <span className="category-badge category-sourceModel">
+                    {isSelected ? "selected" : relationship.relationship_type}
+                  </span>
+                </div>
+                <div className="command-meta">
+                  <span>type: {relationship.relationship_type}</span>
+                  <span>
+                    from: {relationship.from.domain}:{relationship.from.id}
+                  </span>
+                  <span>
+                    to: {relationship.to.domain}:{relationship.to.id}
+                  </span>
+                  <span>derived from: {relationship.derived_from.model_field}</span>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="empty-text">No relationship records match the active filters.</p>
       )}
+
+      <RelationshipExplanationPanel relationship={selectedRelationship} />
     </section>
   );
 }
+
+function RelationshipExplanationPanel({
+  relationship,
+}: {
+  relationship: CoreRelationshipRecord | null;
+}) {
+  if (!relationship) {
+    return (
+      <section className="entry-section muted-section" aria-label="Relationship explanation">
+        <h3>Selected relationship explanation</h3>
+        <p>
+          Select a Core relationship record above to inspect its read-only
+          provenance and boundary statements.
+        </p>
+      </section>
+    );
+  }
+
+  const explanationItems = [
+    ["Source", "Core relationship_manifest.json"],
+    ["Relationship ID", relationship.relationship_id],
+    ["Relationship type", relationship.relationship_type],
+    [
+      "From endpoint",
+      `${relationship.from.domain}:${relationship.from.id}`,
+    ],
+    ["To endpoint", `${relationship.to.domain}:${relationship.to.id}`],
+    ["Derived from", relationship.derived_from.model_field],
+  ];
+
+  const boundaryStatements = [
+    "This relationship comes from Core relationship_manifest.json.",
+    `It is derived from the explicit Mission Model field ${relationship.derived_from.model_field}.`,
+    "Studio did not infer this relationship.",
+    "This relationship does not represent runtime behavior.",
+    "This relationship does not represent ground behavior.",
+    "This relationship is not a dependency graph edge.",
+    "Endpoint linking and source line navigation are intentionally not provided in this slice.",
+  ];
+
+  return (
+    <section className="entry-section" aria-label="Relationship explanation">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Selected relationship explanation</h3>
+          <p>
+            Read-only detail for one Core-owned relationship record. The
+            explanation is limited to provenance, endpoints and explicit boundary
+            statements.
+          </p>
+        </div>
+        <span className="status-pill">Core-derived</span>
+      </div>
+
+      <div className="summary-grid">
+        {explanationItems.map(([label, value]) => (
+          <SummaryItem key={label} label={label} value={value} />
+        ))}
+      </div>
+
+      <section className="entry-section" aria-label="Relationship boundary statements">
+        <h3>Boundary statements</h3>
+        <ul className="entry-list">
+          {boundaryStatements.map((statement) => (
+            <li key={statement}>
+              <div className="entry-main">
+                <strong>{statement}</strong>
+                <span className="category-badge category-sourceModel">
+                  confirmed
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </section>
+  );
+}
+
 
 function RelationshipTypeSummary({
   relationshipTypes,
