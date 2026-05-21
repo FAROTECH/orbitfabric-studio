@@ -7,6 +7,7 @@ import {
   parseCoreEntityIndex,
   parseCoreLintReport,
   parseCoreModelSummary,
+  parseCoreRelationshipManifest,
 } from "./coreReports";
 import type {
   CoreCommandResult,
@@ -17,6 +18,7 @@ import type {
   CoreLintReport,
   CoreModelSummary,
   CoreModelSummaryDomain,
+  CoreRelationshipManifest,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
@@ -147,6 +149,18 @@ function App() {
     });
   }
 
+  async function handleCoreExportRelationshipManifest() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core relationship manifest export.");
+      return;
+    }
+
+    await runCoreCommand("run_core_export_relationship_manifest", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+  }
+
   async function runCoreCommand(commandName: string, payload: Record<string, string>) {
     setCoreError(null);
     setCoreResult(null);
@@ -223,6 +237,7 @@ function App() {
           onCoreLintMission={handleCoreLintMission}
           onCoreExportModelSummary={handleCoreExportModelSummary}
           onCoreExportEntityIndex={handleCoreExportEntityIndex}
+          onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
           onOpenFile={handleOpenFile}
         />
       ) : (
@@ -259,6 +274,7 @@ function WorkspacePanel({
   onCoreLintMission,
   onCoreExportModelSummary,
   onCoreExportEntityIndex,
+  onCoreExportRelationshipManifest,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -275,6 +291,7 @@ function WorkspacePanel({
   onCoreLintMission: () => void;
   onCoreExportModelSummary: () => void;
   onCoreExportEntityIndex: () => void;
+  onCoreExportRelationshipManifest: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -317,6 +334,7 @@ function WorkspacePanel({
         onLintMission={onCoreLintMission}
         onExportModelSummary={onCoreExportModelSummary}
         onExportEntityIndex={onCoreExportEntityIndex}
+        onExportRelationshipManifest={onCoreExportRelationshipManifest}
         onOpenFile={onOpenFile}
       />
 
@@ -378,6 +396,7 @@ function CoreStatusPanel({
   onLintMission,
   onExportModelSummary,
   onExportEntityIndex,
+  onExportRelationshipManifest,
   onOpenFile,
 }: {
   executable: string;
@@ -392,6 +411,7 @@ function CoreStatusPanel({
   onLintMission: () => void;
   onExportModelSummary: () => void;
   onExportEntityIndex: () => void;
+  onExportRelationshipManifest: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -452,6 +472,13 @@ function CoreStatusPanel({
         >
           Run export entity-index
         </button>
+        <button
+          type="button"
+          onClick={onExportRelationshipManifest}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run export relationship-manifest
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -479,8 +506,10 @@ function CoreCommandOutput({
   const parsedLintReport = parseCoreLintReport(result.json_report_content);
   const parsedModelSummary = parseCoreModelSummary(result.json_report_content);
   const parsedEntityIndex = parseCoreEntityIndex(result.json_report_content);
+  const parsedRelationshipManifest = parseCoreRelationshipManifest(result.json_report_content);
   const isModelSummaryCommand = result.args.includes("model-summary");
   const isEntityIndexCommand = result.args.includes("entity-index");
+  const isRelationshipManifestCommand = result.args.includes("relationship-manifest");
 
   return (
     <div className="command-output">
@@ -519,7 +548,17 @@ function CoreCommandOutput({
           onOpenFile={onOpenFile}
         />
       ) : null}
-      {result.json_report_content && !parsedLintReport && !parsedModelSummary && !parsedEntityIndex ? (
+      {parsedRelationshipManifest ? (
+        <CoreRelationshipManifestPanel
+          manifest={parsedRelationshipManifest}
+          rawContent={result.json_report_content ?? ""}
+        />
+      ) : null}
+      {result.json_report_content &&
+      !parsedLintReport &&
+      !parsedModelSummary &&
+      !parsedEntityIndex &&
+      !parsedRelationshipManifest ? (
         <UnrecognizedCoreReport rawContent={result.json_report_content} />
       ) : null}
       {isModelSummaryCommand && !result.json_report_available ? (
@@ -537,6 +576,16 @@ function CoreCommandOutput({
           <p>
             Core did not produce an entity index report. Entity navigation requires
             OrbitFabric Core v0.8.2 or newer and a successful fixed export command.
+          </p>
+        </section>
+      ) : null}
+      {isRelationshipManifestCommand && !result.json_report_available ? (
+        <section className="entry-section muted-section" aria-label="Core relationship manifest unavailable">
+          <h3>Relationship manifest unavailable</h3>
+          <p>
+            Core did not produce a relationship manifest report. Relationship
+            inspection requires OrbitFabric Core v1.0.0 or newer and a successful
+            fixed export command.
           </p>
         </section>
       ) : null}
@@ -753,6 +802,81 @@ function CoreEntityIndexPanel({
         sourceModelFiles={sourceModelFiles}
         onOpenFile={onOpenFile}
       />
+    </section>
+  );
+}
+
+
+function CoreRelationshipManifestPanel({
+  manifest,
+  rawContent,
+}: {
+  manifest: CoreRelationshipManifest;
+  rawContent: string;
+}) {
+  const boundaryLabels = [
+    ["Core relationship manifest", manifest.boundaries.contains_relationship_manifest],
+    ["Not relationship graph", !manifest.boundaries.contains_relationship_graph],
+    ["Not dependency graph", !manifest.boundaries.contains_dependency_graph],
+    ["No source locations", !manifest.boundaries.contains_source_locations],
+    ["No runtime behavior", !manifest.boundaries.contains_runtime_behavior],
+    ["No ground behavior", !manifest.boundaries.contains_ground_behavior],
+  ];
+
+  return (
+    <section className="entry-section" aria-label="Relationship manifest summary">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Relationship Manifest</h3>
+          <p>
+            Derived from Core `relationship_manifest.json`. Studio displays the
+            manifest identity and boundaries only. It does not infer relationship
+            records, render a graph or derive runtime behavior.
+          </p>
+        </div>
+        <span className="status-pill">Core relationship manifest</span>
+      </div>
+
+      <div className="summary-grid">
+        <SummaryItem label="Mission" value={manifest.mission.name} />
+        <SummaryItem label="Mission ID" value={manifest.mission.id} />
+        <SummaryItem label="Manifest version" value={manifest.manifest_version} />
+        <SummaryItem label="Core version" value={manifest.orbitfabric_version} />
+        <SummaryItem label="Status" value={manifest.status} />
+        <SummaryItem
+          label="Total relationships"
+          value={String(manifest.counts.total_relationships)}
+        />
+      </div>
+
+      <section className="entry-section" aria-label="Relationship manifest boundaries">
+        <h3>Boundary labels</h3>
+        <p>
+          These labels are reported from the Core manifest boundary flags. They
+          keep this surface separate from graph, runtime and ground behavior.
+        </p>
+        <ul className="entry-list">
+          {boundaryLabels.map(([label, enabled]) => (
+            <li key={String(label)}>
+              <div className="entry-main">
+                <strong>{label}</strong>
+                <span className={`category-badge category-${enabled ? "sourceModel" : "derivedReport"}`}>
+                  {enabled ? "confirmed" : "not confirmed"}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="entry-section" aria-label="Relationship manifest raw preview">
+        <h3>Raw relationship_manifest.json preview</h3>
+        <p>
+          Raw report content is shown for transparency. Structured relationship
+          type and record navigation are intentionally deferred to later PRs.
+        </p>
+        <pre>{rawContent || "<empty relationship manifest>"}</pre>
+      </section>
     </section>
   );
 }
