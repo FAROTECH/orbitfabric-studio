@@ -6,7 +6,7 @@ Studio exists to make the Mission Data Contract easier to inspect, validate, nav
 
 The Mission Model remains the source of truth.
 
-OrbitFabric Core remains authoritative for validation, scenario evidence, generated artifacts, contract introspection, entity indexing, future relationship surfaces and future plugin semantics.
+OrbitFabric Core remains authoritative for validation, scenario evidence, generated artifacts, contract introspection, entity indexing, relationship semantics and future plugin semantics.
 
 Studio is downstream.
 
@@ -23,7 +23,7 @@ charter
   -> read-only inspection
   -> validation visibility
   -> contract navigation
-  -> relationship visualization, gated by Core relationship outputs
+  -> relationship explanation from Core-owned relationship records
   -> generated artifact inspection
   -> scenario evidence inspection
   -> ground artifact inspection
@@ -32,10 +32,16 @@ charter
   -> stable workbench
 ```
 
-The active product loop is deliberately conservative:
+The active released product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate
+```
+
+The active planning loop for v0.4.0 is:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 ```
 
 This does not mean that Studio is only a post-processing viewer for already-completed contracts.
@@ -44,7 +50,7 @@ Studio is not read-only by identity.
 
 Studio is read-only by initial maturity strategy.
 
-Editing and assisted authoring are intentionally delayed because Studio must first prove that it can load, inspect, validate and explain an OrbitFabric mission workspace without introducing semantic drift.
+Editing and assisted authoring are intentionally delayed because Studio must first prove that it can load, inspect, validate, navigate and explain an OrbitFabric mission workspace without introducing semantic drift.
 
 ---
 
@@ -78,9 +84,18 @@ Core v0.8.1 model_summary.json for domain navigation
 Core v0.8.2 entity_index.json for entity navigation
 ```
 
-For future relationship or graph navigation, the required Core output is not yet available.
+For v0.4.0, the required Core output is available in OrbitFabric Core v1.0.0:
 
-Studio must wait for a Core-owned relationship surface before implementing graph or relationship semantics.
+```text
+Core v1.0.0 relationship_manifest.json for relationship inspection
+kind: orbitfabric.relationship_manifest
+manifest_version: 0.1-candidate
+status: candidate
+```
+
+Studio v0.4.0 may consume Core relationship records.
+
+Studio v0.4.0 must not create private relationship semantics, a dependency graph, a relationship graph engine or runtime behavior interpretation.
 
 ---
 
@@ -103,6 +118,7 @@ A user must always understand which category they are looking at.
 
 ```text
 Planned        = part of the intended roadmap
+Active         = current planning or implementation target
 Experimental   = may change significantly
 Stable target  = expected to become part of the v1.0 workbench
 Completed      = implemented and documented
@@ -264,8 +280,6 @@ This release does not answer:
 How are these entities related?
 ```
 
-Relationship navigation requires a future Core-owned relationship surface.
-
 ## Implemented Capabilities
 
 - run `orbitfabric export model-summary <mission_dir> --json <path>` through a fixed backend command
@@ -362,50 +376,106 @@ v0.3.0 is complete because Studio can:
 
 # v0.4.0 - Relationship Surface
 
-Status: Planned, gated by future Core surface  
-Nature: relationship visualization slice  
-Primary loop: Navigate -> Visualize -> Explain
+Status: Active  
+Nature: Core-derived relationship inspection slice  
+Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 
 ## Goal
 
-Visualize relationships among Mission Data Contract entities only after OrbitFabric Core exposes a relationship manifest or equivalent relationship surface.
+Provide read-only relationship inspection across indexed Mission Data Contract entities by consuming Core v1.0.0 `relationship_manifest.json`.
 
-This milestone must not proceed as a private Studio graph engine.
+This release answers:
 
-## Candidate Capabilities
+```text
+How are indexed mission contract entities related, according to Core?
+```
 
-- consume a future Core relationship manifest
-- render relationship graphs from Core-owned relationship records
-- show node detail panels from Core entity records
-- show edge explanation panels from Core relationship records
-- filter by domain
-- highlight invalid or missing relationships only where reported by Core
+This release does not answer:
 
-## OrbitFabric Core Surfaces Required
+```text
+How should the system execute those relationships?
+What runtime behavior follows from them?
+What ground behavior follows from them?
+What is the dependency graph?
+What is the live operational state?
+What should be edited?
+```
 
-- future relationship manifest or equivalent Core-owned relationship surface
-- Core entity index
-- validation reports
-- generated documentation or reports where relevant
+## Planned Capabilities
+
+- run `orbitfabric export relationship-manifest <mission_dir> --json <path>` through a fixed backend command
+- detect and load `relationship_manifest.json` read-only when produced by Core
+- display manifest identity, version, status, mission and Core version
+- display Core boundary labels
+- display relationship type summaries from Core `relationship_types`
+- display relationship records from Core `relationships`
+- filter by relationship type
+- filter by endpoint domains
+- link relationship endpoints to `entity_index.json` entities when available and compatible
+- explain selected relationships without inventing semantics
+- handle missing, invalid and unsupported reports gracefully
+- preserve raw stdout, stderr and exit code for Core export commands
+
+## OrbitFabric Core Surfaces Consumed
+
+- Core v1.0.0 `relationship_manifest.json`
+- `kind: orbitfabric.relationship_manifest`
+- `manifest_version: 0.1-candidate`
+- `status: candidate`
+- Core v0.8.2 or later `entity_index.json` for endpoint linking when available
+
+## Required Boundary Labels
+
+Studio must make these boundaries visible:
+
+```text
+Core relationship manifest
+not relationship graph
+not dependency graph
+no source locations
+no runtime behavior
+no ground behavior
+```
 
 ## Explicit Non-goals
 
-- no graph rendering from private YAML inference
+- no editing
+- no visual model editing
+- no semantic YAML parser
+- no private relationship inference
 - no private graph semantics
-- no graph-based validation
-- no drag-and-drop model editing
-- no simulator behavior
-- no mission-control layout
-- no fake live data
+- no dependency graph
+- no relationship graph engine
+- no source line or column navigation
+- no YAML AST navigation
+- no fake source spans
+- no plugin UI
+- no plugin execution
+- no runtime behavior
+- no ground behavior
+- no live telemetry
+- no command uplink
+- no mission-control UI
+- no scenario runner
+- no arbitrary OrbitFabric CLI argument entry
+- no arbitrary shell command
+- no relationship records invented by Studio
+- no synthetic nodes
+- no synthetic edges
 
 ## Exit Criteria
 
 v0.4.0 is complete only when Studio can:
 
-1. render at least one meaningful contract relationship graph from Core-owned relationship data;
-2. trace graph nodes back to Core entities;
-3. explain visible relationships without inventing semantics;
-4. clearly distinguish invalid relationships from absent optional ones where Core provides that distinction.
+1. run the fixed Core relationship-manifest export command;
+2. load Core `relationship_manifest.json` read-only;
+3. show manifest identity, boundaries and total relationship count;
+4. show relationship type summaries from Core;
+5. show relationship records from Core;
+6. link endpoints to Core entity index records when available;
+7. explain selected relationship records without inventing semantics;
+8. verify `total_relationships = 46` on `examples/demo-3u` with Core v1.0.0;
+9. avoid editing, private relationship inference, dependency graph, runtime behavior and arbitrary command execution.
 
 ---
 
@@ -612,7 +682,7 @@ Studio v1.0.0 should only be declared when the underlying OrbitFabric Core surfa
 - stable diagnostics presentation
 - stable source/derived/generated distinction
 - stable contract navigation
-- stable relationship visualization from Core-owned relationship data
+- stable relationship inspection from Core-owned relationship data
 - stable generated artifact inspection
 - stable scenario evidence explorer
 - stable ground artifact inspection
@@ -648,6 +718,7 @@ The following capabilities are intentionally deferred and must not enter early m
 - plugin marketplace
 - browser-only hosted Studio
 - AI-assisted model generation
+- graph-like relationship visualization if it cannot remain a one-to-one rendering of Core records
 
 Deferred does not mean impossible.
 

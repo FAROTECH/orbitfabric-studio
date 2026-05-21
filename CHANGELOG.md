@@ -8,6 +8,63 @@ OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface`.
 
 The current released baseline is `v0.3.0 - Contract Navigation Surface`.
 
+The active planning baseline is `v0.4.0 - Relationship Surface`.
+
+---
+
+## v0.4.0 - Relationship Surface
+
+Planning baseline.
+
+This milestone extends the product loop toward:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships
+```
+
+v0.4.0 remains downstream from OrbitFabric Core.
+
+Studio will consume Core-owned relationship manifest records.
+
+Studio will not become an independent model parser, validator, relationship inference engine, dependency graph engine, runtime interpreter or ground behavior interpreter.
+
+### Added
+
+- Added `ADR-0009 - v0.4 Core-derived Relationship Surface`.
+- Added `docs/development/v0.4.0-relationship-surface.md`.
+- Added `V0_4_RELEASE_CHECKLIST.md`.
+- Added v0.4.0 planning baseline for consuming Core v1.0.0 `relationship_manifest.json`.
+- Added explicit v0.4.0 boundary around Core-owned relationship records.
+- Added planned fixed command shape for `orbitfabric export relationship-manifest`.
+- Added planned relationship type summary scope.
+- Added planned relationship records navigation scope.
+- Added planned relationship explanation panel scope.
+- Added explicit deferral criteria for any graph-like rendering.
+
+### Changed
+
+- Updated README to describe v0.4.0 as the next Relationship Surface milestone.
+- Updated ROADMAP to mark v0.4.0 as active and based on Core v1.0.0 `relationship_manifest.json`.
+- Clarified that Core v1.0.0 provides the required Relationship Manifest Surface.
+- Clarified that Studio v0.4.0 consumes relationship records rather than constructing relationship semantics.
+- Clarified that `relationship_manifest.json` is not a dependency graph and not a graph engine.
+
+### Not Included
+
+- No application code.
+- No React changes.
+- No TypeScript report models.
+- No Tauri commands.
+- No version metadata changes.
+- No lockfile changes.
+- No editing.
+- No semantic YAML parser.
+- No private relationship inference.
+- No dependency graph.
+- No runtime behavior.
+- No ground behavior.
+- No arbitrary command execution.
+
 ---
 
 ## v0.3.0 - Contract Navigation Surface
