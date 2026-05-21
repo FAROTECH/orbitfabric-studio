@@ -169,3 +169,79 @@ export interface CoreEntityIndexEntity {
   required_domain: boolean;
   present: boolean;
 }
+
+export interface CoreRelationshipManifest {
+  manifest_version: string;
+  kind: "orbitfabric.relationship_manifest";
+  orbitfabric_version: string;
+  status: string;
+  mission: CoreReportMissionIdentity;
+  source: CoreRelationshipManifestSource;
+  boundaries: CoreRelationshipManifestBoundaries;
+  counts: CoreRelationshipManifestCounts;
+  relationship_types: CoreRelationshipType[];
+  relationships: CoreRelationshipRecord[];
+  derivation_policy: CoreRelationshipDerivationPolicy;
+}
+
+export interface CoreRelationshipManifestSource extends CoreReportSource {
+  entity_index_kind: string;
+  entity_index_version: string;
+}
+
+export interface CoreRelationshipManifestBoundaries {
+  source_of_truth: string;
+  core_derived_report: boolean;
+  read_only: boolean;
+  contains_entity_index: boolean;
+  contains_entity_records: boolean;
+  contains_relationship_manifest: boolean;
+  contains_relationship_records: boolean;
+  contains_relationship_graph: boolean;
+  contains_dependency_graph: boolean;
+  contains_yaml_ast: boolean;
+  contains_source_locations: boolean;
+  contains_plugin_api: boolean;
+  contains_studio_api: boolean;
+  contains_runtime_behavior: boolean;
+  contains_ground_behavior: boolean;
+}
+
+export interface CoreRelationshipManifestCounts {
+  total_relationships: number;
+  relationship_types: Record<string, number>;
+}
+
+export interface CoreRelationshipType {
+  relationship_type: string;
+  display_name: string;
+  from_domain: string;
+  to_domain: string;
+  derived_from: CoreRelationshipDerivation;
+  relationship_count: number;
+}
+
+export interface CoreRelationshipRecord {
+  relationship_id: string;
+  relationship_type: string;
+  from: CoreRelationshipEndpoint;
+  to: CoreRelationshipEndpoint;
+  derived_from: CoreRelationshipDerivation;
+}
+
+export interface CoreRelationshipEndpoint {
+  domain: string;
+  id: string;
+}
+
+export interface CoreRelationshipDerivation {
+  model_field: string;
+}
+
+export interface CoreRelationshipDerivationPolicy {
+  requires_explicit_loaded_mission_model_fields: boolean;
+  references_entity_index_entities: boolean;
+  forbids_naming_heuristics: boolean;
+  forbids_raw_yaml_scanning: boolean;
+  forbids_downstream_assumptions: boolean;
+}
