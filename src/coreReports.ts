@@ -6,6 +6,11 @@ import type {
   CoreLintReport,
   CoreModelSummary,
   CoreModelSummaryDomain,
+  CoreRelationshipDerivation,
+  CoreRelationshipEndpoint,
+  CoreRelationshipManifest,
+  CoreRelationshipRecord,
+  CoreRelationshipType,
 } from "./types/workspace";
 
 export function parseCoreLintReport(content: string | null): CoreLintReport | null {
@@ -101,6 +106,44 @@ export function parseCoreEntityIndex(content: string | null): CoreEntityIndex | 
     }
 
     return parsed as unknown as CoreEntityIndex;
+  } catch {
+    return null;
+  }
+}
+
+export function parseCoreRelationshipManifest(
+  content: string | null,
+): CoreRelationshipManifest | null {
+  if (!content) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(content);
+
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    if (
+      parsed.kind !== "orbitfabric.relationship_manifest" ||
+      typeof parsed.manifest_version !== "string" ||
+      typeof parsed.orbitfabric_version !== "string" ||
+      typeof parsed.status !== "string" ||
+      !isCoreReportMissionIdentity(parsed.mission) ||
+      !isCoreRelationshipManifestSource(parsed.source) ||
+      !isCoreRelationshipManifestBoundaries(parsed.boundaries) ||
+      !isCoreRelationshipManifestCounts(parsed.counts) ||
+      !Array.isArray(parsed.relationship_types) ||
+      !parsed.relationship_types.every(isCoreRelationshipType) ||
+      !Array.isArray(parsed.relationships) ||
+      !parsed.relationships.every(isCoreRelationshipRecord) ||
+      !isCoreRelationshipDerivationPolicy(parsed.derivation_policy)
+    ) {
+      return null;
+    }
+
+    return parsed as unknown as CoreRelationshipManifest;
   } catch {
     return null;
   }
@@ -203,5 +246,89 @@ function isCoreEntityIndexEntity(value: unknown): value is CoreEntityIndexEntity
     typeof value.provenance === "string" &&
     typeof value.required_domain === "boolean" &&
     typeof value.present === "boolean"
+  );
+}
+
+function isCoreRelationshipManifestSource(value: unknown): boolean {
+  return (
+    isCoreReportSource(value) &&
+    isRecord(value) &&
+    typeof value.entity_index_kind === "string" &&
+    typeof value.entity_index_version === "string"
+  );
+}
+
+function isCoreRelationshipManifestBoundaries(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.source_of_truth === "string" &&
+    typeof value.core_derived_report === "boolean" &&
+    typeof value.read_only === "boolean" &&
+    typeof value.contains_entity_index === "boolean" &&
+    typeof value.contains_entity_records === "boolean" &&
+    typeof value.contains_relationship_manifest === "boolean" &&
+    typeof value.contains_relationship_records === "boolean" &&
+    typeof value.contains_relationship_graph === "boolean" &&
+    typeof value.contains_dependency_graph === "boolean" &&
+    typeof value.contains_yaml_ast === "boolean" &&
+    typeof value.contains_source_locations === "boolean" &&
+    typeof value.contains_plugin_api === "boolean" &&
+    typeof value.contains_studio_api === "boolean" &&
+    typeof value.contains_runtime_behavior === "boolean" &&
+    typeof value.contains_ground_behavior === "boolean"
+  );
+}
+
+function isCoreRelationshipManifestCounts(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.total_relationships === "number" &&
+    isNumberRecord(value.relationship_types)
+  );
+}
+
+function isCoreRelationshipType(value: unknown): value is CoreRelationshipType {
+  return (
+    isRecord(value) &&
+    typeof value.relationship_type === "string" &&
+    typeof value.display_name === "string" &&
+    typeof value.from_domain === "string" &&
+    typeof value.to_domain === "string" &&
+    isCoreRelationshipDerivation(value.derived_from) &&
+    typeof value.relationship_count === "number"
+  );
+}
+
+function isCoreRelationshipRecord(value: unknown): value is CoreRelationshipRecord {
+  return (
+    isRecord(value) &&
+    typeof value.relationship_id === "string" &&
+    typeof value.relationship_type === "string" &&
+    isCoreRelationshipEndpoint(value.from) &&
+    isCoreRelationshipEndpoint(value.to) &&
+    isCoreRelationshipDerivation(value.derived_from)
+  );
+}
+
+function isCoreRelationshipEndpoint(value: unknown): value is CoreRelationshipEndpoint {
+  return (
+    isRecord(value) &&
+    typeof value.domain === "string" &&
+    typeof value.id === "string"
+  );
+}
+
+function isCoreRelationshipDerivation(value: unknown): value is CoreRelationshipDerivation {
+  return isRecord(value) && typeof value.model_field === "string";
+}
+
+function isCoreRelationshipDerivationPolicy(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.requires_explicit_loaded_mission_model_fields === "boolean" &&
+    typeof value.references_entity_index_entities === "boolean" &&
+    typeof value.forbids_naming_heuristics === "boolean" &&
+    typeof value.forbids_raw_yaml_scanning === "boolean" &&
+    typeof value.forbids_downstream_assumptions === "boolean"
   );
 }
