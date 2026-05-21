@@ -256,6 +256,29 @@ fn run_core_export_entity_index(
     )
 }
 
+#[tauri::command]
+fn run_core_export_relationship_manifest(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    let report_path = relationship_manifest_report_path_for_mission(&mission)?;
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &[
+            "export",
+            "relationship-manifest",
+            mission_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
 fn run_core_command(
     executable: String,
     args: &[&str],
@@ -315,6 +338,14 @@ fn entity_index_report_path_for_mission(mission: &Path) -> Result<PathBuf, Strin
         mission,
         "orbitfabric_studio_entity_index.json",
         "Studio entity index report directory",
+    )
+}
+
+fn relationship_manifest_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    report_path_for_mission(
+        mission,
+        "orbitfabric_studio_relationship_manifest.json",
+        "Studio relationship manifest report directory",
     )
 }
 
@@ -509,7 +540,8 @@ pub fn run() {
             run_core_inspect_mission,
             run_core_lint_mission,
             run_core_export_model_summary,
-            run_core_export_entity_index
+            run_core_export_entity_index,
+            run_core_export_relationship_manifest
         ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
