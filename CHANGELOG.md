@@ -4,66 +4,85 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.3.0 - Contract Navigation Surface`.
+OrbitFabric Studio is currently at `v0.4.0 - Relationship Surface`.
 
-The current released baseline is `v0.3.0 - Contract Navigation Surface`.
+The current released baseline is `v0.4.0 - Relationship Surface`.
 
-The active planning baseline is `v0.4.0 - Relationship Surface`.
+The next planned baseline is `v0.5.0 - Generated Artifact Explorer`.
 
 ---
 
 ## v0.4.0 - Relationship Surface
 
-Planning baseline.
+Released milestone.
 
-This milestone extends the product loop toward:
+This milestone extends the product loop to:
 
 ```text
 Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 ```
 
-v0.4.0 remains downstream from OrbitFabric Core.
-
-Studio will consume Core-owned relationship manifest records.
-
-Studio will not become an independent model parser, validator, relationship inference engine, dependency graph engine, runtime interpreter or ground behavior interpreter.
-
 ### Added
 
-- Added `ADR-0009 - v0.4 Core-derived Relationship Surface`.
-- Added `docs/development/v0.4.0-relationship-surface.md`.
-- Added `V0_4_RELEASE_CHECKLIST.md`.
-- Added v0.4.0 planning baseline for consuming Core v1.0.0 `relationship_manifest.json`.
-- Added explicit v0.4.0 boundary around Core-owned relationship records.
-- Added planned fixed command shape for `orbitfabric export relationship-manifest`.
-- Added planned relationship type summary scope.
-- Added planned relationship records navigation scope.
-- Added planned relationship explanation panel scope.
-- Added explicit deferral criteria for any graph-like rendering.
+- Fixed backend command for Core `export relationship-manifest`.
+- Studio-controlled relationship manifest report path.
+- TypeScript model and parser for Core `relationship_manifest.json`.
+- UI action for `Run export relationship-manifest`.
+- Relationship Manifest summary panel.
+- Boundary labels for the Relationship Manifest Surface.
+- Raw `relationship_manifest.json` preview.
+- Missing-report fallback for the relationship manifest command.
+- Relationship type summary and filters from Core `relationship_types`.
+- Relationship records navigation and filters from Core `relationships`.
+- Selected relationship explanation panel.
+- Explicit provenance and boundary statements for selected relationship records.
+- `docs/releases/v0.4.0-release-notes.md`.
 
 ### Changed
 
-- Updated README to describe v0.4.0 as the next Relationship Surface milestone.
-- Updated ROADMAP to mark v0.4.0 as active and based on Core v1.0.0 `relationship_manifest.json`.
-- Clarified that Core v1.0.0 provides the required Relationship Manifest Surface.
-- Clarified that Studio v0.4.0 consumes relationship records rather than constructing relationship semantics.
-- Clarified that `relationship_manifest.json` is not a dependency graph and not a graph engine.
+- Updated the visible Studio header to `Relationship Surface`.
+- Updated the visible release label to `v0.4.0 relationship surface`.
+- Updated the visible product loop to `Open -> Inspect -> Validate -> Navigate -> Explain Relationships`.
+- Updated README to describe v0.4.0 as the current released baseline.
+- Updated ROADMAP to mark v0.4.0 as completed.
+- Updated package, Cargo and Tauri version metadata to `0.4.0`.
+
+### Validated Manually
+
+Manual smoke tests were performed with OrbitFabric Core 1.0.0 on:
+
+```text
+examples/demo-3u
+```
+
+Observed relationship manifest result:
+
+```text
+total_relationships = 46
+```
+
+Validated local checks:
+
+```text
+npm run build
+npm run tauri:dev
+```
 
 ### Not Included
 
-- No application code.
-- No React changes.
-- No TypeScript report models.
-- No Tauri commands.
-- No version metadata changes.
-- No lockfile changes.
 - No editing.
+- No visual model editing.
 - No semantic YAML parser.
 - No private relationship inference.
 - No dependency graph.
+- No relationship graph engine.
+- No source line or column navigation.
 - No runtime behavior.
 - No ground behavior.
 - No arbitrary command execution.
+- No relationship records invented by Studio.
+- No synthetic nodes.
+- No synthetic edges.
 
 ---
 

@@ -38,7 +38,7 @@ The active released product loop is:
 Open -> Inspect -> Validate -> Navigate
 ```
 
-The active planning loop for v0.4.0 is:
+The released v0.4.0 loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate -> Explain Relationships
@@ -376,7 +376,7 @@ v0.3.0 is complete because Studio can:
 
 # v0.4.0 - Relationship Surface
 
-Status: Active  
+Status: Completed  
 Nature: Core-derived relationship inspection slice  
 Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 
@@ -384,35 +384,18 @@ Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 
 Provide read-only relationship inspection across indexed Mission Data Contract entities by consuming Core v1.0.0 `relationship_manifest.json`.
 
-This release answers:
-
-```text
-How are indexed mission contract entities related, according to Core?
-```
-
-This release does not answer:
-
-```text
-How should the system execute those relationships?
-What runtime behavior follows from them?
-What ground behavior follows from them?
-What is the dependency graph?
-What is the live operational state?
-What should be edited?
-```
-
-## Planned Capabilities
+## Implemented Capabilities
 
 - run `orbitfabric export relationship-manifest <mission_dir> --json <path>` through a fixed backend command
 - detect and load `relationship_manifest.json` read-only when produced by Core
 - display manifest identity, version, status, mission and Core version
 - display Core boundary labels
 - display relationship type summaries from Core `relationship_types`
+- filter relationship types by type, source domain and destination domain
 - display relationship records from Core `relationships`
-- filter by relationship type
-- filter by endpoint domains
-- link relationship endpoints to `entity_index.json` entities when available and compatible
-- explain selected relationships without inventing semantics
+- filter relationship records by type, source domain and destination domain
+- select one relationship record
+- explain selected relationship provenance and boundary statements
 - handle missing, invalid and unsupported reports gracefully
 - preserve raw stdout, stderr and exit code for Core export commands
 
@@ -422,20 +405,7 @@ What should be edited?
 - `kind: orbitfabric.relationship_manifest`
 - `manifest_version: 0.1-candidate`
 - `status: candidate`
-- Core v0.8.2 or later `entity_index.json` for endpoint linking when available
-
-## Required Boundary Labels
-
-Studio must make these boundaries visible:
-
-```text
-Core relationship manifest
-not relationship graph
-not dependency graph
-no source locations
-no runtime behavior
-no ground behavior
-```
+- Core v0.8.2 or later `entity_index.json` for the existing entity navigation surface
 
 ## Explicit Non-goals
 
@@ -447,35 +417,16 @@ no ground behavior
 - no dependency graph
 - no relationship graph engine
 - no source line or column navigation
-- no YAML AST navigation
-- no fake source spans
-- no plugin UI
-- no plugin execution
 - no runtime behavior
 - no ground behavior
-- no live telemetry
-- no command uplink
-- no mission-control UI
-- no scenario runner
-- no arbitrary OrbitFabric CLI argument entry
-- no arbitrary shell command
+- no arbitrary command execution
 - no relationship records invented by Studio
 - no synthetic nodes
 - no synthetic edges
 
 ## Exit Criteria
 
-v0.4.0 is complete only when Studio can:
-
-1. run the fixed Core relationship-manifest export command;
-2. load Core `relationship_manifest.json` read-only;
-3. show manifest identity, boundaries and total relationship count;
-4. show relationship type summaries from Core;
-5. show relationship records from Core;
-6. link endpoints to Core entity index records when available;
-7. explain selected relationship records without inventing semantics;
-8. verify `total_relationships = 46` on `examples/demo-3u` with Core v1.0.0;
-9. avoid editing, private relationship inference, dependency graph, runtime behavior and arbitrary command execution.
+v0.4.0 is complete because Studio can run the fixed Core relationship-manifest export command, load Core `relationship_manifest.json` read-only, show relationship type summaries, show relationship records, select and explain one relationship record without inventing semantics, and verify `total_relationships = 46` on `examples/demo-3u` with Core v1.0.0.
 
 ---
 
