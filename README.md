@@ -13,35 +13,25 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.3.0 - Contract Navigation Surface
-Active planning baseline: v0.4.0 - Relationship Surface
+Current released baseline: v0.4.0 - Relationship Surface
+Next planned baseline: v0.5.0 - Generated Artifact Explorer
 ```
 
-The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench` and `v0.3.0 - Contract Navigation Surface` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface` and `v0.4.0 - Relationship Surface` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.3.0.
+The current implementation baseline is v0.4.0.
 
-The next implementation milestone is v0.4.0.
+The next implementation milestone is v0.5.0.
 
-The implemented v0.3.0 product loop is:
-
-```text
-Open -> Inspect -> Validate -> Navigate
-```
-
-The planned v0.4.0 product loop is:
+The implemented v0.4.0 product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 ```
 
-Studio v0.3.0 is a Core-derived Contract Navigation Surface.
+Studio v0.4.0 is a Core-derived Relationship Surface.
 
-It consumes OrbitFabric Core `model_summary.json` and `entity_index.json` reports when produced by Core.
-
-Studio v0.4.0 is planned as a Core-derived Relationship Surface.
-
-It will consume OrbitFabric Core v1.0.0 `relationship_manifest.json` when produced by Core.
+It consumes OrbitFabric Core `model_summary.json`, `entity_index.json` and Core v1.0.0 `relationship_manifest.json` reports when produced by Core.
 
 Studio does not parse Mission Model YAML semantically.
 
@@ -51,7 +41,7 @@ Studio does not infer entities, relationships, source locations or graph structu
 
 ## Current Implementation State
 
-v0.3.0 currently implements:
+v0.4.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
@@ -71,6 +61,7 @@ Fixed Core inspect mission command
 Fixed Core lint mission command
 Fixed Core export model-summary command
 Fixed Core export entity-index command
+Fixed Core export relationship-manifest command
 Core JSON lint report availability display
 Typed Core lint report preview
 Core validation summary panel
@@ -78,16 +69,17 @@ Read-only Core findings list
 Safe source-file links from Core findings
 Typed Core model summary parsing
 Typed Core entity index parsing
+Typed Core relationship manifest parsing
 Core-derived Contract Domains panel
 Core-derived Contract Entities panel
-Core-derived domain index summary
-Indexed / not-indexed domain states
-Entity records grouped by Core-reported domain
-Safe source-file links from Core domain and entity records
+Core-derived Relationship Manifest panel
+Core-derived relationship type summary
+Core-derived relationship record navigation
+Selected relationship explanation panel
 Raw stdout / stderr / exit-code display
 ```
 
-The implemented v0.3.0 loop remains conservative:
+The implemented v0.4.0 loop remains conservative:
 
 ```text
 Open workspace
@@ -102,7 +94,11 @@ Open workspace
     -> inspect Core-derived contract domains
     -> run Core export entity-index
     -> inspect Core-derived contract entities
-    -> open referenced source files read-only when safely resolvable
+    -> run Core export relationship-manifest
+    -> inspect Core-derived relationship manifest identity and boundaries
+    -> inspect Core-derived relationship type summary
+    -> inspect Core-derived relationship records
+    -> inspect selected relationship provenance and boundary statements
 ```
 
 Studio does not validate the Mission Model independently.
@@ -121,11 +117,11 @@ OrbitFabric Core remains authoritative.
 
 ---
 
-## v0.4.0 Direction
+## v0.4.0 Released Scope
 
 v0.4.0 starts from OrbitFabric Core v1.0.0 and its Relationship Manifest Surface.
 
-The fixed Core command to be consumed is:
+The fixed Core command consumed by Studio is:
 
 ```text
 orbitfabric export relationship-manifest <mission_dir> --json <studio_report_path>
@@ -140,30 +136,21 @@ manifest_version: 0.1-candidate
 status: candidate
 ```
 
-v0.4.0 must answer:
+v0.4.0 answers:
 
 ```text
 How are indexed mission contract entities related, according to Core?
 ```
 
-v0.4.0 must not answer:
+v0.4.0 does not answer runtime behavior, ground behavior, dependency graph semantics, live operational state or editing intent.
 
-```text
-How should the system execute those relationships?
-What runtime behavior follows from them?
-What ground behavior follows from them?
-What is the dependency graph?
-What is the live operational state?
-What should be edited?
-```
+The v0.4.0 implementation remains read-only and Core-derived.
 
-The v0.4.0 implementation must remain read-only and Core-derived.
+It consumes relationship records.
 
-It must consume relationship records.
+It does not build relationship semantics privately.
 
-It must not build relationship semantics privately.
-
-It must not introduce a dependency graph or relationship graph engine.
+It does not introduce a dependency graph or relationship graph engine.
 
 ---
 

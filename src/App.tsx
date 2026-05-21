@@ -29,9 +29,9 @@ import type {
 const nonGoalItems = [
   "No editing",
   "No graph view",
-  "No scenario runner",
-  "No generator workbench",
-  "No independent validation",
+  "No dependency graph",
+  "No runtime behavior",
+  "No ground behavior",
 ];
 
 function App() {
@@ -182,14 +182,15 @@ function App() {
     <main className="studio-shell">
       <section className="hero-panel" aria-labelledby="studio-title">
         <div className="eyebrow">OrbitFabric Studio</div>
-        <h1 id="studio-title">Contract Navigation Surface</h1>
-        <p className="release">v0.3.0 contract navigation slice</p>
+        <h1 id="studio-title">Relationship Surface</h1>
+        <p className="release">v0.4.0 relationship surface</p>
         <p className="summary">
           Open a local OrbitFabric workspace, inspect its Mission Model files,
-          run fixed OrbitFabric Core validation and export commands, and navigate
-          Core-derived contract domains and entities. Studio remains read-only:
-          OrbitFabric Core remains authoritative for validation and engineering
-          meaning.
+          run fixed OrbitFabric Core validation and export commands, navigate
+          Core-derived contract domains and entities, and explain Core-owned
+          relationship records from the Relationship Manifest Surface. Studio
+          remains read-only: OrbitFabric Core remains authoritative for validation
+          and engineering meaning.
         </p>
         <button
           className="primary-action"
@@ -205,11 +206,11 @@ function App() {
       <section className="grid" aria-label="workspace inspection">
         <article className="card">
           <h2>Primary loop</h2>
-          <div className="loop">Open -&gt; Inspect -&gt; Validate -&gt; Navigate</div>
+          <div className="loop">Open -&gt; Inspect -&gt; Validate -&gt; Navigate -&gt; Explain Relationships</div>
           <p>
             Studio classifies workspace files conservatively and renders Core-derived
-            validation, domain and entity reports. It does not validate the Mission
-            Model independently and does not infer mission semantics.
+            validation, domain, entity and relationship reports. It does not validate
+            the Mission Model independently and does not infer mission semantics.
           </p>
         </article>
 
@@ -832,8 +833,9 @@ function CoreRelationshipManifestPanel({
           <h3>Relationship Manifest</h3>
           <p>
             Derived from Core `relationship_manifest.json`. Studio displays the
-            manifest identity and boundaries only. It does not infer relationship
-            records, render a graph or derive runtime behavior.
+            manifest identity, boundaries, relationship types, relationship records
+            and selected-record explanations. It does not infer relationships,
+            render a graph or derive runtime behavior.
           </p>
         </div>
         <span className="status-pill">Core relationship manifest</span>
@@ -878,8 +880,9 @@ function CoreRelationshipManifestPanel({
       <section className="entry-section" aria-label="Relationship manifest raw preview">
         <h3>Raw relationship_manifest.json preview</h3>
         <p>
-          Raw report content is shown for transparency. Relationship record
-          navigation is intentionally deferred to a later PR.
+          Raw report content is shown for transparency. The structured summaries,
+          record navigation and explanation panel above remain derived from this
+          Core report.
         </p>
         <pre>{rawContent || "<empty relationship manifest>"}</pre>
       </section>
