@@ -41,9 +41,9 @@ The milestone is complete only if Studio consumes Core-owned relationship record
 ## 2. Documentation Gate
 
 ```text
-[ ] README describes v0.4.0 as the next Relationship Surface milestone.
-[ ] ROADMAP marks v0.4.0 as active and based on Core v1.0.0 relationship_manifest.json.
-[ ] CHANGELOG contains a v0.4.0 planning entry.
+[x] README describes v0.4.0 as the next Relationship Surface milestone.
+[x] ROADMAP marks v0.4.0 as active and based on Core v1.0.0 relationship_manifest.json.
+[x] CHANGELOG contains a v0.4.0 planning entry.
 [x] docs/development/v0.4.0-relationship-surface.md exists.
 [x] docs/ADR/0009-v0-4-core-derived-relationship-surface.md exists.
 [x] V0_4_RELEASE_CHECKLIST.md exists.
