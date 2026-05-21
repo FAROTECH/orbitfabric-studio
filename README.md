@@ -13,26 +13,39 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-v0.3.0 - Contract Navigation Surface, released
+Current released baseline: v0.3.0 - Contract Navigation Surface
+Active planning baseline: v0.4.0 - Relationship Surface
 ```
 
 The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench` and `v0.3.0 - Contract Navigation Surface` baselines have been created, tagged and released.
 
 The current implementation baseline is v0.3.0.
 
-The implemented product loop is:
+The next implementation milestone is v0.4.0.
+
+The implemented v0.3.0 product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate
+```
+
+The planned v0.4.0 product loop is:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 ```
 
 Studio v0.3.0 is a Core-derived Contract Navigation Surface.
 
 It consumes OrbitFabric Core `model_summary.json` and `entity_index.json` reports when produced by Core.
 
-It does not parse Mission Model YAML semantically.
+Studio v0.4.0 is planned as a Core-derived Relationship Surface.
 
-It does not infer entities, relationships, source locations or graph structure privately.
+It will consume OrbitFabric Core v1.0.0 `relationship_manifest.json` when produced by Core.
+
+Studio does not parse Mission Model YAML semantically.
+
+Studio does not infer entities, relationships, source locations or graph structure privately.
 
 ---
 
@@ -108,6 +121,52 @@ OrbitFabric Core remains authoritative.
 
 ---
 
+## v0.4.0 Direction
+
+v0.4.0 starts from OrbitFabric Core v1.0.0 and its Relationship Manifest Surface.
+
+The fixed Core command to be consumed is:
+
+```text
+orbitfabric export relationship-manifest <mission_dir> --json <studio_report_path>
+```
+
+The Core-owned report is:
+
+```text
+relationship_manifest.json
+kind: orbitfabric.relationship_manifest
+manifest_version: 0.1-candidate
+status: candidate
+```
+
+v0.4.0 must answer:
+
+```text
+How are indexed mission contract entities related, according to Core?
+```
+
+v0.4.0 must not answer:
+
+```text
+How should the system execute those relationships?
+What runtime behavior follows from them?
+What ground behavior follows from them?
+What is the dependency graph?
+What is the live operational state?
+What should be edited?
+```
+
+The v0.4.0 implementation must remain read-only and Core-derived.
+
+It must consume relationship records.
+
+It must not build relationship semantics privately.
+
+It must not introduce a dependency graph or relationship graph engine.
+
+---
+
 ## Development Commands
 
 After installing Node dependencies:
@@ -145,7 +204,7 @@ Workspace inspection, read-only text loading and fixed OrbitFabric Core command 
 
 OrbitFabric Core is the Mission Data Contract framework.
 
-OrbitFabric Studio is a downstream visual engineering workbench that consumes OrbitFabric mission models, validation outputs, generated reports, generated artifacts and scenario evidence.
+OrbitFabric Studio is a downstream visual engineering workbench that consumes OrbitFabric mission models, validation outputs, generated reports, generated artifacts, scenario evidence and Core-owned structured surfaces.
 
 The Mission Model remains the source of truth.
 
@@ -161,19 +220,20 @@ OrbitFabric Core remains authoritative for:
 - ground-facing contract artifacts;
 - Core-owned contract introspection surfaces;
 - Core-owned entity index surfaces;
-- future relationship surfaces;
+- Core-owned relationship manifest surfaces;
+- relationship semantics;
 - future plugin semantics.
 
 Studio may display engineering meaning.
 
 Studio must not invent engineering meaning.
 
-For v0.3.0, this means:
+For the current and next milestones, this means:
 
 ```text
-Core model_summary.json -> Studio domain navigation
-Core entity_index.json  -> Studio entity navigation
-Core relationship surface, future only -> Studio relationship or graph navigation
+Core model_summary.json          -> Studio domain navigation
+Core entity_index.json           -> Studio entity navigation
+Core relationship_manifest.json  -> Studio relationship inspection, planned for v0.4.0
 ```
 
 ---
@@ -187,7 +247,7 @@ OrbitFabric Studio is intended to become a local-first workbench for:
 - running and displaying validation;
 - navigating diagnostics;
 - navigating Core-derived contract domains and entities;
-- visualizing contract relationships only after Core exposes relationship surfaces;
+- explaining Core-owned relationship records from `relationship_manifest.json`;
 - inspecting generated documentation and reports;
 - inspecting runtime-facing generated artifacts;
 - inspecting ground-facing generated artifacts;
@@ -198,6 +258,12 @@ The current product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate
+```
+
+The next planned product loop is:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships
 ```
 
 The long-term authoring loop is:
@@ -228,7 +294,8 @@ OrbitFabric Studio is not:
 - a private Mission Model parser;
 - a private entity extractor;
 - a private relationship resolver;
-- a graph engine;
+- a dependency graph engine;
+- a relationship graph engine;
 - a flight software framework;
 - an OBC runtime;
 - a ground segment;
@@ -290,30 +357,6 @@ Implemented capabilities:
 - display graceful fallback when Core does not support `entity-index`;
 - display graceful fallback when reports are missing or invalid.
 
-Version compatibility targets:
-
-```text
-Core v0.8.0:
-  lint JSON available
-  no model-summary
-  no entity-index
-  Contract Navigation disabled with clear explanation
-
-Core v0.8.1:
-  model-summary available
-  entity-index unavailable
-  domain navigation enabled
-  entity navigation disabled with clear explanation
-
-Core v0.8.2:
-  model-summary available
-  entity-index available
-  domain navigation enabled
-  entity navigation enabled
-```
-
-Compatibility is based on command behavior and report availability, not only version-string parsing.
-
 Explicit v0.3.0 non-goals:
 
 - no editing;
@@ -342,31 +385,77 @@ Explicit v0.3.0 non-goals:
 
 ---
 
+## v0.4.0 Scope
+
+The v0.4.0 milestone is the Relationship Surface.
+
+Planned capabilities:
+
+- run `orbitfabric export relationship-manifest <mission_dir> --json <report_path>` as a fixed command;
+- load `relationship_manifest.json` read-only when produced by Core;
+- display manifest identity, version, status, mission and Core version;
+- display manifest boundary labels;
+- display relationship type summary records;
+- display relationship records;
+- filter records by relationship type and endpoint domains;
+- link relationship endpoints to Core `entity_index.json` entities when available;
+- explain selected relationship records as Core-owned derived records;
+- display graceful fallback when the report is missing, invalid or unsupported.
+
+Explicit v0.4.0 non-goals:
+
+- no editing;
+- no visual model editing;
+- no semantic YAML parser;
+- no private relationship inference;
+- no private graph semantics;
+- no dependency graph;
+- no relationship graph engine;
+- no source line or column navigation;
+- no YAML AST navigation;
+- no fake source spans;
+- no plugin UI;
+- no plugin execution;
+- no runtime behavior;
+- no ground behavior;
+- no live telemetry;
+- no command uplink;
+- no mission-control UI;
+- no scenario runner;
+- no arbitrary OrbitFabric CLI argument entry;
+- no arbitrary shell command;
+- no relationship records invented by Studio;
+- no synthetic nodes;
+- no synthetic edges.
+
+---
+
 ## Current Known Limitations
 
-The current OrbitFabric Core lint and navigation reports do not provide:
+The current Studio implementation does not yet consume `relationship_manifest.json`.
+
+That is the purpose of v0.4.0.
+
+Core v1.0.0 provides a Relationship Manifest Surface, but it explicitly does not provide:
 
 ```text
-line metadata
-column metadata
-schema version for lint reports
-report timestamp
-Git SHA
-JSON Schema URL
-absolute source path
-relationship manifest
-relationship graph
+relationship graph engine
 dependency graph
 YAML AST
+source locations
+line metadata
+column metadata
+plugin API
+Studio API
+runtime behavior
+ground behavior
 ```
 
 Studio therefore does not show line or column jumps.
 
 Studio does not infer file references from domains, object IDs or messages.
 
-Studio links a finding, domain or entity to a file only when the Core-provided file field exactly matches a detected source model file.
-
-Studio does not infer entity relationships because Core v0.8.2 does not expose a relationship manifest, relationship graph or dependency graph.
+Studio links a finding, domain, entity or future relationship endpoint to a file only when Core-provided metadata can be safely resolved inside the workspace.
 
 ---
 
@@ -382,6 +471,7 @@ orbitfabric-studio/
 ├── V0_1_RELEASE_CHECKLIST.md
 ├── V0_2_RELEASE_CHECKLIST.md
 ├── V0_3_RELEASE_CHECKLIST.md
+├── V0_4_RELEASE_CHECKLIST.md
 ├── package.json
 ├── package-lock.json
 ├── index.html
@@ -433,7 +523,7 @@ v0.0  Studio Charter
 v0.1  Read-only Mission Project Viewer
 v0.2  Validation and Diagnostics Workbench
 v0.3  Contract Navigation Surface
-v0.4  Relationship Surface, gated by Core relationship outputs
+v0.4  Relationship Surface based on Core v1.0.0 relationship_manifest.json
 v0.5  Generated Artifact Explorer
 v0.6  Scenario Evidence Explorer
 v0.7  Ground Integration Artifact Viewer
@@ -459,7 +549,7 @@ Monaco Editor
 OrbitFabric CLI invocation through fixed local command paths
 ```
 
-React Flow remains deferred because graph rendering is not part of v0.3.0.
+React Flow remains deferred because graph rendering is not part of v0.4.0 baseline scope.
 
 See [`docs/ADR/0006-v0-1-implementation-stack.md`](docs/ADR/0006-v0-1-implementation-stack.md).
 
@@ -478,15 +568,18 @@ Key documents:
 - [`docs/RISK_REGISTER.md`](docs/RISK_REGISTER.md)
 - [`docs/ADR/0007-v0-2-core-derived-validation-diagnostics.md`](docs/ADR/0007-v0-2-core-derived-validation-diagnostics.md)
 - [`docs/ADR/0008-v0-3-core-derived-contract-navigation.md`](docs/ADR/0008-v0-3-core-derived-contract-navigation.md)
+- [`docs/ADR/0009-v0-4-core-derived-relationship-surface.md`](docs/ADR/0009-v0-4-core-derived-relationship-surface.md)
 - [`docs/development/v0.1.0-scaffold.md`](docs/development/v0.1.0-scaffold.md)
 - [`docs/development/v0.2.0-validation-diagnostics.md`](docs/development/v0.2.0-validation-diagnostics.md)
 - [`docs/development/v0.3.0-contract-navigation-surface.md`](docs/development/v0.3.0-contract-navigation-surface.md)
+- [`docs/development/v0.4.0-relationship-surface.md`](docs/development/v0.4.0-relationship-surface.md)
 - [`docs/releases/v0.1.0-release-notes.md`](docs/releases/v0.1.0-release-notes.md)
 - [`docs/releases/v0.2.0-release-notes.md`](docs/releases/v0.2.0-release-notes.md)
 - [`docs/releases/v0.3.0-release-notes.md`](docs/releases/v0.3.0-release-notes.md)
 - [`V0_1_RELEASE_CHECKLIST.md`](V0_1_RELEASE_CHECKLIST.md)
 - [`V0_2_RELEASE_CHECKLIST.md`](V0_2_RELEASE_CHECKLIST.md)
 - [`V0_3_RELEASE_CHECKLIST.md`](V0_3_RELEASE_CHECKLIST.md)
+- [`V0_4_RELEASE_CHECKLIST.md`](V0_4_RELEASE_CHECKLIST.md)
 
 Architecture decisions are stored in [`docs/ADR/`](docs/ADR/).
 
