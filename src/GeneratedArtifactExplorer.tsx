@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+
 import type {
   GeneratedArtifactClass,
   GeneratedArtifactEntry,
@@ -14,21 +17,33 @@ const artifactClassOrder: GeneratedArtifactClass[] = [
 ];
 
 interface GeneratedArtifactExplorerPanelProps {
-  inventory: GeneratedArtifactInventory | null;
-  error: string | null;
-  isInspecting: boolean;
-  onInspect: () => void;
-  onOpenArtifact: (artifact: GeneratedArtifactEntry) => void;
+  workspacePath: string;
 }
 
 export function GeneratedArtifactExplorerPanel({
-  inventory,
-  error,
-  isInspecting,
-  onInspect,
-  onOpenArtifact,
+  workspacePath,
 }: GeneratedArtifactExplorerPanelProps) {
+  const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isInspecting, setIsInspecting] = useState(false);
   const groupedArtifacts = groupArtifactsByClass(inventory?.artifacts ?? []);
+
+  async function handleInspectGeneratedArtifacts() {
+    setError(null);
+    setIsInspecting(true);
+
+    try {
+      const result = await invoke<GeneratedArtifactInventory>(
+        "inspect_generated_artifacts",
+        { workspacePath },
+      );
+      setInventory(result);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsInspecting(false);
+    }
+  }
 
   return (
     <section className="entry-section" aria-label="Generated Artifact Explorer">
@@ -46,7 +61,11 @@ export function GeneratedArtifactExplorerPanel({
       </div>
 
       <div className="command-actions">
-        <button type="button" onClick={onInspect} disabled={isInspecting}>
+        <button
+          type="button"
+          onClick={handleInspectGeneratedArtifacts}
+          disabled={isInspecting}
+        >
           {isInspecting ? "Inspecting generated artifacts..." : "Inspect generated artifacts"}
         </button>
       </div>
@@ -104,22 +123,13 @@ export function GeneratedArtifactExplorerPanel({
           {inventory.artifacts.length === 0 ? (
             <p className="empty-text">No generated artifacts were reported.</p>
           ) : (
-            artifactClassOrder.map((artifactClass) => {
-              const artifacts = groupedArtifacts[artifactClass] ?? [];
-
-              if (artifacts.length === 0) {
-                return null;
-              }
-
-              return (
-                <GeneratedArtifactClassSection
-                  key={artifactClass}
-                  artifactClass={artifactClass}
-                  artifacts={artifacts}
-                  onOpenArtifact={onOpenArtifact}
-                />
-              );
-            })
+            artifactClassOrder.map((artifactClass) => (
+              <GeneratedArtifactClassSection
+                key={artifactClass}
+                artifactClass={artifactClass}
+                artifacts={groupedArtifacts[artifactClass] ?? []}
+              />
+            ))
           )}
         </>
       ) : null}
@@ -130,11 +140,9 @@ export function GeneratedArtifactExplorerPanel({
 function GeneratedArtifactClassSection({
   artifactClass,
   artifacts,
-  onOpenArtifact,
 }: {
   artifactClass: GeneratedArtifactClass;
   artifacts: GeneratedArtifactEntry[];
-  onOpenArtifact: (artifact: GeneratedArtifactEntry) => void;
 }) {
   return (
     <section className="entry-section" aria-label={`${artifactClass} generated artifacts`}>
@@ -144,24 +152,15 @@ function GeneratedArtifactClassSection({
           {artifacts.length} artifacts
         </span>
       </div>
-      <ul className="entry-list">
-        {artifacts.map((artifact) => {
-          const isPreviewable = artifact.preview_status === "previewable";
 
-          return (
+      {artifacts.length === 0 ? (
+        <p className="empty-text">No artifacts in this class.</p>
+      ) : (
+        <ul className="entry-list">
+          {artifacts.map((artifact) => (
             <li key={artifact.path}>
               <div className="entry-main">
-                {isPreviewable ? (
-                  <button
-                    className="entry-button"
-                    type="button"
-                    onClick={() => onOpenArtifact(artifact)}
-                  >
-                    {artifact.name}
-                  </button>
-                ) : (
-                  <strong>{artifact.name}</strong>
-                )}
+                <strong>{artifact.name}</strong>
                 <span className={`category-badge category-${knownStatusCategory(artifact)}`}>
                   {artifact.known_status}
                 </span>
@@ -179,9 +178,9 @@ function GeneratedArtifactClassSection({
               </div>
               {artifact.provenance.detail ? <p>{artifact.provenance.detail}</p> : null}
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
