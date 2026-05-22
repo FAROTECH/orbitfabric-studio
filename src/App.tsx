@@ -3,6 +3,8 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
+import { GeneratedArtifactExplorerPanel } from "./GeneratedArtifactExplorer";
+
 import {
   parseCoreEntityIndex,
   parseCoreLintReport,
@@ -340,6 +342,8 @@ function WorkspacePanel({
         onExportRelationshipManifest={onCoreExportRelationshipManifest}
         onOpenFile={onOpenFile}
       />
+
+      <GeneratedArtifactExplorerPanel workspacePath={workspace.selected_path} />
 
       <div className="workspace-layout">
         <div>
