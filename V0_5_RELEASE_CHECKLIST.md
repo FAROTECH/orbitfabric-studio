@@ -86,12 +86,12 @@ The milestone is complete only if Studio inspects generated artifacts without be
 ## 5. UI Explorer Gate
 
 ```text
-[ ] Generated Artifact Explorer panel exists.
-[ ] Artifact groups are visible.
-[ ] Reports, logs, docs, runtime, ground and unknown groups are visible.
-[ ] Artifact path, size and extension are visible.
-[ ] Known or unknown classification is visible.
-[ ] Empty states are explicit.
+[x] Generated Artifact Explorer panel exists.
+[x] Artifact groups are visible.
+[x] Reports, logs, docs, runtime, ground and unknown groups are visible.
+[x] Artifact path, size and extension are visible.
+[x] Known or unknown classification is visible.
+[x] Empty states are explicit.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: backend inspection gate complete.
+Current state: UI explorer gate complete.
