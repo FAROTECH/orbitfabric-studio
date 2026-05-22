@@ -718,7 +718,9 @@ fn canonicalize_existing_file(path: &str) -> Result<PathBuf, String> {
 
 fn is_supported_text_file(path: &Path) -> bool {
     match path.extension().and_then(|value| value.to_str()) {
-        Some("yaml" | "yml" | "json" | "md" | "txt" | "log" | "hpp" | "cpp" | "h" | "c") => true,
+        Some(
+            "yaml" | "yml" | "json" | "md" | "txt" | "log" | "csv" | "hpp" | "cpp" | "h" | "c",
+        ) => true,
         _ => path
             .file_name()
             .and_then(|value| value.to_str())
@@ -733,6 +735,7 @@ fn language_for_path(path: &Path) -> String {
         Some("md") => "markdown",
         Some("hpp" | "cpp" | "h" | "c") => "cpp",
         Some("log" | "txt") => "plaintext",
+        Some("csv") => "csv",
         _ => "plaintext",
     }
     .to_string()
