@@ -924,3 +924,29 @@ h3 {
   color: #cbd5e1;
   background: rgba(148, 163, 184, 0.1);
 }
+
+.inspector-title-row {
+  display: grid;
+  gap: 12px;
+}
+
+.inspector-title-row p {
+  margin-bottom: 0;
+}
+
+.inspector-badge-row {
+  justify-content: flex-start;
+}
+
+.inspector-empty-state {
+  border-color: rgba(245, 158, 11, 0.22);
+}
+
+.contextual-inspector {
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+}
+
+.contextual-inspector .badge-row {
+  justify-content: flex-start;
+}

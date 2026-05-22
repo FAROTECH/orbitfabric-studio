@@ -6,6 +6,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import {
   GeneratedArtifactExplorerPanel,
   type GeneratedArtifactDashboardSummary,
+  type GeneratedArtifactInspectorItem,
 } from "./GeneratedArtifactExplorer";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 
@@ -62,6 +63,8 @@ function App() {
   const [coreResult, setCoreResult] = useState<CoreCommandResult | null>(null);
   const [generatedArtifactSummary, setGeneratedArtifactSummary] =
     useState<GeneratedArtifactDashboardSummary | null>(null);
+  const [selectedGeneratedArtifact, setSelectedGeneratedArtifact] =
+    useState<GeneratedArtifactInspectorItem | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
@@ -76,6 +79,7 @@ function App() {
     setSelectedFile(null);
     setCoreResult(null);
     setGeneratedArtifactSummary(null);
+    setSelectedGeneratedArtifact(null);
     setIsOpening(true);
 
     try {
@@ -107,6 +111,7 @@ function App() {
     }
 
     setViewerError(null);
+    setSelectedGeneratedArtifact(null);
     setIsReadingFile(true);
 
     try {
@@ -308,6 +313,7 @@ function App() {
               onCoreExportEntityIndex={handleCoreExportEntityIndex}
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
+              onGeneratedArtifactSelectionChange={setSelectedGeneratedArtifact}
               onOpenFile={handleOpenFile}
             />
           ) : (
@@ -318,6 +324,7 @@ function App() {
         <InspectorPanel
           workspace={workspace}
           selectedFile={selectedFile}
+          selectedGeneratedArtifact={selectedGeneratedArtifact}
           coreResult={coreResult}
         />
       </div>
@@ -392,37 +399,90 @@ function PrimarySidebar({
 function InspectorPanel({
   workspace,
   selectedFile,
+  selectedGeneratedArtifact,
   coreResult,
 }: {
   workspace: WorkspaceInspection | null;
   selectedFile: FileContent | null;
+  selectedGeneratedArtifact: GeneratedArtifactInspectorItem | null;
   coreResult: CoreCommandResult | null;
 }) {
+  const hasSelection = Boolean(selectedFile || selectedGeneratedArtifact || coreResult || workspace);
+
   return (
     <aside className="contextual-inspector" aria-label="Contextual inspector">
-      <h2>Inspector</h2>
-      <p>
-        Read-only context surface for the currently selected workspace, file or
-        Core-derived output. This panel does not introduce new mission semantics.
-      </p>
+      <div className="inspector-title-row">
+        <div>
+          <h2>Inspector</h2>
+          <p>
+            Read-only context for selected workspace objects. It reports identity,
+            provenance, status and raw metadata without inventing links or implying
+            editability.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="READ-ONLY" />
+          <StatusBadge label={hasSelection ? "REPORTED" : "UNAVAILABLE"} />
+        </div>
+      </div>
+
+      {!hasSelection ? (
+        <div className="inspector-section inspector-empty-state">
+          <h3>No selection</h3>
+          <span>Open a workspace or select a source/generated artifact.</span>
+        </div>
+      ) : null}
 
       <div className="inspector-section">
         <h3>Workspace</h3>
-        <span>{workspace ? "Open" : "Not selected"}</span>
-        {workspace?.mission_dir ? <span>Mission directory detected</span> : null}
-        {workspace?.generated_dir ? <span>Generated directory detected</span> : null}
+        <span>Status: {workspace ? "open" : "not selected"}</span>
+        {workspace ? <span>Path: {workspace.selected_path}</span> : null}
+        {workspace?.mission_dir ? <span>Mission directory: {workspace.mission_dir}</span> : null}
+        {workspace?.generated_dir ? <span>Generated directory: {workspace.generated_dir}</span> : null}
       </div>
 
       <div className="inspector-section">
-        <h3>Selection</h3>
-        {selectedFile ? (
+        <h3>Selected object</h3>
+        {selectedGeneratedArtifact ? (
           <>
+            <div className="badge-row inspector-badge-row">
+              <ProvenanceBadge label="GENERATED" />
+              <StatusBadge
+                label={selectedGeneratedArtifact.knownStatus === "known" ? "REPORTED" : "UNKNOWN"}
+              />
+              <StatusBadge
+                label={
+                  selectedGeneratedArtifact.previewStatus === "previewable"
+                    ? "PREVIEW ONLY"
+                    : "UNAVAILABLE"
+                }
+              />
+            </div>
+            <strong>{selectedGeneratedArtifact.name}</strong>
+            <span>Class: {selectedGeneratedArtifact.artifactClass}</span>
+            <span>Relative path: {selectedGeneratedArtifact.relativePath}</span>
+            <span>Path: {selectedGeneratedArtifact.path}</span>
+            <span>Size: {selectedGeneratedArtifact.sizeBytes} bytes</span>
+            <span>Extension: {selectedGeneratedArtifact.extension ?? "none"}</span>
+            <span>Provenance: {selectedGeneratedArtifact.provenanceSource}</span>
+            {selectedGeneratedArtifact.provenanceDetail ? (
+              <span>{selectedGeneratedArtifact.provenanceDetail}</span>
+            ) : null}
+          </>
+        ) : selectedFile ? (
+          <>
+            <div className="badge-row inspector-badge-row">
+              <ProvenanceBadge label="SOURCE" />
+              <ProvenanceBadge label="READ-ONLY" />
+              <ProvenanceBadge label="PREVIEW ONLY" />
+            </div>
             <strong>{selectedFile.name}</strong>
-            <span>{selectedFile.size_bytes} bytes</span>
-            <span>{selectedFile.path}</span>
+            <span>Language: {selectedFile.language}</span>
+            <span>Size: {selectedFile.size_bytes} bytes</span>
+            <span>Path: {selectedFile.path}</span>
           </>
         ) : (
-          <span>No file selected</span>
+          <span>No source or generated artifact selected.</span>
         )}
       </div>
 
@@ -430,13 +490,28 @@ function InspectorPanel({
         <h3>Core output</h3>
         {coreResult ? (
           <>
+            <div className="badge-row inspector-badge-row">
+              <ProvenanceBadge label="CORE-DERIVED" />
+              <StatusBadge label={coreResult.success ? "PASS" : "FAIL"} />
+              {coreResult.json_report_available ? <StatusBadge label="REPORTED" /> : null}
+            </div>
             <strong>{coreResult.command}</strong>
-            <span>{coreResult.success ? "success" : "failed"}</span>
-            <span>exit code: {coreResult.exit_code ?? "not available"}</span>
+            <span>Args: {coreResult.args.join(" ") || "none"}</span>
+            <span>Exit code: {coreResult.exit_code ?? "not available"}</span>
+            <span>JSON report: {coreResult.json_report_available ? "available" : "not available"}</span>
+            {coreResult.json_report_path ? <span>{coreResult.json_report_path}</span> : null}
           </>
         ) : (
-          <span>No Core command result selected</span>
+          <span>No Core command result selected.</span>
         )}
+      </div>
+
+      <div className="inspector-section">
+        <h3>Safety boundary</h3>
+        <span>No editing.</span>
+        <span>No automatic fixes.</span>
+        <span>No private relationship inference.</span>
+        <span>No generated artifact mutation.</span>
       </div>
     </aside>
   );
@@ -597,6 +672,7 @@ function WorkspacePanel({
   onCoreExportEntityIndex,
   onCoreExportRelationshipManifest,
   onGeneratedArtifactSummaryChange,
+  onGeneratedArtifactSelectionChange,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -616,6 +692,9 @@ function WorkspacePanel({
   onCoreExportRelationshipManifest: () => void;
   onGeneratedArtifactSummaryChange: (
     summary: GeneratedArtifactDashboardSummary | null,
+  ) => void;
+  onGeneratedArtifactSelectionChange: (
+    artifact: GeneratedArtifactInspectorItem | null,
   ) => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
@@ -666,6 +745,7 @@ function WorkspacePanel({
       <GeneratedArtifactExplorerPanel
         workspacePath={workspace.selected_path}
         onDashboardSummaryChange={onGeneratedArtifactSummaryChange}
+        onArtifactSelectionChange={onGeneratedArtifactSelectionChange}
       />
 
       <div className="workspace-layout">
