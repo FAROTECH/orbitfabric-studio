@@ -56,6 +56,47 @@ const shellSurfaceItems = [
   { label: "Raw", status: "available", targetId: "studio-raw-output" },
 ] as const;
 
+const reservedSurfaceItems = [
+  {
+    id: "studio-reserved-evidence",
+    title: "Scenario Evidence Explorer",
+    milestone: "v0.7.0",
+    summary:
+      "Reserved for inspecting Core-produced scenario evidence without simulating independently.",
+    allowed: [
+      "Inspect Core-produced scenario evidence",
+      "Show evidence files when Core exposes them",
+      "Explain evidence provenance and preview state",
+      "Keep evidence read-only and Core-derived",
+    ],
+    forbidden: [
+      "No independent scenario simulation",
+      "No mission runtime behavior",
+      "No mission control interface",
+      "No automatic evidence chain inference",
+    ],
+  },
+  {
+    id: "studio-reserved-ground",
+    title: "Ground Integration Artifact Viewer",
+    milestone: "v0.8.0",
+    summary:
+      "Reserved for inspecting generated ground-facing artifacts without becoming a ground segment.",
+    allowed: [
+      "Inspect generated ground-facing artifacts",
+      "Preview supported generated text artifacts",
+      "Explain generated artifact provenance",
+      "Keep ground artifacts read-only",
+    ],
+    forbidden: [
+      "No command uplink",
+      "No telemetry archive",
+      "No live decoder behavior",
+      "No ground segment operations",
+    ],
+  },
+] as const;
+
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
@@ -295,6 +336,8 @@ function App() {
             generatedArtifactSummary={generatedArtifactSummary}
           />
 
+          <ReservedFutureSurfaces />
+
           {workspace ? (
             <WorkspacePanel
               workspace={workspace}
@@ -517,6 +560,73 @@ function InspectorPanel({
   );
 }
 
+
+function ReservedFutureSurfaces() {
+  return (
+    <section
+      id="studio-future-surfaces"
+      className="reserved-surfaces-panel"
+      aria-label="Reserved future Studio surfaces"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <h2>Reserved future surfaces</h2>
+          <p>
+            These slots make the v0.7.0 and v0.8.0 information architecture visible
+            without implementing their domain logic. They are intentionally disabled
+            in the primary navigation.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="READ-ONLY" />
+          <StatusBadge label="RESERVED" />
+        </div>
+      </div>
+
+      <div className="reserved-surface-grid">
+        {reservedSurfaceItems.map((surface) => (
+          <article
+            id={surface.id}
+            key={surface.id}
+            className="reserved-surface-card"
+          >
+            <div className="reserved-surface-header">
+              <div>
+                <h3>{surface.title}</h3>
+                <span>{surface.milestone}</span>
+              </div>
+              <StatusBadge label="RESERVED" />
+            </div>
+
+            <p>{surface.summary}</p>
+
+            <div className="reserved-surface-columns">
+              <div>
+                <h4>Allowed future scope</h4>
+                <ul>
+                  {surface.allowed.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4>Explicit non-goals</h4>
+                <ul>
+                  {surface.forbidden.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
 function EmptyState() {
   return (
     <section className="inspection-panel" aria-label="No workspace selected">
@@ -630,11 +740,12 @@ function WorkspaceDashboard({
           <span>No arbitrary command execution</span>
         </article>
 
-        <article id="studio-future-surfaces" className="dashboard-card surface-card-anchor">
+        <article className="dashboard-card surface-card-anchor">
           <h3>Future surfaces</h3>
           <strong>Reserved</strong>
           <span>Evidence: reserved for Core-produced scenario evidence</span>
           <span>Ground: reserved for generated ground-facing artifacts</span>
+          <span>Detailed reserved slots are shown below the dashboard.</span>
         </article>
 
         <article className="dashboard-card">
