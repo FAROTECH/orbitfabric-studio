@@ -43,16 +43,16 @@ const nonGoalItems = [
 ];
 
 const shellSurfaceItems = [
-  { label: "Overview", status: "active" },
-  { label: "Model", status: "available" },
-  { label: "Validation", status: "available" },
-  { label: "Contracts", status: "available" },
-  { label: "Relationships", status: "available" },
-  { label: "Artifacts", status: "available" },
-  { label: "Reports & Logs", status: "available" },
-  { label: "Evidence", status: "reserved" },
-  { label: "Ground", status: "reserved" },
-  { label: "Raw", status: "available" },
+  { label: "Overview", status: "active", targetId: "studio-overview" },
+  { label: "Model", status: "available", targetId: "studio-model" },
+  { label: "Validation", status: "available", targetId: "studio-validation" },
+  { label: "Contracts", status: "available", targetId: "studio-contracts" },
+  { label: "Relationships", status: "available", targetId: "studio-relationships" },
+  { label: "Artifacts", status: "available", targetId: "studio-artifacts" },
+  { label: "Reports & Logs", status: "available", targetId: "studio-reports-logs" },
+  { label: "Evidence", status: "reserved", targetId: "studio-future-surfaces" },
+  { label: "Ground", status: "reserved", targetId: "studio-future-surfaces" },
+  { label: "Raw", status: "available", targetId: "studio-raw-output" },
 ] as const;
 
 function App() {
@@ -202,12 +202,34 @@ function App() {
     }
   }
 
+  const coreReportContent = coreResult?.json_report_content ?? null;
+  const hasCoreModelSummary = Boolean(parseCoreModelSummary(coreReportContent));
+  const hasCoreEntityIndex = Boolean(parseCoreEntityIndex(coreReportContent));
+  const hasCoreRelationshipManifest = Boolean(
+    parseCoreRelationshipManifest(coreReportContent),
+  );
+
+  const surfaceAvailability: Record<string, boolean> = {
+    Overview: true,
+    Model: Boolean(workspace && workspace.source_model_files.length > 0),
+    Validation: Boolean(workspace?.mission_dir),
+    Contracts: hasCoreModelSummary || hasCoreEntityIndex,
+    Relationships: hasCoreRelationshipManifest,
+    Artifacts: Boolean(workspace),
+    "Reports & Logs": Boolean(
+      workspace && workspace.generated_locations.length > 0,
+    ),
+    Evidence: false,
+    Ground: false,
+    Raw: Boolean(coreResult),
+  };
+
   return (
     <main className="studio-app-shell">
       <WorkspaceHeader workspace={workspace} />
 
       <div className="workbench-layout">
-        <PrimarySidebar />
+        <PrimarySidebar surfaceAvailability={surfaceAvailability} />
 
         <section className="main-surface" aria-label="Studio main surface">
           <section
@@ -321,21 +343,47 @@ function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null 
   );
 }
 
-function PrimarySidebar() {
+function PrimarySidebar({
+  surfaceAvailability,
+}: {
+  surfaceAvailability: Record<string, boolean>;
+}) {
   return (
     <nav className="primary-sidebar" aria-label="Studio surfaces">
       <h2>Surfaces</h2>
       <ul className="surface-nav-list">
-        {shellSurfaceItems.map((item) => (
-          <li key={item.label}>
-            <span className="surface-nav-item">
-              <span>{item.label}</span>
-              <span className={`surface-status surface-status-${item.status}`}>
-                {item.status}
-              </span>
-            </span>
-          </li>
-        ))}
+        {shellSurfaceItems.map((item) => {
+          const isReserved = item.status === "reserved";
+          const isEnabled = !isReserved && Boolean(surfaceAvailability[item.label]);
+          const displayedStatus = isReserved
+            ? "reserved"
+            : isEnabled
+              ? item.status
+              : "unavailable";
+
+          return (
+            <li key={item.label}>
+              {isEnabled ? (
+                <a className="surface-nav-item surface-nav-link" href={`#${item.targetId}`}>
+                  <span>{item.label}</span>
+                  <span className={`surface-status surface-status-${displayedStatus}`}>
+                    {displayedStatus}
+                  </span>
+                </a>
+              ) : (
+                <span
+                  className="surface-nav-item surface-nav-item-disabled"
+                  aria-disabled="true"
+                >
+                  <span>{item.label}</span>
+                  <span className={`surface-status surface-status-${displayedStatus}`}>
+                    {displayedStatus}
+                  </span>
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
@@ -425,7 +473,7 @@ function WorkspaceDashboard({
   );
 
   return (
-    <section className="workspace-dashboard" aria-label="Workspace dashboard">
+    <section id="studio-dashboard" className="workspace-dashboard" aria-label="Workspace dashboard">
       <div className="file-viewer-header">
         <div>
           <h2>Workspace dashboard</h2>
@@ -507,7 +555,7 @@ function WorkspaceDashboard({
           <span>No arbitrary command execution</span>
         </article>
 
-        <article className="dashboard-card">
+        <article id="studio-future-surfaces" className="dashboard-card surface-card-anchor">
           <h3>Future surfaces</h3>
           <strong>Reserved</strong>
           <span>Evidence: reserved for Core-produced scenario evidence</span>
@@ -623,6 +671,7 @@ function WorkspacePanel({
       <div className="workspace-layout">
         <div>
           <EntrySection
+            id="studio-model"
             title="Source model files"
             entries={workspace.source_model_files}
             emptyText="No expected Mission Model files detected."
@@ -639,6 +688,7 @@ function WorkspacePanel({
           />
 
           <EntrySection
+            id="studio-reports-logs"
             title="Generated and derived locations"
             entries={workspace.generated_locations}
             emptyText="No generated artifact locations detected."
@@ -697,7 +747,7 @@ function CoreStatusPanel({
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
-    <section className="core-panel" aria-label="OrbitFabric Core command status">
+    <section id="studio-validation" className="core-panel" aria-label="OrbitFabric Core command status">
       <div className="file-viewer-header">
         <div>
           <h3>OrbitFabric Core command status</h3>
@@ -794,7 +844,7 @@ function CoreCommandOutput({
   const isRelationshipManifestCommand = result.args.includes("relationship-manifest");
 
   return (
-    <div className="command-output">
+    <div id="studio-raw-output" className="command-output">
       <div className="command-meta">
         <strong>{result.command}</strong>
         <span>{result.args.join(" ") || "no args"}</span>
@@ -959,7 +1009,7 @@ function CoreModelSummaryPanel({
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
-    <section className="entry-section" aria-label="Contract domain navigation">
+    <section id="studio-contracts" className="entry-section" aria-label="Contract domain navigation">
       <div className="file-viewer-header">
         <div>
           <h3>Contract domains</h3>
@@ -1057,7 +1107,7 @@ function CoreEntityIndexPanel({
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
-    <section className="entry-section" aria-label="Contract entity navigation">
+    <section id="studio-contracts" className="entry-section" aria-label="Contract entity navigation">
       <div className="file-viewer-header">
         <div>
           <h3>Contract entities</h3>
@@ -1113,7 +1163,7 @@ function CoreRelationshipManifestPanel({
   ];
 
   return (
-    <section className="entry-section" aria-label="Relationship manifest summary">
+    <section id="studio-relationships" className="entry-section" aria-label="Relationship manifest summary">
       <div className="file-viewer-header">
         <div>
           <h3>Relationship Manifest</h3>
@@ -1815,18 +1865,20 @@ function severityCategory(severity: string): ProjectEntry["category"] {
 }
 
 function EntrySection({
+  id,
   title,
   entries,
   emptyText,
   onOpenFile,
 }: {
+  id?: string;
   title: string;
   entries: ProjectEntry[];
   emptyText: string;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
-    <section className="entry-section">
+    <section id={id} className="entry-section">
       <h3>{title}</h3>
       {entries.length > 0 ? (
         <ul className="entry-list">

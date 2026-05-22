@@ -855,3 +855,72 @@ h3 {
   flex-shrink: 0;
   justify-content: flex-end;
 }
+
+.surface-nav-link {
+  text-decoration: none;
+}
+
+.surface-nav-link:hover,
+.surface-nav-link:focus-visible {
+  border-color: rgba(103, 232, 249, 0.42);
+  color: #cffafe;
+  outline: none;
+}
+
+.surface-nav-item-disabled {
+  opacity: 0.72;
+}
+
+#studio-overview,
+#studio-dashboard,
+#studio-model,
+#studio-validation,
+#studio-contracts,
+#studio-relationships,
+#studio-artifacts,
+#studio-reports-logs,
+#studio-raw-output,
+#studio-future-surfaces {
+  scroll-margin-top: 28px;
+}
+
+.entry-main {
+  flex-wrap: wrap;
+}
+
+.entry-main > strong,
+.entry-main > .entry-button {
+  flex: 1 1 18rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.entry-main > .badge-row,
+.entry-main > .category-badge,
+.entry-main > .severity-badge,
+.entry-main > .status-badge,
+.entry-main > .provenance-badge {
+  margin-left: auto;
+}
+
+.command-meta span,
+.command-meta strong,
+.editor-meta span,
+.editor-meta strong {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.surface-card-anchor {
+  scroll-margin-top: 28px;
+}
+
+.surface-nav-item-disabled {
+  cursor: not-allowed;
+}
+
+.surface-status-unavailable {
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.1);
+}

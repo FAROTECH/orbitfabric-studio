@@ -169,7 +169,7 @@ export function GeneratedArtifactExplorerPanel({
   }
 
   return (
-    <section className="entry-section" aria-label="Generated Artifact Explorer">
+    <section id="studio-artifacts" className="entry-section" aria-label="Generated Artifact Explorer">
       <div className="file-viewer-header">
         <div>
           <h3>Generated Artifact Explorer</h3>
