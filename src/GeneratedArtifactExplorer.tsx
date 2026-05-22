@@ -1,7 +1,9 @@
 import { useState } from "react";
+import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
 import type {
+  FileContent,
   GeneratedArtifactClass,
   GeneratedArtifactEntry,
   GeneratedArtifactInventory,
@@ -86,13 +88,18 @@ export function GeneratedArtifactExplorerPanel({
 }: GeneratedArtifactExplorerPanelProps) {
   const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [selectedArtifactFile, setSelectedArtifactFile] = useState<FileContent | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
+  const [isReadingArtifact, setIsReadingArtifact] = useState(false);
   const classifiedArtifacts = classifyGeneratedArtifacts(inventory?.artifacts ?? []);
   const groupedArtifacts = groupArtifactsByClass(classifiedArtifacts);
   const classifiedCounts = countClassifiedArtifacts(classifiedArtifacts);
 
   async function handleInspectGeneratedArtifacts() {
     setError(null);
+    setPreviewError(null);
+    setSelectedArtifactFile(null);
     setIsInspecting(true);
 
     try {
@@ -105,6 +112,28 @@ export function GeneratedArtifactExplorerPanel({
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsInspecting(false);
+    }
+  }
+
+  async function handleOpenArtifactPreview(artifact: ClassifiedGeneratedArtifactEntry) {
+    if (artifact.preview_status !== "previewable") {
+      setPreviewError("This generated artifact is listed but is not previewable.");
+      return;
+    }
+
+    setPreviewError(null);
+    setIsReadingArtifact(true);
+
+    try {
+      const file = await invoke<FileContent>("read_text_file", {
+        workspacePath,
+        filePath: artifact.path,
+      });
+      setSelectedArtifactFile(file);
+    } catch (caught) {
+      setPreviewError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsReadingArtifact(false);
     }
   }
 
@@ -191,9 +220,16 @@ export function GeneratedArtifactExplorerPanel({
                 key={artifactClass}
                 artifactClass={artifactClass}
                 artifacts={groupedArtifacts[artifactClass] ?? []}
+                onOpenArtifactPreview={handleOpenArtifactPreview}
               />
             ))
           )}
+
+          <GeneratedArtifactPreviewPanel
+            selectedArtifactFile={selectedArtifactFile}
+            previewError={previewError}
+            isReadingArtifact={isReadingArtifact}
+          />
         </>
       ) : null}
     </section>
@@ -203,9 +239,11 @@ export function GeneratedArtifactExplorerPanel({
 function GeneratedArtifactClassSection({
   artifactClass,
   artifacts,
+  onOpenArtifactPreview,
 }: {
   artifactClass: GeneratedArtifactClass;
   artifacts: ClassifiedGeneratedArtifactEntry[];
+  onOpenArtifactPreview: (artifact: ClassifiedGeneratedArtifactEntry) => void;
 }) {
   return (
     <section className="entry-section" aria-label={`${artifactClass} generated artifacts`}>
@@ -220,30 +258,100 @@ function GeneratedArtifactClassSection({
         <p className="empty-text">No artifacts in this class.</p>
       ) : (
         <ul className="entry-list">
-          {artifacts.map((artifact) => (
-            <li key={artifact.path}>
-              <div className="entry-main">
-                <strong>{artifact.name}</strong>
-                <span className={`category-badge category-${knownStatusCategory(artifact)}`}>
-                  {artifact.known_status}
-                </span>
-                <span className={`category-badge category-${previewStatusCategory(artifact)}`}>
-                  {artifact.preview_status}
-                </span>
-              </div>
-              <span className="entry-path">{artifact.relative_path}</span>
-              <div className="command-meta">
-                <span>size: {artifact.size_bytes} bytes</span>
-                <span>extension: {artifact.extension ?? "none"}</span>
-                <span>class: {artifact.artifact_class}</span>
-                <span>classification: {artifact.classification_reason}</span>
-                <span>provenance: {artifact.provenance.source}</span>
-              </div>
-              {artifact.provenance.detail ? <p>{artifact.provenance.detail}</p> : null}
-            </li>
-          ))}
+          {artifacts.map((artifact) => {
+            const isPreviewable = artifact.preview_status === "previewable";
+
+            return (
+              <li key={artifact.path}>
+                <div className="entry-main">
+                  {isPreviewable ? (
+                    <button
+                      className="entry-button"
+                      type="button"
+                      onClick={() => onOpenArtifactPreview(artifact)}
+                    >
+                      {artifact.name}
+                    </button>
+                  ) : (
+                    <strong>{artifact.name}</strong>
+                  )}
+                  <span className={`category-badge category-${knownStatusCategory(artifact)}`}>
+                    {artifact.known_status}
+                  </span>
+                  <span className={`category-badge category-${previewStatusCategory(artifact)}`}>
+                    {artifact.preview_status}
+                  </span>
+                </div>
+                <span className="entry-path">{artifact.relative_path}</span>
+                <div className="command-meta">
+                  <span>size: {artifact.size_bytes} bytes</span>
+                  <span>extension: {artifact.extension ?? "none"}</span>
+                  <span>class: {artifact.artifact_class}</span>
+                  <span>classification: {artifact.classification_reason}</span>
+                  <span>provenance: {artifact.provenance.source}</span>
+                </div>
+                {artifact.provenance.detail ? <p>{artifact.provenance.detail}</p> : null}
+              </li>
+            );
+          })}
         </ul>
       )}
+    </section>
+  );
+}
+
+function GeneratedArtifactPreviewPanel({
+  selectedArtifactFile,
+  previewError,
+  isReadingArtifact,
+}: {
+  selectedArtifactFile: FileContent | null;
+  previewError: string | null;
+  isReadingArtifact: boolean;
+}) {
+  return (
+    <section className="file-viewer" aria-label="Generated artifact read-only preview">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Generated artifact preview</h3>
+          <p>
+            Read-only preview for supported text artifacts. Preview does not imply
+            validation, source-of-truth status or semantic interpretation.
+          </p>
+        </div>
+        <span className="status-pill">Read-only preview</span>
+      </div>
+
+      {previewError ? <p className="error-text">{previewError}</p> : null}
+      {isReadingArtifact ? <p className="empty-text">Reading generated artifact...</p> : null}
+
+      {!selectedArtifactFile && !isReadingArtifact ? (
+        <p className="empty-text">
+          Select a previewable generated artifact to inspect its text content.
+        </p>
+      ) : null}
+
+      {selectedArtifactFile ? (
+        <>
+          <div className="command-meta">
+            <strong>{selectedArtifactFile.name}</strong>
+            <span>{selectedArtifactFile.path}</span>
+            <span>{selectedArtifactFile.size_bytes} bytes</span>
+          </div>
+          <Editor
+            height="360px"
+            language={selectedArtifactFile.language}
+            value={selectedArtifactFile.content}
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              wordWrap: "on",
+              scrollBeyondLastLine: false,
+              renderLineHighlight: "none",
+            }}
+          />
+        </>
+      ) : null}
     </section>
   );
 }
