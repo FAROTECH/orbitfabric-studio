@@ -113,12 +113,12 @@ The milestone is complete only if Studio inspects generated artifacts without be
 ## 7. Read-only Preview Gate
 
 ```text
-[ ] Supported text artifacts open in the existing read-only viewer.
-[ ] JSON, Markdown, log, C/C++ and CSV text artifacts are handled safely.
-[ ] Oversized files are rejected by the existing viewer limit.
-[ ] Unsupported files are listed but not previewed.
-[ ] Preview does not imply validation.
-[ ] Preview does not imply source-of-truth status.
+[x] Supported text artifacts open in the existing read-only viewer.
+[x] JSON, Markdown, log, C/C++ and CSV text artifacts are handled safely.
+[x] Oversized files are rejected by the existing viewer limit.
+[x] Unsupported files are listed but not previewed.
+[x] Preview does not imply validation.
+[x] Preview does not imply source-of-truth status.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: known artifact classification gate complete.
+Current state: read-only preview gate complete.
