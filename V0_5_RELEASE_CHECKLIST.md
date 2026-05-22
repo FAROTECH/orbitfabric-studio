@@ -42,9 +42,9 @@ The milestone is complete only if Studio inspects generated artifacts without be
 [x] docs/development/v0.5.0-generated-artifact-explorer.md exists.
 [x] docs/ADR/0010-v0-5-core-derived-generated-artifact-explorer.md exists.
 [x] V0_5_RELEASE_CHECKLIST.md exists.
-[ ] README describes v0.5.0 as the active planning baseline.
-[ ] ROADMAP marks v0.5.0 as active.
-[ ] CHANGELOG contains a v0.5.0 planning entry.
+[x] README describes v0.5.0 as the active planning baseline.
+[x] ROADMAP marks v0.5.0 as active.
+[x] CHANGELOG contains a v0.5.0 planning entry.
 [ ] docs/releases/v0.5.0-release-notes.md exists before final release.
 ```
 
@@ -53,15 +53,15 @@ The milestone is complete only if Studio inspects generated artifacts without be
 ## 3. Artifact Inventory Model Gate
 
 ```text
-[ ] Generated artifact TypeScript model exists.
-[ ] Artifact class supports reports, logs, docs, runtime, ground and unknown.
-[ ] Artifact metadata includes name, path, extension and size.
-[ ] Artifact metadata distinguishes known from unknown.
-[ ] Artifact metadata distinguishes previewable from not previewable.
-[ ] Artifact model does not contain Mission Model semantics.
-[ ] Artifact model does not contain runtime behavior fields.
-[ ] Artifact model does not contain ground behavior fields.
-[ ] Artifact model does not contain dependency graph fields.
+[x] Generated artifact TypeScript model exists.
+[x] Artifact class supports reports, logs, docs, runtime, ground and unknown.
+[x] Artifact metadata includes name, path, extension and size.
+[x] Artifact metadata distinguishes known from unknown.
+[x] Artifact metadata distinguishes previewable from not previewable.
+[x] Artifact model does not contain Mission Model semantics.
+[x] Artifact model does not contain runtime behavior fields.
+[x] Artifact model does not contain ground behavior fields.
+[x] Artifact model does not contain dependency graph fields.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: planning baseline.
+Current state: artifact inventory model gate complete.

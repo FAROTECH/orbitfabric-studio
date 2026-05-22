@@ -33,6 +33,58 @@ export interface FileContent {
   size_bytes: number;
 }
 
+export type GeneratedArtifactClass =
+  | "reports"
+  | "logs"
+  | "docs"
+  | "runtime"
+  | "ground"
+  | "unknown";
+
+export type GeneratedArtifactKnownStatus = "known" | "unknown";
+
+export type GeneratedArtifactPreviewStatus = "previewable" | "notPreviewable";
+
+export type GeneratedArtifactProvenanceSource =
+  | "documentedCorePath"
+  | "documentedCoreFileName"
+  | "manifestField"
+  | "unknown";
+
+export interface GeneratedArtifactInventory {
+  generated_dir: string | null;
+  artifacts: GeneratedArtifactEntry[];
+  counts: GeneratedArtifactInventoryCounts;
+  warnings: string[];
+}
+
+export interface GeneratedArtifactInventoryCounts {
+  total_artifacts: number;
+  by_class: Record<GeneratedArtifactClass, number>;
+  known_artifacts: number;
+  unknown_artifacts: number;
+  previewable_artifacts: number;
+  not_previewable_artifacts: number;
+}
+
+export interface GeneratedArtifactEntry {
+  name: string;
+  path: string;
+  relative_path: string;
+  extension: string | null;
+  size_bytes: number;
+  artifact_class: GeneratedArtifactClass;
+  known_status: GeneratedArtifactKnownStatus;
+  preview_status: GeneratedArtifactPreviewStatus;
+  classification_reason: string;
+  provenance: GeneratedArtifactProvenance;
+}
+
+export interface GeneratedArtifactProvenance {
+  source: GeneratedArtifactProvenanceSource;
+  detail: string | null;
+}
+
 export interface CoreCommandResult {
   command: string;
   args: string[];
