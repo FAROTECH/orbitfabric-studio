@@ -128,27 +128,27 @@ The milestone is complete only if Studio inspects generated artifacts without be
 The following must remain true at the end of v0.5.0:
 
 ```text
-[ ] No editing.
-[ ] No generated file modification.
-[ ] No Mission Model modification.
-[ ] No arbitrary shell command.
-[ ] No arbitrary OrbitFabric CLI argument entry.
-[ ] No new generator workflow.
-[ ] No scenario runner.
-[ ] No runtime execution.
-[ ] No build-system integration.
-[ ] No flight software claim.
-[ ] No ground runtime claim.
-[ ] No mission-control UI.
-[ ] No live telemetry.
-[ ] No command uplink.
-[ ] No private YAML semantic parser.
-[ ] No private Mission Model validator.
-[ ] No private artifact semantics.
-[ ] No dependency graph.
-[ ] No relationship graph engine.
-[ ] No plugin execution.
-[ ] No plugin discovery.
+[x] No editing.
+[x] No generated file modification.
+[x] No Mission Model modification.
+[x] No arbitrary shell command.
+[x] No arbitrary OrbitFabric CLI argument entry.
+[x] No new generator workflow.
+[x] No scenario runner.
+[x] No runtime execution.
+[x] No build-system integration.
+[x] No flight software claim.
+[x] No ground runtime claim.
+[x] No mission-control UI.
+[x] No live telemetry.
+[x] No command uplink.
+[x] No private YAML semantic parser.
+[x] No private Mission Model validator.
+[x] No private artifact semantics.
+[x] No dependency graph.
+[x] No relationship graph engine.
+[x] No plugin execution.
+[x] No plugin discovery.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: read-only preview gate complete.
+Current state: non-goal gate complete.
