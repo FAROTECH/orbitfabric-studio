@@ -142,6 +142,7 @@ enum GeneratedArtifactClass {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 enum GeneratedArtifactKnownStatus {
     Known,
     Unknown,
@@ -156,6 +157,7 @@ enum GeneratedArtifactPreviewStatus {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 enum GeneratedArtifactProvenanceSource {
     DocumentedCorePath,
     DocumentedCoreFileName,
