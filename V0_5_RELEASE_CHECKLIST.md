@@ -156,17 +156,17 @@ The following must remain true at the end of v0.5.0:
 ## 9. Manual Verification Gate
 
 ```text
-[ ] npm install.
-[ ] npm run build.
-[ ] npm run tauri:dev.
-[ ] Open examples/demo-3u.
-[ ] Verify generated directory detection.
-[ ] Verify reports, logs, docs, runtime, ground and unknown groups.
-[ ] Verify read-only preview for supported text artifacts.
-[ ] Verify unsupported files are not previewed.
-[ ] Verify no file modification path exists.
-[ ] Verify no arbitrary command path exists.
-[ ] Verify no generation workflow was added.
+[x] npm install.
+[x] npm run build.
+[x] npm run tauri:dev.
+[x] Open examples/demo-3u.
+[x] Verify generated directory detection.
+[x] Verify reports, logs, docs, runtime, ground and unknown groups.
+[x] Verify read-only preview for supported text artifacts.
+[x] Verify unsupported files are not previewed.
+[x] Verify no file modification path exists.
+[x] Verify no arbitrary command path exists.
+[x] Verify no generation workflow was added.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: non-goal gate complete.
+Current state: manual verification gate complete.
