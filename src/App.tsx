@@ -30,6 +30,8 @@ import type {
 
 const nonGoalItems = [
   "No editing",
+  "No artifact generation",
+  "No generated file modification",
   "No graph view",
   "No dependency graph",
   "No runtime behavior",
@@ -184,15 +186,15 @@ function App() {
     <main className="studio-shell">
       <section className="hero-panel" aria-labelledby="studio-title">
         <div className="eyebrow">OrbitFabric Studio</div>
-        <h1 id="studio-title">Relationship Surface</h1>
-        <p className="release">v0.4.0 relationship surface</p>
+        <h1 id="studio-title">Generated Artifact Explorer</h1>
+        <p className="release">v0.5.0 generated artifact explorer</p>
         <p className="summary">
           Open a local OrbitFabric workspace, inspect its Mission Model files,
           run fixed OrbitFabric Core validation and export commands, navigate
-          Core-derived contract domains and entities, and explain Core-owned
-          relationship records from the Relationship Manifest Surface. Studio
-          remains read-only: OrbitFabric Core remains authoritative for validation
-          and engineering meaning.
+          Core-derived contract domains, entities and relationships, and inspect
+          generated artifacts already present under `generated/`. Studio remains
+          read-only: OrbitFabric Core remains authoritative for validation,
+          generation and engineering meaning.
         </p>
         <button
           className="primary-action"
@@ -208,11 +210,15 @@ function App() {
       <section className="grid" aria-label="workspace inspection">
         <article className="card">
           <h2>Primary loop</h2>
-          <div className="loop">Open -&gt; Inspect -&gt; Validate -&gt; Navigate -&gt; Explain Relationships</div>
+          <div className="loop">
+            Open -&gt; Inspect -&gt; Validate -&gt; Navigate -&gt; Explain Relationships -&gt; Inspect Generated Artifacts
+          </div>
           <p>
-            Studio classifies workspace files conservatively and renders Core-derived
-            validation, domain, entity and relationship reports. It does not validate
-            the Mission Model independently and does not infer mission semantics.
+            Studio classifies workspace files and generated artifacts conservatively,
+            renders Core-derived validation, domain, entity and relationship reports,
+            and previews supported generated text artifacts read-only. It does not
+            validate the Mission Model independently and does not infer mission
+            semantics from generated artifacts.
           </p>
         </article>
 
