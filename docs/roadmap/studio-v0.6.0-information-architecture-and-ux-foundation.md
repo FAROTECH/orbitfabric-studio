@@ -255,6 +255,56 @@ They do not browse implementation files first.
 Files remain available as safe read-only previews when appropriate.
 ```
 
+
+## Graph visualization boundary
+
+Graph visualization is intentionally outside the implementation scope of v0.6.0.
+
+Studio may eventually expose graph-like views, but only as read-only visualizations of Core-owned or accepted derived data.
+
+A future graph surface may be considered for:
+
+```text
+Relationship Surface
+Scenario Evidence Chain
+Model -> Report -> Artifact derivation map
+```
+
+A graph surface must not become:
+
+```text
+visual Mission Model editor
+drag-and-drop authoring surface
+frontend-created node store
+frontend-created edge store
+private relationship inference engine
+layout persistence mechanism for Mission Model semantics
+generated artifact mutation tool
+runtime behavior simulator
+ground segment operator interface
+```
+
+React Flow, or any equivalent graph visualization library, is not required for v0.6.0.
+
+Any future graph implementation must be introduced through a separate spike PR and accepted only if it satisfies these constraints:
+
+```text
+all graph nodes are Core-derived or accepted derived records
+all graph edges are Core-derived or accepted derived records
+the graph is read-only
+the graph does not persist layout as mission data
+the graph does not allow creating, editing or deleting model entities
+the graph does not create relationships not present in Core-owned outputs
+the graph does not replace list/table/record inspection surfaces
+the graph remains secondary to explainable contract evidence
+```
+
+For v0.6.0, the correct behavior is to keep relationship and artifact inspection list/record based.
+
+The Studio shell, badges, dashboard, navigation normalization and contextual inspector define the UX foundation first.
+
+Graph visualization remains optional future work, not a committed product dependency.
+
 ## 8. Application shell
 
 Studio should adopt a stable application shell.
