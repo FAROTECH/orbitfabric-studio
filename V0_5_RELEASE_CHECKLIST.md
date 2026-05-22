@@ -99,13 +99,13 @@ The milestone is complete only if Studio inspects generated artifacts without be
 ## 6. Known Artifact Classification Gate
 
 ```text
-[ ] Core structured reports are classified conservatively.
-[ ] Lint and simulation reports are classified conservatively.
-[ ] Generated docs Markdown files are classified conservatively.
-[ ] Runtime contract manifest and generated C++17 files are classified conservatively.
-[ ] Ground contract manifest, dictionaries, CSV files and Markdown files are classified conservatively.
-[ ] Unrecognized generated files remain visible as unknown.
-[ ] Studio does not infer Mission Data Contract meaning from file names.
+[x] Core structured reports are classified conservatively.
+[x] Lint and simulation reports are classified conservatively.
+[x] Generated docs Markdown files are classified conservatively.
+[x] Runtime contract manifest and generated C++17 files are classified conservatively.
+[x] Ground contract manifest, dictionaries, CSV files and Markdown files are classified conservatively.
+[x] Unrecognized generated files remain visible as unknown.
+[x] Studio does not infer Mission Data Contract meaning from file names.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: UI explorer gate complete.
+Current state: known artifact classification gate complete.
