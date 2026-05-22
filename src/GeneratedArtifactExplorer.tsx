@@ -65,8 +65,21 @@ const documentedArtifactPaths = new Set([
   "ground/generic/ground_dictionaries.md",
 ]);
 
+export interface GeneratedArtifactDashboardSummary {
+  generatedDir: string | null;
+  totalArtifacts: number;
+  knownArtifacts: number;
+  unknownArtifacts: number;
+  previewableArtifacts: number;
+  notPreviewableArtifacts: number;
+  warningCount: number;
+}
+
 interface GeneratedArtifactExplorerPanelProps {
   workspacePath: string;
+  onDashboardSummaryChange?: (
+    summary: GeneratedArtifactDashboardSummary | null,
+  ) => void;
 }
 
 type ClassifiedGeneratedArtifactEntry = GeneratedArtifactEntry & {
@@ -85,6 +98,7 @@ interface ClassifiedArtifactCounts {
 
 export function GeneratedArtifactExplorerPanel({
   workspacePath,
+  onDashboardSummaryChange,
 }: GeneratedArtifactExplorerPanelProps) {
   const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +114,7 @@ export function GeneratedArtifactExplorerPanel({
     setError(null);
     setPreviewError(null);
     setSelectedArtifactFile(null);
+    onDashboardSummaryChange?.(null);
     setIsInspecting(true);
 
     try {
@@ -108,7 +123,21 @@ export function GeneratedArtifactExplorerPanel({
         { workspacePath },
       );
       setInventory(result);
+
+      const nextClassifiedArtifacts = classifyGeneratedArtifacts(result.artifacts);
+      const nextClassifiedCounts = countClassifiedArtifacts(nextClassifiedArtifacts);
+
+      onDashboardSummaryChange?.({
+        generatedDir: result.generated_dir,
+        totalArtifacts: result.counts.total_artifacts,
+        knownArtifacts: nextClassifiedCounts.knownArtifacts,
+        unknownArtifacts: nextClassifiedCounts.unknownArtifacts,
+        previewableArtifacts: result.counts.previewable_artifacts,
+        notPreviewableArtifacts: result.counts.not_previewable_artifacts,
+        warningCount: result.warnings.length,
+      });
     } catch (caught) {
+      onDashboardSummaryChange?.(null);
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsInspecting(false);
