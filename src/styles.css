@@ -773,3 +773,85 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+.badge-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.provenance-badge,
+.status-badge,
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.provenance-badge-source,
+.provenance-badge-read-only {
+  color: #dcfce7;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.provenance-badge-core-derived,
+.provenance-badge-reported,
+.status-badge-reported {
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.18);
+}
+
+.provenance-badge-generated,
+.provenance-badge-preview-only,
+.status-badge-preview-only {
+  color: #ede9fe;
+  background: rgba(139, 92, 246, 0.16);
+}
+
+.provenance-badge-relationship {
+  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.status-badge-overview,
+.status-badge-workspace-open {
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.18);
+}
+
+.status-badge-unknown,
+.status-badge-unavailable,
+.severity-badge-warning {
+  color: #fef3c7;
+  background: rgba(245, 158, 11, 0.16);
+}
+
+.severity-badge-error,
+.status-badge-fail {
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.16);
+}
+
+.severity-badge-info,
+.status-badge-pass {
+  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.status-badge {
+  color: #e8eefc;
+  background: rgba(148, 163, 184, 0.14);
+}
+
+.artifact-entry-badges {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}

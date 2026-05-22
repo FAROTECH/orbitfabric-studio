@@ -2,6 +2,8 @@ import { useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
+import { ProvenanceBadge, StatusBadge } from "./Badges";
+
 import type {
   FileContent,
   GeneratedArtifactClass,
@@ -178,7 +180,10 @@ export function GeneratedArtifactExplorerPanel({
             generated artifacts.
           </p>
         </div>
-        <span className="status-pill">Read-only</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="GENERATED" />
+          <ProvenanceBadge label="READ-ONLY" />
+        </div>
       </div>
 
       <div className="command-actions">
@@ -278,9 +283,10 @@ function GeneratedArtifactClassSection({
     <section className="entry-section" aria-label={`${artifactClass} generated artifacts`}>
       <div className="entry-main">
         <h3>{formatArtifactClass(artifactClass)}</h3>
-        <span className="category-badge category-generatedOutput">
-          {artifacts.length} artifacts
-        </span>
+        <div className="badge-row">
+          <ProvenanceBadge label="GENERATED" />
+          <StatusBadge label={`${artifacts.length} ARTIFACTS`} />
+        </div>
       </div>
 
       {artifacts.length === 0 ? (
@@ -304,12 +310,18 @@ function GeneratedArtifactClassSection({
                   ) : (
                     <strong>{artifact.name}</strong>
                   )}
-                  <span className={`category-badge category-${knownStatusCategory(artifact)}`}>
-                    {artifact.known_status}
-                  </span>
-                  <span className={`category-badge category-${previewStatusCategory(artifact)}`}>
-                    {artifact.preview_status}
-                  </span>
+                  <div className="badge-row artifact-entry-badges">
+                    <StatusBadge
+                      label={artifact.known_status === "known" ? "REPORTED" : "UNKNOWN"}
+                    />
+                    <StatusBadge
+                      label={
+                        artifact.preview_status === "previewable"
+                          ? "PREVIEW ONLY"
+                          : "UNAVAILABLE"
+                      }
+                    />
+                  </div>
                 </div>
                 <span className="entry-path">{artifact.relative_path}</span>
                 <div className="command-meta">
@@ -348,7 +360,11 @@ function GeneratedArtifactPreviewPanel({
             validation, source-of-truth status or semantic interpretation.
           </p>
         </div>
-        <span className="status-pill">Read-only preview</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="GENERATED" />
+          <ProvenanceBadge label="READ-ONLY" />
+          <ProvenanceBadge label="PREVIEW ONLY" />
+        </div>
       </div>
 
       {previewError ? <p className="error-text">{previewError}</p> : null}

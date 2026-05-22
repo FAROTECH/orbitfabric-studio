@@ -7,6 +7,7 @@ import {
   GeneratedArtifactExplorerPanel,
   type GeneratedArtifactDashboardSummary,
 } from "./GeneratedArtifactExplorer";
+import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 
 import {
   parseCoreEntityIndex,
@@ -312,11 +313,9 @@ function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null 
       </div>
 
       <div className="workspace-header-status">
-        <span className="status-pill">Read-only</span>
-        <span className="status-pill">Core-derived</span>
-        <span className="status-pill">
-          {workspace?.mission_dir ? "Workspace open" : "No workspace"}
-        </span>
+        <ProvenanceBadge label="READ-ONLY" />
+        <ProvenanceBadge label="CORE-DERIVED" />
+        <StatusBadge label={workspace?.mission_dir ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
       </div>
     </header>
   );
@@ -435,7 +434,11 @@ function WorkspaceDashboard({
             Core-derived outputs. This is not a mission operations dashboard.
           </p>
         </div>
-        <span className="status-pill">Overview</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="READ-ONLY" />
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <StatusBadge label="OVERVIEW" />
+        </div>
       </div>
 
       <div className="dashboard-card-grid">
@@ -916,7 +919,11 @@ function CoreValidationSummary({
             these fields without running independent validation.
           </p>
         </div>
-        <span className="status-pill">Core-derived</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <ProvenanceBadge label="RELATIONSHIP" />
+          <ProvenanceBadge label="READ-ONLY" />
+        </div>
       </div>
 
       <div className="summary-grid">
@@ -1060,7 +1067,10 @@ function CoreEntityIndexPanel({
             edges, YAML AST nodes or source locations.
           </p>
         </div>
-        <span className="status-pill">Core entity index</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <StatusBadge label="REPORTED" />
+        </div>
       </div>
 
       <div className="summary-grid">
@@ -1114,7 +1124,11 @@ function CoreRelationshipManifestPanel({
             render a graph or derive runtime behavior.
           </p>
         </div>
-        <span className="status-pill">Core relationship manifest</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <ProvenanceBadge label="RELATIONSHIP" />
+          <StatusBadge label="REPORTED" />
+        </div>
       </div>
 
       <div className="summary-grid">
@@ -1749,9 +1763,7 @@ function CoreFindingsList({
           return (
             <li key={`${finding.code}-${finding.object_id ?? index}`}>
               <div className="entry-main">
-                <span className={`category-badge category-${severityCategory(finding.severity)}`}>
-                  {finding.severity}
-                </span>
+                <SeverityBadge label={finding.severity} />
                 <strong>{finding.code}</strong>
               </div>
               <p>{finding.message}</p>
@@ -1863,7 +1875,11 @@ function FileViewer({
             their content.
           </p>
         </div>
-        <span className="status-pill">Read-only</span>
+        <div className="badge-row">
+          <ProvenanceBadge label="SOURCE" />
+          <ProvenanceBadge label="READ-ONLY" />
+          <ProvenanceBadge label="PREVIEW ONLY" />
+        </div>
       </div>
 
       {viewerError ? <p className="error-text">{viewerError}</p> : null}
