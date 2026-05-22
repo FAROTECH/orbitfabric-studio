@@ -14,7 +14,7 @@ Studio is where mission semantics become inspectable.
 
 ```text
 Current released baseline: v0.5.0 - Generated Artifact Explorer
-Next roadmap baseline: v0.6.0 - Scenario Evidence Explorer
+Next roadmap baseline: v0.6.0 - Studio Information Architecture & UX Foundation
 ```
 
 The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface` and `v0.5.0 - Generated Artifact Explorer` baselines have been created, tagged and released.
@@ -32,7 +32,7 @@ Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Gene
 The next roadmap loop is:
 
 ```text
-Run Scenario -> Inspect Evidence -> Understand Contract Behavior
+Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
 ```
 
 Studio v0.5.0 is a read-only Generated Artifact Explorer.
@@ -296,7 +296,7 @@ For the current and active planning milestones, this means:
 Core model_summary.json          -> Studio domain navigation
 Core entity_index.json           -> Studio entity navigation
 Core relationship_manifest.json  -> Studio relationship inspection
-Core generated artifacts         -> Studio generated artifact inspection, planned for v0.5.0
+Core generated artifacts         -> Studio generated artifact inspection
 ```
 
 ---
@@ -320,13 +320,13 @@ OrbitFabric Studio is intended to become a local-first workbench for:
 The current product loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
 ```
 
-The active planning product loop is:
+The next roadmap product loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
+Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
 ```
 
 The long-term authoring loop is:
@@ -498,11 +498,13 @@ v0.2  Validation and Diagnostics Workbench
 v0.3  Contract Navigation Surface
 v0.4  Relationship Surface based on Core v1.0.0 relationship_manifest.json
 v0.5  Generated Artifact Explorer
-v0.6  Scenario Evidence Explorer
-v0.7  Ground Integration Artifact Viewer
-v0.8  Controlled Contract Authoring Preview
-v0.9  Plugin-aware Studio Surface
-v1.0  Stable Studio Workbench
+v0.6  Studio Information Architecture & UX Foundation
+v0.7  Scenario Evidence Explorer
+v0.8  Ground Integration Artifact Viewer
+v0.9  Studio UX Consolidation
+v0.10 Controlled Contract Authoring Preview
+v0.11 Plugin-aware Studio Surface
+v1.0  Stable Mission Contract Engineering Workbench
 ```
 
 See [`ROADMAP.md`](ROADMAP.md) for details.

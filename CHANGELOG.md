@@ -8,7 +8,7 @@ OrbitFabric Studio is currently at `v0.5.0 - Generated Artifact Explorer`.
 
 The current released baseline is `v0.5.0 - Generated Artifact Explorer`.
 
-The next roadmap baseline is `v0.6.0 - Scenario Evidence Explorer`.
+The next roadmap baseline is `v0.6.0 - Studio Information Architecture & UX Foundation`.
 
 ---
 
