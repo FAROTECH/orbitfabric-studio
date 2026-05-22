@@ -38,6 +38,19 @@ const nonGoalItems = [
   "No ground behavior",
 ];
 
+const shellSurfaceItems = [
+  { label: "Overview", status: "active" },
+  { label: "Model", status: "available" },
+  { label: "Validation", status: "available" },
+  { label: "Contracts", status: "available" },
+  { label: "Relationships", status: "available" },
+  { label: "Artifacts", status: "available" },
+  { label: "Reports & Logs", status: "available" },
+  { label: "Evidence", status: "reserved" },
+  { label: "Ground", status: "reserved" },
+  { label: "Raw", status: "available" },
+] as const;
+
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
@@ -183,78 +196,189 @@ function App() {
   }
 
   return (
-    <main className="studio-shell">
-      <section className="hero-panel" aria-labelledby="studio-title">
-        <div className="eyebrow">OrbitFabric Studio</div>
-        <h1 id="studio-title">Generated Artifact Explorer</h1>
-        <p className="release">v0.5.0 generated artifact explorer</p>
-        <p className="summary">
-          Open a local OrbitFabric workspace, inspect its Mission Model files,
-          run fixed OrbitFabric Core validation and export commands, navigate
-          Core-derived contract domains, entities and relationships, and inspect
-          generated artifacts already present under `generated/`. Studio remains
-          read-only: OrbitFabric Core remains authoritative for validation,
-          generation and engineering meaning.
-        </p>
-        <button
-          className="primary-action"
-          type="button"
-          onClick={handleOpenWorkspace}
-          disabled={isOpening}
-        >
-          {isOpening ? "Opening..." : "Open workspace"}
-        </button>
-        {error ? <p className="error-text">{error}</p> : null}
-      </section>
+    <main className="studio-app-shell">
+      <WorkspaceHeader workspace={workspace} />
 
-      <section className="grid" aria-label="workspace inspection">
-        <article className="card">
-          <h2>Primary loop</h2>
-          <div className="loop">
-            Open -&gt; Inspect -&gt; Validate -&gt; Navigate -&gt; Explain Relationships -&gt; Inspect Generated Artifacts
-          </div>
-          <p>
-            Studio classifies workspace files and generated artifacts conservatively,
-            renders Core-derived validation, domain, entity and relationship reports,
-            and previews supported generated text artifacts read-only. It does not
-            validate the Mission Model independently and does not infer mission
-            semantics from generated artifacts.
-          </p>
-        </article>
+      <div className="workbench-layout">
+        <PrimarySidebar />
 
-        <article className="card warning-card">
-          <h2>Not in this release</h2>
-          <ul>
-            {nonGoalItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </article>
-      </section>
+        <section className="main-surface" aria-label="Studio main surface">
+          <section
+            id="studio-overview"
+            className="hero-panel"
+            aria-labelledby="studio-title"
+          >
+            <div className="eyebrow">OrbitFabric Studio</div>
+            <h1 id="studio-title">Generated Artifact Explorer</h1>
+            <p className="release">v0.5.0 generated artifact explorer</p>
+            <p className="summary">
+              Open a local OrbitFabric workspace, inspect its Mission Model files,
+              run fixed OrbitFabric Core validation and export commands, navigate
+              Core-derived contract domains, entities and relationships, and inspect
+              generated artifacts already present under `generated/`. Studio remains
+              read-only: OrbitFabric Core remains authoritative for validation,
+              generation and engineering meaning.
+            </p>
+            <button
+              className="primary-action"
+              type="button"
+              onClick={handleOpenWorkspace}
+              disabled={isOpening}
+            >
+              {isOpening ? "Opening..." : "Open workspace"}
+            </button>
+            {error ? <p className="error-text">{error}</p> : null}
+          </section>
 
-      {workspace ? (
-        <WorkspacePanel
+          <section className="grid" aria-label="workspace inspection">
+            <article className="card">
+              <h2>Primary loop</h2>
+              <div className="loop">
+                Open -&gt; Inspect -&gt; Validate -&gt; Navigate -&gt; Explain Relationships -&gt; Inspect Generated Artifacts
+              </div>
+              <p>
+                Studio classifies workspace files and generated artifacts conservatively,
+                renders Core-derived validation, domain, entity and relationship reports,
+                and previews supported generated text artifacts read-only. It does not
+                validate the Mission Model independently and does not infer mission
+                semantics from generated artifacts.
+              </p>
+            </article>
+
+            <article className="card warning-card">
+              <h2>Not in this release</h2>
+              <ul>
+                {nonGoalItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+          </section>
+
+          {workspace ? (
+            <WorkspacePanel
+              workspace={workspace}
+              selectedFile={selectedFile}
+              viewerError={viewerError}
+              isReadingFile={isReadingFile}
+              coreExecutable={coreExecutable}
+              coreResult={coreResult}
+              coreError={coreError}
+              isRunningCoreCommand={isRunningCoreCommand}
+              onCoreExecutableChange={setCoreExecutable}
+              onCoreVersion={handleCoreVersion}
+              onCoreInspectMission={handleCoreInspectMission}
+              onCoreLintMission={handleCoreLintMission}
+              onCoreExportModelSummary={handleCoreExportModelSummary}
+              onCoreExportEntityIndex={handleCoreExportEntityIndex}
+              onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+              onOpenFile={handleOpenFile}
+            />
+          ) : (
+            <EmptyState />
+          )}
+        </section>
+
+        <InspectorPanel
           workspace={workspace}
           selectedFile={selectedFile}
-          viewerError={viewerError}
-          isReadingFile={isReadingFile}
-          coreExecutable={coreExecutable}
           coreResult={coreResult}
-          coreError={coreError}
-          isRunningCoreCommand={isRunningCoreCommand}
-          onCoreExecutableChange={setCoreExecutable}
-          onCoreVersion={handleCoreVersion}
-          onCoreInspectMission={handleCoreInspectMission}
-          onCoreLintMission={handleCoreLintMission}
-          onCoreExportModelSummary={handleCoreExportModelSummary}
-          onCoreExportEntityIndex={handleCoreExportEntityIndex}
-          onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
-          onOpenFile={handleOpenFile}
         />
-      ) : (
-        <EmptyState />
-      )}
+      </div>
     </main>
+  );
+}
+
+function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null }) {
+  return (
+    <header className="workspace-header" aria-label="Workspace header">
+      <div>
+        <div className="eyebrow">OrbitFabric Studio</div>
+        <h2>Mission Contract Engineering Workbench</h2>
+        <p>{workspace ? workspace.selected_path : "No workspace selected"}</p>
+      </div>
+
+      <div className="workspace-header-status">
+        <span className="status-pill">Read-only</span>
+        <span className="status-pill">Core-derived</span>
+        <span className="status-pill">
+          {workspace?.mission_dir ? "Workspace open" : "No workspace"}
+        </span>
+      </div>
+    </header>
+  );
+}
+
+function PrimarySidebar() {
+  return (
+    <nav className="primary-sidebar" aria-label="Studio surfaces">
+      <h2>Surfaces</h2>
+      <ul className="surface-nav-list">
+        {shellSurfaceItems.map((item) => (
+          <li key={item.label}>
+            <span className="surface-nav-item">
+              <span>{item.label}</span>
+              <span className={`surface-status surface-status-${item.status}`}>
+                {item.status}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function InspectorPanel({
+  workspace,
+  selectedFile,
+  coreResult,
+}: {
+  workspace: WorkspaceInspection | null;
+  selectedFile: FileContent | null;
+  coreResult: CoreCommandResult | null;
+}) {
+  return (
+    <aside className="contextual-inspector" aria-label="Contextual inspector">
+      <h2>Inspector</h2>
+      <p>
+        Read-only context surface for the currently selected workspace, file or
+        Core-derived output. This panel does not introduce new mission semantics.
+      </p>
+
+      <div className="inspector-section">
+        <h3>Workspace</h3>
+        <span>{workspace ? "Open" : "Not selected"}</span>
+        {workspace?.mission_dir ? <span>Mission directory detected</span> : null}
+        {workspace?.generated_dir ? <span>Generated directory detected</span> : null}
+      </div>
+
+      <div className="inspector-section">
+        <h3>Selection</h3>
+        {selectedFile ? (
+          <>
+            <strong>{selectedFile.name}</strong>
+            <span>{selectedFile.size_bytes} bytes</span>
+            <span>{selectedFile.path}</span>
+          </>
+        ) : (
+          <span>No file selected</span>
+        )}
+      </div>
+
+      <div className="inspector-section">
+        <h3>Core output</h3>
+        {coreResult ? (
+          <>
+            <strong>{coreResult.command}</strong>
+            <span>{coreResult.success ? "success" : "failed"}</span>
+            <span>exit code: {coreResult.exit_code ?? "not available"}</span>
+          </>
+        ) : (
+          <span>No Core command result selected</span>
+        )}
+      </div>
+    </aside>
   );
 }
 
