@@ -1,9 +1,12 @@
 use serde::Serialize;
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const MAX_TEXT_FILE_BYTES: u64 = 1_048_576;
+const MAX_GENERATED_ARTIFACTS: usize = 1_000;
+const MAX_GENERATED_ARTIFACT_DEPTH: usize = 8;
 
 const EXPECTED_MISSION_FILES: &[&str] = &[
     "spacecraft.yaml",
@@ -60,6 +63,44 @@ struct FileContent {
 }
 
 #[derive(Debug, Serialize)]
+struct GeneratedArtifactInventory {
+    generated_dir: Option<String>,
+    artifacts: Vec<GeneratedArtifactEntry>,
+    counts: GeneratedArtifactInventoryCounts,
+    warnings: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct GeneratedArtifactInventoryCounts {
+    total_artifacts: usize,
+    by_class: BTreeMap<String, usize>,
+    known_artifacts: usize,
+    unknown_artifacts: usize,
+    previewable_artifacts: usize,
+    not_previewable_artifacts: usize,
+}
+
+#[derive(Debug, Serialize)]
+struct GeneratedArtifactEntry {
+    name: String,
+    path: String,
+    relative_path: String,
+    extension: Option<String>,
+    size_bytes: u64,
+    artifact_class: GeneratedArtifactClass,
+    known_status: GeneratedArtifactKnownStatus,
+    preview_status: GeneratedArtifactPreviewStatus,
+    classification_reason: String,
+    provenance: GeneratedArtifactProvenance,
+}
+
+#[derive(Debug, Serialize)]
+struct GeneratedArtifactProvenance {
+    source: GeneratedArtifactProvenanceSource,
+    detail: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
 struct CoreCommandResult {
     command: String,
     args: Vec<String>,
@@ -86,6 +127,53 @@ enum EntryCategory {
     ScenarioSource,
     DerivedReport,
     GeneratedOutput,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum GeneratedArtifactClass {
+    Reports,
+    Logs,
+    Docs,
+    Runtime,
+    Ground,
+    Unknown,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum GeneratedArtifactKnownStatus {
+    Known,
+    Unknown,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum GeneratedArtifactPreviewStatus {
+    Previewable,
+    NotPreviewable,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum GeneratedArtifactProvenanceSource {
+    DocumentedCorePath,
+    DocumentedCoreFileName,
+    ManifestField,
+    Unknown,
+}
+
+impl GeneratedArtifactClass {
+    fn as_str(&self) -> &'static str {
+        match self {
+            GeneratedArtifactClass::Reports => "reports",
+            GeneratedArtifactClass::Logs => "logs",
+            GeneratedArtifactClass::Docs => "docs",
+            GeneratedArtifactClass::Runtime => "runtime",
+            GeneratedArtifactClass::Ground => "ground",
+            GeneratedArtifactClass::Unknown => "unknown",
+        }
+    }
 }
 
 #[tauri::command]
@@ -137,6 +225,49 @@ fn inspect_workspace(path: String) -> Result<WorkspaceInspection, String> {
         missing_expected_source_files,
         scenario_files,
         generated_locations,
+        warnings,
+    })
+}
+
+#[tauri::command]
+fn inspect_generated_artifacts(workspace_path: String) -> Result<GeneratedArtifactInventory, String> {
+    let workspace = canonicalize_existing_dir(&workspace_path)?;
+    let generated_candidate = workspace.join("generated");
+    let mut warnings = Vec::new();
+
+    if !generated_candidate.exists() {
+        warnings.push("No generated directory was found in the selected workspace.".to_string());
+
+        return Ok(GeneratedArtifactInventory {
+            generated_dir: None,
+            artifacts: Vec::new(),
+            counts: empty_generated_artifact_counts(),
+            warnings,
+        });
+    }
+
+    if !generated_candidate.is_dir() {
+        return Err("The generated path exists but is not a directory.".to_string());
+    }
+
+    let generated = generated_candidate
+        .canonicalize()
+        .map_err(|error| format!("Unable to resolve generated directory: {error}"))?;
+
+    if !generated.starts_with(&workspace) {
+        return Err("Generated directory is outside the selected workspace.".to_string());
+    }
+
+    let mut artifacts = Vec::new();
+    collect_generated_artifacts(&generated, &generated, 0, &mut artifacts, &mut warnings);
+    artifacts.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
+
+    let counts = count_generated_artifacts(&artifacts);
+
+    Ok(GeneratedArtifactInventory {
+        generated_dir: Some(display_path(&generated)),
+        artifacts,
+        counts,
         warnings,
     })
 }
@@ -315,6 +446,202 @@ fn run_core_command(
         json_report_available,
         json_report_content,
     })
+}
+
+fn collect_generated_artifacts(
+    dir: &Path,
+    generated_root: &Path,
+    depth: usize,
+    artifacts: &mut Vec<GeneratedArtifactEntry>,
+    warnings: &mut Vec<String>,
+) {
+    if artifacts.len() >= MAX_GENERATED_ARTIFACTS {
+        return;
+    }
+
+    if depth > MAX_GENERATED_ARTIFACT_DEPTH {
+        warnings.push(format!(
+            "Generated artifact inspection depth limit reached at {}.",
+            display_path(dir)
+        ));
+        return;
+    }
+
+    let read_dir = match fs::read_dir(dir) {
+        Ok(read_dir) => read_dir,
+        Err(error) => {
+            warnings.push(format!(
+                "Unable to read generated directory {}: {error}",
+                display_path(dir)
+            ));
+            return;
+        }
+    };
+
+    let mut entries = Vec::new();
+
+    for entry_result in read_dir {
+        let entry = match entry_result {
+            Ok(entry) => entry,
+            Err(error) => {
+                warnings.push(format!("Unable to read generated directory entry: {error}"));
+                continue;
+            }
+        };
+
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(error) => {
+                warnings.push(format!(
+                    "Unable to read generated entry type for {}: {error}",
+                    display_path(&entry.path())
+                ));
+                continue;
+            }
+        };
+
+        entries.push((entry.path(), file_type));
+    }
+
+    entries.sort_by(|left, right| left.0.cmp(&right.0));
+
+    for (path, file_type) in entries {
+        if artifacts.len() >= MAX_GENERATED_ARTIFACTS {
+            warnings.push(format!(
+                "Generated artifact inspection limit reached at {MAX_GENERATED_ARTIFACTS} files."
+            ));
+            return;
+        }
+
+        if file_type.is_symlink() {
+            warnings.push(format!(
+                "Generated artifact inspection skipped symbolic link {}.",
+                display_path(&path)
+            ));
+            continue;
+        }
+
+        if file_type.is_dir() {
+            collect_generated_artifacts(&path, generated_root, depth + 1, artifacts, warnings);
+            continue;
+        }
+
+        if file_type.is_file() {
+            match build_generated_artifact_entry(&path, generated_root) {
+                Ok(artifact) => artifacts.push(artifact),
+                Err(error) => warnings.push(error),
+            }
+        }
+    }
+}
+
+fn build_generated_artifact_entry(
+    path: &Path,
+    generated_root: &Path,
+) -> Result<GeneratedArtifactEntry, String> {
+    let metadata = fs::metadata(path).map_err(|error| {
+        format!(
+            "Unable to read generated artifact metadata for {}: {error}",
+            display_path(path)
+        )
+    })?;
+
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("generated artifact")
+        .to_string();
+
+    let relative_path = path
+        .strip_prefix(generated_root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/");
+
+    let extension = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(|value| value.to_ascii_lowercase());
+
+    let artifact_class = generated_artifact_class_for_relative_path(&relative_path);
+    let preview_status = if metadata.len() <= MAX_TEXT_FILE_BYTES && is_supported_text_file(path) {
+        GeneratedArtifactPreviewStatus::Previewable
+    } else {
+        GeneratedArtifactPreviewStatus::NotPreviewable
+    };
+
+    Ok(GeneratedArtifactEntry {
+        name,
+        path: display_path(path),
+        relative_path,
+        extension,
+        size_bytes: metadata.len(),
+        artifact_class,
+        known_status: GeneratedArtifactKnownStatus::Unknown,
+        preview_status,
+        classification_reason:
+            "Classified only by top-level generated/ subdirectory in this backend slice."
+                .to_string(),
+        provenance: GeneratedArtifactProvenance {
+            source: GeneratedArtifactProvenanceSource::Unknown,
+            detail: Some(
+                "No Core manifest or file-specific provenance is interpreted by this backend slice."
+                    .to_string(),
+            ),
+        },
+    })
+}
+
+fn generated_artifact_class_for_relative_path(relative_path: &str) -> GeneratedArtifactClass {
+    match relative_path.split('/').next() {
+        Some("reports") => GeneratedArtifactClass::Reports,
+        Some("logs") => GeneratedArtifactClass::Logs,
+        Some("docs") => GeneratedArtifactClass::Docs,
+        Some("runtime") => GeneratedArtifactClass::Runtime,
+        Some("ground") => GeneratedArtifactClass::Ground,
+        _ => GeneratedArtifactClass::Unknown,
+    }
+}
+
+fn count_generated_artifacts(artifacts: &[GeneratedArtifactEntry]) -> GeneratedArtifactInventoryCounts {
+    let mut counts = empty_generated_artifact_counts();
+    counts.total_artifacts = artifacts.len();
+
+    for artifact in artifacts {
+        *counts
+            .by_class
+            .entry(artifact.artifact_class.as_str().to_string())
+            .or_insert(0) += 1;
+
+        match artifact.known_status {
+            GeneratedArtifactKnownStatus::Known => counts.known_artifacts += 1,
+            GeneratedArtifactKnownStatus::Unknown => counts.unknown_artifacts += 1,
+        }
+
+        match artifact.preview_status {
+            GeneratedArtifactPreviewStatus::Previewable => counts.previewable_artifacts += 1,
+            GeneratedArtifactPreviewStatus::NotPreviewable => counts.not_previewable_artifacts += 1,
+        }
+    }
+
+    counts
+}
+
+fn empty_generated_artifact_counts() -> GeneratedArtifactInventoryCounts {
+    let mut by_class = BTreeMap::new();
+
+    for artifact_class in ["reports", "logs", "docs", "runtime", "ground", "unknown"] {
+        by_class.insert(artifact_class.to_string(), 0);
+    }
+
+    GeneratedArtifactInventoryCounts {
+        total_artifacts: 0,
+        by_class,
+        known_artifacts: 0,
+        unknown_artifacts: 0,
+        previewable_artifacts: 0,
+        not_previewable_artifacts: 0,
+    }
 }
 
 fn lint_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
@@ -535,6 +862,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             inspect_workspace,
+            inspect_generated_artifacts,
             read_text_file,
             run_core_version,
             run_core_inspect_mission,
