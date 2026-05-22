@@ -642,6 +642,29 @@ If adding a placeholder:
 src/components/surfaces/Relationships*
 ```
 
+
+## PR 7 decision
+
+This PR is intentionally documentation-only.
+
+No React Flow dependency is introduced.
+
+No graph UI is introduced.
+
+No graph placeholder is added to the runtime application.
+
+The accepted v0.6.0 boundary is:
+
+```text
+graph visualization remains optional future work
+graph data must be Core-derived or accepted derived data
+graph surfaces must be read-only
+graph surfaces must not become authoring surfaces
+graph surfaces must not introduce private relationship inference
+```
+
+Any future graph implementation requires a separate spike PR.
+
 ## Acceptance criteria
 
 - Graph visualization is explicitly constrained.
