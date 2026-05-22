@@ -174,16 +174,16 @@ The following must remain true at the end of v0.5.0:
 ## 10. Release Metadata Gate
 
 ```text
-[ ] package.json version is updated to 0.5.0.
-[ ] package-lock.json version is updated to 0.5.0.
-[ ] src-tauri/Cargo.toml version is updated to 0.5.0.
-[ ] src-tauri/Cargo.lock version is updated to 0.5.0.
-[ ] src-tauri/tauri.conf.json version is updated to 0.5.0.
-[ ] README status is updated to v0.5.0 released.
-[ ] CHANGELOG v0.5.0 entry is complete.
-[ ] ROADMAP marks v0.5.0 as completed.
-[ ] docs/releases/v0.5.0-release-notes.md exists.
-[ ] GitHub release notes are prepared.
+[x] package.json version is updated to 0.5.0.
+[x] package-lock.json version is updated to 0.5.0.
+[x] src-tauri/Cargo.toml version is updated to 0.5.0.
+[x] src-tauri/Cargo.lock version is updated to 0.5.0.
+[x] src-tauri/tauri.conf.json version is updated to 0.5.0.
+[x] README status is updated to v0.5.0 released.
+[x] CHANGELOG v0.5.0 entry is complete.
+[x] ROADMAP marks v0.5.0 as completed.
+[x] docs/releases/v0.5.0-release-notes.md exists.
+[x] GitHub release notes are prepared.
 ```
 
-Current state: manual verification gate complete.
+Current state: v0.5.0 release metadata gate complete.

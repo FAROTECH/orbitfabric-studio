@@ -32,16 +32,16 @@ charter
   -> stable workbench
 ```
 
-The released v0.4.0 loop is:
-
-```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships
-```
-
-The active v0.5.0 planning loop is:
+The released v0.5.0 loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
+```
+
+The next roadmap loop is:
+
+```text
+Run Scenario -> Inspect Evidence -> Understand Contract Behavior
 ```
 
 This does not mean that Studio is only a post-processing viewer for already-completed contracts.
@@ -434,7 +434,7 @@ v0.4.0 is complete because Studio can run the fixed Core relationship-manifest e
 
 # v0.5.0 - Generated Artifact Explorer
 
-Status: Active  
+Status: Completed  
 Nature: artifact inspection slice  
 Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
 
@@ -446,7 +446,7 @@ Generated artifacts are derived from the Mission Data Contract and remain dispos
 
 Studio must make them easier to inspect without treating them as source files, without generating new artifacts and without inventing artifact semantics.
 
-## Planned Capabilities
+## Implemented Capabilities
 
 - define a generated artifact inventory model
 - inspect `generated/` recursively through a controlled backend command
@@ -496,7 +496,7 @@ unknown
 
 ## Exit Criteria
 
-v0.5.0 is complete only when Studio can inspect generated artifacts already present in the selected workspace, group them into conservative classes, distinguish known Core-documented artifacts from unknown generated files, show metadata without modifying files, open supported text artifacts read-only, and avoid generation, arbitrary commands and Mission Model semantic inference.
+v0.5.0 is complete because Studio can inspect generated artifacts already present in the selected workspace, group them into conservative classes, distinguish known Core-documented artifacts from unknown generated files, show metadata without modifying files, open supported text artifacts read-only, and avoid generation, arbitrary commands and Mission Model semantic inference.
 
 ---
 

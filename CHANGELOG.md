@@ -4,17 +4,17 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.4.0 - Relationship Surface`.
+OrbitFabric Studio is currently at `v0.5.0 - Generated Artifact Explorer`.
 
-The current released baseline is `v0.4.0 - Relationship Surface`.
+The current released baseline is `v0.5.0 - Generated Artifact Explorer`.
 
-The active planning baseline is `v0.5.0 - Generated Artifact Explorer`.
+The next roadmap baseline is `v0.6.0 - Scenario Evidence Explorer`.
 
 ---
 
 ## v0.5.0 - Generated Artifact Explorer
 
-Planning baseline.
+Released milestone.
 
 This milestone extends the product loop to:
 
@@ -24,39 +24,75 @@ Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Gene
 
 v0.5.0 remains downstream from OrbitFabric Core.
 
-Studio will inspect generated artifacts already present in the selected workspace.
+Studio inspects generated artifacts already present in the selected workspace.
 
-Studio will not generate artifacts, modify files, execute arbitrary commands, infer Mission Model semantics from generated files, claim runtime behavior or claim ground behavior.
+Studio does not generate artifacts, modify files, execute arbitrary commands, infer Mission Model semantics from generated files, claim runtime behavior or claim ground behavior.
 
 ### Added
 
 - Added `ADR-0010 - v0.5 Core-derived Generated Artifact Explorer`.
 - Added `docs/development/v0.5.0-generated-artifact-explorer.md`.
+- Added `docs/releases/v0.5.0-release-notes.md`.
 - Added `V0_5_RELEASE_CHECKLIST.md`.
-- Added v0.5.0 planning baseline for read-only generated artifact inspection.
+- Added generated artifact inventory model.
+- Added controlled backend command for generated artifact inspection.
+- Added bounded recursive inspection of `generated/`.
 - Added conservative artifact classes: reports, logs, docs, runtime, ground and unknown.
-- Added initial known Core-documented artifact family list.
-- Added explicit preview rules for supported text artifacts.
-- Added release gates for inventory model, backend inspection, UI explorer, classification and read-only preview.
+- Added known Core-documented artifact classification.
+- Added unknown generated artifact visibility without invented semantics.
+- Added Generated Artifact Explorer panel.
+- Added generated artifact counts and grouped artifact lists.
+- Added read-only preview for supported generated text artifacts.
+- Added CSV preview support for generated ground dictionaries.
+- Added explicit non-goal gates for read-only generated artifact inspection.
 
 ### Changed
 
-- Updated README to mark v0.5.0 as the active planning baseline.
-- Updated README to correct the stale v0.4.0 limitation around `relationship_manifest.json`.
-- Updated README to describe v0.5.0 boundaries and non-goals.
-- Updated ROADMAP to mark v0.5.0 as active.
-- Updated ROADMAP to define v0.5.0 planned capabilities and exit criteria.
+- Updated README to mark v0.5.0 as the current released baseline.
+- Updated README to describe v0.5.0 as implemented rather than planned.
+- Updated ROADMAP to mark v0.5.0 as completed.
+- Updated package, Cargo and Tauri version metadata to `0.5.0`.
+- Refreshed generated lockfiles through local npm and Cargo workflows.
+- Updated Studio landing copy to `Generated Artifact Explorer`.
+- Updated the visible product loop to include `Inspect Generated Artifacts`.
+
+### Validated Manually
+
+Manual verification was performed cumulatively during the v0.5.0 implementation flow on:
+
+```text
+examples/demo-3u
+```
+
+Observed Generated Artifact Explorer result:
+
+```text
+Total artifacts: 19
+Known artifacts: 19
+Unknown artifacts: 0
+Previewable: 19
+Not previewable: 0
+```
+
+Observed artifact groups included:
+
+```text
+Reports: 4
+Ground-facing artifacts: 15
+```
+
+Ground CSV dictionaries were verified as known and previewable.
+
+Validated local checks included:
+
+```text
+npm install
+npm run build
+npm run tauri:dev
+```
 
 ### Not Included
 
-- No application code.
-- No React changes.
-- No TypeScript artifact inventory model.
-- No Tauri commands.
-- No backend directory traversal.
-- No generated artifact UI.
-- No version metadata changes.
-- No lockfile changes.
 - No editing.
 - No generated file modification.
 - No Mission Model modification.
@@ -67,7 +103,15 @@ Studio will not generate artifacts, modify files, execute arbitrary commands, in
 - No runtime execution.
 - No ground runtime claim.
 - No mission-control UI.
+- No live telemetry.
+- No command uplink.
+- No private YAML semantic parser.
+- No private Mission Model validator.
 - No private artifact semantics.
+- No dependency graph.
+- No relationship graph engine.
+- No plugin execution.
+- No plugin discovery.
 
 ---
 
