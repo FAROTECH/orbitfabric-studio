@@ -13,37 +13,35 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.4.0 - Relationship Surface
-Active planning baseline: v0.5.0 - Generated Artifact Explorer
+Current released baseline: v0.5.0 - Generated Artifact Explorer
+Next roadmap baseline: v0.6.0 - Scenario Evidence Explorer
 ```
 
-The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface` and `v0.4.0 - Relationship Surface` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface` and `v0.5.0 - Generated Artifact Explorer` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.4.0.
+The current implementation baseline is v0.5.0.
 
-The active planning milestone is v0.5.0.
+The next roadmap milestone is v0.6.0.
 
-The implemented v0.4.0 product loop is:
-
-```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships
-```
-
-The planned v0.5.0 product loop is:
+The implemented v0.5.0 product loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
 ```
 
-Studio v0.4.0 is a Core-derived Relationship Surface.
+The next roadmap loop is:
 
-It consumes OrbitFabric Core `model_summary.json`, `entity_index.json` and Core v1.0.0 `relationship_manifest.json` reports when produced by Core.
+```text
+Run Scenario -> Inspect Evidence -> Understand Contract Behavior
+```
 
-Studio v0.5.0 is planned as a read-only Generated Artifact Explorer.
+Studio v0.5.0 is a read-only Generated Artifact Explorer.
 
-It will inspect generated artifacts already present in the selected OrbitFabric workspace.
+It consumes OrbitFabric Core-derived reports and inspects generated artifacts already present in the selected OrbitFabric workspace.
 
-It will not generate artifacts, execute arbitrary commands, edit files, infer Mission Model semantics from generated files or reinterpret generated runtime and ground outputs as operational behavior.
+It can inspect `generated/`, classify generated artifacts conservatively, group them by broad artifact class and preview supported text artifacts read-only.
+
+It does not generate artifacts, execute arbitrary commands, edit files, infer Mission Model semantics from generated files or reinterpret generated runtime and ground outputs as operational behavior.
 
 Studio does not parse Mission Model YAML semantically.
 
@@ -53,7 +51,7 @@ Studio does not infer entities, relationships, source locations, artifact semant
 
 ## Current Implementation State
 
-v0.4.0 currently implements:
+v0.5.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
@@ -88,10 +86,17 @@ Core-derived Relationship Manifest panel
 Core-derived relationship type summary
 Core-derived relationship record navigation
 Selected relationship explanation panel
+Generated Artifact Explorer panel
+Generated artifact inventory model
+Controlled generated artifact backend inspection
+Conservative generated artifact classification
+Generated artifact groups for reports, logs, docs, runtime, ground and unknown
+Read-only generated artifact preview
+CSV generated artifact preview support
 Raw stdout / stderr / exit-code display
 ```
 
-The implemented v0.4.0 loop remains conservative:
+The implemented v0.5.0 loop remains conservative:
 
 ```text
 Open workspace
@@ -111,6 +116,9 @@ Open workspace
     -> inspect Core-derived relationship type summary
     -> inspect Core-derived relationship records
     -> inspect selected relationship provenance and boundary statements
+    -> inspect generated artifact inventory
+    -> inspect generated artifact groups
+    -> preview supported generated text artifacts read-only
 ```
 
 Studio does not validate the Mission Model independently.
@@ -166,11 +174,11 @@ It does not introduce a dependency graph or relationship graph engine.
 
 ---
 
-## v0.5.0 Planning Scope
+## v0.5.0 Released Scope
 
 The v0.5.0 milestone is the Generated Artifact Explorer.
 
-The planned scope is read-only inspection of generated artifacts already present in the workspace.
+The released scope is read-only inspection of generated artifacts already present in the workspace.
 
 The initial artifact classes are:
 
@@ -185,7 +193,7 @@ unknown
 
 The explorer should distinguish known Core-documented artifacts from unknown generated files without hiding unknown files and without inventing meaning for them.
 
-The planned v0.5.0 capabilities are:
+The implemented v0.5.0 capabilities are:
 
 - inspect `generated/` recursively through a controlled backend command;
 - classify files by conservative path, extension and known Core-documented names;
@@ -417,9 +425,9 @@ Studio does not infer file references from domains, object IDs or messages.
 
 Studio links a finding, domain or entity to a file only when Core-provided metadata can be safely resolved inside the workspace.
 
-Studio v0.5.0 planning does not change these boundaries.
+Studio v0.5.0 does not change these boundaries.
 
-The Generated Artifact Explorer is planned as a read-only artifact inventory and preview surface, not as a generator, semantic artifact parser, runtime viewer, ground viewer or file manager.
+The Generated Artifact Explorer is implemented as a read-only artifact inventory and preview surface, not as a generator, semantic artifact parser, runtime viewer, ground viewer or file manager.
 
 ---
 
@@ -544,6 +552,7 @@ Key documents:
 - [`docs/releases/v0.2.0-release-notes.md`](docs/releases/v0.2.0-release-notes.md)
 - [`docs/releases/v0.3.0-release-notes.md`](docs/releases/v0.3.0-release-notes.md)
 - [`docs/releases/v0.4.0-release-notes.md`](docs/releases/v0.4.0-release-notes.md)
+- [`docs/releases/v0.5.0-release-notes.md`](docs/releases/v0.5.0-release-notes.md)
 - [`V0_1_RELEASE_CHECKLIST.md`](V0_1_RELEASE_CHECKLIST.md)
 - [`V0_2_RELEASE_CHECKLIST.md`](V0_2_RELEASE_CHECKLIST.md)
 - [`V0_3_RELEASE_CHECKLIST.md`](V0_3_RELEASE_CHECKLIST.md)
