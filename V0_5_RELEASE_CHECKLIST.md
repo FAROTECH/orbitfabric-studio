@@ -69,16 +69,16 @@ The milestone is complete only if Studio inspects generated artifacts without be
 ## 4. Backend Inspection Gate
 
 ```text
-[ ] Controlled backend command exists for generated artifact inspection.
-[ ] Command reads only inside the selected workspace.
-[ ] Command inspects generated/ only.
-[ ] Command handles missing generated/ cleanly.
-[ ] Command is bounded and safe for local inspection.
-[ ] Command returns file metadata without modifying files.
-[ ] Command does not run OrbitFabric Core.
-[ ] Command does not run shell commands.
-[ ] Command does not generate artifacts.
-[ ] Command does not parse Mission Model YAML.
+[x] Controlled backend command exists for generated artifact inspection.
+[x] Command reads only inside the selected workspace.
+[x] Command inspects generated/ only.
+[x] Command handles missing generated/ cleanly.
+[x] Command is bounded and safe for local inspection.
+[x] Command returns file metadata without modifying files.
+[x] Command does not run OrbitFabric Core.
+[x] Command does not run shell commands.
+[x] Command does not generate artifacts.
+[x] Command does not parse Mission Model YAML.
 ```
 
 ---
@@ -186,4 +186,4 @@ The following must remain true at the end of v0.5.0:
 [ ] GitHub release notes are prepared.
 ```
 
-Current state: artifact inventory model gate complete.
+Current state: backend inspection gate complete.
