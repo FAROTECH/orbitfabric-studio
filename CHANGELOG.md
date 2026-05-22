@@ -8,7 +8,66 @@ OrbitFabric Studio is currently at `v0.4.0 - Relationship Surface`.
 
 The current released baseline is `v0.4.0 - Relationship Surface`.
 
-The next planned baseline is `v0.5.0 - Generated Artifact Explorer`.
+The active planning baseline is `v0.5.0 - Generated Artifact Explorer`.
+
+---
+
+## v0.5.0 - Generated Artifact Explorer
+
+Planning baseline.
+
+This milestone extends the product loop to:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
+```
+
+v0.5.0 remains downstream from OrbitFabric Core.
+
+Studio will inspect generated artifacts already present in the selected workspace.
+
+Studio will not generate artifacts, modify files, execute arbitrary commands, infer Mission Model semantics from generated files, claim runtime behavior or claim ground behavior.
+
+### Added
+
+- Added `ADR-0010 - v0.5 Core-derived Generated Artifact Explorer`.
+- Added `docs/development/v0.5.0-generated-artifact-explorer.md`.
+- Added `V0_5_RELEASE_CHECKLIST.md`.
+- Added v0.5.0 planning baseline for read-only generated artifact inspection.
+- Added conservative artifact classes: reports, logs, docs, runtime, ground and unknown.
+- Added initial known Core-documented artifact family list.
+- Added explicit preview rules for supported text artifacts.
+- Added release gates for inventory model, backend inspection, UI explorer, classification and read-only preview.
+
+### Changed
+
+- Updated README to mark v0.5.0 as the active planning baseline.
+- Updated README to correct the stale v0.4.0 limitation around `relationship_manifest.json`.
+- Updated README to describe v0.5.0 boundaries and non-goals.
+- Updated ROADMAP to mark v0.5.0 as active.
+- Updated ROADMAP to define v0.5.0 planned capabilities and exit criteria.
+
+### Not Included
+
+- No application code.
+- No React changes.
+- No TypeScript artifact inventory model.
+- No Tauri commands.
+- No backend directory traversal.
+- No generated artifact UI.
+- No version metadata changes.
+- No lockfile changes.
+- No editing.
+- No generated file modification.
+- No Mission Model modification.
+- No arbitrary shell command.
+- No arbitrary OrbitFabric CLI argument entry.
+- No artifact generation workflow.
+- No scenario runner.
+- No runtime execution.
+- No ground runtime claim.
+- No mission-control UI.
+- No private artifact semantics.
 
 ---
 

@@ -32,16 +32,16 @@ charter
   -> stable workbench
 ```
 
-The active released product loop is:
-
-```text
-Open -> Inspect -> Validate -> Navigate
-```
-
 The released v0.4.0 loop is:
 
 ```text
 Open -> Inspect -> Validate -> Navigate -> Explain Relationships
+```
+
+The active v0.5.0 planning loop is:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
 ```
 
 This does not mean that Studio is only a post-processing viewer for already-completed contracts.
@@ -50,7 +50,7 @@ Studio is not read-only by identity.
 
 Studio is read-only by initial maturity strategy.
 
-Editing and assisted authoring are intentionally delayed because Studio must first prove that it can load, inspect, validate, navigate and explain an OrbitFabric mission workspace without introducing semantic drift.
+Editing and assisted authoring are intentionally delayed because Studio must first prove that it can load, inspect, validate, navigate, explain and inspect generated outputs from an OrbitFabric mission workspace without introducing semantic drift.
 
 ---
 
@@ -93,9 +93,11 @@ manifest_version: 0.1-candidate
 status: candidate
 ```
 
-Studio v0.4.0 may consume Core relationship records.
+For v0.5.0, the required Core baseline is the set of generated and exported artifact families documented by OrbitFabric Core v1.0.0.
 
-Studio v0.4.0 must not create private relationship semantics, a dependency graph, a relationship graph engine or runtime behavior interpretation.
+Studio v0.5.0 may inspect generated files already present in the selected workspace.
+
+Studio v0.5.0 must not generate artifacts, execute arbitrary commands, reinterpret generated files as Mission Model semantics or treat generated runtime and ground outputs as operational behavior.
 
 ---
 
@@ -432,34 +434,69 @@ v0.4.0 is complete because Studio can run the fixed Core relationship-manifest e
 
 # v0.5.0 - Generated Artifact Explorer
 
-Status: Planned  
+Status: Active  
 Nature: artifact inspection slice  
-Primary loop: Generate -> Inspect -> Trace
+Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
 
 ## Goal
 
-Inspect OrbitFabric-generated artifacts through a structured UI.
+Inspect OrbitFabric-generated artifacts already present in a selected workspace through a structured, read-only UI.
 
 Generated artifacts are derived from the Mission Data Contract and remain disposable.
 
-## Candidate Capabilities
+Studio must make them easier to inspect without treating them as source files, without generating new artifacts and without inventing artifact semantics.
 
-- generated documentation viewer
-- generated data-flow documentation viewer
-- runtime-facing binding artifact browser
-- runtime contract manifest viewer
-- generated file classification
-- generated-vs-source distinction
-- artifact provenance display
-- artifact freshness indication where possible
+## Planned Capabilities
+
+- define a generated artifact inventory model
+- inspect `generated/` recursively through a controlled backend command
+- classify files by conservative path, extension and known Core-documented names
+- group artifacts by reports, logs, docs, runtime, ground and unknown
+- show file name, path, extension, size, known or unknown status and preview eligibility
+- distinguish source model, derived report, generated output and UI state
+- open supported text artifacts in the existing read-only viewer
+- list unsupported, oversized or binary files without previewing them
+- show graceful fallback when `generated/` does not exist
+- keep unknown generated files visible without assigning invented meaning
+
+## Artifact Classes
+
+```text
+reports
+logs
+docs
+runtime
+ground
+unknown
+```
 
 ## Explicit Non-goals
 
-- no generated code editing inside Studio
-- no user-code merge logic
-- no runtime execution claim
-- no build-system integration claim
+- no editing
+- no generated file modification
+- no Mission Model modification
+- no arbitrary shell command
+- no arbitrary OrbitFabric CLI argument entry
+- no new generator workflow
+- no scenario runner
+- no runtime execution
+- no build-system integration
 - no flight software claim
+- no ground runtime claim
+- no mission-control UI
+- no live telemetry
+- no command uplink
+- no private YAML semantic parser
+- no private Mission Model validator
+- no private artifact semantics
+- no dependency graph
+- no relationship graph engine
+- no plugin execution
+- no plugin discovery
+
+## Exit Criteria
+
+v0.5.0 is complete only when Studio can inspect generated artifacts already present in the selected workspace, group them into conservative classes, distinguish known Core-documented artifacts from unknown generated files, show metadata without modifying files, open supported text artifacts read-only, and avoid generation, arbitrary commands and Mission Model semantic inference.
 
 ---
 
