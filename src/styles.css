@@ -163,6 +163,36 @@ h3 {
   letter-spacing: 0.02em;
 }
 
+.workflow-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.workflow-steps li {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.12);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.workflow-steps li:not(:last-child)::after {
+  content: "→";
+  margin-left: 8px;
+  color: #67e8f9;
+  opacity: 0.8;
+}
+
 .warning-card {
   border-color: rgba(251, 191, 36, 0.28);
 }
@@ -1037,4 +1067,10 @@ h3 {
   .reserved-surface-columns {
     grid-template-columns: 1fr;
   }
+}
+
+
+.hero-badge-row {
+  justify-content: flex-start;
+  margin: 12px 0 0;
 }

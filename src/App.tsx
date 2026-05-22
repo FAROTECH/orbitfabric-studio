@@ -37,10 +37,12 @@ const nonGoalItems = [
   "No editing",
   "No artifact generation",
   "No generated file modification",
-  "No graph view",
-  "No dependency graph",
-  "No runtime behavior",
-  "No ground behavior",
+  "No scenario execution",
+  "No mission control behavior",
+  "No command uplink",
+  "No live telemetry archive",
+  "No private graph semantics",
+  "No visual Mission Model editor",
 ];
 
 const shellSurfaceItems = [
@@ -284,15 +286,24 @@ function App() {
             aria-labelledby="studio-title"
           >
             <div className="eyebrow">OrbitFabric Studio</div>
-            <h1 id="studio-title">Generated Artifact Explorer</h1>
-            <p className="release">v0.5.0 generated artifact explorer</p>
+            <h1 id="studio-title">Mission Contract Engineering Workbench</h1>
+            <p className="release">v0.6.0 information architecture and UX foundation</p>
+            <div className="badge-row hero-badge-row">
+              <ProvenanceBadge label="READ-ONLY" />
+              <ProvenanceBadge label="CORE-DERIVED" />
+              <StatusBadge label="UX FOUNDATION" />
+            </div>
             <p className="summary">
-              Open a local OrbitFabric workspace, inspect its Mission Model files,
-              run fixed OrbitFabric Core validation and export commands, navigate
-              Core-derived contract domains, entities and relationships, and inspect
-              generated artifacts already present under `generated/`. Studio remains
-              read-only: OrbitFabric Core remains authoritative for validation,
-              generation and engineering meaning.
+              Open a local OrbitFabric workspace, inspect Mission Model files, run
+              fixed OrbitFabric Core validation and export commands, navigate
+              Core-derived contracts and relationships, inspect generated artifacts,
+              and review reserved future surfaces for scenario evidence and ground
+              integration.
+            </p>
+            <p className="summary">
+              Studio remains read-only. OrbitFabric Core remains authoritative for
+              validation, generation, reports, artifact semantics and engineering
+              meaning.
             </p>
             <button
               className="primary-action"
@@ -308,15 +319,26 @@ function App() {
           <section className="grid" aria-label="workspace inspection">
             <article className="card">
               <h2>Primary loop</h2>
-              <div className="loop">
-                Open -&gt; Inspect -&gt; Validate -&gt; Navigate -&gt; Explain Relationships -&gt; Inspect Generated Artifacts
-              </div>
+              <ol className="workflow-steps" aria-label="Studio primary workflow">
+                {[
+                  "Open",
+                  "Inspect",
+                  "Validate",
+                  "Navigate",
+                  "Explain Relationships",
+                  "Inspect Generated Artifacts",
+                  "Review Reserved Surfaces",
+                ].map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
               <p>
                 Studio classifies workspace files and generated artifacts conservatively,
                 renders Core-derived validation, domain, entity and relationship reports,
-                and previews supported generated text artifacts read-only. It does not
-                validate the Mission Model independently and does not infer mission
-                semantics from generated artifacts.
+                previews supported generated text artifacts read-only, and keeps future
+                Evidence and Ground surfaces explicitly reserved. It does not validate
+                the Mission Model independently and does not infer mission semantics from
+                generated artifacts.
               </p>
             </article>
 
@@ -574,7 +596,8 @@ function ReservedFutureSurfaces() {
           <p>
             These slots make the v0.7.0 and v0.8.0 information architecture visible
             without implementing their domain logic. They are intentionally disabled
-            in the primary navigation.
+            in the primary navigation and do not provide scenario execution, ground
+            operations or live mission behavior.
           </p>
         </div>
         <div className="badge-row">
