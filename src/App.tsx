@@ -3,7 +3,10 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import { GeneratedArtifactExplorerPanel } from "./GeneratedArtifactExplorer";
+import {
+  GeneratedArtifactExplorerPanel,
+  type GeneratedArtifactDashboardSummary,
+} from "./GeneratedArtifactExplorer";
 
 import {
   parseCoreEntityIndex,
@@ -56,6 +59,8 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
   const [coreExecutable, setCoreExecutable] = useState("orbitfabric");
   const [coreResult, setCoreResult] = useState<CoreCommandResult | null>(null);
+  const [generatedArtifactSummary, setGeneratedArtifactSummary] =
+    useState<GeneratedArtifactDashboardSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
@@ -69,6 +74,7 @@ function App() {
     setCoreError(null);
     setSelectedFile(null);
     setCoreResult(null);
+    setGeneratedArtifactSummary(null);
     setIsOpening(true);
 
     try {
@@ -255,6 +261,12 @@ function App() {
             </article>
           </section>
 
+          <WorkspaceDashboard
+            workspace={workspace}
+            coreResult={coreResult}
+            generatedArtifactSummary={generatedArtifactSummary}
+          />
+
           {workspace ? (
             <WorkspacePanel
               workspace={workspace}
@@ -272,6 +284,7 @@ function App() {
               onCoreExportModelSummary={handleCoreExportModelSummary}
               onCoreExportEntityIndex={handleCoreExportEntityIndex}
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+              onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
               onOpenFile={handleOpenFile}
             />
           ) : (
@@ -394,6 +407,128 @@ function EmptyState() {
   );
 }
 
+
+function WorkspaceDashboard({
+  workspace,
+  coreResult,
+  generatedArtifactSummary,
+}: {
+  workspace: WorkspaceInspection | null;
+  coreResult: CoreCommandResult | null;
+  generatedArtifactSummary: GeneratedArtifactDashboardSummary | null;
+}) {
+  const lintReport = parseCoreLintReport(coreResult?.json_report_content ?? null);
+  const hasReportsLocation = workspace?.generated_locations.some(
+    (entry) => entry.name === "reports",
+  );
+  const hasLogsLocation = workspace?.generated_locations.some(
+    (entry) => entry.name === "logs",
+  );
+
+  return (
+    <section className="workspace-dashboard" aria-label="Workspace dashboard">
+      <div className="file-viewer-header">
+        <div>
+          <h2>Workspace dashboard</h2>
+          <p>
+            Read-only overview of the selected workspace and currently available
+            Core-derived outputs. This is not a mission operations dashboard.
+          </p>
+        </div>
+        <span className="status-pill">Overview</span>
+      </div>
+
+      <div className="dashboard-card-grid">
+        <article className="dashboard-card">
+          <h3>Mission summary</h3>
+          <strong>{workspace ? "Workspace open" : "No workspace selected"}</strong>
+          <span>{workspace?.selected_path ?? "Open a workspace to inspect it."}</span>
+          <span>Mission directory: {workspace?.mission_dir ? "detected" : "not detected"}</span>
+          <span>Generated directory: {workspace?.generated_dir ? "detected" : "not detected"}</span>
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Validation summary</h3>
+          <strong>{lintReport ? lintReport.result : "Not available"}</strong>
+          {lintReport ? (
+            <>
+              <span>Errors: {lintReport.summary.errors}</span>
+              <span>Warnings: {lintReport.summary.warnings}</span>
+              <span>Info: {lintReport.summary.info}</span>
+            </>
+          ) : (
+            <span>Run Core lint to populate this summary.</span>
+          )}
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Model surfaces</h3>
+          <strong>{workspace ? `${workspace.source_model_files.length} source files` : "Not inspected"}</strong>
+          <span>Missing expected files: {workspace?.missing_expected_source_files.length ?? 0}</span>
+          <span>Scenario files: {workspace?.scenario_files.length ?? 0}</span>
+          <span>Generated locations: {workspace?.generated_locations.length ?? 0}</span>
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Generated artifact inventory</h3>
+          <strong>
+            {generatedArtifactSummary
+              ? `${generatedArtifactSummary.totalArtifacts} artifacts`
+              : "Not inspected"}
+          </strong>
+          {generatedArtifactSummary ? (
+            <>
+              <span>Known: {generatedArtifactSummary.knownArtifacts}</span>
+              <span>Unknown: {generatedArtifactSummary.unknownArtifacts}</span>
+              <span>Previewable: {generatedArtifactSummary.previewableArtifacts}</span>
+              <span>Not previewable: {generatedArtifactSummary.notPreviewableArtifacts}</span>
+            </>
+          ) : (
+            <span>Run Generated Artifact Explorer to populate this summary.</span>
+          )}
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Reports & Logs</h3>
+          <strong>Generated locations</strong>
+          <span>Reports: {hasReportsLocation ? "detected" : "not detected"}</span>
+          <span>Logs: {hasLogsLocation ? "detected" : "not detected"}</span>
+          <span>Core JSON report: {coreResult?.json_report_available ? "available" : "not available"}</span>
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Read-only boundary</h3>
+          <strong>Enforced by current UI</strong>
+          <span>No Mission Model editing</span>
+          <span>No generated artifact editing</span>
+          <span>No arbitrary command execution</span>
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Future surfaces</h3>
+          <strong>Reserved</strong>
+          <span>Evidence: reserved for Core-produced scenario evidence</span>
+          <span>Ground: reserved for generated ground-facing artifacts</span>
+        </article>
+
+        <article className="dashboard-card">
+          <h3>Warnings</h3>
+          <strong>{workspace?.warnings.length ?? 0} warnings</strong>
+          {workspace && workspace.warnings.length > 0 ? (
+            <ul className="dashboard-card-list">
+              {workspace.warnings.map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          ) : (
+            <span>No structural workspace warnings.</span>
+          )}
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function WorkspacePanel({
   workspace,
   selectedFile,
@@ -410,6 +545,7 @@ function WorkspacePanel({
   onCoreExportModelSummary,
   onCoreExportEntityIndex,
   onCoreExportRelationshipManifest,
+  onGeneratedArtifactSummaryChange,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -427,6 +563,9 @@ function WorkspacePanel({
   onCoreExportModelSummary: () => void;
   onCoreExportEntityIndex: () => void;
   onCoreExportRelationshipManifest: () => void;
+  onGeneratedArtifactSummaryChange: (
+    summary: GeneratedArtifactDashboardSummary | null,
+  ) => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -473,7 +612,10 @@ function WorkspacePanel({
         onOpenFile={onOpenFile}
       />
 
-      <GeneratedArtifactExplorerPanel workspacePath={workspace.selected_path} />
+      <GeneratedArtifactExplorerPanel
+        workspacePath={workspace.selected_path}
+        onDashboardSummaryChange={onGeneratedArtifactSummaryChange}
+      />
 
       <div className="workspace-layout">
         <div>
