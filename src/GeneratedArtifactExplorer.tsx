@@ -77,10 +77,26 @@ export interface GeneratedArtifactDashboardSummary {
   warningCount: number;
 }
 
+export interface GeneratedArtifactInspectorItem {
+  name: string;
+  path: string;
+  relativePath: string;
+  artifactClass: GeneratedArtifactClass;
+  knownStatus: GeneratedArtifactKnownStatus;
+  previewStatus: string;
+  provenanceSource: GeneratedArtifactProvenanceSource;
+  provenanceDetail: string | null;
+  sizeBytes: number;
+  extension: string | null;
+}
+
 interface GeneratedArtifactExplorerPanelProps {
   workspacePath: string;
   onDashboardSummaryChange?: (
     summary: GeneratedArtifactDashboardSummary | null,
+  ) => void;
+  onArtifactSelectionChange?: (
+    artifact: GeneratedArtifactInspectorItem | null,
   ) => void;
 }
 
@@ -101,6 +117,7 @@ interface ClassifiedArtifactCounts {
 export function GeneratedArtifactExplorerPanel({
   workspacePath,
   onDashboardSummaryChange,
+  onArtifactSelectionChange,
 }: GeneratedArtifactExplorerPanelProps) {
   const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +134,7 @@ export function GeneratedArtifactExplorerPanel({
     setPreviewError(null);
     setSelectedArtifactFile(null);
     onDashboardSummaryChange?.(null);
+    onArtifactSelectionChange?.(null);
     setIsInspecting(true);
 
     try {
@@ -147,6 +165,8 @@ export function GeneratedArtifactExplorerPanel({
   }
 
   async function handleOpenArtifactPreview(artifact: ClassifiedGeneratedArtifactEntry) {
+    onArtifactSelectionChange?.(toGeneratedArtifactInspectorItem(artifact));
+
     if (artifact.preview_status !== "previewable") {
       setPreviewError("This generated artifact is listed but is not previewable.");
       return;
@@ -399,6 +419,23 @@ function GeneratedArtifactPreviewPanel({
       ) : null}
     </section>
   );
+}
+
+function toGeneratedArtifactInspectorItem(
+  artifact: ClassifiedGeneratedArtifactEntry,
+): GeneratedArtifactInspectorItem {
+  return {
+    name: artifact.name,
+    path: artifact.path,
+    relativePath: artifact.relative_path,
+    artifactClass: artifact.artifact_class,
+    knownStatus: artifact.known_status,
+    previewStatus: artifact.preview_status,
+    provenanceSource: artifact.provenance.source,
+    provenanceDetail: artifact.provenance.detail,
+    sizeBytes: artifact.size_bytes,
+    extension: artifact.extension,
+  };
 }
 
 function ArtifactSummaryItem({ label, value }: { label: string; value: string }) {
