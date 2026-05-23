@@ -95,6 +95,8 @@ function App() {
     useState<GeneratedArtifactInspectorItem | null>(null);
   const [generatedEvidenceArtifactSummary, setGeneratedEvidenceArtifactSummary] =
     useState<GeneratedEvidenceArtifactSummary | null>(null);
+  const [generatedArtifactRefreshToken, setGeneratedArtifactRefreshToken] =
+    useState(0);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
@@ -111,6 +113,7 @@ function App() {
     setGeneratedArtifactSummary(null);
     setSelectedGeneratedArtifact(null);
     setGeneratedEvidenceArtifactSummary(null);
+    setGeneratedArtifactRefreshToken(0);
     setIsOpening(true);
 
     try {
@@ -234,14 +237,21 @@ function App() {
       return;
     }
 
-    await runCoreCommand("run_core_sim_scenario", {
+    const result = await runCoreCommand("run_core_sim_scenario", {
       executable: coreExecutable,
       workspacePath: workspace.selected_path,
       scenarioFile: scenario.path,
     });
+
+    if (result?.json_report_available) {
+      setGeneratedArtifactRefreshToken((current) => current + 1);
+    }
   }
 
-  async function runCoreCommand(commandName: string, payload: Record<string, string>) {
+  async function runCoreCommand(
+    commandName: string,
+    payload: Record<string, string>,
+  ): Promise<CoreCommandResult | null> {
     setCoreError(null);
     setCoreResult(null);
     setIsRunningCoreCommand(true);
@@ -249,8 +259,10 @@ function App() {
     try {
       const result = await invoke<CoreCommandResult>(commandName, payload);
       setCoreResult(result);
+      return result;
     } catch (caught) {
       setCoreError(caught instanceof Error ? caught.message : String(caught));
+      return null;
     } finally {
       setIsRunningCoreCommand(false);
     }
@@ -405,6 +417,7 @@ function App() {
               onCoreExportModelSummary={handleCoreExportModelSummary}
               onCoreExportEntityIndex={handleCoreExportEntityIndex}
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+              generatedArtifactRefreshToken={generatedArtifactRefreshToken}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
               onGeneratedArtifactSelectionChange={setSelectedGeneratedArtifact}
               onGeneratedEvidenceArtifactSummaryChange={setGeneratedEvidenceArtifactSummary}
@@ -1448,6 +1461,7 @@ function WorkspacePanel({
   onCoreExportModelSummary,
   onCoreExportEntityIndex,
   onCoreExportRelationshipManifest,
+  generatedArtifactRefreshToken,
   onGeneratedArtifactSummaryChange,
   onGeneratedArtifactSelectionChange,
   onGeneratedEvidenceArtifactSummaryChange,
@@ -1461,6 +1475,7 @@ function WorkspacePanel({
   coreResult: CoreCommandResult | null;
   coreError: string | null;
   isRunningCoreCommand: boolean;
+  generatedArtifactRefreshToken: number;
   onCoreExecutableChange: (value: string) => void;
   onCoreVersion: () => void;
   onCoreInspectMission: () => void;
@@ -1525,6 +1540,7 @@ function WorkspacePanel({
 
       <GeneratedArtifactExplorerPanel
         workspacePath={workspace.selected_path}
+        refreshToken={generatedArtifactRefreshToken}
         onDashboardSummaryChange={onGeneratedArtifactSummaryChange}
         onArtifactSelectionChange={onGeneratedArtifactSelectionChange}
         onEvidenceArtifactSummaryChange={onGeneratedEvidenceArtifactSummaryChange}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -107,6 +107,7 @@ export interface GeneratedEvidenceArtifactSummary {
 
 interface GeneratedArtifactExplorerPanelProps {
   workspacePath: string;
+  refreshToken?: number;
   onDashboardSummaryChange?: (
     summary: GeneratedArtifactDashboardSummary | null,
   ) => void;
@@ -134,6 +135,7 @@ interface ClassifiedArtifactCounts {
 
 export function GeneratedArtifactExplorerPanel({
   workspacePath,
+  refreshToken = 0,
   onDashboardSummaryChange,
   onArtifactSelectionChange,
   onEvidenceArtifactSummaryChange,
@@ -147,6 +149,14 @@ export function GeneratedArtifactExplorerPanel({
   const classifiedArtifacts = classifyGeneratedArtifacts(inventory?.artifacts ?? []);
   const groupedArtifacts = groupArtifactsByClass(classifiedArtifacts);
   const classifiedCounts = countClassifiedArtifacts(classifiedArtifacts);
+
+  useEffect(() => {
+    if (refreshToken <= 0) {
+      return;
+    }
+
+    void handleInspectGeneratedArtifacts();
+  }, [refreshToken]);
 
   async function handleInspectGeneratedArtifacts() {
     setError(null);
