@@ -121,6 +121,7 @@ export interface CoreSimulationReport {
   commands: CoreSimulationCommandRecord[];
   mode_transitions: CoreSimulationModeTransitionRecord[];
   data_flow_evidence: CoreSimulationDataFlowEvidenceRecord[];
+  expectations?: CoreSimulationExpectationAccounting;
   final_state: CoreSimulationFinalState;
   failed_expectations: CoreSimulationFailedExpectation[];
 }
@@ -131,6 +132,8 @@ export interface CoreSimulationSummary {
   mode_transitions: number;
   data_flow_evidence: number;
   failed_expectations: number;
+  expectations?: number;
+  passed_expectations?: number;
 }
 
 export interface CoreSimulationTimelineEntry {
@@ -171,6 +174,23 @@ export interface CoreSimulationDataFlowEvidenceRecord {
   eligible_downlink_flows?: string[];
   contact_windows?: string[];
   [key: string]: CoreSimulationJsonValue | undefined;
+}
+
+export interface CoreSimulationExpectationAccounting {
+  total: number;
+  passed: number;
+  failed: number;
+  records: CoreSimulationExpectationRecord[];
+}
+
+export interface CoreSimulationExpectationRecord {
+  t: number;
+  expectation_type: string;
+  target: string;
+  expected: CoreSimulationJsonValue;
+  actual: CoreSimulationJsonValue;
+  result: CoreSimulationResultStatus;
+  message: string;
 }
 
 export interface CoreSimulationFinalState {
@@ -379,4 +399,231 @@ export interface CoreRelationshipDerivationPolicy {
   forbids_naming_heuristics: boolean;
   forbids_raw_yaml_scanning: boolean;
   forbids_downstream_assumptions: boolean;
+}
+
+export interface CoreDashboardSummary {
+  dashboard_version: string;
+  kind: "orbitfabric.dashboard_summary";
+  orbitfabric_version: string;
+  mission: CoreReportMissionIdentity;
+  source: CoreDashboardSummarySource;
+  boundaries: CoreDashboardSummaryBoundaries;
+  validation: CoreDashboardValidationSummary;
+  model_domains: CoreDashboardModelDomains;
+  entity_inventory: CoreDashboardEntityInventory;
+  relationship_inventory: CoreDashboardRelationshipInventory;
+  coverage: CoreDashboardCoverageState;
+}
+
+export interface CoreDashboardSummarySource extends CoreReportSource {
+  model_summary_kind: string;
+  model_summary_version: string;
+  entity_index_kind: string;
+  entity_index_version: string;
+  relationship_manifest_kind: string;
+  relationship_manifest_version: string;
+}
+
+export interface CoreDashboardSummaryBoundaries {
+  source_of_truth: string;
+  core_derived_report: boolean;
+  read_only: boolean;
+  contains_dashboard_summary: boolean;
+  contains_coverage_metrics: boolean;
+  contains_health_score: boolean;
+  contains_scenario_run_index: boolean;
+  contains_expectation_accounting: boolean;
+  contains_relationship_graph: boolean;
+  contains_dependency_graph: boolean;
+  contains_yaml_ast: boolean;
+  contains_source_locations: boolean;
+  contains_plugin_api: boolean;
+  contains_studio_api: boolean;
+  contains_runtime_behavior: boolean;
+  contains_ground_behavior: boolean;
+}
+
+export interface CoreDashboardValidationSummary {
+  tool: string;
+  result: string;
+  errors: number;
+  warnings: number;
+  info: number;
+}
+
+export interface CoreDashboardModelDomains {
+  required: CoreDashboardDomainPresenceSummary;
+  optional: CoreDashboardDomainPresenceSummary;
+  counts: Record<string, number>;
+  domains: CoreDashboardModelDomain[];
+}
+
+export interface CoreDashboardDomainPresenceSummary {
+  total: number;
+  present: number;
+  missing: number;
+}
+
+export interface CoreDashboardModelDomain {
+  id: string;
+  display_name: string;
+  source_file: string;
+  required: boolean;
+  present: boolean;
+  count: number;
+}
+
+export interface CoreDashboardEntityInventory {
+  total_entities: number;
+  domains: Record<string, number>;
+}
+
+export interface CoreDashboardRelationshipInventory {
+  total_relationships: number;
+  relationship_types: Record<string, number>;
+}
+
+export interface CoreDashboardCoverageState {
+  status: string;
+  reason: string;
+  requires_core_output: string;
+}
+
+export interface CoreScenarioRunIndex {
+  index_version: string;
+  kind: "orbitfabric.scenario_run_index";
+  orbitfabric_version: string;
+  source: CoreScenarioRunIndexSource;
+  boundaries: CoreScenarioRunIndexBoundaries;
+  summary: CoreScenarioRunIndexSummary;
+  runs: CoreScenarioRunRecord[];
+}
+
+export interface CoreScenarioRunIndexSource {
+  simulation_reports_dir: string;
+  input_report_tool: string;
+}
+
+export interface CoreScenarioRunIndexBoundaries {
+  source_of_truth: string;
+  core_derived_report: boolean;
+  read_only: boolean;
+  contains_scenario_run_index: boolean;
+  contains_coverage_metrics: boolean;
+  contains_health_score: boolean;
+  contains_expectation_accounting: boolean;
+  contains_relationship_graph: boolean;
+  contains_dependency_graph: boolean;
+  contains_yaml_ast: boolean;
+  contains_source_locations: boolean;
+  contains_plugin_api: boolean;
+  contains_studio_api: boolean;
+  contains_runtime_behavior: boolean;
+  contains_ground_behavior: boolean;
+  derived_from_simulation_json: boolean;
+  derived_from_logs: boolean;
+}
+
+export interface CoreScenarioRunIndexSummary {
+  total: number;
+  passed: number;
+  failed: number;
+}
+
+export interface CoreScenarioRunRecord {
+  report_file: string;
+  report_path: string;
+  mission: string;
+  scenario: string;
+  result: CoreSimulationResultStatus;
+  summary: Record<string, number>;
+}
+
+export interface CoreCoverageSummary {
+  coverage_version: string;
+  kind: "orbitfabric.coverage_summary";
+  orbitfabric_version: string;
+  mission: CoreReportMissionIdentity;
+  source: CoreCoverageSummarySource;
+  boundaries: CoreCoverageSummaryBoundaries;
+  scenario_runs: CoreScenarioRunIndexSummary;
+  entity_coverage: Record<string, CoreCoverageRecord>;
+  expectation_coverage: CoreExpectationCoverage;
+  relationship_coverage: CoreRelationshipCoverage;
+  unsupported: CoreUnsupportedCoverageScope;
+}
+
+export interface CoreCoverageSummarySource extends CoreReportSource {
+  entity_index: string;
+  entity_index_kind: string;
+  entity_index_version: string;
+  relationship_manifest: string;
+  relationship_manifest_kind: string;
+  relationship_manifest_version: string;
+  scenario_run_index: string;
+  scenario_run_index_kind: string;
+  scenario_run_index_version: string;
+}
+
+export interface CoreCoverageSummaryBoundaries {
+  source_of_truth: string;
+  core_derived_report: boolean;
+  read_only: boolean;
+  contains_coverage_metrics: boolean;
+  contains_health_score: boolean;
+  contains_model_completeness_score: boolean;
+  contains_relationship_graph: boolean;
+  contains_dependency_graph: boolean;
+  contains_yaml_ast: boolean;
+  contains_source_locations: boolean;
+  contains_plugin_api: boolean;
+  contains_studio_api: boolean;
+  contains_runtime_behavior: boolean;
+  contains_ground_behavior: boolean;
+  coverage_derived_from_entity_index: boolean;
+  coverage_derived_from_relationship_manifest: boolean;
+  coverage_derived_from_scenario_run_index: boolean;
+  coverage_derived_from_simulation_json: boolean;
+  coverage_derived_from_logs: boolean;
+}
+
+export interface CoreCoverageRecord {
+  total: number;
+  covered: number;
+  uncovered: number;
+  coverage_ratio: number | null;
+  covered_ids: string[];
+  uncovered_ids: string[];
+}
+
+export interface CoreExpectationCoverage {
+  total: number;
+  passed: number;
+  failed: number;
+  pass_ratio: number | null;
+  by_type: Record<string, CoreExpectationCoverageByType>;
+}
+
+export interface CoreExpectationCoverageByType {
+  total: number;
+  passed: number;
+  failed: number;
+  pass_ratio: number | null;
+}
+
+export interface CoreRelationshipCoverage {
+  supported_relationship_types: string[];
+  total_supported_relationships: number;
+  covered_supported_relationships: number;
+  uncovered_supported_relationships: number;
+  coverage_ratio: number | null;
+  covered_relationship_ids: string[];
+  uncovered_relationship_ids: string[];
+  by_type: Record<string, CoreCoverageRecord>;
+}
+
+export interface CoreUnsupportedCoverageScope {
+  entity_domains: string[];
+  relationship_types: string[];
+  reason: string;
 }
