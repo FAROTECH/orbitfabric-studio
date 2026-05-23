@@ -626,7 +626,7 @@ function ScenarioEvidenceSurface({
         <SummaryItem label="Scenario sources" value={String(scenarioFiles.length)} />
         <SummaryItem label="Execution" value="Not implemented" />
         <SummaryItem
-          label="Passive reports/logs"
+          label="Passive report/log candidates"
           value={
             generatedEvidenceArtifactSummary
               ? String(evidenceArtifactCandidates.length)
@@ -668,7 +668,7 @@ function ScenarioEvidenceSurface({
         className="entry-section"
         aria-label="Passive scenario report and log discovery"
       >
-        <h3>Passive reports and logs</h3>
+        <h3>Passive report/log candidates</h3>
         <p>
           This section reuses the generated artifact inventory. Report and log
           files are only preview candidates here. Studio does not parse them as
@@ -714,6 +714,7 @@ function ScenarioEvidenceSurface({
                         <StatusBadge
                           label={artifact.artifactClass === "logs" ? "LOG" : "REPORT"}
                         />
+                        <ProvenanceBadge label="READ-ONLY" />
                         <ProvenanceBadge label="PREVIEW ONLY" />
                       </div>
                     </div>
@@ -736,7 +737,7 @@ function ScenarioEvidenceSurface({
           </>
         ) : (
           <p className="empty-text">
-            Run Generated Artifact Explorer to populate passive report/log
+            Run Generated Artifact Explorer to populate passive report/log candidate
             discovery. Until then, no evidence artifact is inferred.
           </p>
         )}
