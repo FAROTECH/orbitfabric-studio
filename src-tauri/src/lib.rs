@@ -415,6 +415,106 @@ fn run_core_export_relationship_manifest(
 }
 
 #[tauri::command]
+fn run_core_export_dashboard_summary(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    let report_path = dashboard_summary_report_path_for_mission(&mission)?;
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &[
+            "export",
+            "dashboard-summary",
+            mission_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
+#[tauri::command]
+fn run_core_export_scenario_run_index(
+    executable: String,
+    workspace_path: String,
+) -> Result<CoreCommandResult, String> {
+    let workspace = canonicalize_existing_dir(&workspace_path)?;
+    let reports_dir = generated_reports_dir_for_workspace(
+        &workspace,
+        "Studio scenario run index report directory",
+    )?;
+    let report_path = scenario_run_index_report_path_for_workspace(&workspace)?;
+    let reports_dir_display = display_path(&reports_dir);
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &[
+            "export",
+            "scenario-run-index",
+            "--simulation-reports",
+            reports_dir_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
+#[tauri::command]
+fn run_core_export_coverage_summary(
+    executable: String,
+    mission_dir: String,
+) -> Result<CoreCommandResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let mission_display = display_path(&mission);
+    let entity_index_path = entity_index_report_path_for_mission(&mission)?;
+    let relationship_manifest_path = relationship_manifest_report_path_for_mission(&mission)?;
+    let scenario_run_index_path = scenario_run_index_report_path_for_mission(&mission)?;
+
+    require_report_input_file(
+        &entity_index_path,
+        "Studio entity index report is missing. Run the Core entity-index export before coverage summary.",
+    )?;
+    require_report_input_file(
+        &relationship_manifest_path,
+        "Studio relationship manifest report is missing. Run the Core relationship-manifest export before coverage summary.",
+    )?;
+    require_report_input_file(
+        &scenario_run_index_path,
+        "Studio scenario run index report is missing. Run the Core scenario-run-index export before coverage summary.",
+    )?;
+
+    let report_path = coverage_summary_report_path_for_mission(&mission)?;
+    let entity_index_display = display_path(&entity_index_path);
+    let relationship_manifest_display = display_path(&relationship_manifest_path);
+    let scenario_run_index_display = display_path(&scenario_run_index_path);
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        &[
+            "export",
+            "coverage-summary",
+            mission_display.as_str(),
+            "--entity-index",
+            entity_index_display.as_str(),
+            "--relationship-manifest",
+            relationship_manifest_display.as_str(),
+            "--scenario-run-index",
+            scenario_run_index_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
+#[tauri::command]
 fn run_core_sim_scenario(
     executable: String,
     workspace_path: String,
@@ -744,6 +844,35 @@ fn relationship_manifest_report_path_for_mission(mission: &Path) -> Result<PathB
     )
 }
 
+fn dashboard_summary_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    report_path_for_mission(
+        mission,
+        "orbitfabric_studio_dashboard_summary.json",
+        "Studio dashboard summary report directory",
+    )
+}
+
+fn scenario_run_index_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    let workspace = mission.parent().unwrap_or(mission);
+    scenario_run_index_report_path_for_workspace(workspace)
+}
+
+fn scenario_run_index_report_path_for_workspace(workspace: &Path) -> Result<PathBuf, String> {
+    Ok(generated_reports_dir_for_workspace(
+        workspace,
+        "Studio scenario run index report directory",
+    )?
+    .join("orbitfabric_studio_scenario_run_index.json"))
+}
+
+fn coverage_summary_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
+    report_path_for_mission(
+        mission,
+        "orbitfabric_studio_coverage_summary.json",
+        "Studio coverage summary report directory",
+    )
+}
+
 fn simulation_output_paths_for_workspace(
     workspace: &Path,
     scenario: &Path,
@@ -799,12 +928,27 @@ fn report_path_for_mission(
     report_directory_description: &str,
 ) -> Result<PathBuf, String> {
     let workspace = mission.parent().unwrap_or(mission);
+    Ok(generated_reports_dir_for_workspace(workspace, report_directory_description)?.join(report_file_name))
+}
+
+fn generated_reports_dir_for_workspace(
+    workspace: &Path,
+    report_directory_description: &str,
+) -> Result<PathBuf, String> {
     let reports_dir = workspace.join("generated").join("reports");
 
     fs::create_dir_all(&reports_dir)
         .map_err(|error| format!("Unable to create {report_directory_description}: {error}"))?;
 
-    Ok(reports_dir.join(report_file_name))
+    Ok(reports_dir)
+}
+
+fn require_report_input_file(path: &Path, error_message: &str) -> Result<(), String> {
+    if path.is_file() {
+        Ok(())
+    } else {
+        Err(error_message.to_string())
+    }
 }
 
 fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
@@ -990,6 +1134,9 @@ pub fn run() {
             run_core_export_model_summary,
             run_core_export_entity_index,
             run_core_export_relationship_manifest,
+            run_core_export_dashboard_summary,
+            run_core_export_scenario_run_index,
+            run_core_export_coverage_summary,
             run_core_sim_scenario
         ])
         .run(tauri::generate_context!())
