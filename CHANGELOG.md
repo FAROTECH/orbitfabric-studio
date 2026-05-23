@@ -4,11 +4,84 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.5.0 - Generated Artifact Explorer`.
+OrbitFabric Studio is currently at `v0.6.0 - Studio Information Architecture & UX Foundation`.
 
-The current released baseline is `v0.5.0 - Generated Artifact Explorer`.
+The current released baseline is `v0.6.0 - Studio Information Architecture & UX Foundation`.
 
-The next roadmap baseline is `v0.6.0 - Studio Information Architecture & UX Foundation`.
+The next roadmap baseline is `v0.7.0 - Scenario Evidence Explorer`.
+
+---
+
+## v0.6.0 - Studio Information Architecture & UX Foundation
+
+Released milestone.
+
+This milestone extends the product loop to:
+
+```text
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts -> Review Reserved Surfaces
+```
+
+v0.6.0 remains downstream from OrbitFabric Core.
+
+Studio reorganizes the existing v0.1.0 through v0.5.0 capabilities into a coherent read-only Mission Contract Engineering Workbench foundation.
+
+Studio does not introduce new Mission Model semantics, scenario execution, ground operations, authoring, editing, React Flow adoption or private graph behavior.
+
+### Added
+
+- Added Studio application shell with workspace header, primary navigation, main surface and contextual inspector.
+- Added Workspace Dashboard.
+- Added provenance, status and severity badge system.
+- Added state-aware sidebar availability for implemented, unavailable and reserved surfaces.
+- Added normalized anchors for existing surfaces.
+- Added selection-aware contextual inspector for source files, generated artifacts and Core command output.
+- Added reserved Scenario Evidence and Ground Integration surfaces.
+- Added graph visualization boundary documentation.
+- Added v0.6.0 UX and read-only boundary polish.
+- Added readable workflow step badges in the primary loop.
+
+### Changed
+
+- Updated the top-level Studio framing from `Generated Artifact Explorer` to `Mission Contract Engineering Workbench`.
+- Updated hero wording to identify v0.6.0 as the information architecture and UX foundation.
+- Reinforced Core authority and read-only boundaries in the UI.
+- Normalized surface navigation around existing v0.1.0 through v0.5.0 capabilities.
+- Clarified that Generated Artifact Explorer is one Studio surface, not the whole Studio identity.
+- Clarified Evidence and Ground as reserved future surfaces.
+
+### Validated Manually
+
+Manual verification was performed cumulatively during the v0.6.0 implementation flow on:
+
+```text
+examples/demo-3u
+```
+
+Validated local checks included:
+
+```text
+npm run build
+npm run tauri:dev
+```
+
+### Not Included
+
+- No Mission Model YAML editing.
+- No generated artifact editing.
+- No independent artifact generation.
+- No arbitrary command execution.
+- No scenario execution.
+- No scenario simulation.
+- No mission control behavior.
+- No command uplink.
+- No live telemetry archive.
+- No ground segment behavior.
+- No private graph semantics.
+- No React Flow adoption.
+- No visual Mission Model editor.
+- No Controlled Contract Authoring implementation.
+- No Plugin-aware Studio implementation.
 
 ---
 
