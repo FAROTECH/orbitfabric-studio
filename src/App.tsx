@@ -347,7 +347,7 @@ function App() {
           >
             <div className="eyebrow">OrbitFabric Studio</div>
             <h1 id="studio-title">Mission Contract Engineering Workbench</h1>
-            <p className="release">v0.6.0 information architecture and UX foundation</p>
+            <p className="release">v0.7.0 scenario evidence explorer</p>
             <div className="badge-row hero-badge-row">
               <ProvenanceBadge label="READ-ONLY" />
               <ProvenanceBadge label="CORE-DERIVED" />
@@ -355,10 +355,10 @@ function App() {
             </div>
             <p className="summary">
               Open a local OrbitFabric workspace, inspect Mission Model files, run
-              fixed OrbitFabric Core validation and export commands, navigate
-              Core-derived contracts and relationships, inspect generated artifacts,
-              and review reserved future surfaces for scenario evidence and ground
-              integration.
+              fixed OrbitFabric Core validation, export and scenario simulation
+              commands, navigate Core-derived contracts and relationships, inspect
+              generated artifacts, and review scenario evidence without leaving the
+              read-only Studio boundary.
             </p>
             <p className="summary">
               Studio remains read-only. OrbitFabric Core remains authoritative for
@@ -387,7 +387,7 @@ function App() {
                   "Navigate",
                   "Explain Relationships",
                   "Inspect Generated Artifacts",
-                  "Review Reserved Surfaces",
+                  "Inspect Scenario Evidence",
                 ].map((step) => (
                   <li key={step}>{step}</li>
                 ))}

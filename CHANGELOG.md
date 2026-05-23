@@ -4,14 +4,123 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.6.0 - Studio Information Architecture & UX Foundation`.
+OrbitFabric Studio is currently at `v0.7.0 - Scenario Evidence Explorer`.
 
-The current released baseline is `v0.6.0 - Studio Information Architecture & UX Foundation`.
+The current released baseline is `v0.7.0 - Scenario Evidence Explorer`.
 
-The next roadmap baseline is `v0.7.0 - Scenario Evidence Explorer`.
+The next roadmap baseline is `v0.7.1 - Dashboard and Coverage Foundation`.
 
 ---
 
+## v0.7.0 - Scenario Evidence Explorer
+
+Released milestone.
+
+This milestone extends the Studio loop to:
+
+```text
+Open -> Select Scenario -> Run Scenario through Core -> Inspect Evidence -> Review Reports and Logs
+```
+
+v0.7.0 remains downstream from OrbitFabric Core.
+
+Studio consumes the real Core simulation JSON report produced by:
+
+```text
+orbitfabric sim <scenario.yaml> --json <path> --log <path>
+```
+
+Studio does not introduce a private scenario runner, does not parse scenario YAML semantically and does not derive evidence from logs.
+
+### Added
+
+- Added read-only Scenario Evidence Explorer implementation.
+- Added scenario source listing from the selected workspace.
+- Added passive generated report/log candidate discovery for Evidence.
+- Added TypeScript types and parser for the real Core `tool: orbitfabric-sim` simulation JSON report.
+- Added Core simulation report summary rendering.
+- Added timeline, event, command and mode transition rendering from structured Core JSON.
+- Added data-flow evidence rendering from structured Core JSON.
+- Added failed expectation rendering from structured Core JSON.
+- Added controlled Tauri wrapper for Core `orbitfabric sim`.
+- Added Studio-controlled JSON report path under `generated/reports`.
+- Added Studio-controlled plain-text log path under `generated/logs`.
+- Added automatic generated artifact inventory refresh after successful Core simulation.
+- Added read-only simulation log preview linkage.
+- Added Inspector binding for selected simulation report records.
+- Added Inspector overflow/readability containment for selected simulation records.
+
+### Changed
+
+- Updated the visible Studio release label to `v0.7.0 scenario evidence explorer`.
+- Updated the primary loop to include scenario evidence inspection.
+- Updated Evidence from reserved surface to implemented read-only surface.
+- Clarified that scenario execution is available only through a fixed Core command.
+- Clarified that scenario status, timeline, records and evidence are rendered only from structured Core JSON.
+- Clarified that plain-text logs remain preview-only and are not parsed as evidence.
+- Clarified that absence of failed expectations is not interpreted as passed expectation accounting.
+
+### Validated Manually
+
+Manual verification was performed during the v0.7.0 implementation flow on:
+
+```text
+examples/demo-3u
+```
+
+Validated scenario flow:
+
+```text
+Open workspace
+Run through Core
+Inspect Core simulation summary
+Inspect timeline/events/commands/mode transitions
+Inspect data-flow evidence
+Preview associated simulation log
+Inspect selected evidence records in Inspector
+```
+
+Validated local checks included:
+
+```text
+npm run build
+cargo check --manifest-path src-tauri/Cargo.toml
+npm run tauri:dev
+```
+
+### Not Included
+
+- No private scenario runner.
+- No independent scenario simulation.
+- No dynamic spacecraft simulator.
+- No orbital simulation.
+- No RF simulation.
+- No payload physics simulation.
+- No mission control behavior.
+- No command uplink behavior.
+- No live telemetry behavior.
+- No telemetry archive behavior.
+- No ground behavior.
+- No graph UI.
+- No React Flow dependency.
+- No coverage percentage invented by Studio.
+- No mission health score invented by Studio.
+- No model completeness percentage invented by Studio.
+- No data product coverage percentage invented by Studio.
+- No commandability coverage percentage invented by Studio.
+- No Mission Model YAML editing.
+- No generated artifact editing.
+- No source file mutation.
+- No generated artifact mutation.
+- No arbitrary command execution.
+- No arbitrary OrbitFabric CLI argument entry.
+- No private YAML semantic parser.
+- No private relationship inference.
+- No log-derived evidence.
+- No passed expectation inference.
+- No produced data product inference.
+
+---
 ## v0.6.0 - Studio Information Architecture & UX Foundation
 
 Released milestone.

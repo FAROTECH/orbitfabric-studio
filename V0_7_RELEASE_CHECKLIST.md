@@ -22,41 +22,41 @@ Open -> Select Scenario -> Run Scenario through Core -> Inspect Evidence -> Revi
 
 ## Required checks
 
-- [ ] `npm install`
-- [ ] `npm run build`
-- [ ] `npm run tauri:dev`
-- [ ] Open `examples/demo-3u`
-- [ ] Verify workspace header remains visible
-- [ ] Verify primary navigation remains usable
-- [ ] Verify Workspace Dashboard remains reachable
-- [ ] Verify Evidence surface is reachable
-- [ ] Verify scenario source files are listed from workspace inspection
-- [ ] Verify scenario source preview is read-only
-- [ ] Verify scenario source is marked as source/scenario/read-only
-- [ ] Verify Core command panel remains reachable
-- [ ] Verify existing Core lint command remains reachable
-- [ ] Verify existing Core model-summary command remains reachable
-- [ ] Verify existing Core entity-index command remains reachable
-- [ ] Verify existing Core relationship-manifest command remains reachable
-- [ ] Verify Generated Artifact Explorer remains reachable
-- [ ] Verify generated artifact preview remains read-only
-- [ ] Verify Reports & Logs remain preview-only unless a recognized Core report schema is parsed
-- [ ] Verify Raw Core output remains visible
+- [x] `npm install`
+- [x] `npm run build`
+- [x] `npm run tauri:dev`
+- [x] Open `examples/demo-3u`
+- [x] Verify workspace header remains visible
+- [x] Verify primary navigation remains usable
+- [x] Verify Workspace Dashboard remains reachable
+- [x] Verify Evidence surface is reachable
+- [x] Verify scenario source files are listed from workspace inspection
+- [x] Verify scenario source preview is read-only
+- [x] Verify scenario source is marked as source/scenario/read-only
+- [x] Verify Core command panel remains reachable
+- [x] Verify existing Core lint command remains reachable
+- [x] Verify existing Core model-summary command remains reachable
+- [x] Verify existing Core entity-index command remains reachable
+- [x] Verify existing Core relationship-manifest command remains reachable
+- [x] Verify Generated Artifact Explorer remains reachable
+- [x] Verify generated artifact preview remains read-only
+- [x] Verify Reports & Logs remain preview-only unless a recognized Core report schema is parsed
+- [x] Verify Raw Core output remains visible
 
 ## Scenario Core command checks
 
 Complete these only if a real fixed Core scenario command is implemented.
 
-- [ ] Verify the Core scenario command is fixed and documented
-- [ ] Verify no arbitrary CLI argument field exists
-- [ ] Verify no shell plugin permission is added
-- [ ] Verify scenario source path is workspace-contained
-- [ ] Verify mission directory is workspace-contained
-- [ ] Verify scenario report path is Studio-controlled
-- [ ] Verify stdout, stderr and exit code are visible
-- [ ] Verify report JSON availability is displayed
-- [ ] Verify failed Core scenario command does not produce fake scenario status
-- [ ] Verify missing Core report produces a clear unavailable state
+- [x] Verify the Core scenario command is fixed and documented
+- [x] Verify no arbitrary CLI argument field exists
+- [x] Verify no shell plugin permission is added
+- [x] Verify scenario source path is workspace-contained
+- [x] Verify mission directory is workspace-contained
+- [x] Verify scenario report path is Studio-controlled
+- [x] Verify stdout, stderr and exit code are visible
+- [x] Verify report JSON availability is displayed
+- [x] Verify failed Core scenario command does not produce fake scenario status
+- [x] Verify missing Core report produces a clear unavailable state
 
 ## Scenario report checks
 
@@ -66,85 +66,85 @@ Complete these only if Core scenario report parsing is implemented.
 - [ ] Verify report version is displayed
 - [ ] Verify OrbitFabric Core version is displayed when present
 - [ ] Verify mission identity is displayed when present
-- [ ] Verify scenario identity is displayed
+- [x] Verify scenario identity is displayed
 - [ ] Verify scenario source reference is displayed
-- [ ] Verify scenario status/result is displayed only from Core report
+- [x] Verify scenario status/result is displayed only from Core report
 - [ ] Verify expectations are displayed only from Core report
 - [ ] Verify passed expectations are displayed only from Core report
-- [ ] Verify failed expectations are displayed only from Core report
-- [ ] Verify timeline records are displayed only from Core report/evidence
-- [ ] Verify events are displayed only from Core report/evidence
+- [x] Verify failed expectations are displayed only from Core report
+- [x] Verify timeline records are displayed only from Core report/evidence
+- [x] Verify events are displayed only from Core report/evidence
 - [ ] Verify telemetry effects are displayed only from Core report/evidence
-- [ ] Verify mode changes are displayed only from Core report/evidence
+- [x] Verify mode changes are displayed only from Core report/evidence
 - [ ] Verify data product records are displayed only from Core report/evidence
 - [ ] Verify unknown evidence records remain visible and marked as unknown
 - [ ] Verify unrecognized scenario reports remain preview-only
 
 ## Inspector checks
 
-- [ ] Verify selecting a scenario source updates the Inspector
-- [ ] Verify selecting a scenario report updates the Inspector, if implemented
-- [ ] Verify selecting an expectation updates the Inspector, if implemented
-- [ ] Verify selecting a timeline record updates the Inspector, if implemented
-- [ ] Verify selecting an evidence record updates the Inspector, if implemented
-- [ ] Verify Inspector shows provenance
-- [ ] Verify Inspector shows read-only status
-- [ ] Verify Inspector shows source/report/log references only when safe references exist
-- [ ] Verify Inspector does not invent links
+- [x] Verify selecting a scenario source updates the Inspector
+- [x] Verify selecting a scenario report updates the Inspector, if implemented
+- [x] Verify selecting an expectation updates the Inspector, if implemented
+- [x] Verify selecting a timeline record updates the Inspector, if implemented
+- [x] Verify selecting an evidence record updates the Inspector, if implemented
+- [x] Verify Inspector shows provenance
+- [x] Verify Inspector shows read-only status
+- [x] Verify Inspector shows source/report/log references only when safe references exist
+- [x] Verify Inspector does not invent links
 
 ## Boundary checks
 
-- [ ] No private scenario runner
-- [ ] No independent scenario simulation
-- [ ] No dynamic spacecraft simulator
-- [ ] No orbital simulation
-- [ ] No RF simulation
-- [ ] No payload physics simulation
-- [ ] No mission control behavior
-- [ ] No command uplink behavior
-- [ ] No live telemetry behavior
-- [ ] No telemetry archive behavior
-- [ ] No ground behavior
-- [ ] No graph UI
-- [ ] No React Flow dependency
-- [ ] No coverage percentage invented by Studio
-- [ ] No mission health score invented by Studio
-- [ ] No model completeness percentage invented by Studio
-- [ ] No data product coverage percentage invented by Studio
-- [ ] No commandability coverage percentage invented by Studio
-- [ ] No Mission Model YAML editing
-- [ ] No generated artifact editing
-- [ ] No source file mutation
-- [ ] No generated artifact mutation
-- [ ] No arbitrary command execution
-- [ ] No arbitrary OrbitFabric CLI argument entry
-- [ ] No private YAML semantic parser
-- [ ] No private relationship inference
-- [ ] No log-derived evidence when structured JSON is expected or available
+- [x] No private scenario runner
+- [x] No independent scenario simulation
+- [x] No dynamic spacecraft simulator
+- [x] No orbital simulation
+- [x] No RF simulation
+- [x] No payload physics simulation
+- [x] No mission control behavior
+- [x] No command uplink behavior
+- [x] No live telemetry behavior
+- [x] No telemetry archive behavior
+- [x] No ground behavior
+- [x] No graph UI
+- [x] No React Flow dependency
+- [x] No coverage percentage invented by Studio
+- [x] No mission health score invented by Studio
+- [x] No model completeness percentage invented by Studio
+- [x] No data product coverage percentage invented by Studio
+- [x] No commandability coverage percentage invented by Studio
+- [x] No Mission Model YAML editing
+- [x] No generated artifact editing
+- [x] No source file mutation
+- [x] No generated artifact mutation
+- [x] No arbitrary command execution
+- [x] No arbitrary OrbitFabric CLI argument entry
+- [x] No private YAML semantic parser
+- [x] No private relationship inference
+- [x] No log-derived evidence when structured JSON is expected or available
 
 ## Source / evidence / report / log boundary checks
 
-- [ ] Scenario source files are clearly distinguished from Core-derived evidence
-- [ ] Core-derived evidence is clearly distinguished from raw logs
-- [ ] Reports are clearly marked as reports
-- [ ] Logs are clearly marked as logs
-- [ ] Generated outputs remain generated outputs
-- [ ] Unknown files remain unknown
-- [ ] Preview-only files are marked as preview-only
-- [ ] Read-only files are marked as read-only
+- [x] Scenario source files are clearly distinguished from Core-derived evidence
+- [x] Core-derived evidence is clearly distinguished from raw logs
+- [x] Reports are clearly marked as reports
+- [x] Logs are clearly marked as logs
+- [x] Generated outputs remain generated outputs
+- [x] Unknown files remain unknown
+- [x] Preview-only files are marked as preview-only
+- [x] Read-only files are marked as read-only
 
 ## Release metadata
 
 To be completed only at final v0.7.0 release closure.
 
-- [ ] `README.md` marks v0.7.0 as current released baseline
-- [ ] `CHANGELOG.md` contains v0.7.0 release notes
-- [ ] `ROADMAP.md` marks v0.7.0 as completed
-- [ ] `package.json` version is `0.7.0`
-- [ ] `package-lock.json` version is `0.7.0`
-- [ ] `src-tauri/Cargo.toml` version is `0.7.0`
-- [ ] `src-tauri/Cargo.lock` package version is `0.7.0`
-- [ ] `src-tauri/tauri.conf.json` version is `0.7.0`
+- [x] `README.md` marks v0.7.0 as current released baseline
+- [x] `CHANGELOG.md` contains v0.7.0 release notes
+- [x] `ROADMAP.md` marks v0.7.0 as completed
+- [x] `package.json` version is `0.7.0`
+- [x] `package-lock.json` version is `0.7.0`
+- [x] `src-tauri/Cargo.toml` version is `0.7.0`
+- [x] `src-tauri/Cargo.lock` package version is `0.7.0`
+- [x] `src-tauri/tauri.conf.json` version is `0.7.0`
 
 ## Tagging
 
@@ -182,8 +182,37 @@ The following implementation slices have been completed before introducing any a
 
 Remaining before v0.7.0 release closure:
 
-- [ ] Controlled Core `orbitfabric sim` execution wrapper, if accepted for v0.7.0
-- [ ] Read-only simulation log preview linkage, if accepted for v0.7.0
-- [ ] Inspector binding for selected simulation report/evidence records, if accepted for v0.7.0
-- [ ] Final regression and boundary pass
-- [ ] Release metadata update to `0.7.0`
+- [x] Controlled Core `orbitfabric sim` execution wrapper, if accepted for v0.7.0
+- [x] Read-only simulation log preview linkage, if accepted for v0.7.0
+- [x] Inspector binding for selected simulation report/evidence records, if accepted for v0.7.0
+- [x] Final regression and boundary pass
+- [x] Release metadata update to `0.7.0`
+
+## Final v0.7.0 closure notes
+
+The v0.7.0 release closes as a read-only Scenario Evidence Explorer.
+
+Implemented and verified scope:
+
+- scenario source listing;
+- fixed Core `orbitfabric sim` execution;
+- Studio-controlled report/log paths;
+- structured Core simulation JSON report rendering;
+- read-only log preview linkage;
+- generated artifact refresh after simulation;
+- Inspector binding for selected Core simulation records;
+- explicit no-log-derived-evidence boundary;
+- explicit no-private-simulation boundary;
+- explicit no-coverage-inference boundary.
+
+Known intentionally deferred items:
+
+- dedicated Core `kind` / schema version for simulation reports;
+- complete expectation accounting;
+- passed expectations as explicit Core records;
+- dedicated telemetry effects;
+- produced data products as runtime facts;
+- coverage summaries;
+- graph visualization;
+- authoring/editing;
+- plugin-aware surfaces.
