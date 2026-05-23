@@ -412,6 +412,56 @@ fn run_core_export_relationship_manifest(
     )
 }
 
+#[tauri::command]
+fn run_core_sim_scenario(
+    executable: String,
+    workspace_path: String,
+    scenario_file: String,
+) -> Result<CoreCommandResult, String> {
+    let workspace = canonicalize_existing_dir(&workspace_path)?;
+    let scenario = canonicalize_existing_file(&scenario_file)?;
+
+    if !scenario.starts_with(&workspace) {
+        return Err("Scenario file is outside the selected workspace.".to_string());
+    }
+
+    let scenarios_dir = workspace.join("scenarios");
+
+    if !scenarios_dir.is_dir() {
+        return Err("Selected workspace does not contain a scenarios directory.".to_string());
+    }
+
+    let scenarios_dir = scenarios_dir
+        .canonicalize()
+        .map_err(|error| format!("Unable to resolve scenarios directory: {error}"))?;
+
+    if !scenario.starts_with(&scenarios_dir) {
+        return Err("Scenario file is outside the workspace scenarios directory.".to_string());
+    }
+
+    if !is_yaml_file(&scenario) {
+        return Err("Scenario command only accepts YAML scenario source files.".to_string());
+    }
+
+    let (report_path, log_path) = simulation_output_paths_for_workspace(&workspace, &scenario)?;
+    let scenario_display = display_path(&scenario);
+    let report_display = display_path(&report_path);
+    let log_display = display_path(&log_path);
+
+    run_core_command(
+        executable,
+        &[
+            "sim",
+            scenario_display.as_str(),
+            "--json",
+            report_display.as_str(),
+            "--log",
+            log_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
 fn run_core_command(
     executable: String,
     args: &[&str],
@@ -678,6 +728,55 @@ fn relationship_manifest_report_path_for_mission(mission: &Path) -> Result<PathB
     )
 }
 
+fn simulation_output_paths_for_workspace(
+    workspace: &Path,
+    scenario: &Path,
+) -> Result<(PathBuf, PathBuf), String> {
+    let scenario_id = safe_file_stem(scenario)?;
+    let reports_dir = workspace.join("generated").join("reports");
+    let logs_dir = workspace.join("generated").join("logs");
+
+    fs::create_dir_all(&reports_dir)
+        .map_err(|error| format!("Unable to create Studio simulation report directory: {error}"))?;
+    fs::create_dir_all(&logs_dir)
+        .map_err(|error| format!("Unable to create Studio simulation log directory: {error}"))?;
+
+    Ok((
+        reports_dir.join(format!("{scenario_id}_report.json")),
+        logs_dir.join(format!("{scenario_id}.log")),
+    ))
+}
+
+fn safe_file_stem(path: &Path) -> Result<String, String> {
+    let stem = path
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| "Scenario file has no valid UTF-8 file name.".to_string())?;
+
+    let sanitized: String = stem
+        .chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric() || character == '-' || character == '_' {
+                character
+            } else {
+                '_'
+            }
+        })
+        .collect();
+
+    if sanitized.is_empty() {
+        Err("Scenario file name does not produce a valid report name.".to_string())
+    } else {
+        Ok(sanitized)
+    }
+}
+
+fn is_yaml_file(path: &Path) -> bool {
+    path.extension()
+        .and_then(|value| value.to_str())
+        .is_some_and(|extension| matches!(extension, "yaml" | "yml"))
+}
+
 fn report_path_for_mission(
     mission: &Path,
     report_file_name: &str,
@@ -874,7 +973,8 @@ pub fn run() {
             run_core_lint_mission,
             run_core_export_model_summary,
             run_core_export_entity_index,
-            run_core_export_relationship_manifest
+            run_core_export_relationship_manifest,
+            run_core_sim_scenario
         ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
