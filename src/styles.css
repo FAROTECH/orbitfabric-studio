@@ -909,6 +909,7 @@ h3 {
 #studio-relationships,
 #studio-artifacts,
 #studio-reports-logs,
+#studio-evidence,
 #studio-raw-output,
 #studio-future-surfaces {
   scroll-margin-top: 28px;
@@ -1057,7 +1058,6 @@ h3 {
   background: rgba(245, 158, 11, 0.16);
 }
 
-#studio-reserved-evidence,
 #studio-reserved-ground {
   scroll-margin-top: 28px;
 }
@@ -1073,4 +1073,8 @@ h3 {
 .hero-badge-row {
   justify-content: flex-start;
   margin: 12px 0 0;
+}
+
+.scenario-source-surface {
+  border-color: rgba(103, 232, 249, 0.24);
 }
