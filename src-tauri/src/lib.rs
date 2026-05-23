@@ -111,6 +111,8 @@ struct CoreCommandResult {
     json_report_path: Option<String>,
     json_report_available: bool,
     json_report_content: Option<String>,
+    log_path: Option<String>,
+    log_available: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -448,7 +450,7 @@ fn run_core_sim_scenario(
     let report_display = display_path(&report_path);
     let log_display = display_path(&log_path);
 
-    run_core_command(
+    run_core_command_with_artifacts(
         executable,
         &[
             "sim",
@@ -459,6 +461,7 @@ fn run_core_sim_scenario(
             log_display.as_str(),
         ],
         Some(report_path),
+        Some(log_path),
     )
 }
 
@@ -466,6 +469,15 @@ fn run_core_command(
     executable: String,
     args: &[&str],
     json_report_path: Option<PathBuf>,
+) -> Result<CoreCommandResult, String> {
+    run_core_command_with_artifacts(executable, args, json_report_path, None)
+}
+
+fn run_core_command_with_artifacts(
+    executable: String,
+    args: &[&str],
+    json_report_path: Option<PathBuf>,
+    log_path: Option<PathBuf>,
 ) -> Result<CoreCommandResult, String> {
     let command = executable.trim();
 
@@ -487,6 +499,8 @@ fn run_core_command(
         _ => None,
     };
 
+    let log_available = log_path.as_ref().is_some_and(|path| path.is_file());
+
     Ok(CoreCommandResult {
         command: command.to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
@@ -497,6 +511,8 @@ fn run_core_command(
         json_report_path: json_report_path.as_ref().map(|path| display_path(path)),
         json_report_available,
         json_report_content,
+        log_path: log_path.as_ref().map(|path| display_path(path)),
+        log_available,
     })
 }
 

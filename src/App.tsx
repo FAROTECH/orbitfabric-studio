@@ -390,6 +390,7 @@ function App() {
             <ScenarioEvidenceSurface
               workspace={workspace}
               generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
+              coreResult={coreResult}
               simulationReport={simulationReport}
               simulationReportSource={simulationReportSource}
               isRunningCoreCommand={isRunningCoreCommand}
@@ -613,6 +614,8 @@ function InspectorPanel({
             <span>Exit code: {coreResult.exit_code ?? "not available"}</span>
             <span>JSON report: {coreResult.json_report_available ? "available" : "not available"}</span>
             {coreResult.json_report_path ? <span>{coreResult.json_report_path}</span> : null}
+            <span>Log: {coreResult.log_available ? "available" : "not available"}</span>
+            {coreResult.log_path ? <span>{coreResult.log_path}</span> : null}
           </>
         ) : (
           <span>No Core command result selected.</span>
@@ -634,6 +637,7 @@ function InspectorPanel({
 function ScenarioEvidenceSurface({
   workspace,
   generatedEvidenceArtifactSummary,
+  coreResult,
   simulationReport,
   simulationReportSource,
   isRunningCoreCommand,
@@ -642,6 +646,7 @@ function ScenarioEvidenceSurface({
 }: {
   workspace: WorkspaceInspection;
   generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
+  coreResult: CoreCommandResult | null;
   simulationReport: CoreSimulationReport | null;
   simulationReportSource: string | null;
   isRunningCoreCommand: boolean;
@@ -731,6 +736,8 @@ function ScenarioEvidenceSurface({
       />
 
       <SimulationReportRecordsPanel simulationReport={simulationReport} />
+
+      <SimulationLogLinkPanel coreResult={coreResult} onOpenFile={onOpenFile} />
 
       <SimulationReportEvidencePanel simulationReport={simulationReport} />
 
@@ -1101,6 +1108,77 @@ function SimulationReportRecordsPanel({
   );
 }
 
+
+function SimulationLogLinkPanel({
+  coreResult,
+  onOpenFile,
+}: {
+  coreResult: CoreCommandResult | null;
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  const logPath = coreResult?.log_path ?? null;
+  const logAvailable = Boolean(coreResult?.log_available && logPath);
+
+  return (
+    <section
+      className={`entry-section ${logAvailable ? "" : "muted-section"}`}
+      aria-label="Core simulation log linkage"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <h3>Core simulation log</h3>
+          <p>
+            Read-only linkage to the plain-text log produced by the controlled
+            Core `orbitfabric sim --log` path. Studio previews the log as text
+            only and does not derive evidence from it.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <StatusBadge label="LOG" />
+          <ProvenanceBadge label="PREVIEW ONLY" />
+        </div>
+      </div>
+
+      {logAvailable && logPath ? (
+        <>
+          <div className="summary-grid">
+            <SummaryItem label="Log status" value="Available" />
+            <SummaryItem label="Log path" value={logPath} />
+          </div>
+          <button
+            className="entry-button"
+            type="button"
+            onClick={() =>
+              onOpenFile({
+                name: fileNameFromPath(logPath),
+                path: logPath,
+                kind: "file",
+                category: "derivedReport",
+              })
+            }
+          >
+            Preview simulation log
+          </button>
+          <p>
+            This preview is not evidence parsing. The structured simulation JSON
+            report remains the source for status, timeline, records and evidence.
+          </p>
+        </>
+      ) : (
+        <p className="empty-text">
+          No simulation log is linked to the current Core output. Run a scenario
+          through the controlled Core command to produce a Studio-controlled log
+          path.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function fileNameFromPath(path: string): string {
+  return path.split(/[\\/]/).pop() || "simulation.log";
+}
 
 function SimulationReportEvidencePanel({
   simulationReport,
