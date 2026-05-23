@@ -13,35 +13,37 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.5.0 - Generated Artifact Explorer
-Next roadmap baseline: v0.6.0 - Studio Information Architecture & UX Foundation
+Current released baseline: v0.6.0 - Studio Information Architecture & UX Foundation
+Next roadmap baseline: v0.7.0 - Scenario Evidence Explorer
 ```
 
-The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface` and `v0.5.0 - Generated Artifact Explorer` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface`, `v0.5.0 - Generated Artifact Explorer` and `v0.6.0 - Studio Information Architecture & UX Foundation` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.5.0.
+The current implementation baseline is v0.6.0.
 
-The next roadmap milestone is v0.6.0.
+The next roadmap milestone is v0.7.0.
 
-The implemented v0.5.0 product loop is:
+The implemented v0.6.0 product loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts -> Review Reserved Surfaces
 ```
 
 The next roadmap loop is:
 
 ```text
-Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
+Run Scenario -> Inspect Evidence -> Understand Contract Behavior
 ```
 
-Studio v0.5.0 is a read-only Generated Artifact Explorer.
+Studio v0.6.0 is a read-only Mission Contract Engineering Workbench foundation.
+
+It reorganizes the existing v0.1.0 through v0.5.0 surfaces into a stable application shell with workspace header, primary navigation, main surface, workspace dashboard, provenance badges, normalized navigation surfaces, contextual inspector and reserved future surfaces.
 
 It consumes OrbitFabric Core-derived reports and inspects generated artifacts already present in the selected OrbitFabric workspace.
 
 It can inspect `generated/`, classify generated artifacts conservatively, group them by broad artifact class and preview supported text artifacts read-only.
 
-It does not generate artifacts, execute arbitrary commands, edit files, infer Mission Model semantics from generated files or reinterpret generated runtime and ground outputs as operational behavior.
+It does not generate artifacts, execute arbitrary commands, edit files, infer Mission Model semantics from generated files, execute scenarios or reinterpret generated runtime and ground outputs as operational behavior.
 
 Studio does not parse Mission Model YAML semantically.
 
@@ -51,7 +53,7 @@ Studio does not infer entities, relationships, source locations, artifact semant
 
 ## Current Implementation State
 
-v0.5.0 currently implements:
+v0.6.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
@@ -94,9 +96,22 @@ Generated artifact groups for reports, logs, docs, runtime, ground and unknown
 Read-only generated artifact preview
 CSV generated artifact preview support
 Raw stdout / stderr / exit-code display
+Studio application shell
+Workspace header
+Primary surface navigation
+State-aware enabled / unavailable / reserved navigation states
+Workspace dashboard
+Provenance, status and severity badge system
+Normalized read-only surface anchors
+Contextual inspector pattern
+Generated artifact selection in Inspector
+Reserved Scenario Evidence surface
+Reserved Ground Integration surface
+Documented graph visualization boundary
+v0.6.0 UX and read-only boundary polish
 ```
 
-The implemented v0.5.0 loop remains conservative:
+The implemented v0.6.0 loop remains conservative:
 
 ```text
 Open workspace
@@ -173,6 +188,46 @@ It does not build relationship semantics privately.
 It does not introduce a dependency graph or relationship graph engine.
 
 ---
+
+## v0.6.0 Released Scope
+
+The v0.6.0 milestone is the Studio Information Architecture & UX Foundation.
+
+The released scope is a read-only application shell and UX foundation for the surfaces already implemented from v0.1.0 through v0.5.0.
+
+The implemented v0.6.0 capabilities are:
+
+- stable application shell;
+- workspace header;
+- primary surface navigation;
+- state-aware sidebar availability;
+- workspace dashboard;
+- provenance, status and severity badge system;
+- normalized surface anchors;
+- contextual inspector pattern;
+- generated artifact selection in the Inspector;
+- reserved Scenario Evidence surface;
+- reserved Ground Integration surface;
+- documented graph visualization boundary;
+- UX regression and read-only boundary polish.
+
+Explicit v0.6.0 non-goals:
+
+- no Mission Model YAML editing;
+- no generated artifact editing;
+- no independent artifact generation;
+- no arbitrary command execution;
+- no scenario execution;
+- no scenario simulation;
+- no mission control behavior;
+- no command uplink;
+- no live telemetry archive;
+- no ground segment behavior;
+- no private graph semantics;
+- no React Flow adoption;
+- no visual Mission Model editor;
+- no Controlled Contract Authoring implementation;
+- no Plugin-aware Studio implementation.
 
 ## v0.5.0 Released Scope
 
@@ -320,13 +375,13 @@ OrbitFabric Studio is intended to become a local-first workbench for:
 The current product loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts -> Review Reserved Surfaces
 ```
 
 The next roadmap product loop is:
 
 ```text
-Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
+Run Scenario -> Inspect Evidence -> Understand Contract Behavior
 ```
 
 The long-term authoring loop is:
@@ -425,9 +480,11 @@ Studio does not infer file references from domains, object IDs or messages.
 
 Studio links a finding, domain or entity to a file only when Core-provided metadata can be safely resolved inside the workspace.
 
-Studio v0.5.0 does not change these boundaries.
+Studio v0.6.0 does not change these boundaries.
 
-The Generated Artifact Explorer is implemented as a read-only artifact inventory and preview surface, not as a generator, semantic artifact parser, runtime viewer, ground viewer or file manager.
+The Generated Artifact Explorer remains implemented as a read-only artifact inventory and preview surface, not as a generator, semantic artifact parser, runtime viewer, ground viewer or file manager.
+
+The v0.6.0 application shell, dashboard, badge vocabulary, normalized navigation, contextual inspector and reserved future surfaces improve inspectability without changing Core authority or introducing private mission semantics.
 
 ---
 

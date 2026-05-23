@@ -34,19 +34,13 @@ charter
   -> stable mission contract engineering workbench
 ```
 
-The released v0.5.0 loop is:
+The released v0.6.0 loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
+Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts -> Review Reserved Surfaces
 ```
 
 The next roadmap loop is:
-
-```text
-Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
-```
-
-The following roadmap loop is:
 
 ```text
 Run Scenario -> Inspect Evidence -> Understand Contract Behavior
@@ -524,7 +518,7 @@ v0.5.0 is complete because Studio can inspect generated artifacts already presen
 
 # v0.6.0 - Studio Information Architecture & UX Foundation
 
-Status: Active  
+Status: Completed  
 Nature: UX architecture and product foundation slice  
 Primary loop: Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
 
@@ -692,7 +686,7 @@ v0.6.0 must not require new Core semantics.
 
 ## Exit Criteria
 
-v0.6.0 is complete when Studio can:
+v0.6.0 is complete because Studio can:
 
 1. expose a stable application shell with workspace header, primary navigation, main content area and contextual inspector;
 2. preserve all existing surfaces from v0.1.0 through v0.5.0;
@@ -714,7 +708,7 @@ docs/roadmap/studio-v0.6.0-information-architecture-and-ux-foundation.md
 
 # v0.7.0 - Scenario Evidence Explorer
 
-Status: Planned  
+Status: Active  
 Nature: evidence inspection slice  
 Primary loop: Run Scenario -> Inspect Evidence -> Understand Contract Behavior
 
