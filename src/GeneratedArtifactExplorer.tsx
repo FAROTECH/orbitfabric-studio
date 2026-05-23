@@ -469,7 +469,7 @@ function toGeneratedEvidenceArtifactCandidate(
     knownStatus: artifact.known_status,
     previewStatus: artifact.preview_status,
     reason:
-      "Passive report/log candidate only. Studio does not parse this file as scenario evidence in this slice.",
+      "Passive report/log candidate only. Studio keeps this artifact read-only and does not parse it as scenario evidence in this slice.",
   };
 }
 
