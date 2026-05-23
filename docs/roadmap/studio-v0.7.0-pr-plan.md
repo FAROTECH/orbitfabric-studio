@@ -546,3 +546,79 @@ chore/studio-v07-regression-pass
 v0.7.0 is complete when Studio can inspect Core-produced scenario evidence through the v0.6.0 shell while preserving the boundary between scenario source, Core-derived evidence, reports, logs, generated outputs and UI state.
 
 Studio must not simulate independently, must not become mission control and must not invent scenario semantics.
+
+## Implementation checkpoint after PR 80
+
+The original PR sequence was intentionally conservative because the Core scenario contract had not yet been verified.
+
+After the Core baseline verification, Studio confirmed that Core already exposes a real simulation command and machine-readable JSON output:
+
+```bash
+orbitfabric sim <scenario.yaml> --json <path> --log <path>
+```
+
+The correct Studio contract is therefore the existing Core simulation JSON report produced by `orbitfabric-sim`, not a new private Studio scenario evidence schema.
+
+Completed implementation slices:
+
+```text
+PR 73 - v0.7.0 Scenario Evidence planning specification
+PR 74 - Scenario source list in Evidence surface
+PR 75 - Passive scenario evidence artifact discovery
+PR 76 - Passive evidence wording and read-only boundary clarification
+PR 77 - Core simulation JSON report parser
+PR 78 - Core simulation report summary rendering
+PR 79 - Core simulation timeline, events, commands and mode transitions rendering
+PR 80 - Core simulation data-flow evidence and failed expectations rendering
+```
+
+Current implemented boundary:
+
+```text
+Studio renders scenario source files structurally.
+Studio renders generated report/log candidates passively.
+Studio parses only valid `tool: orbitfabric-sim` JSON reports.
+Studio renders only fields present in the Core simulation JSON report.
+Studio keeps scenario YAML and plain-text logs preview-only.
+Studio does not infer passed expectations.
+Studio does not infer coverage.
+Studio does not infer produced data products.
+Studio does not derive evidence from logs.
+Studio does not run scenarios independently.
+```
+
+Remaining candidate PR sequence for v0.7.0:
+
+```text
+PR 81 - Add controlled Core simulation command wrapper
+PR 82 - Link generated simulation report/log outputs after controlled execution
+PR 83 - Bind selected simulation evidence records to Inspector
+PR 84 - v0.7.0 regression and boundary pass
+```
+
+PR 81 must remain conditional on a fixed backend command with explicit paths:
+
+```bash
+orbitfabric sim <scenario.yaml> \
+  --json <workspace>/generated/reports/<scenario_id>_report.json \
+  --log <workspace>/generated/logs/<scenario_id>.log
+```
+
+The command must not expose arbitrary CLI arguments and must not rely on Core default generated output paths while Core issue #206 remains open.
+
+Deferred to Core post-1.0 or later Studio milestones:
+
+```text
+kind/schema version dedicated to simulation report
+source references for scenario file and mission path
+complete expectation accounting
+passed expectations
+dedicated telemetry effects
+produced data products as runtime facts
+coverage summaries
+strong entity-index references
+boundary metadata inside the simulation report
+graph UI
+authoring/editing
+plugin-aware surfaces
+```
