@@ -41,7 +41,7 @@ const nonGoalItems = [
   "No editing",
   "No artifact generation",
   "No generated file modification",
-  "No scenario execution",
+  "No private scenario execution",
   "No mission control behavior",
   "No command uplink",
   "No live telemetry archive",
@@ -223,6 +223,24 @@ function App() {
     });
   }
 
+  async function handleCoreSimScenario(scenario: ProjectEntry) {
+    if (!workspace) {
+      setCoreError("No workspace is available for Core scenario execution.");
+      return;
+    }
+
+    if (scenario.kind !== "file") {
+      setCoreError("Only scenario source files can be executed through Core.");
+      return;
+    }
+
+    await runCoreCommand("run_core_sim_scenario", {
+      executable: coreExecutable,
+      workspacePath: workspace.selected_path,
+      scenarioFile: scenario.path,
+    });
+  }
+
   async function runCoreCommand(commandName: string, payload: Record<string, string>) {
     setCoreError(null);
     setCoreResult(null);
@@ -362,7 +380,9 @@ function App() {
               generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
               simulationReport={simulationReport}
               simulationReportSource={simulationReportSource}
+              isRunningCoreCommand={isRunningCoreCommand}
               onOpenFile={handleOpenFile}
+              onRunScenario={handleCoreSimScenario}
             />
           ) : null}
 
@@ -603,13 +623,17 @@ function ScenarioEvidenceSurface({
   generatedEvidenceArtifactSummary,
   simulationReport,
   simulationReportSource,
+  isRunningCoreCommand,
   onOpenFile,
+  onRunScenario,
 }: {
   workspace: WorkspaceInspection;
   generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
   simulationReport: CoreSimulationReport | null;
   simulationReportSource: string | null;
+  isRunningCoreCommand: boolean;
   onOpenFile: (entry: ProjectEntry) => void;
+  onRunScenario: (entry: ProjectEntry) => void;
 }) {
   const scenarioFiles = workspace.scenario_files;
   const evidenceArtifactCandidates = generatedEvidenceArtifactSummary
@@ -661,20 +685,21 @@ function ScenarioEvidenceSurface({
       <section className="entry-section muted-section" aria-label="Scenario Evidence boundary">
         <h3>Current boundary</h3>
         <p>
-          This slice lists scenario source files only. Core-produced scenario
-          reports, timelines, expectations and evidence records will be rendered
-          only after the corresponding Core output contract is verified.
+          This surface renders scenario source files and Core-produced simulation
+          JSON reports. Scenario execution, when triggered from Studio, is limited
+          to a fixed `orbitfabric sim` wrapper with Studio-controlled report and
+          log paths.
         </p>
         <ul className="entry-list">
           <li>
             <div className="entry-main">
-              <strong>No scenario execution command is introduced.</strong>
+              <strong>Scenario execution is available only through a fixed Core command.</strong>
               <span className="category-badge category-derivedReport">boundary</span>
             </div>
           </li>
           <li>
             <div className="entry-main">
-              <strong>No scenario status, expectations or timeline are inferred.</strong>
+              <strong>Scenario status, expectations and timeline are rendered only from Core JSON.</strong>
               <span className="category-badge category-derivedReport">boundary</span>
             </div>
           </li>
@@ -790,6 +815,14 @@ function ScenarioEvidenceSurface({
                   >
                     {scenario.name}
                   </button>
+                  <button
+                    className="entry-button"
+                    type="button"
+                    onClick={() => onRunScenario(scenario)}
+                    disabled={scenario.kind !== "file" || isRunningCoreCommand}
+                  >
+                    {isRunningCoreCommand ? "Running through Core..." : "Run through Core"}
+                  </button>
                   <div className="badge-row artifact-entry-badges">
                     <ProvenanceBadge label="SOURCE" />
                     <StatusBadge label="SCENARIO SOURCE" />
@@ -801,6 +834,7 @@ function ScenarioEvidenceSurface({
                   <span>kind: {scenario.kind}</span>
                   <span>category: scenario source</span>
                   <span>semantic parsing: not performed by Studio</span>
+                  <span>execution: fixed Core `orbitfabric sim` wrapper only</span>
                 </div>
               </li>
             ))}
