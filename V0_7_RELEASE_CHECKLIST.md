@@ -154,3 +154,36 @@ After merge to `main` and final validation:
 git tag v0.7.0
 git push origin v0.7.0
 ```
+
+## Implementation checkpoint after structured simulation report viewer
+
+The following implementation slices have been completed before introducing any active scenario execution from Studio:
+
+- [x] v0.7.0 planning specification added
+- [x] v0.7.0 release checklist added
+- [x] Scenario source files listed from workspace inspection
+- [x] Scenario source preview remains read-only
+- [x] Passive generated report/log candidates are visible and preview-only
+- [x] Passive generated report/log candidates are clearly marked as candidates
+- [x] Core simulation JSON report parser is implemented for `tool: orbitfabric-sim`
+- [x] Core simulation report summary is rendered from structured Core JSON
+- [x] Core simulation timeline is rendered from structured Core JSON
+- [x] Core simulation events are rendered from structured Core JSON
+- [x] Core simulation commands are rendered from structured Core JSON
+- [x] Core simulation mode transitions are rendered from structured Core JSON
+- [x] Core simulation `data_flow_evidence` is rendered from structured Core JSON
+- [x] Core simulation `failed_expectations` is rendered from structured Core JSON
+- [x] Studio does not infer passed expectations from the absence of failed expectations
+- [x] Studio does not infer produced data products from data-flow evidence records
+- [x] Studio does not infer coverage or mission health metrics
+- [x] Studio does not parse scenario YAML semantically
+- [x] Studio does not parse plain-text scenario logs as evidence
+- [x] Studio does not execute scenarios independently
+
+Remaining before v0.7.0 release closure:
+
+- [ ] Controlled Core `orbitfabric sim` execution wrapper, if accepted for v0.7.0
+- [ ] Read-only simulation log preview linkage, if accepted for v0.7.0
+- [ ] Inspector binding for selected simulation report/evidence records, if accepted for v0.7.0
+- [ ] Final regression and boundary pass
+- [ ] Release metadata update to `0.7.0`
