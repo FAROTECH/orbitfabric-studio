@@ -7,6 +7,7 @@ import {
   GeneratedArtifactExplorerPanel,
   type GeneratedArtifactDashboardSummary,
   type GeneratedArtifactInspectorItem,
+  type GeneratedEvidenceArtifactSummary,
 } from "./GeneratedArtifactExplorer";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 
@@ -89,6 +90,8 @@ function App() {
     useState<GeneratedArtifactDashboardSummary | null>(null);
   const [selectedGeneratedArtifact, setSelectedGeneratedArtifact] =
     useState<GeneratedArtifactInspectorItem | null>(null);
+  const [generatedEvidenceArtifactSummary, setGeneratedEvidenceArtifactSummary] =
+    useState<GeneratedEvidenceArtifactSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
@@ -104,6 +107,7 @@ function App() {
     setCoreResult(null);
     setGeneratedArtifactSummary(null);
     setSelectedGeneratedArtifact(null);
+    setGeneratedEvidenceArtifactSummary(null);
     setIsOpening(true);
 
     try {
@@ -342,6 +346,7 @@ function App() {
           {workspace ? (
             <ScenarioEvidenceSurface
               workspace={workspace}
+              generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
               onOpenFile={handleOpenFile}
             />
           ) : null}
@@ -367,6 +372,7 @@ function App() {
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
               onGeneratedArtifactSelectionChange={setSelectedGeneratedArtifact}
+              onGeneratedEvidenceArtifactSummaryChange={setGeneratedEvidenceArtifactSummary}
               onOpenFile={handleOpenFile}
             />
           ) : (
@@ -579,12 +585,20 @@ function InspectorPanel({
 
 function ScenarioEvidenceSurface({
   workspace,
+  generatedEvidenceArtifactSummary,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
+  generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   const scenarioFiles = workspace.scenario_files;
+  const evidenceArtifactCandidates = generatedEvidenceArtifactSummary
+    ? [
+        ...generatedEvidenceArtifactSummary.reportCandidates,
+        ...generatedEvidenceArtifactSummary.logCandidates,
+      ]
+    : [];
 
   return (
     <section
@@ -611,7 +625,14 @@ function ScenarioEvidenceSurface({
       <div className="summary-grid">
         <SummaryItem label="Scenario sources" value={String(scenarioFiles.length)} />
         <SummaryItem label="Execution" value="Not implemented" />
-        <SummaryItem label="Evidence" value="Requires Core output" />
+        <SummaryItem
+          label="Passive reports/logs"
+          value={
+            generatedEvidenceArtifactSummary
+              ? String(evidenceArtifactCandidates.length)
+              : "Run artifact inspection"
+          }
+        />
       </div>
 
       <section className="entry-section muted-section" aria-label="Scenario Evidence boundary">
@@ -641,6 +662,84 @@ function ScenarioEvidenceSurface({
             </div>
           </li>
         </ul>
+      </section>
+
+      <section
+        className="entry-section"
+        aria-label="Passive scenario report and log discovery"
+      >
+        <h3>Passive reports and logs</h3>
+        <p>
+          This section reuses the generated artifact inventory. Report and log
+          files are only preview candidates here. Studio does not parse them as
+          scenario evidence, does not infer scenario status and does not derive
+          expectations or timelines from logs.
+        </p>
+
+        {generatedEvidenceArtifactSummary ? (
+          <>
+            <div className="summary-grid">
+              <SummaryItem
+                label="Report candidates"
+                value={String(generatedEvidenceArtifactSummary.reportCandidates.length)}
+              />
+              <SummaryItem
+                label="Log candidates"
+                value={String(generatedEvidenceArtifactSummary.logCandidates.length)}
+              />
+              <SummaryItem label="Semantic parsing" value="Not performed" />
+            </div>
+
+            {evidenceArtifactCandidates.length > 0 ? (
+              <ul className="entry-list">
+                {evidenceArtifactCandidates.map((artifact) => (
+                  <li key={artifact.path}>
+                    <div className="entry-main">
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onOpenFile({
+                            name: artifact.name,
+                            path: artifact.path,
+                            kind: "file",
+                            category: "derivedReport",
+                          })
+                        }
+                      >
+                        {artifact.name}
+                      </button>
+                      <div className="badge-row artifact-entry-badges">
+                        <ProvenanceBadge label="GENERATED" />
+                        <StatusBadge
+                          label={artifact.artifactClass === "logs" ? "LOG" : "REPORT"}
+                        />
+                        <ProvenanceBadge label="PREVIEW ONLY" />
+                      </div>
+                    </div>
+                    <span className="entry-path">{artifact.relativePath}</span>
+                    <div className="command-meta">
+                      <span>class: {artifact.artifactClass}</span>
+                      <span>preview: {artifact.previewStatus}</span>
+                      <span>status: {artifact.knownStatus}</span>
+                      <span>{artifact.reason}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">
+                No generated report or log artifacts were reported by the current
+                generated artifact inventory.
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="empty-text">
+            Run Generated Artifact Explorer to populate passive report/log
+            discovery. Until then, no evidence artifact is inferred.
+          </p>
+        )}
       </section>
 
       <section className="entry-section" aria-label="Scenario source files">
@@ -908,6 +1007,7 @@ function WorkspacePanel({
   onCoreExportRelationshipManifest,
   onGeneratedArtifactSummaryChange,
   onGeneratedArtifactSelectionChange,
+  onGeneratedEvidenceArtifactSummaryChange,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
@@ -930,6 +1030,9 @@ function WorkspacePanel({
   ) => void;
   onGeneratedArtifactSelectionChange: (
     artifact: GeneratedArtifactInspectorItem | null,
+  ) => void;
+  onGeneratedEvidenceArtifactSummaryChange: (
+    summary: GeneratedEvidenceArtifactSummary | null,
   ) => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
@@ -981,6 +1084,7 @@ function WorkspacePanel({
         workspacePath={workspace.selected_path}
         onDashboardSummaryChange={onGeneratedArtifactSummaryChange}
         onArtifactSelectionChange={onGeneratedArtifactSelectionChange}
+        onEvidenceArtifactSummaryChange={onGeneratedEvidenceArtifactSummaryChange}
       />
 
       <div className="workspace-layout">
