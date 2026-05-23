@@ -691,6 +691,8 @@ function ScenarioEvidenceSurface({
         simulationReportSource={simulationReportSource}
       />
 
+      <SimulationReportRecordsPanel simulationReport={simulationReport} />
+
       <section
         className="entry-section"
         aria-label="Passive scenario report and log discovery"
@@ -889,11 +891,10 @@ function SimulationReportSummaryPanel({
           </div>
 
           <p>
-            Timeline, events, commands, mode transitions, data-flow evidence and
-            failed expectation details are intentionally not expanded in this
-            slice. Studio does not show passed expectations, coverage, dedicated
-            telemetry effects or produced data products unless Core exposes them
-            as structured fields.
+            Data-flow evidence and failed expectation details are intentionally
+            not expanded in this slice. Studio does not show passed expectations,
+            coverage, dedicated telemetry effects or produced data products
+            unless Core exposes them as structured fields.
           </p>
         </>
       ) : (
@@ -902,6 +903,147 @@ function SimulationReportSummaryPanel({
           simulation JSON report candidate, or wait for a future controlled Run
           Scenario slice. Studio does not infer scenario status from non-simulation
           reports or logs.
+        </p>
+      )}
+    </section>
+  );
+}
+
+
+function SimulationReportRecordsPanel({
+  simulationReport,
+}: {
+  simulationReport: CoreSimulationReport | null;
+}) {
+  return (
+    <section
+      className={`entry-section ${simulationReport ? "" : "muted-section"}`}
+      aria-label="Core simulation timeline and records"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <h3>Core simulation timeline and records</h3>
+          <p>
+            Read-only rendering of timeline entries, events, commands and mode
+            transitions from the selected `orbitfabric-sim` JSON report. Studio
+            does not derive these records from scenario YAML or logs.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <StatusBadge label="SIMULATION RECORDS" />
+          <ProvenanceBadge label="READ-ONLY" />
+        </div>
+      </div>
+
+      {simulationReport ? (
+        <>
+          <section className="entry-section muted-section" aria-label="Simulation record boundary">
+            <h3>Record boundary</h3>
+            <p>
+              This slice expands only timeline entries, events, commands and mode
+              transitions already present in the Core simulation JSON report.
+              Data-flow evidence and failed expectation details remain summarized
+              until their dedicated rendering slice.
+            </p>
+          </section>
+
+          <section className="entry-section" aria-label="Simulation timeline">
+            <h3>Timeline</h3>
+            {simulationReport.timeline.length > 0 ? (
+              <ul className="entry-list">
+                {simulationReport.timeline.map((entry, index) => (
+                  <li key={`${entry.t}-${entry.time}-${index}`}>
+                    <div className="entry-main">
+                      <strong>{entry.rendered}</strong>
+                      <StatusBadge label="TIMELINE" />
+                    </div>
+                    <div className="command-meta">
+                      <span>t: {entry.t}</span>
+                      <span>time: {entry.time}</span>
+                      <span>message: {entry.message}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">No timeline entries are present in this Core report.</p>
+            )}
+          </section>
+
+          <section className="entry-section" aria-label="Simulation events">
+            <h3>Events</h3>
+            {simulationReport.events.length > 0 ? (
+              <ul className="entry-list">
+                {simulationReport.events.map((event, index) => (
+                  <li key={`${event.t}-${event.event_id}-${index}`}>
+                    <div className="entry-main">
+                      <strong>{event.event_id}</strong>
+                      <StatusBadge label={event.severity} />
+                    </div>
+                    <div className="command-meta">
+                      <span>t: {event.t}</span>
+                      <span>severity: {event.severity}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">No events are present in this Core report.</p>
+            )}
+          </section>
+
+          <section className="entry-section" aria-label="Simulation commands">
+            <h3>Commands</h3>
+            {simulationReport.commands.length > 0 ? (
+              <ul className="entry-list">
+                {simulationReport.commands.map((command, index) => (
+                  <li key={`${command.t}-${command.command_id}-${index}`}>
+                    <div className="entry-main">
+                      <strong>{command.command_id}</strong>
+                      <StatusBadge label={command.status} />
+                    </div>
+                    <div className="command-meta">
+                      <span>t: {command.t}</span>
+                      <span>dispatch: {command.dispatch}</span>
+                      <span>status: {command.status}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">No commands are present in this Core report.</p>
+            )}
+          </section>
+
+          <section className="entry-section" aria-label="Simulation mode transitions">
+            <h3>Mode transitions</h3>
+            {simulationReport.mode_transitions.length > 0 ? (
+              <ul className="entry-list">
+                {simulationReport.mode_transitions.map((transition, index) => (
+                  <li key={`${transition.t}-${transition.from}-${transition.to}-${index}`}>
+                    <div className="entry-main">
+                      <strong>{transition.from}{" -> "}{transition.to}</strong>
+                      <StatusBadge label="MODE CHANGE" />
+                    </div>
+                    <div className="command-meta">
+                      <span>t: {transition.t}</span>
+                      <span>from: {transition.from}</span>
+                      <span>to: {transition.to}</span>
+                      <span>reason: {transition.reason}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">No mode transitions are present in this Core report.</p>
+            )}
+          </section>
+        </>
+      ) : (
+        <p className="empty-text">
+          No valid `orbitfabric-sim` JSON report is selected. Timeline and
+          records are not inferred from source YAML, generated reports or logs.
         </p>
       )}
     </section>
