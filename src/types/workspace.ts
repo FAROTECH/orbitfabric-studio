@@ -95,6 +95,8 @@ export interface CoreCommandResult {
   json_report_path: string | null;
   json_report_available: boolean;
   json_report_content: string | null;
+  log_path: string | null;
+  log_available: boolean;
 }
 
 export type CoreSimulationResultStatus = "passed" | "failed";
