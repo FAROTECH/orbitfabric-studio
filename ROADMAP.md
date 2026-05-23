@@ -704,6 +704,12 @@ Detailed specification:
 docs/roadmap/studio-v0.6.0-information-architecture-and-ux-foundation.md
 ```
 
+Target UX realization matrix:
+
+```text
+docs/roadmap/studio-target-ux-realization-matrix.md
+```
+
 ---
 
 # v0.7.0 - Scenario Evidence Explorer
@@ -771,6 +777,58 @@ v0.7.0 is complete when Studio can inspect Core-produced scenario evidence throu
 
 ---
 
+# v0.7.1 - Dashboard and Coverage Foundation
+
+Status: Planned  
+Nature: dashboard and coverage foundation slice  
+Primary loop: Inspect Coverage -> Understand Gaps -> Navigate Evidence
+
+## Goal
+
+Introduce the first serious mission overview dashboard backed by Core-derived summaries.
+
+This milestone turns validation, scenario evidence and contract coverage into coherent dashboard surfaces without inventing coverage semantics inside Studio.
+
+## Candidate Capabilities
+
+- dashboard summary model
+- lint status card
+- scenario coverage card
+- model completeness card
+- data product coverage card
+- commandability coverage card
+- recent validation results
+- recent scenario run summaries
+- cross-links from dashboard cards to source, validation, evidence or artifact surfaces when Core provides safe references
+- clear distinction between Core-derived coverage and local UI state
+
+## OrbitFabric Core Surfaces Expected
+
+- dashboard summary output, if provided by Core
+- scenario coverage summary
+- model completeness summary
+- data product coverage summary
+- commandability coverage summary
+- stable finding targets or safe references, if provided by Core
+
+## Explicit Non-goals
+
+- no private coverage calculation
+- no invented mission health score
+- no live spacecraft health
+- no mission control behavior
+- no command uplink
+- no telemetry archive
+- no editing
+- no graph visualization
+
+## Exit Criteria
+
+v0.7.1 is complete when Studio can render coverage and dashboard information from Core-derived summaries, show gaps and recent results read-only, and avoid presenting any frontend-inferred percentage as authoritative engineering meaning.
+
+
+---
+
 # v0.8.0 - Ground Integration Artifact Viewer
 
 Status: Planned  
@@ -827,6 +885,62 @@ Studio remains a viewer and not a ground segment.
 ## Exit Criteria
 
 v0.8.0 is complete when Studio can inspect generated ground-facing artifacts through the v0.6.0 application shell, preview supported dictionaries and manifests read-only, expose provenance and intended integration use, and avoid any ground segment or operational claim.
+
+---
+
+# v0.8.1 - Relationship and Flow Graph Foundation
+
+Status: Planned  
+Nature: read-only graph foundation slice  
+Primary loop: Inspect Flow -> Select Node -> Explain Provenance
+
+## Goal
+
+Evaluate and introduce a read-only relationship and flow graph foundation only after Core exposes graph-ready structured data.
+
+This milestone exists to prevent graph visualization from becoming a private frontend semantics engine.
+
+## Candidate Capabilities
+
+- graph bundle contract consumption
+- read-only graph surface
+- node and edge type taxonomy
+- graph layout as UI state only
+- node selection driving the contextual inspector
+- edge selection driving the contextual inspector
+- graph filters
+- minimap, zoom and fit-to-view
+- selection to validation, evidence or artifact context when Core provides safe references
+- explicit provenance for every node and edge
+
+## OrbitFabric Core Surfaces Expected
+
+- graph bundle or equivalent Core-owned graph-ready output
+- evolved relationship manifest, if used as the graph source
+- typed nodes
+- typed edges
+- node metadata
+- edge metadata
+- safe references to source model entities, reports, evidence records and generated artifacts where available
+- stable finding-to-node or finding-to-edge targets, if available
+
+## Explicit Non-goals
+
+- no visual Mission Model editing
+- no graph-based authoring
+- no user-created nodes
+- no user-created edges
+- no frontend-inferred relationships
+- no graph layout persisted as Mission Model semantics
+- no generated artifact mutation
+- no Mission Model mutation
+- no mission control behavior
+- no ground segment behavior
+
+## Exit Criteria
+
+v0.8.1 is complete when Studio can render a constrained read-only graph from Core-owned or accepted derived graph data, use graph selection to drive inspection, and preserve the boundary between visual explanation and mission semantics.
+
 
 ---
 
