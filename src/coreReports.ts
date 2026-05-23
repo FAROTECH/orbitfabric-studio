@@ -1,19 +1,32 @@
 import type {
+  CoreCoverageRecord,
+  CoreCoverageSummary,
+  CoreDashboardDomainPresenceSummary,
+  CoreDashboardModelDomain,
+  CoreDashboardSummary,
   CoreEntityIndex,
   CoreEntityIndexDomain,
   CoreEntityIndexEntity,
+  CoreExpectationCoverage,
+  CoreExpectationCoverageByType,
   CoreLintFinding,
   CoreLintReport,
   CoreModelSummary,
   CoreModelSummaryDomain,
+  CoreRelationshipCoverage,
   CoreRelationshipDerivation,
   CoreRelationshipEndpoint,
   CoreRelationshipManifest,
   CoreRelationshipRecord,
   CoreRelationshipType,
+  CoreScenarioRunIndex,
+  CoreScenarioRunIndexSummary,
+  CoreScenarioRunRecord,
   CoreSimulationCommandRecord,
   CoreSimulationDataFlowEvidenceRecord,
   CoreSimulationEventRecord,
+  CoreSimulationExpectationAccounting,
+  CoreSimulationExpectationRecord,
   CoreSimulationFinalState,
   CoreSimulationJsonValue,
   CoreSimulationModeTransitionRecord,
@@ -21,6 +34,7 @@ import type {
   CoreSimulationResultStatus,
   CoreSimulationSummary,
   CoreSimulationTimelineEntry,
+  CoreUnsupportedCoverageScope,
 } from "./types/workspace";
 
 export function parseCoreSimulationReport(
@@ -54,6 +68,7 @@ export function parseCoreSimulationReport(
       !parsed.mode_transitions.every(isCoreSimulationModeTransitionRecord) ||
       !Array.isArray(parsed.data_flow_evidence) ||
       !parsed.data_flow_evidence.every(isCoreSimulationDataFlowEvidenceRecord) ||
+      !isOptionalCoreSimulationExpectationAccounting(parsed.expectations) ||
       !isCoreSimulationFinalState(parsed.final_state) ||
       !Array.isArray(parsed.failed_expectations) ||
       !parsed.failed_expectations.every(isJsonValue)
@@ -203,6 +218,111 @@ export function parseCoreRelationshipManifest(
   }
 }
 
+export function parseCoreDashboardSummary(
+  content: string | null,
+): CoreDashboardSummary | null {
+  if (!content) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(content);
+
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    if (
+      parsed.kind !== "orbitfabric.dashboard_summary" ||
+      typeof parsed.dashboard_version !== "string" ||
+      typeof parsed.orbitfabric_version !== "string" ||
+      !isCoreReportMissionIdentity(parsed.mission) ||
+      !isCoreDashboardSummarySource(parsed.source) ||
+      !isCoreDashboardSummaryBoundaries(parsed.boundaries) ||
+      !isCoreDashboardValidationSummary(parsed.validation) ||
+      !isCoreDashboardModelDomains(parsed.model_domains) ||
+      !isCoreDashboardEntityInventory(parsed.entity_inventory) ||
+      !isCoreDashboardRelationshipInventory(parsed.relationship_inventory) ||
+      !isCoreDashboardCoverageState(parsed.coverage)
+    ) {
+      return null;
+    }
+
+    return parsed as unknown as CoreDashboardSummary;
+  } catch {
+    return null;
+  }
+}
+
+export function parseCoreScenarioRunIndex(
+  content: string | null,
+): CoreScenarioRunIndex | null {
+  if (!content) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(content);
+
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    if (
+      parsed.kind !== "orbitfabric.scenario_run_index" ||
+      typeof parsed.index_version !== "string" ||
+      typeof parsed.orbitfabric_version !== "string" ||
+      !isCoreScenarioRunIndexSource(parsed.source) ||
+      !isCoreScenarioRunIndexBoundaries(parsed.boundaries) ||
+      !isCoreScenarioRunIndexSummary(parsed.summary) ||
+      !Array.isArray(parsed.runs) ||
+      !parsed.runs.every(isCoreScenarioRunRecord)
+    ) {
+      return null;
+    }
+
+    return parsed as unknown as CoreScenarioRunIndex;
+  } catch {
+    return null;
+  }
+}
+
+export function parseCoreCoverageSummary(
+  content: string | null,
+): CoreCoverageSummary | null {
+  if (!content) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(content);
+
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    if (
+      parsed.kind !== "orbitfabric.coverage_summary" ||
+      typeof parsed.coverage_version !== "string" ||
+      typeof parsed.orbitfabric_version !== "string" ||
+      !isCoreReportMissionIdentity(parsed.mission) ||
+      !isCoreCoverageSummarySource(parsed.source) ||
+      !isCoreCoverageSummaryBoundaries(parsed.boundaries) ||
+      !isCoreScenarioRunIndexSummary(parsed.scenario_runs) ||
+      !isCoreCoverageRecordMap(parsed.entity_coverage) ||
+      !isCoreExpectationCoverage(parsed.expectation_coverage) ||
+      !isCoreRelationshipCoverage(parsed.relationship_coverage) ||
+      !isCoreUnsupportedCoverageScope(parsed.unsupported)
+    ) {
+      return null;
+    }
+
+    return parsed as unknown as CoreCoverageSummary;
+  } catch {
+    return null;
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -216,6 +336,10 @@ function isNumberRecord(value: unknown): value is Record<string, number> {
 
 function isNullableString(value: unknown): value is string | null {
   return typeof value === "string" || value === null;
+}
+
+function isOptionalNumber(value: unknown): value is number | undefined {
+  return typeof value === "number" || value === undefined;
 }
 
 function isJsonValue(value: unknown): value is CoreSimulationJsonValue {
@@ -256,7 +380,9 @@ function isCoreSimulationSummary(value: unknown): value is CoreSimulationSummary
     typeof value.commands === "number" &&
     typeof value.mode_transitions === "number" &&
     typeof value.data_flow_evidence === "number" &&
-    typeof value.failed_expectations === "number"
+    typeof value.failed_expectations === "number" &&
+    isOptionalNumber(value.expectations) &&
+    isOptionalNumber(value.passed_expectations)
   );
 }
 
@@ -341,6 +467,40 @@ function isCoreSimulationDataFlowEvidenceRecord(
     Object.values(value).every(
       (entry) => entry === undefined || isJsonValue(entry),
     )
+  );
+}
+
+function isOptionalCoreSimulationExpectationAccounting(
+  value: unknown,
+): value is CoreSimulationExpectationAccounting | undefined {
+  return value === undefined || isCoreSimulationExpectationAccounting(value);
+}
+
+function isCoreSimulationExpectationAccounting(
+  value: unknown,
+): value is CoreSimulationExpectationAccounting {
+  return (
+    isRecord(value) &&
+    typeof value.total === "number" &&
+    typeof value.passed === "number" &&
+    typeof value.failed === "number" &&
+    Array.isArray(value.records) &&
+    value.records.every(isCoreSimulationExpectationRecord)
+  );
+}
+
+function isCoreSimulationExpectationRecord(
+  value: unknown,
+): value is CoreSimulationExpectationRecord {
+  return (
+    isRecord(value) &&
+    typeof value.t === "number" &&
+    typeof value.expectation_type === "string" &&
+    typeof value.target === "string" &&
+    isJsonValue(value.expected) &&
+    isJsonValue(value.actual) &&
+    isCoreSimulationResultStatus(value.result) &&
+    typeof value.message === "string"
   );
 }
 
@@ -520,4 +680,274 @@ function isCoreRelationshipDerivationPolicy(value: unknown): boolean {
     typeof value.forbids_raw_yaml_scanning === "boolean" &&
     typeof value.forbids_downstream_assumptions === "boolean"
   );
+}
+
+function isCoreDashboardSummarySource(value: unknown): boolean {
+  return (
+    isCoreReportSource(value) &&
+    isRecord(value) &&
+    typeof value.model_summary_kind === "string" &&
+    typeof value.model_summary_version === "string" &&
+    typeof value.entity_index_kind === "string" &&
+    typeof value.entity_index_version === "string" &&
+    typeof value.relationship_manifest_kind === "string" &&
+    typeof value.relationship_manifest_version === "string"
+  );
+}
+
+function isCoreDashboardSummaryBoundaries(value: unknown): boolean {
+  return isRecord(value) && isBooleanFields(value, [
+    "core_derived_report",
+    "read_only",
+    "contains_dashboard_summary",
+    "contains_coverage_metrics",
+    "contains_health_score",
+    "contains_scenario_run_index",
+    "contains_expectation_accounting",
+    "contains_relationship_graph",
+    "contains_dependency_graph",
+    "contains_yaml_ast",
+    "contains_source_locations",
+    "contains_plugin_api",
+    "contains_studio_api",
+    "contains_runtime_behavior",
+    "contains_ground_behavior",
+  ]) && typeof value.source_of_truth === "string";
+}
+
+function isCoreDashboardValidationSummary(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.tool === "string" &&
+    typeof value.result === "string" &&
+    typeof value.errors === "number" &&
+    typeof value.warnings === "number" &&
+    typeof value.info === "number"
+  );
+}
+
+function isCoreDashboardModelDomains(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isCoreDashboardDomainPresenceSummary(value.required) &&
+    isCoreDashboardDomainPresenceSummary(value.optional) &&
+    isNumberRecord(value.counts) &&
+    Array.isArray(value.domains) &&
+    value.domains.every(isCoreDashboardModelDomain)
+  );
+}
+
+function isCoreDashboardDomainPresenceSummary(
+  value: unknown,
+): value is CoreDashboardDomainPresenceSummary {
+  return (
+    isRecord(value) &&
+    typeof value.total === "number" &&
+    typeof value.present === "number" &&
+    typeof value.missing === "number"
+  );
+}
+
+function isCoreDashboardModelDomain(
+  value: unknown,
+): value is CoreDashboardModelDomain {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.display_name === "string" &&
+    typeof value.source_file === "string" &&
+    typeof value.required === "boolean" &&
+    typeof value.present === "boolean" &&
+    typeof value.count === "number"
+  );
+}
+
+function isCoreDashboardEntityInventory(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.total_entities === "number" &&
+    isNumberRecord(value.domains)
+  );
+}
+
+function isCoreDashboardRelationshipInventory(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.total_relationships === "number" &&
+    isNumberRecord(value.relationship_types)
+  );
+}
+
+function isCoreDashboardCoverageState(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.status === "string" &&
+    typeof value.reason === "string" &&
+    typeof value.requires_core_output === "string"
+  );
+}
+
+function isCoreScenarioRunIndexSource(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.simulation_reports_dir === "string" &&
+    typeof value.input_report_tool === "string"
+  );
+}
+
+function isCoreScenarioRunIndexBoundaries(value: unknown): boolean {
+  return isRecord(value) && isBooleanFields(value, [
+    "core_derived_report",
+    "read_only",
+    "contains_scenario_run_index",
+    "contains_coverage_metrics",
+    "contains_health_score",
+    "contains_expectation_accounting",
+    "contains_relationship_graph",
+    "contains_dependency_graph",
+    "contains_yaml_ast",
+    "contains_source_locations",
+    "contains_plugin_api",
+    "contains_studio_api",
+    "contains_runtime_behavior",
+    "contains_ground_behavior",
+    "derived_from_simulation_json",
+    "derived_from_logs",
+  ]) && typeof value.source_of_truth === "string";
+}
+
+function isCoreScenarioRunIndexSummary(
+  value: unknown,
+): value is CoreScenarioRunIndexSummary {
+  return (
+    isRecord(value) &&
+    typeof value.total === "number" &&
+    typeof value.passed === "number" &&
+    typeof value.failed === "number"
+  );
+}
+
+function isCoreScenarioRunRecord(value: unknown): value is CoreScenarioRunRecord {
+  return (
+    isRecord(value) &&
+    typeof value.report_file === "string" &&
+    typeof value.report_path === "string" &&
+    typeof value.mission === "string" &&
+    typeof value.scenario === "string" &&
+    isCoreSimulationResultStatus(value.result) &&
+    isNumberRecord(value.summary)
+  );
+}
+
+function isCoreCoverageSummarySource(value: unknown): boolean {
+  return (
+    isCoreReportSource(value) &&
+    isRecord(value) &&
+    typeof value.entity_index === "string" &&
+    typeof value.entity_index_kind === "string" &&
+    typeof value.entity_index_version === "string" &&
+    typeof value.relationship_manifest === "string" &&
+    typeof value.relationship_manifest_kind === "string" &&
+    typeof value.relationship_manifest_version === "string" &&
+    typeof value.scenario_run_index === "string" &&
+    typeof value.scenario_run_index_kind === "string" &&
+    typeof value.scenario_run_index_version === "string"
+  );
+}
+
+function isCoreCoverageSummaryBoundaries(value: unknown): boolean {
+  return isRecord(value) && isBooleanFields(value, [
+    "core_derived_report",
+    "read_only",
+    "contains_coverage_metrics",
+    "contains_health_score",
+    "contains_model_completeness_score",
+    "contains_relationship_graph",
+    "contains_dependency_graph",
+    "contains_yaml_ast",
+    "contains_source_locations",
+    "contains_plugin_api",
+    "contains_studio_api",
+    "contains_runtime_behavior",
+    "contains_ground_behavior",
+    "coverage_derived_from_entity_index",
+    "coverage_derived_from_relationship_manifest",
+    "coverage_derived_from_scenario_run_index",
+    "coverage_derived_from_simulation_json",
+    "coverage_derived_from_logs",
+  ]) && typeof value.source_of_truth === "string";
+}
+
+function isCoreCoverageRecordMap(value: unknown): boolean {
+  return isRecord(value) && Object.values(value).every(isCoreCoverageRecord);
+}
+
+function isCoreCoverageRecord(value: unknown): value is CoreCoverageRecord {
+  return (
+    isRecord(value) &&
+    typeof value.total === "number" &&
+    typeof value.covered === "number" &&
+    typeof value.uncovered === "number" &&
+    isNullableNumber(value.coverage_ratio) &&
+    isStringArray(value.covered_ids) &&
+    isStringArray(value.uncovered_ids)
+  );
+}
+
+function isCoreExpectationCoverage(value: unknown): value is CoreExpectationCoverage {
+  return (
+    isRecord(value) &&
+    typeof value.total === "number" &&
+    typeof value.passed === "number" &&
+    typeof value.failed === "number" &&
+    isNullableNumber(value.pass_ratio) &&
+    isCoreExpectationCoverageByTypeMap(value.by_type)
+  );
+}
+
+function isCoreExpectationCoverageByTypeMap(value: unknown): boolean {
+  return isRecord(value) && Object.values(value).every(isCoreExpectationCoverageByType);
+}
+
+function isCoreExpectationCoverageByType(
+  value: unknown,
+): value is CoreExpectationCoverageByType {
+  return (
+    isRecord(value) &&
+    typeof value.total === "number" &&
+    typeof value.passed === "number" &&
+    typeof value.failed === "number" &&
+    isNullableNumber(value.pass_ratio)
+  );
+}
+
+function isCoreRelationshipCoverage(value: unknown): value is CoreRelationshipCoverage {
+  return (
+    isRecord(value) &&
+    isStringArray(value.supported_relationship_types) &&
+    typeof value.total_supported_relationships === "number" &&
+    typeof value.covered_supported_relationships === "number" &&
+    typeof value.uncovered_supported_relationships === "number" &&
+    isNullableNumber(value.coverage_ratio) &&
+    isStringArray(value.covered_relationship_ids) &&
+    isStringArray(value.uncovered_relationship_ids) &&
+    isCoreCoverageRecordMap(value.by_type)
+  );
+}
+
+function isCoreUnsupportedCoverageScope(value: unknown): value is CoreUnsupportedCoverageScope {
+  return (
+    isRecord(value) &&
+    isStringArray(value.entity_domains) &&
+    isStringArray(value.relationship_types) &&
+    typeof value.reason === "string"
+  );
+}
+
+function isNullableNumber(value: unknown): value is number | null {
+  return typeof value === "number" || value === null;
+}
+
+function isBooleanFields(value: Record<string, unknown>, fields: string[]): boolean {
+  return fields.every((field) => typeof value[field] === "boolean");
 }
