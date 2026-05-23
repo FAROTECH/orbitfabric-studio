@@ -982,6 +982,48 @@ h3 {
   justify-content: flex-start;
 }
 
+/* Keep Inspector records readable inside the narrow contextual sidebar. */
+.contextual-inspector,
+.contextual-inspector * {
+  min-width: 0;
+}
+
+.contextual-inspector .inspector-section {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.contextual-inspector .inspector-section strong,
+.contextual-inspector .inspector-section span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.contextual-inspector .inspector-badge-row,
+.contextual-inspector .badge-row {
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-start;
+}
+
+.raw-output-block {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  margin: 0;
+  padding: 10px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.42);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 
 .reserved-surfaces-panel {
   border: 1px solid rgba(148, 163, 184, 0.18);

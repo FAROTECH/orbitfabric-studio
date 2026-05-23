@@ -84,6 +84,20 @@ const reservedSurfaceItems = [
   },
 ] as const;
 
+type SimulationInspectorRecordKind =
+  | "timeline"
+  | "event"
+  | "command"
+  | "modeTransition"
+  | "dataFlowEvidence"
+  | "failedExpectation";
+
+interface SimulationInspectorRecord {
+  kind: SimulationInspectorRecordKind;
+  title: string;
+  record: unknown;
+}
+
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
@@ -97,6 +111,8 @@ function App() {
     useState<GeneratedEvidenceArtifactSummary | null>(null);
   const [generatedArtifactRefreshToken, setGeneratedArtifactRefreshToken] =
     useState(0);
+  const [selectedSimulationRecord, setSelectedSimulationRecord] =
+    useState<SimulationInspectorRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
@@ -114,6 +130,7 @@ function App() {
     setSelectedGeneratedArtifact(null);
     setGeneratedEvidenceArtifactSummary(null);
     setGeneratedArtifactRefreshToken(0);
+    setSelectedSimulationRecord(null);
     setIsOpening(true);
 
     try {
@@ -146,6 +163,7 @@ function App() {
 
     setViewerError(null);
     setSelectedGeneratedArtifact(null);
+    setSelectedSimulationRecord(null);
     setIsReadingFile(true);
 
     try {
@@ -160,6 +178,18 @@ function App() {
     } finally {
       setIsReadingFile(false);
     }
+  }
+
+  function handleGeneratedArtifactSelectionChange(
+    artifact: GeneratedArtifactInspectorItem | null,
+  ) {
+    setSelectedGeneratedArtifact(artifact);
+    setSelectedSimulationRecord(null);
+  }
+
+  function handleSelectSimulationRecord(record: SimulationInspectorRecord) {
+    setSelectedSimulationRecord(record);
+    setSelectedGeneratedArtifact(null);
   }
 
   async function handleCoreVersion() {
@@ -236,6 +266,8 @@ function App() {
       setCoreError("Only scenario source files can be executed through Core.");
       return;
     }
+
+    setSelectedSimulationRecord(null);
 
     const result = await runCoreCommand("run_core_sim_scenario", {
       executable: coreExecutable,
@@ -396,6 +428,7 @@ function App() {
               isRunningCoreCommand={isRunningCoreCommand}
               onOpenFile={handleOpenFile}
               onRunScenario={handleCoreSimScenario}
+              onSelectSimulationRecord={handleSelectSimulationRecord}
             />
           ) : null}
 
@@ -420,7 +453,7 @@ function App() {
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
               generatedArtifactRefreshToken={generatedArtifactRefreshToken}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
-              onGeneratedArtifactSelectionChange={setSelectedGeneratedArtifact}
+              onGeneratedArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
               onGeneratedEvidenceArtifactSummaryChange={setGeneratedEvidenceArtifactSummary}
               onOpenFile={handleOpenFile}
             />
@@ -433,6 +466,7 @@ function App() {
           workspace={workspace}
           selectedFile={selectedFile}
           selectedGeneratedArtifact={selectedGeneratedArtifact}
+          selectedSimulationRecord={selectedSimulationRecord}
           coreResult={coreResult}
         />
       </div>
@@ -508,14 +542,22 @@ function InspectorPanel({
   workspace,
   selectedFile,
   selectedGeneratedArtifact,
+  selectedSimulationRecord,
   coreResult,
 }: {
   workspace: WorkspaceInspection | null;
   selectedFile: FileContent | null;
   selectedGeneratedArtifact: GeneratedArtifactInspectorItem | null;
+  selectedSimulationRecord: SimulationInspectorRecord | null;
   coreResult: CoreCommandResult | null;
 }) {
-  const hasSelection = Boolean(selectedFile || selectedGeneratedArtifact || coreResult || workspace);
+  const hasSelection = Boolean(
+    selectedFile ||
+      selectedGeneratedArtifact ||
+      selectedSimulationRecord ||
+      coreResult ||
+      workspace,
+  );
   const selectedFileIsScenarioSource = Boolean(
     selectedFile &&
       workspace?.scenario_files.some((entry) => entry.path === selectedFile.path),
@@ -555,7 +597,22 @@ function InspectorPanel({
 
       <div className="inspector-section">
         <h3>Selected object</h3>
-        {selectedGeneratedArtifact ? (
+        {selectedSimulationRecord ? (
+          <>
+            <div className="badge-row inspector-badge-row">
+              <ProvenanceBadge label="CORE-DERIVED" />
+              <StatusBadge label={selectedSimulationRecord.kind.toUpperCase()} />
+              <ProvenanceBadge label="READ-ONLY" />
+            </div>
+            <strong>{selectedSimulationRecord.title}</strong>
+            <span>Kind: {selectedSimulationRecord.kind}</span>
+            <span>Source: structured `orbitfabric-sim` JSON report</span>
+            <span>No source link is inferred by Studio.</span>
+            <pre className="raw-output-block">
+              {formatUnknownBlock(selectedSimulationRecord.record)}
+            </pre>
+          </>
+        ) : selectedGeneratedArtifact ? (
           <>
             <div className="badge-row inspector-badge-row">
               <ProvenanceBadge label="GENERATED" />
@@ -643,6 +700,7 @@ function ScenarioEvidenceSurface({
   isRunningCoreCommand,
   onOpenFile,
   onRunScenario,
+  onSelectSimulationRecord,
 }: {
   workspace: WorkspaceInspection;
   generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
@@ -652,6 +710,7 @@ function ScenarioEvidenceSurface({
   isRunningCoreCommand: boolean;
   onOpenFile: (entry: ProjectEntry) => void;
   onRunScenario: (entry: ProjectEntry) => void;
+  onSelectSimulationRecord: (record: SimulationInspectorRecord) => void;
 }) {
   const scenarioFiles = workspace.scenario_files;
   const evidenceArtifactCandidates = generatedEvidenceArtifactSummary
@@ -735,11 +794,17 @@ function ScenarioEvidenceSurface({
         simulationReportSource={simulationReportSource}
       />
 
-      <SimulationReportRecordsPanel simulationReport={simulationReport} />
+      <SimulationReportRecordsPanel
+        simulationReport={simulationReport}
+        onSelectSimulationRecord={onSelectSimulationRecord}
+      />
 
       <SimulationLogLinkPanel coreResult={coreResult} onOpenFile={onOpenFile} />
 
-      <SimulationReportEvidencePanel simulationReport={simulationReport} />
+      <SimulationReportEvidencePanel
+        simulationReport={simulationReport}
+        onSelectSimulationRecord={onSelectSimulationRecord}
+      />
 
       <section
         className="entry-section"
@@ -970,8 +1035,10 @@ function SimulationReportSummaryPanel({
 
 function SimulationReportRecordsPanel({
   simulationReport,
+  onSelectSimulationRecord,
 }: {
   simulationReport: CoreSimulationReport | null;
+  onSelectSimulationRecord: (record: SimulationInspectorRecord) => void;
 }) {
   return (
     <section
@@ -1015,6 +1082,19 @@ function SimulationReportRecordsPanel({
                     <div className="entry-main">
                       <strong>{entry.rendered}</strong>
                       <StatusBadge label="TIMELINE" />
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onSelectSimulationRecord({
+                            kind: "timeline",
+                            title: entry.rendered,
+                            record: entry,
+                          })
+                        }
+                      >
+                        Inspect record
+                      </button>
                     </div>
                     <div className="command-meta">
                       <span>t: {entry.t}</span>
@@ -1038,6 +1118,19 @@ function SimulationReportRecordsPanel({
                     <div className="entry-main">
                       <strong>{event.event_id}</strong>
                       <StatusBadge label={event.severity} />
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onSelectSimulationRecord({
+                            kind: "event",
+                            title: event.event_id,
+                            record: event,
+                          })
+                        }
+                      >
+                        Inspect record
+                      </button>
                     </div>
                     <div className="command-meta">
                       <span>t: {event.t}</span>
@@ -1060,6 +1153,19 @@ function SimulationReportRecordsPanel({
                     <div className="entry-main">
                       <strong>{command.command_id}</strong>
                       <StatusBadge label={command.status} />
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onSelectSimulationRecord({
+                            kind: "command",
+                            title: command.command_id,
+                            record: command,
+                          })
+                        }
+                      >
+                        Inspect record
+                      </button>
                     </div>
                     <div className="command-meta">
                       <span>t: {command.t}</span>
@@ -1083,6 +1189,19 @@ function SimulationReportRecordsPanel({
                     <div className="entry-main">
                       <strong>{transition.from}{" -> "}{transition.to}</strong>
                       <StatusBadge label="MODE CHANGE" />
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onSelectSimulationRecord({
+                            kind: "modeTransition",
+                            title: `${transition.from} -> ${transition.to}`,
+                            record: transition,
+                          })
+                        }
+                      >
+                        Inspect record
+                      </button>
                     </div>
                     <div className="command-meta">
                       <span>t: {transition.t}</span>
@@ -1182,8 +1301,10 @@ function fileNameFromPath(path: string): string {
 
 function SimulationReportEvidencePanel({
   simulationReport,
+  onSelectSimulationRecord,
 }: {
   simulationReport: CoreSimulationReport | null;
+  onSelectSimulationRecord: (record: SimulationInspectorRecord) => void;
 }) {
   return (
     <section
@@ -1228,6 +1349,19 @@ function SimulationReportEvidencePanel({
                     <div className="entry-main">
                       <strong>{record.data_product_id ?? "unnamed data-flow evidence"}</strong>
                       <StatusBadge label="DATA-FLOW EVIDENCE" />
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onSelectSimulationRecord({
+                            kind: "dataFlowEvidence",
+                            title: record.data_product_id ?? "unnamed data-flow evidence",
+                            record,
+                          })
+                        }
+                      >
+                        Inspect record
+                      </button>
                     </div>
                     <div className="command-meta">
                       <span>t: {record.t}</span>
@@ -1266,6 +1400,19 @@ function SimulationReportEvidencePanel({
                     <div className="entry-main">
                       <strong>Failed expectation {index + 1}</strong>
                       <StatusBadge label="FAILED EXPECTATION" />
+                      <button
+                        className="entry-button"
+                        type="button"
+                        onClick={() =>
+                          onSelectSimulationRecord({
+                            kind: "failedExpectation",
+                            title: `Failed expectation ${index + 1}`,
+                            record: expectation,
+                          })
+                        }
+                      >
+                        Inspect record
+                      </button>
                     </div>
                     <pre className="raw-output-block">
                       {formatSimulationBlock(expectation)}
@@ -1309,6 +1456,14 @@ function formatSimulationValue(value: CoreSimulationJsonValue | undefined): stri
 }
 
 function formatSimulationBlock(value: CoreSimulationJsonValue): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value, null, 2);
+}
+
+function formatUnknownBlock(value: unknown): string {
   if (typeof value === "string") {
     return value;
   }
