@@ -16,6 +16,7 @@ import {
   parseCoreLintReport,
   parseCoreModelSummary,
   parseCoreRelationshipManifest,
+  parseCoreSimulationReport,
 } from "./coreReports";
 import type {
   CoreCommandResult,
@@ -29,6 +30,7 @@ import type {
   CoreRelationshipManifest,
   CoreRelationshipRecord,
   CoreRelationshipType,
+  CoreSimulationReport,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
@@ -236,6 +238,16 @@ function App() {
   }
 
   const coreReportContent = coreResult?.json_report_content ?? null;
+  const coreSimulationReport = parseCoreSimulationReport(coreReportContent);
+  const selectedFileSimulationReport = parseCoreSimulationReport(
+    selectedFile?.content ?? null,
+  );
+  const simulationReport = selectedFileSimulationReport ?? coreSimulationReport;
+  const simulationReportSource = selectedFileSimulationReport
+    ? "selected file preview"
+    : coreSimulationReport
+      ? "Core command output"
+      : null;
   const hasCoreModelSummary = Boolean(parseCoreModelSummary(coreReportContent));
   const hasCoreEntityIndex = Boolean(parseCoreEntityIndex(coreReportContent));
   const hasCoreRelationshipManifest = Boolean(
@@ -347,6 +359,8 @@ function App() {
             <ScenarioEvidenceSurface
               workspace={workspace}
               generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
+              simulationReport={simulationReport}
+              simulationReportSource={simulationReportSource}
               onOpenFile={handleOpenFile}
             />
           ) : null}
@@ -586,10 +600,14 @@ function InspectorPanel({
 function ScenarioEvidenceSurface({
   workspace,
   generatedEvidenceArtifactSummary,
+  simulationReport,
+  simulationReportSource,
   onOpenFile,
 }: {
   workspace: WorkspaceInspection;
   generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
+  simulationReport: CoreSimulationReport | null;
+  simulationReportSource: string | null;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   const scenarioFiles = workspace.scenario_files;
@@ -625,6 +643,10 @@ function ScenarioEvidenceSurface({
       <div className="summary-grid">
         <SummaryItem label="Scenario sources" value={String(scenarioFiles.length)} />
         <SummaryItem label="Execution" value="Not implemented" />
+        <SummaryItem
+          label="Simulation report"
+          value={simulationReport ? simulationReport.result.toUpperCase() : "Not selected"}
+        />
         <SummaryItem
           label="Passive report/log candidates"
           value={
@@ -663,6 +685,11 @@ function ScenarioEvidenceSurface({
           </li>
         </ul>
       </section>
+
+      <SimulationReportSummaryPanel
+        simulationReport={simulationReport}
+        simulationReportSource={simulationReportSource}
+      />
 
       <section
         className="entry-section"
@@ -779,6 +806,104 @@ function ScenarioEvidenceSurface({
           </p>
         )}
       </section>
+    </section>
+  );
+}
+
+
+function SimulationReportSummaryPanel({
+  simulationReport,
+  simulationReportSource,
+}: {
+  simulationReport: CoreSimulationReport | null;
+  simulationReportSource: string | null;
+}) {
+  return (
+    <section
+      className={`entry-section ${simulationReport ? "" : "muted-section"}`}
+      aria-label="Core simulation report summary"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <h3>Core simulation report summary</h3>
+          <p>
+            Read-only rendering of the real OrbitFabric Core `orbitfabric-sim`
+            JSON report. This slice shows only top-level identity, status and
+            summary counts already present in Core output.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <StatusBadge label="SIMULATION REPORT" />
+          <ProvenanceBadge label="READ-ONLY" />
+        </div>
+      </div>
+
+      {simulationReport ? (
+        <>
+          <div className="summary-grid">
+            <SummaryItem label="Mission" value={simulationReport.mission} />
+            <SummaryItem label="Scenario" value={simulationReport.scenario} />
+            <SummaryItem
+              label="Result"
+              value={simulationReport.result.toUpperCase()}
+            />
+            <SummaryItem label="Core version" value={simulationReport.version} />
+            <SummaryItem
+              label="Timeline entries"
+              value={String(simulationReport.timeline.length)}
+            />
+            <SummaryItem
+              label="Events"
+              value={String(simulationReport.summary.events)}
+            />
+            <SummaryItem
+              label="Commands"
+              value={String(simulationReport.summary.commands)}
+            />
+            <SummaryItem
+              label="Mode transitions"
+              value={String(simulationReport.summary.mode_transitions)}
+            />
+            <SummaryItem
+              label="Data-flow evidence"
+              value={String(simulationReport.summary.data_flow_evidence)}
+            />
+            <SummaryItem
+              label="Failed expectations"
+              value={String(simulationReport.summary.failed_expectations)}
+            />
+            <SummaryItem label="Final mode" value={simulationReport.final_state.mode} />
+            <SummaryItem
+              label="Source"
+              value={simulationReportSource ?? "Core simulation JSON"}
+            />
+          </div>
+
+          <div className="badge-row inspector-badge-row">
+            <StatusBadge
+              label={simulationReport.result === "passed" ? "PASS" : "FAIL"}
+            />
+            <StatusBadge label="SUMMARY ONLY" />
+            <ProvenanceBadge label="PREVIEW ONLY" />
+          </div>
+
+          <p>
+            Timeline, events, commands, mode transitions, data-flow evidence and
+            failed expectation details are intentionally not expanded in this
+            slice. Studio does not show passed expectations, coverage, dedicated
+            telemetry effects or produced data products unless Core exposes them
+            as structured fields.
+          </p>
+        </>
+      ) : (
+        <p className="empty-text">
+          No valid `orbitfabric-sim` JSON report is selected. Select a generated
+          simulation JSON report candidate, or wait for a future controlled Run
+          Scenario slice. Studio does not infer scenario status from non-simulation
+          reports or logs.
+        </p>
+      )}
     </section>
   );
 }
