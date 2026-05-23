@@ -34,16 +34,16 @@ charter
   -> stable mission contract engineering workbench
 ```
 
-The released v0.6.0 loop is:
+The released v0.7.0 loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts -> Review Reserved Surfaces
+Open -> Select Scenario -> Run Scenario through Core -> Inspect Evidence -> Review Reports and Logs
 ```
 
 The next roadmap loop is:
 
 ```text
-Run Scenario -> Inspect Evidence -> Understand Contract Behavior
+Inspect Coverage -> Understand Gaps -> Navigate Evidence
 ```
 
 This does not mean that Studio is only a post-processing viewer for already-completed contracts.
@@ -714,47 +714,45 @@ docs/roadmap/studio-target-ux-realization-matrix.md
 
 # v0.7.0 - Scenario Evidence Explorer
 
-Status: Active  
+Status: Completed  
 Nature: evidence inspection slice  
-Primary loop: Run Scenario -> Inspect Evidence -> Understand Contract Behavior
+Primary loop: Run Scenario through Core -> Inspect Evidence -> Review Reports and Logs
 
 ## Goal
 
-Make deterministic scenario evidence navigable.
+Make deterministic scenario evidence navigable without moving scenario semantics into Studio.
 
-Studio must inspect evidence produced by OrbitFabric Core.
+Studio inspects evidence produced by OrbitFabric Core.
 
-Studio must not simulate independently from Core.
+Studio does not simulate independently from Core.
 
-## Candidate Capabilities
+## Implemented Capabilities
 
-- list available scenarios
-- run a scenario through a fixed OrbitFabric Core command, if this remains part of the approved Studio boundary
-- detect and load Core-produced scenario evidence outputs
-- display scenario execution status
-- display scenario input metadata
-- display scenario timeline
-- display expectations
-- display passed expectations
-- display failed expectations
-- display events
-- display telemetry effects
-- display mode changes
-- display produced or expected data products
-- display report JSON
-- display associated logs
-- display an evidence chain view
-- open generated evidence files read-only
-- link scenario evidence to related Mission Model entities when Core provides safe references
+- list scenario source files from workspace inspection
+- preview scenario source files read-only
+- discover generated report/log candidates passively
+- parse the real Core `tool: orbitfabric-sim` simulation JSON report
+- render Core simulation report summary
+- render Core simulation timeline
+- render Core simulation events
+- render Core simulation commands
+- render Core simulation mode transitions
+- render Core simulation `data_flow_evidence`
+- render Core simulation `failed_expectations`
+- execute a scenario only through a fixed Core `orbitfabric sim` wrapper
+- use Studio-controlled JSON report paths under `generated/reports`
+- use Studio-controlled text log paths under `generated/logs`
+- refresh generated artifact inventory after successful Core simulation
+- link the associated simulation log as read-only preview
+- bind selected Core simulation records to the contextual Inspector
 
-## OrbitFabric Core Surfaces Expected
+## OrbitFabric Core Surfaces Consumed
 
 - scenario source files
-- scenario execution command or equivalent controlled Core surface
-- scenario report JSON
-- scenario log files
-- structured evidence records, if provided by Core
-- safe references to affected entities, if provided by Core
+- fixed `orbitfabric sim <scenario.yaml> --json <path> --log <path>` command
+- simulation JSON report with `tool: orbitfabric-sim`
+- structured summary, timeline, events, commands, mode transitions, data-flow evidence, final state and failed expectations
+- plain-text simulation log as preview-only artifact
 
 ## Explicit Non-goals
 
@@ -770,10 +768,17 @@ Studio must not simulate independently from Core.
 - no mission control UI
 - no command uplink
 - no live telemetry
+- no log-derived evidence
+- no coverage percentage invented by Studio
+- no mission health score invented by Studio
+- no passed expectation inference
+- no produced data product inference
+- no graph UI
+- no React Flow dependency
 
 ## Exit Criteria
 
-v0.7.0 is complete when Studio can inspect Core-produced scenario evidence through the v0.6.0 application shell, display scenario execution outputs read-only, expose timeline and evidence information without inventing mission behavior, and keep the boundary between scenario source, Core-derived evidence, reports and logs explicit.
+v0.7.0 is complete because Studio can inspect Core-produced scenario evidence through the v0.6.0 application shell, execute scenarios only through a fixed Core command, display scenario execution outputs read-only, expose timeline and evidence information without inventing mission behavior, and keep the boundary among scenario source, Core-derived evidence, reports and logs explicit.
 
 ---
 

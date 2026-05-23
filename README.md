@@ -13,29 +13,29 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.6.0 - Studio Information Architecture & UX Foundation
-Next roadmap baseline: v0.7.0 - Scenario Evidence Explorer
+Current released baseline: v0.7.0 - Scenario Evidence Explorer
+Next roadmap baseline: v0.7.1 - Dashboard and Coverage Foundation
 ```
 
-The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface`, `v0.5.0 - Generated Artifact Explorer` and `v0.6.0 - Studio Information Architecture & UX Foundation` baselines have been created, tagged and released.
+The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface`, `v0.5.0 - Generated Artifact Explorer`, `v0.6.0 - Studio Information Architecture & UX Foundation` and `v0.7.0 - Scenario Evidence Explorer` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.6.0.
+The current implementation baseline is v0.7.0.
 
-The next roadmap milestone is v0.7.0.
+The next roadmap milestone is v0.7.1.
 
-The implemented v0.6.0 product loop is:
+The implemented v0.7.0 product loop is:
 
 ```text
-Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts -> Review Reserved Surfaces
+Open -> Select Scenario -> Run Scenario through Core -> Inspect Evidence -> Review Reports and Logs
 ```
 
 The next roadmap loop is:
 
 ```text
-Run Scenario -> Inspect Evidence -> Understand Contract Behavior
+Inspect Coverage -> Understand Gaps -> Navigate Evidence
 ```
 
-Studio v0.6.0 is a read-only Mission Contract Engineering Workbench foundation.
+Studio v0.7.0 is a read-only Scenario Evidence Explorer built on the Mission Contract Engineering Workbench foundation.
 
 It reorganizes the existing v0.1.0 through v0.5.0 surfaces into a stable application shell with workspace header, primary navigation, main surface, workspace dashboard, provenance badges, normalized navigation surfaces, contextual inspector and reserved future surfaces.
 
@@ -53,7 +53,7 @@ Studio does not infer entities, relationships, source locations, artifact semant
 
 ## Current Implementation State
 
-v0.6.0 currently implements:
+v0.7.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
@@ -109,6 +109,16 @@ Reserved Scenario Evidence surface
 Reserved Ground Integration surface
 Documented graph visualization boundary
 v0.6.0 UX and read-only boundary polish
+Scenario Evidence Explorer surface
+Core simulation JSON report parser for `tool: orbitfabric-sim`
+Core simulation summary rendering
+Core simulation timeline, event, command and mode transition rendering
+Core simulation data-flow evidence and failed expectation rendering
+Controlled Core `orbitfabric sim` command wrapper
+Studio-controlled simulation report/log paths
+Automatic generated artifact refresh after Core simulation
+Read-only simulation log preview linkage
+Simulation evidence record binding in Inspector
 ```
 
 The implemented v0.6.0 loop remains conservative:
@@ -144,7 +154,7 @@ Studio does not parse stdout as diagnostics when a Core JSON report exists.
 
 Studio does not generate arbitrary artifacts.
 
-Studio does not execute scenarios.
+Studio executes scenarios only through the fixed Core `orbitfabric sim` wrapper.
 
 Studio does not edit files.
 
@@ -188,6 +198,48 @@ It does not build relationship semantics privately.
 It does not introduce a dependency graph or relationship graph engine.
 
 ---
+
+## v0.7.0 Released Scope
+
+The v0.7.0 milestone is the Scenario Evidence Explorer.
+
+The released scope is read-only inspection of scenario evidence produced by OrbitFabric Core.
+
+The fixed Core command consumed by Studio is:
+
+```text
+orbitfabric sim <scenario.yaml> --json <studio_report_path> --log <studio_log_path>
+```
+
+The implemented v0.7.0 capabilities are:
+
+- list scenario source files from the selected workspace;
+- preview scenario source files read-only;
+- parse valid Core `tool: orbitfabric-sim` JSON reports;
+- render simulation report identity, result and summary counts;
+- render timeline, events, commands and mode transitions from structured Core JSON;
+- render `data_flow_evidence` and `failed_expectations` from structured Core JSON;
+- execute scenarios only through a fixed Tauri wrapper around `orbitfabric sim`;
+- write Studio-controlled report paths under `generated/reports`;
+- write Studio-controlled log paths under `generated/logs`;
+- refresh the generated artifact inventory after successful Core simulation;
+- preview associated simulation logs read-only;
+- bind selected simulation evidence records to the contextual Inspector.
+
+Explicit v0.7.0 non-goals:
+
+- no private scenario runner;
+- no independent scenario simulation;
+- no dynamic spacecraft simulator;
+- no mission control behavior;
+- no command uplink;
+- no live telemetry;
+- no log-derived evidence;
+- no YAML semantic parsing;
+- no passed expectation inference;
+- no produced data product inference;
+- no coverage percentage or mission health score invented by Studio;
+- no React Flow or graph UI.
 
 ## v0.6.0 Released Scope
 
