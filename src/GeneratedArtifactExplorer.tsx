@@ -90,6 +90,21 @@ export interface GeneratedArtifactInspectorItem {
   extension: string | null;
 }
 
+export interface GeneratedEvidenceArtifactCandidate {
+  name: string;
+  path: string;
+  relativePath: string;
+  artifactClass: GeneratedArtifactClass;
+  knownStatus: GeneratedArtifactKnownStatus;
+  previewStatus: string;
+  reason: string;
+}
+
+export interface GeneratedEvidenceArtifactSummary {
+  reportCandidates: GeneratedEvidenceArtifactCandidate[];
+  logCandidates: GeneratedEvidenceArtifactCandidate[];
+}
+
 interface GeneratedArtifactExplorerPanelProps {
   workspacePath: string;
   onDashboardSummaryChange?: (
@@ -97,6 +112,9 @@ interface GeneratedArtifactExplorerPanelProps {
   ) => void;
   onArtifactSelectionChange?: (
     artifact: GeneratedArtifactInspectorItem | null,
+  ) => void;
+  onEvidenceArtifactSummaryChange?: (
+    summary: GeneratedEvidenceArtifactSummary | null,
   ) => void;
 }
 
@@ -118,6 +136,7 @@ export function GeneratedArtifactExplorerPanel({
   workspacePath,
   onDashboardSummaryChange,
   onArtifactSelectionChange,
+  onEvidenceArtifactSummaryChange,
 }: GeneratedArtifactExplorerPanelProps) {
   const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +154,7 @@ export function GeneratedArtifactExplorerPanel({
     setSelectedArtifactFile(null);
     onDashboardSummaryChange?.(null);
     onArtifactSelectionChange?.(null);
+    onEvidenceArtifactSummaryChange?.(null);
     setIsInspecting(true);
 
     try {
@@ -156,8 +176,12 @@ export function GeneratedArtifactExplorerPanel({
         notPreviewableArtifacts: result.counts.not_previewable_artifacts,
         warningCount: result.warnings.length,
       });
+      onEvidenceArtifactSummaryChange?.(
+        buildGeneratedEvidenceArtifactSummary(nextClassifiedArtifacts),
+      );
     } catch (caught) {
       onDashboardSummaryChange?.(null);
+      onEvidenceArtifactSummaryChange?.(null);
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsInspecting(false);
@@ -419,6 +443,34 @@ function GeneratedArtifactPreviewPanel({
       ) : null}
     </section>
   );
+}
+
+function buildGeneratedEvidenceArtifactSummary(
+  artifacts: ClassifiedGeneratedArtifactEntry[],
+): GeneratedEvidenceArtifactSummary {
+  return {
+    reportCandidates: artifacts
+      .filter((artifact) => artifact.artifact_class === "reports")
+      .map(toGeneratedEvidenceArtifactCandidate),
+    logCandidates: artifacts
+      .filter((artifact) => artifact.artifact_class === "logs")
+      .map(toGeneratedEvidenceArtifactCandidate),
+  };
+}
+
+function toGeneratedEvidenceArtifactCandidate(
+  artifact: ClassifiedGeneratedArtifactEntry,
+): GeneratedEvidenceArtifactCandidate {
+  return {
+    name: artifact.name,
+    path: artifact.path,
+    relativePath: artifact.relative_path,
+    artifactClass: artifact.artifact_class,
+    knownStatus: artifact.known_status,
+    previewStatus: artifact.preview_status,
+    reason:
+      "Passive report/log candidate only. Studio does not parse this file as scenario evidence in this slice.",
+  };
 }
 
 function toGeneratedArtifactInspectorItem(
