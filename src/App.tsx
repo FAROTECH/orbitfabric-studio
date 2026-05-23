@@ -30,6 +30,7 @@ import type {
   CoreRelationshipManifest,
   CoreRelationshipRecord,
   CoreRelationshipType,
+  CoreSimulationJsonValue,
   CoreSimulationReport,
   FileContent,
   ProjectEntry,
@@ -693,6 +694,8 @@ function ScenarioEvidenceSurface({
 
       <SimulationReportRecordsPanel simulationReport={simulationReport} />
 
+      <SimulationReportEvidencePanel simulationReport={simulationReport} />
+
       <section
         className="entry-section"
         aria-label="Passive scenario report and log discovery"
@@ -891,8 +894,9 @@ function SimulationReportSummaryPanel({
           </div>
 
           <p>
-            Data-flow evidence and failed expectation details are intentionally
-            not expanded in this slice. Studio does not show passed expectations,
+            Timeline, event, command, mode transition, data-flow evidence and
+            failed expectation sections are rendered only from structured Core
+            simulation JSON fields. Studio does not show passed expectations,
             coverage, dedicated telemetry effects or produced data products
             unless Core exposes them as structured fields.
           </p>
@@ -941,10 +945,10 @@ function SimulationReportRecordsPanel({
           <section className="entry-section muted-section" aria-label="Simulation record boundary">
             <h3>Record boundary</h3>
             <p>
-              This slice expands only timeline entries, events, commands and mode
+              This slice expands timeline entries, events, commands and mode
               transitions already present in the Core simulation JSON report.
-              Data-flow evidence and failed expectation details remain summarized
-              until their dedicated rendering slice.
+              Data-flow evidence and failed expectations are rendered separately
+              from their own structured Core fields.
             </p>
           </section>
 
@@ -1048,6 +1052,143 @@ function SimulationReportRecordsPanel({
       )}
     </section>
   );
+}
+
+
+function SimulationReportEvidencePanel({
+  simulationReport,
+}: {
+  simulationReport: CoreSimulationReport | null;
+}) {
+  return (
+    <section
+      className={`entry-section ${simulationReport ? "" : "muted-section"}`}
+      aria-label="Core simulation data-flow evidence and failed expectations"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <h3>Core simulation data-flow evidence</h3>
+          <p>
+            Read-only rendering of `data_flow_evidence` and
+            `failed_expectations` records already present in the selected
+            `orbitfabric-sim` JSON report. Studio does not infer produced data
+            products, passed expectations or coverage.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="CORE-DERIVED" />
+          <StatusBadge label="EVIDENCE RECORDS" />
+          <ProvenanceBadge label="READ-ONLY" />
+        </div>
+      </div>
+
+      {simulationReport ? (
+        <>
+          <section className="entry-section muted-section" aria-label="Simulation evidence boundary">
+            <h3>Evidence boundary</h3>
+            <p>
+              Data-flow records are shown as Core-reported evidence records only.
+              They are not presented as proof of real onboard production,
+              downlink completion or runtime storage behavior. Failed expectations
+              are shown only when Core reports them.
+            </p>
+          </section>
+
+          <section className="entry-section" aria-label="Simulation data-flow evidence">
+            <h3>Data-flow evidence</h3>
+            {simulationReport.data_flow_evidence.length > 0 ? (
+              <ul className="entry-list">
+                {simulationReport.data_flow_evidence.map((record, index) => (
+                  <li key={`${record.t}-${record.data_product_id ?? "data-flow"}-${index}`}>
+                    <div className="entry-main">
+                      <strong>{record.data_product_id ?? "unnamed data-flow evidence"}</strong>
+                      <StatusBadge label="DATA-FLOW EVIDENCE" />
+                    </div>
+                    <div className="command-meta">
+                      <span>t: {record.t}</span>
+                      <span>producer: {record.producer ?? "not reported"}</span>
+                      <span>producer type: {record.producer_type ?? "not reported"}</span>
+                      <span>triggered by command: {record.triggered_by_command ?? "not reported"}</span>
+                      <span>
+                        storage intent: {formatSimulationValue(record.storage_intent)}
+                      </span>
+                      <span>
+                        downlink intent: {formatSimulationValue(record.downlink_intent)}
+                      </span>
+                      <span>
+                        eligible flows: {formatStringList(record.eligible_downlink_flows)}
+                      </span>
+                      <span>
+                        contact windows: {formatStringList(record.contact_windows)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">
+                No data-flow evidence records are present in this Core report.
+              </p>
+            )}
+          </section>
+
+          <section className="entry-section" aria-label="Simulation failed expectations">
+            <h3>Failed expectations</h3>
+            {simulationReport.failed_expectations.length > 0 ? (
+              <ul className="entry-list">
+                {simulationReport.failed_expectations.map((expectation, index) => (
+                  <li key={`failed-expectation-${index}`}>
+                    <div className="entry-main">
+                      <strong>Failed expectation {index + 1}</strong>
+                      <StatusBadge label="FAILED EXPECTATION" />
+                    </div>
+                    <pre className="raw-output-block">
+                      {formatSimulationBlock(expectation)}
+                    </pre>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">
+                No failed expectations are present in this Core report. Studio
+                does not infer passed expectations from this absence.
+              </p>
+            )}
+          </section>
+        </>
+      ) : (
+        <p className="empty-text">
+          No valid `orbitfabric-sim` JSON report is selected. Data-flow evidence
+          and failed expectations are not inferred from source YAML, generated
+          reports or logs.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function formatStringList(value: string[] | undefined): string {
+  return value && value.length > 0 ? value.join(", ") : "not reported";
+}
+
+function formatSimulationValue(value: CoreSimulationJsonValue | undefined): string {
+  if (value === undefined) {
+    return "not reported";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value);
+}
+
+function formatSimulationBlock(value: CoreSimulationJsonValue): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value, null, 2);
 }
 
 
