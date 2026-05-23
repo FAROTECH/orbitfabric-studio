@@ -11,7 +11,61 @@ import type {
   CoreRelationshipManifest,
   CoreRelationshipRecord,
   CoreRelationshipType,
+  CoreSimulationCommandRecord,
+  CoreSimulationDataFlowEvidenceRecord,
+  CoreSimulationEventRecord,
+  CoreSimulationFinalState,
+  CoreSimulationJsonValue,
+  CoreSimulationModeTransitionRecord,
+  CoreSimulationReport,
+  CoreSimulationResultStatus,
+  CoreSimulationSummary,
+  CoreSimulationTimelineEntry,
 } from "./types/workspace";
+
+export function parseCoreSimulationReport(
+  content: string | null,
+): CoreSimulationReport | null {
+  if (!content) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(content);
+
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    if (
+      parsed.tool !== "orbitfabric-sim" ||
+      typeof parsed.version !== "string" ||
+      typeof parsed.mission !== "string" ||
+      typeof parsed.scenario !== "string" ||
+      !isCoreSimulationResultStatus(parsed.result) ||
+      !isCoreSimulationSummary(parsed.summary) ||
+      !Array.isArray(parsed.timeline) ||
+      !parsed.timeline.every(isCoreSimulationTimelineEntry) ||
+      !Array.isArray(parsed.events) ||
+      !parsed.events.every(isCoreSimulationEventRecord) ||
+      !Array.isArray(parsed.commands) ||
+      !parsed.commands.every(isCoreSimulationCommandRecord) ||
+      !Array.isArray(parsed.mode_transitions) ||
+      !parsed.mode_transitions.every(isCoreSimulationModeTransitionRecord) ||
+      !Array.isArray(parsed.data_flow_evidence) ||
+      !parsed.data_flow_evidence.every(isCoreSimulationDataFlowEvidenceRecord) ||
+      !isCoreSimulationFinalState(parsed.final_state) ||
+      !Array.isArray(parsed.failed_expectations) ||
+      !parsed.failed_expectations.every(isJsonValue)
+    ) {
+      return null;
+    }
+
+    return parsed as unknown as CoreSimulationReport;
+  } catch {
+    return null;
+  }
+}
 
 export function parseCoreLintReport(content: string | null): CoreLintReport | null {
   if (!content) {
@@ -162,6 +216,141 @@ function isNumberRecord(value: unknown): value is Record<string, number> {
 
 function isNullableString(value: unknown): value is string | null {
   return typeof value === "string" || value === null;
+}
+
+function isJsonValue(value: unknown): value is CoreSimulationJsonValue {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    value === null
+  ) {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return value.every(isJsonValue);
+  }
+
+  if (isRecord(value)) {
+    return Object.values(value).every(isJsonValue);
+  }
+
+  return false;
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string");
+}
+
+function isCoreSimulationResultStatus(
+  value: unknown,
+): value is CoreSimulationResultStatus {
+  return value === "passed" || value === "failed";
+}
+
+function isCoreSimulationSummary(value: unknown): value is CoreSimulationSummary {
+  return (
+    isRecord(value) &&
+    typeof value.events === "number" &&
+    typeof value.commands === "number" &&
+    typeof value.mode_transitions === "number" &&
+    typeof value.data_flow_evidence === "number" &&
+    typeof value.failed_expectations === "number"
+  );
+}
+
+function isCoreSimulationTimelineEntry(
+  value: unknown,
+): value is CoreSimulationTimelineEntry {
+  return (
+    isRecord(value) &&
+    typeof value.t === "number" &&
+    typeof value.time === "string" &&
+    typeof value.message === "string" &&
+    typeof value.rendered === "string"
+  );
+}
+
+function isCoreSimulationEventRecord(
+  value: unknown,
+): value is CoreSimulationEventRecord {
+  return (
+    isRecord(value) &&
+    typeof value.t === "number" &&
+    typeof value.event_id === "string" &&
+    typeof value.severity === "string"
+  );
+}
+
+function isCoreSimulationCommandRecord(
+  value: unknown,
+): value is CoreSimulationCommandRecord {
+  return (
+    isRecord(value) &&
+    typeof value.t === "number" &&
+    typeof value.command_id === "string" &&
+    typeof value.status === "string" &&
+    typeof value.dispatch === "string"
+  );
+}
+
+function isCoreSimulationModeTransitionRecord(
+  value: unknown,
+): value is CoreSimulationModeTransitionRecord {
+  return (
+    isRecord(value) &&
+    typeof value.t === "number" &&
+    typeof value.from === "string" &&
+    typeof value.to === "string" &&
+    typeof value.reason === "string"
+  );
+}
+
+function isOptionalString(value: unknown): value is string | undefined {
+  return typeof value === "string" || value === undefined;
+}
+
+function isOptionalStringArray(value: unknown): value is string[] | undefined {
+  return value === undefined || isStringArray(value);
+}
+
+function isOptionalJsonRecord(
+  value: unknown,
+): value is { [key: string]: CoreSimulationJsonValue } | undefined {
+  return (
+    value === undefined ||
+    (isRecord(value) && Object.values(value).every(isJsonValue))
+  );
+}
+
+function isCoreSimulationDataFlowEvidenceRecord(
+  value: unknown,
+): value is CoreSimulationDataFlowEvidenceRecord {
+  return (
+    isRecord(value) &&
+    typeof value.t === "number" &&
+    isOptionalString(value.data_product_id) &&
+    isOptionalString(value.producer) &&
+    isOptionalString(value.producer_type) &&
+    isOptionalString(value.triggered_by_command) &&
+    isOptionalJsonRecord(value.storage_intent) &&
+    isOptionalJsonRecord(value.downlink_intent) &&
+    isOptionalStringArray(value.eligible_downlink_flows) &&
+    isOptionalStringArray(value.contact_windows) &&
+    Object.values(value).every(
+      (entry) => entry === undefined || isJsonValue(entry),
+    )
+  );
+}
+
+function isCoreSimulationFinalState(value: unknown): value is CoreSimulationFinalState {
+  return (
+    isRecord(value) &&
+    typeof value.mode === "string" &&
+    isRecord(value.telemetry) &&
+    Object.values(value.telemetry).every(isJsonValue)
+  );
 }
 
 function isCoreReportMissionIdentity(value: unknown): boolean {

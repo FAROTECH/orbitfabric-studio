@@ -97,6 +97,87 @@ export interface CoreCommandResult {
   json_report_content: string | null;
 }
 
+export type CoreSimulationResultStatus = "passed" | "failed";
+
+export type CoreSimulationJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | CoreSimulationJsonValue[]
+  | { [key: string]: CoreSimulationJsonValue };
+
+export interface CoreSimulationReport {
+  tool: "orbitfabric-sim";
+  version: string;
+  mission: string;
+  scenario: string;
+  result: CoreSimulationResultStatus;
+  summary: CoreSimulationSummary;
+  timeline: CoreSimulationTimelineEntry[];
+  events: CoreSimulationEventRecord[];
+  commands: CoreSimulationCommandRecord[];
+  mode_transitions: CoreSimulationModeTransitionRecord[];
+  data_flow_evidence: CoreSimulationDataFlowEvidenceRecord[];
+  final_state: CoreSimulationFinalState;
+  failed_expectations: CoreSimulationFailedExpectation[];
+}
+
+export interface CoreSimulationSummary {
+  events: number;
+  commands: number;
+  mode_transitions: number;
+  data_flow_evidence: number;
+  failed_expectations: number;
+}
+
+export interface CoreSimulationTimelineEntry {
+  t: number;
+  time: string;
+  message: string;
+  rendered: string;
+}
+
+export interface CoreSimulationEventRecord {
+  t: number;
+  event_id: string;
+  severity: string;
+}
+
+export interface CoreSimulationCommandRecord {
+  t: number;
+  command_id: string;
+  status: string;
+  dispatch: string;
+}
+
+export interface CoreSimulationModeTransitionRecord {
+  t: number;
+  from: string;
+  to: string;
+  reason: string;
+}
+
+export interface CoreSimulationDataFlowEvidenceRecord {
+  t: number;
+  data_product_id?: string;
+  producer?: string;
+  producer_type?: string;
+  triggered_by_command?: string;
+  storage_intent?: { [key: string]: CoreSimulationJsonValue };
+  downlink_intent?: { [key: string]: CoreSimulationJsonValue };
+  eligible_downlink_flows?: string[];
+  contact_windows?: string[];
+  [key: string]: CoreSimulationJsonValue | undefined;
+}
+
+export interface CoreSimulationFinalState {
+  mode: string;
+  telemetry: { [key: string]: CoreSimulationJsonValue };
+}
+
+export type CoreSimulationFailedExpectation = CoreSimulationJsonValue;
+
 export interface CoreLintReport {
   tool: string;
   version: string;
