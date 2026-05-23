@@ -4,7 +4,11 @@ import { invoke } from "@tauri-apps/api/core";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
-import { parseCoreDashboardSummary } from "./coreReports";
+import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
+import {
+  parseCoreDashboardSummary,
+  parseCoreScenarioRunIndex,
+} from "./coreReports";
 
 import type {
   FileContent,
@@ -412,9 +416,9 @@ function GeneratedArtifactPreviewPanel({
   previewError: string | null;
   isReadingArtifact: boolean;
 }) {
-  const dashboardSummary = parseCoreDashboardSummary(
-    selectedArtifactFile?.content ?? null,
-  );
+  const reportContent = selectedArtifactFile?.content ?? null;
+  const dashboardSummary = parseCoreDashboardSummary(reportContent);
+  const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
 
   return (
     <section className="file-viewer" aria-label="Generated artifact read-only preview">
@@ -463,6 +467,9 @@ function GeneratedArtifactPreviewPanel({
           />
           {dashboardSummary ? (
             <DashboardSummaryPanel summary={dashboardSummary} />
+          ) : null}
+          {scenarioRunIndex ? (
+            <ScenarioRunIndexPanel index={scenarioRunIndex} />
           ) : null}
         </>
       ) : null}
