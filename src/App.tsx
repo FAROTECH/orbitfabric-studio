@@ -53,31 +53,12 @@ const shellSurfaceItems = [
   { label: "Relationships", status: "available", targetId: "studio-relationships" },
   { label: "Artifacts", status: "available", targetId: "studio-artifacts" },
   { label: "Reports & Logs", status: "available", targetId: "studio-reports-logs" },
-  { label: "Evidence", status: "reserved", targetId: "studio-future-surfaces" },
+  { label: "Evidence", status: "available", targetId: "studio-evidence" },
   { label: "Ground", status: "reserved", targetId: "studio-future-surfaces" },
   { label: "Raw", status: "available", targetId: "studio-raw-output" },
 ] as const;
 
 const reservedSurfaceItems = [
-  {
-    id: "studio-reserved-evidence",
-    title: "Scenario Evidence Explorer",
-    milestone: "v0.7.0",
-    summary:
-      "Reserved for inspecting Core-produced scenario evidence without simulating independently.",
-    allowed: [
-      "Inspect Core-produced scenario evidence",
-      "Show evidence files when Core exposes them",
-      "Explain evidence provenance and preview state",
-      "Keep evidence read-only and Core-derived",
-    ],
-    forbidden: [
-      "No independent scenario simulation",
-      "No mission runtime behavior",
-      "No mission control interface",
-      "No automatic evidence chain inference",
-    ],
-  },
   {
     id: "studio-reserved-ground",
     title: "Ground Integration Artifact Viewer",
@@ -267,7 +248,7 @@ function App() {
     "Reports & Logs": Boolean(
       workspace && workspace.generated_locations.length > 0,
     ),
-    Evidence: false,
+    Evidence: Boolean(workspace),
     Ground: false,
     Raw: Boolean(coreResult),
   };
@@ -357,6 +338,13 @@ function App() {
             coreResult={coreResult}
             generatedArtifactSummary={generatedArtifactSummary}
           />
+
+          {workspace ? (
+            <ScenarioEvidenceSurface
+              workspace={workspace}
+              onOpenFile={handleOpenFile}
+            />
+          ) : null}
 
           <ReservedFutureSurfaces />
 
@@ -473,6 +461,10 @@ function InspectorPanel({
   coreResult: CoreCommandResult | null;
 }) {
   const hasSelection = Boolean(selectedFile || selectedGeneratedArtifact || coreResult || workspace);
+  const selectedFileIsScenarioSource = Boolean(
+    selectedFile &&
+      workspace?.scenario_files.some((entry) => entry.path === selectedFile.path),
+  );
 
   return (
     <aside className="contextual-inspector" aria-label="Contextual inspector">
@@ -538,10 +530,12 @@ function InspectorPanel({
           <>
             <div className="badge-row inspector-badge-row">
               <ProvenanceBadge label="SOURCE" />
+              {selectedFileIsScenarioSource ? <StatusBadge label="SCENARIO SOURCE" /> : null}
               <ProvenanceBadge label="READ-ONLY" />
               <ProvenanceBadge label="PREVIEW ONLY" />
             </div>
             <strong>{selectedFile.name}</strong>
+            <span>Category: {selectedFileIsScenarioSource ? "scenario source" : "source preview"}</span>
             <span>Language: {selectedFile.language}</span>
             <span>Size: {selectedFile.size_bytes} bytes</span>
             <span>Path: {selectedFile.path}</span>
@@ -583,6 +577,113 @@ function InspectorPanel({
 }
 
 
+function ScenarioEvidenceSurface({
+  workspace,
+  onOpenFile,
+}: {
+  workspace: WorkspaceInspection;
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  const scenarioFiles = workspace.scenario_files;
+
+  return (
+    <section
+      id="studio-evidence"
+      className="entry-section scenario-source-surface"
+      aria-label="Scenario Evidence Explorer"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <h3>Scenario Evidence Explorer</h3>
+          <p>
+            v0.7.0 starts with read-only scenario source inspection. Scenario
+            sources are detected structurally from the workspace. Studio does not
+            parse scenario YAML semantically, execute scenarios or infer evidence.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="SOURCE" />
+          <StatusBadge label="SCENARIO SOURCE" />
+          <ProvenanceBadge label="READ-ONLY" />
+        </div>
+      </div>
+
+      <div className="summary-grid">
+        <SummaryItem label="Scenario sources" value={String(scenarioFiles.length)} />
+        <SummaryItem label="Execution" value="Not implemented" />
+        <SummaryItem label="Evidence" value="Requires Core output" />
+      </div>
+
+      <section className="entry-section muted-section" aria-label="Scenario Evidence boundary">
+        <h3>Current boundary</h3>
+        <p>
+          This slice lists scenario source files only. Core-produced scenario
+          reports, timelines, expectations and evidence records will be rendered
+          only after the corresponding Core output contract is verified.
+        </p>
+        <ul className="entry-list">
+          <li>
+            <div className="entry-main">
+              <strong>No scenario execution command is introduced.</strong>
+              <span className="category-badge category-derivedReport">boundary</span>
+            </div>
+          </li>
+          <li>
+            <div className="entry-main">
+              <strong>No scenario status, expectations or timeline are inferred.</strong>
+              <span className="category-badge category-derivedReport">boundary</span>
+            </div>
+          </li>
+          <li>
+            <div className="entry-main">
+              <strong>No mission control, live telemetry or command uplink behavior exists.</strong>
+              <span className="category-badge category-derivedReport">boundary</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section className="entry-section" aria-label="Scenario source files">
+        <h3>Scenario source files</h3>
+        {scenarioFiles.length > 0 ? (
+          <ul className="entry-list">
+            {scenarioFiles.map((scenario) => (
+              <li key={scenario.path}>
+                <div className="entry-main">
+                  <button
+                    className="entry-button"
+                    type="button"
+                    onClick={() => onOpenFile(scenario)}
+                    disabled={scenario.kind !== "file"}
+                  >
+                    {scenario.name}
+                  </button>
+                  <div className="badge-row artifact-entry-badges">
+                    <ProvenanceBadge label="SOURCE" />
+                    <StatusBadge label="SCENARIO SOURCE" />
+                    <ProvenanceBadge label="READ-ONLY" />
+                  </div>
+                </div>
+                <span className="entry-path">{scenario.path}</span>
+                <div className="command-meta">
+                  <span>kind: {scenario.kind}</span>
+                  <span>category: scenario source</span>
+                  <span>semantic parsing: not performed by Studio</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="empty-text">
+            No scenario YAML files were detected in the workspace scenarios area.
+          </p>
+        )}
+      </section>
+    </section>
+  );
+}
+
+
 function ReservedFutureSurfaces() {
   return (
     <section
@@ -594,10 +695,10 @@ function ReservedFutureSurfaces() {
         <div>
           <h2>Reserved future surfaces</h2>
           <p>
-            These slots make the v0.7.0 and v0.8.0 information architecture visible
-            without implementing their domain logic. They are intentionally disabled
-            in the primary navigation and do not provide scenario execution, ground
-            operations or live mission behavior.
+            This slot keeps the next ground-facing roadmap surface visible without
+            implementing its domain logic. It is intentionally disabled in the primary
+            navigation and does not provide ground operations, live mission behavior,
+            command uplink or telemetry archive behavior.
           </p>
         </div>
         <div className="badge-row">
