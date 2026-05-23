@@ -3,6 +3,8 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
+import { parseCoreDashboardSummary } from "./coreReports";
 
 import type {
   FileContent,
@@ -410,6 +412,10 @@ function GeneratedArtifactPreviewPanel({
   previewError: string | null;
   isReadingArtifact: boolean;
 }) {
+  const dashboardSummary = parseCoreDashboardSummary(
+    selectedArtifactFile?.content ?? null,
+  );
+
   return (
     <section className="file-viewer" aria-label="Generated artifact read-only preview">
       <div className="file-viewer-header">
@@ -455,6 +461,9 @@ function GeneratedArtifactPreviewPanel({
               renderLineHighlight: "none",
             }}
           />
+          {dashboardSummary ? (
+            <DashboardSummaryPanel summary={dashboardSummary} />
+          ) : null}
         </>
       ) : null}
     </section>
