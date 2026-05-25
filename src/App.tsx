@@ -1700,6 +1700,7 @@ function WorkspaceDashboard({
     parseCoreSimulationReport(currentReportContent) ??
     coreReportSnapshots.simulationReport;
   const dashboardValidation = dashboardSummary?.validation ?? null;
+  const validationResult = lintReport?.result ?? dashboardValidation?.result ?? null;
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -1708,38 +1709,49 @@ function WorkspaceDashboard({
   );
 
   return (
-    <section id="studio-dashboard" className="workspace-dashboard" aria-label="Workspace dashboard">
-      <div className="file-viewer-header">
+    <section
+      id="studio-dashboard"
+      className="workspace-dashboard dashboard-shell-grid"
+      aria-label="Workspace dashboard"
+    >
+      <div className="file-viewer-header dashboard-shell-header">
         <div>
           <h2>Workspace dashboard</h2>
           <p>
-            Read-only overview of the selected workspace and currently available
-            Core-derived outputs. This is not a mission operations dashboard.
+            Core-derived dashboard shell for the selected workspace. It organizes
+            validation, model inventory, scenario runs, coverage and generated
+            artifact state without becoming a mission operations dashboard.
           </p>
         </div>
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="OVERVIEW" />
+          <StatusBadge label="UX FOUNDATION" />
         </div>
       </div>
 
-      <div className="dashboard-card-grid">
-        <article className="dashboard-card">
-          <h3>Mission summary</h3>
+      <div className="dashboard-kpi-grid" aria-label="Dashboard top status cards">
+        <article className="dashboard-card dashboard-card-prominent">
+          <div className="dashboard-card-header">
+            <h3>Workspace</h3>
+            <StatusBadge label={workspace ? "OPEN" : "UNAVAILABLE"} />
+          </div>
           <strong>{workspace ? "Workspace open" : "No workspace selected"}</strong>
           <span>{workspace?.selected_path ?? "Open a workspace to inspect it."}</span>
-          <span>Mission directory: {workspace?.mission_dir ? "detected" : "not detected"}</span>
-          <span>Generated directory: {workspace?.generated_dir ? "detected" : "not detected"}</span>
+          <div className="dashboard-card-status-row">
+            <span>Mission: {workspace?.mission_dir ? "detected" : "not detected"}</span>
+            <span>Generated: {workspace?.generated_dir ? "detected" : "not detected"}</span>
+          </div>
         </article>
 
-        <article className="dashboard-card">
-          <h3>Validation summary</h3>
-          <strong>
-            {lintReport?.result ?? dashboardValidation?.result ?? "Not available"}
-          </strong>
+        <article className="dashboard-card dashboard-card-prominent">
+          <div className="dashboard-card-header">
+            <h3>Validation status</h3>
+            <StatusBadge label={validationResult ?? "UNAVAILABLE"} />
+          </div>
+          <strong>{validationResult ?? "Not available"}</strong>
           {lintReport || dashboardValidation ? (
-            <>
+            <div className="dashboard-card-status-row">
               <span>
                 Errors: {lintReport?.summary.errors ?? dashboardValidation?.errors}
               </span>
@@ -1749,120 +1761,234 @@ function WorkspaceDashboard({
               <span>
                 Info: {lintReport?.summary.info ?? dashboardValidation?.info}
               </span>
-              <span>
-                Source: {lintReport ? "Core lint report" : "Core dashboard summary"}
-              </span>
-            </>
+            </div>
           ) : (
-            <span>Run Core lint or dashboard-summary to populate this summary.</span>
+            <span>Run Core lint or dashboard-summary to populate this card.</span>
           )}
+          <span className="dashboard-card-meta">
+            Source: {lintReport ? "Core lint report" : dashboardValidation ? "Core dashboard summary" : "unavailable"}
+          </span>
         </article>
 
-        <article className="dashboard-card">
-          <h3>Model inventory</h3>
+        <article className="dashboard-card dashboard-card-prominent">
+          <div className="dashboard-card-header">
+            <h3>Scenario runs</h3>
+            <StatusBadge label={scenarioRunIndex ? "INDEXED" : "UNAVAILABLE"} />
+          </div>
           <strong>
-            {dashboardSummary
-              ? `${dashboardSummary.entity_inventory.total_entities} Core entities`
-              : workspace
-                ? `${workspace.source_model_files.length} source files`
-                : "Not inspected"}
+            {scenarioRunIndex
+              ? `${scenarioRunIndex.summary.total} Core-indexed runs`
+              : "Not available"}
           </strong>
-          {dashboardSummary ? (
-            <>
+          {scenarioRunIndex ? (
+            <div className="dashboard-card-status-row">
+              <span>Passed: {scenarioRunIndex.summary.passed}</span>
+              <span>Failed: {scenarioRunIndex.summary.failed}</span>
+            </div>
+          ) : (
+            <span>Run Core scenario-run-index after producing simulation reports.</span>
+          )}
+          <a className="dashboard-inline-link" href="#studio-evidence">
+            Open evidence surface
+          </a>
+        </article>
+
+        <article className="dashboard-card dashboard-card-prominent">
+          <div className="dashboard-card-header">
+            <h3>Coverage summary</h3>
+            <StatusBadge label={coverageSummary ? "CORE REPORT" : "UNAVAILABLE"} />
+          </div>
+          <strong>{coverageSummary ? "Core coverage available" : "Not available"}</strong>
+          {coverageSummary ? (
+            <div className="dashboard-card-status-row">
+              <span>Runs: {coverageSummary.scenario_runs.total}</span>
               <span>
-                Required domains: {dashboardSummary.model_domains.required.present}/
-                {dashboardSummary.model_domains.required.total}
+                Expectations: {coverageSummary.expectation_coverage.passed}/
+                {coverageSummary.expectation_coverage.total}
               </span>
               <span>
-                Optional domains: {dashboardSummary.model_domains.optional.present}/
-                {dashboardSummary.model_domains.optional.total}
+                Relationship ratio:{" "}
+                {formatDashboardRatio(coverageSummary.relationship_coverage.coverage_ratio)}
               </span>
+            </div>
+          ) : (
+            <span>Run Core coverage-summary after required Core reports exist.</span>
+          )}
+          <span className="dashboard-card-meta">
+            Unsupported scopes stay visible in the coverage report.
+          </span>
+        </article>
+      </div>
+
+      <div className="dashboard-section-grid">
+        <article className="dashboard-section-card dashboard-card-wide">
+          <div className="dashboard-section-title">
+            <div>
+              <h3>Core-derived inventory</h3>
+              <p>
+                Inventory values are shown only from Core reports or workspace
+                structural inspection.
+              </p>
+            </div>
+            <ProvenanceBadge label="CORE-DERIVED" />
+          </div>
+
+          <div className="dashboard-card-grid">
+            <article className="dashboard-card">
+              <h3>Model inventory</h3>
+              <strong>
+                {dashboardSummary
+                  ? `${dashboardSummary.entity_inventory.total_entities} Core entities`
+                  : workspace
+                    ? `${workspace.source_model_files.length} source files`
+                    : "Not inspected"}
+              </strong>
+              {dashboardSummary ? (
+                <>
+                  <span>
+                    Required domains: {dashboardSummary.model_domains.required.present}/
+                    {dashboardSummary.model_domains.required.total}
+                  </span>
+                  <span>
+                    Optional domains: {dashboardSummary.model_domains.optional.present}/
+                    {dashboardSummary.model_domains.optional.total}
+                  </span>
+                  <span>
+                    Entity domains: {Object.keys(dashboardSummary.entity_inventory.domains).length}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>Missing expected files: {workspace?.missing_expected_source_files.length ?? 0}</span>
+                  <span>Scenario files: {workspace?.scenario_files.length ?? 0}</span>
+                  <span>Generated locations: {workspace?.generated_locations.length ?? 0}</span>
+                </>
+              )}
+            </article>
+
+            <article className="dashboard-card">
+              <h3>Relationship inventory</h3>
+              <strong>
+                {dashboardSummary
+                  ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
+                  : "Not available"}
+              </strong>
+              {dashboardSummary ? (
+                <>
+                  <span>
+                    Relationship types:{" "}
+                    {Object.keys(dashboardSummary.relationship_inventory.relationship_types).length}
+                  </span>
+                  <span>Source: Core dashboard summary</span>
+                </>
+              ) : (
+                <span>Run Core dashboard-summary to populate this card.</span>
+              )}
+            </article>
+
+            <article className="dashboard-card">
+              <h3>Generated artifact inventory</h3>
+              <strong>
+                {generatedArtifactSummary
+                  ? `${generatedArtifactSummary.totalArtifacts} artifacts`
+                  : "Not inspected"}
+              </strong>
+              {generatedArtifactSummary ? (
+                <>
+                  <span>Known: {generatedArtifactSummary.knownArtifacts}</span>
+                  <span>Unknown: {generatedArtifactSummary.unknownArtifacts}</span>
+                  <span>Previewable: {generatedArtifactSummary.previewableArtifacts}</span>
+                  <span>Not previewable: {generatedArtifactSummary.notPreviewableArtifacts}</span>
+                </>
+              ) : (
+                <span>Run Generated Artifact Explorer to populate this card.</span>
+              )}
+              <a className="dashboard-inline-link" href="#studio-artifacts">
+                Open generated artifacts
+              </a>
+            </article>
+          </div>
+        </article>
+
+        <article className="dashboard-section-card">
+          <div className="dashboard-section-title">
+            <div>
+              <h3>Reports and logs</h3>
+              <p>Availability state only. Studio does not infer evidence from logs.</p>
+            </div>
+            <StatusBadge label="READ-ONLY" />
+          </div>
+
+          <div className="dashboard-card-grid dashboard-card-grid-single">
+            <article className="dashboard-card">
+              <h3>Generated locations</h3>
+              <strong>Workspace generated area</strong>
+              <span>Reports: {hasReportsLocation ? "detected" : "not detected"}</span>
+              <span>Logs: {hasLogsLocation ? "detected" : "not detected"}</span>
+              <span>Core JSON report: {coreResult?.json_report_available ? "available" : "not available"}</span>
+              <span>Dashboard summary: {dashboardSummary ? "available" : "not available"}</span>
               <span>
-                Relationships: {dashboardSummary.relationship_inventory.total_relationships}
+                Scenario run index:{" "}
+                {scenarioRunIndex ? `${scenarioRunIndex.summary.total} runs` : "not available"}
               </span>
-            </>
-          ) : (
-            <>
-              <span>Missing expected files: {workspace?.missing_expected_source_files.length ?? 0}</span>
-              <span>Scenario files: {workspace?.scenario_files.length ?? 0}</span>
-              <span>Generated locations: {workspace?.generated_locations.length ?? 0}</span>
-            </>
-          )}
+              <span>Coverage summary: {coverageSummary ? "available" : "not available"}</span>
+              <span>Simulation report: {simulationReport ? simulationReport.result : "not available"}</span>
+            </article>
+
+            <article className="dashboard-card">
+              <h3>Warnings</h3>
+              <strong>{workspace?.warnings.length ?? 0} warnings</strong>
+              {workspace && workspace.warnings.length > 0 ? (
+                <ul className="dashboard-card-list">
+                  {workspace.warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              ) : (
+                <span>No structural workspace warnings.</span>
+              )}
+            </article>
+          </div>
         </article>
 
-        <article className="dashboard-card">
-          <h3>Generated artifact inventory</h3>
-          <strong>
-            {generatedArtifactSummary
-              ? `${generatedArtifactSummary.totalArtifacts} artifacts`
-              : "Not inspected"}
-          </strong>
-          {generatedArtifactSummary ? (
-            <>
-              <span>Known: {generatedArtifactSummary.knownArtifacts}</span>
-              <span>Unknown: {generatedArtifactSummary.unknownArtifacts}</span>
-              <span>Previewable: {generatedArtifactSummary.previewableArtifacts}</span>
-              <span>Not previewable: {generatedArtifactSummary.notPreviewableArtifacts}</span>
-            </>
-          ) : (
-            <span>Run Generated Artifact Explorer to populate this summary.</span>
-          )}
-        </article>
+        <article className="dashboard-section-card dashboard-card-muted">
+          <div className="dashboard-section-title">
+            <div>
+              <h3>Boundary and reserved surfaces</h3>
+              <p>
+                This dashboard remains a read-only engineering workbench surface.
+              </p>
+            </div>
+            <StatusBadge label="BOUNDARY" />
+          </div>
 
-        <article className="dashboard-card">
-          <h3>Reports & Logs</h3>
-          <strong>Generated locations</strong>
-          <span>Reports: {hasReportsLocation ? "detected" : "not detected"}</span>
-          <span>Logs: {hasLogsLocation ? "detected" : "not detected"}</span>
-          <span>Core JSON report: {coreResult?.json_report_available ? "available" : "not available"}</span>
-          <span>
-            Dashboard summary: {dashboardSummary ? "available" : "not available"}
-          </span>
-          <span>
-            Scenario run index:{" "}
-            {scenarioRunIndex ? `${scenarioRunIndex.summary.total} runs` : "not available"}
-          </span>
-          <span>
-            Coverage summary: {coverageSummary ? "available" : "not available"}
-          </span>
-          <span>
-            Simulation report: {simulationReport ? simulationReport.result : "not available"}
-          </span>
-        </article>
+          <div className="dashboard-card-grid dashboard-card-grid-single">
+            <article className="dashboard-card">
+              <h3>Read-only boundary</h3>
+              <strong>Enforced by current UI</strong>
+              <span>No Mission Model editing</span>
+              <span>No generated artifact editing</span>
+              <span>No arbitrary command execution</span>
+            </article>
 
-        <article className="dashboard-card">
-          <h3>Read-only boundary</h3>
-          <strong>Enforced by current UI</strong>
-          <span>No Mission Model editing</span>
-          <span>No generated artifact editing</span>
-          <span>No arbitrary command execution</span>
-        </article>
-
-        <article className="dashboard-card surface-card-anchor">
-          <h3>Future surfaces</h3>
-          <strong>Reserved</strong>
-          <span>Evidence: reserved for Core-produced scenario evidence</span>
-          <span>Ground: reserved for generated ground-facing artifacts</span>
-          <span>Detailed reserved slots are shown below the dashboard.</span>
-        </article>
-
-        <article className="dashboard-card">
-          <h3>Warnings</h3>
-          <strong>{workspace?.warnings.length ?? 0} warnings</strong>
-          {workspace && workspace.warnings.length > 0 ? (
-            <ul className="dashboard-card-list">
-              {workspace.warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
-          ) : (
-            <span>No structural workspace warnings.</span>
-          )}
+            <article className="dashboard-card surface-card-anchor">
+              <h3>Future surfaces</h3>
+              <strong>Reserved</strong>
+              <span>Ground: reserved for generated ground-facing artifacts</span>
+              <span>Graph: not implemented in this milestone</span>
+              <span>Authoring: not implemented in this milestone</span>
+            </article>
+          </div>
         </article>
       </div>
     </section>
   );
 }
+
+function formatDashboardRatio(value: number | null | undefined): string {
+  return value === null || value === undefined ? "not reported" : String(value);
+}
+
 
 function WorkspacePanel({
   workspace,
