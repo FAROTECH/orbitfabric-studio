@@ -34,16 +34,16 @@ charter
   -> stable mission contract engineering workbench
 ```
 
-The released v0.7.0 loop is:
+The released v0.7.1 loop is:
 
 ```text
-Open -> Select Scenario -> Run Scenario through Core -> Inspect Evidence -> Review Reports and Logs
+Open -> Run Core Dashboard/Coverage Exports -> Inspect Dashboard Summary -> Inspect Scenario Run Index -> Inspect Coverage Summary
 ```
 
 The next roadmap loop is:
 
 ```text
-Inspect Coverage -> Understand Gaps -> Navigate Evidence
+Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Surfaces
 ```
 
 This does not mean that Studio is only a post-processing viewer for already-completed contracts.
@@ -784,7 +784,7 @@ v0.7.0 is complete because Studio can inspect Core-produced scenario evidence th
 
 # v0.7.1 - Dashboard and Coverage Foundation
 
-Status: Planned  
+Status: Completed  
 Nature: dashboard and coverage foundation slice  
 Primary loop: Inspect Coverage -> Understand Gaps -> Navigate Evidence
 
@@ -794,27 +794,31 @@ Introduce the first serious mission overview dashboard backed by Core-derived su
 
 This milestone turns validation, scenario evidence and contract coverage into coherent dashboard surfaces without inventing coverage semantics inside Studio.
 
-## Candidate Capabilities
+## Implemented Capabilities
 
-- dashboard summary model
-- lint status card
-- scenario coverage card
-- model completeness card
-- data product coverage card
-- commandability coverage card
-- recent validation results
-- recent scenario run summaries
-- cross-links from dashboard cards to source, validation, evidence or artifact surfaces when Core provides safe references
+- Core dashboard summary report type and parser
+- Core scenario run index report type and parser
+- Core coverage summary report type and parser
+- structured expectation accounting fields for Core simulation reports
+- fixed Core dashboard-summary export wrapper
+- fixed Core scenario-run-index export wrapper
+- fixed Core coverage-summary export wrapper
+- read-only dashboard summary rendering
+- read-only scenario run index rendering
+- read-only coverage summary rendering
+- read-only structured expectation accounting rendering
+- generated artifact recognition for dashboard, scenario run index and coverage reports
+- generated artifact preview binding for the new Core report surfaces
+- main UI command binding for dashboard-summary, scenario-run-index and coverage-summary
 - clear distinction between Core-derived coverage and local UI state
 
-## OrbitFabric Core Surfaces Expected
+## OrbitFabric Core Surfaces Consumed
 
-- dashboard summary output, if provided by Core
-- scenario coverage summary
-- model completeness summary
-- data product coverage summary
-- commandability coverage summary
-- stable finding targets or safe references, if provided by Core
+- `orbitfabric export dashboard-summary <mission_dir> --json <path>`
+- `orbitfabric export scenario-run-index --simulation-reports <dir> --json <path>`
+- `orbitfabric export coverage-summary <mission_dir> --entity-index <path> --relationship-manifest <path> --scenario-run-index <path> --json <path>`
+- Core simulation JSON reports with structured expectation accounting, when available
+- generated report files under Studio-controlled `generated/reports` paths
 
 ## Explicit Non-goals
 
@@ -826,13 +830,62 @@ This milestone turns validation, scenario evidence and contract coverage into co
 - no telemetry archive
 - no editing
 - no graph visualization
+- no dashboard UX realization matching the target mockup
 
 ## Exit Criteria
 
-v0.7.1 is complete when Studio can render coverage and dashboard information from Core-derived summaries, show gaps and recent results read-only, and avoid presenting any frontend-inferred percentage as authoritative engineering meaning.
+v0.7.1 is complete because Studio can render dashboard, scenario run index and coverage information from Core-derived summaries, expose structured expectation accounting when Core provides it, refresh generated artifact inventory after successful exports, and avoid presenting any frontend-inferred percentage as authoritative engineering meaning.
+
+The visual dashboard realization target is intentionally deferred to v0.7.2.
 
 
 ---
+
+# v0.7.2 - Core-derived Dashboard UX Realization
+
+Status: Planned  
+Nature: dashboard UX realization slice  
+Primary loop: Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Surfaces
+
+## Goal
+
+Transform the main Studio dashboard into a visual dashboard closer to the accepted target UX direction while preserving the Core-derived boundary.
+
+This milestone is visual and organizational.
+
+It must not introduce new mission semantics.
+
+## Candidate Capabilities
+
+- redesigned dashboard layout shell
+- top KPI row using Core-derived or unavailable states only
+- validation status card from Core lint/dashboard summaries
+- model inventory card from Core dashboard summary/entity index
+- scenario evidence card from Core scenario run index
+- coverage summary cards from Core coverage summary
+- generated artifact cards from generated artifact inventory
+- reserved graph and ground placeholders
+- clearer visual hierarchy, spacing and density
+- improved dashboard navigation to existing read-only surfaces
+
+## Explicit Non-goals
+
+- no private coverage calculation
+- no mission health score
+- no model completeness score unless Core defines one
+- no frontend-defined denominators
+- no live spacecraft health
+- no mission control behavior
+- no graph UI
+- no authoring
+- no editing
+- no generated artifact mutation
+- no arbitrary command execution
+
+## Exit Criteria
+
+v0.7.2 is complete when the dashboard visually reflects the accepted target direction using only source model, Core-derived report, generated artifact and local UI state categories.
+
 
 # v0.8.0 - Ground Integration Artifact Viewer
 
