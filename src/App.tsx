@@ -889,67 +889,125 @@ function InspectorPanel({
       workspace?.scenario_files.some((entry) => entry.path === selectedFile.path),
   );
 
+  const selectedTitle =
+    selectedSimulationRecord?.title ??
+    selectedGeneratedArtifact?.name ??
+    selectedFile?.name ??
+    selectedDetail?.title ??
+    (workspace ? "Workspace inspection" : "No selection");
+
+  const selectedKind =
+    selectedSimulationRecord?.kind ??
+    selectedGeneratedArtifact?.artifactClass ??
+    (selectedFileIsScenarioSource
+      ? "scenario source"
+      : selectedFile
+        ? "source file"
+        : selectedDetail?.kind ?? "workspace");
+
+  const selectedSource =
+    selectedGeneratedArtifact?.relativePath ??
+    selectedFile?.path ??
+    selectedDetail?.source ??
+    workspace?.selected_path ??
+    "not available";
+
   return (
-    <aside className="contextual-inspector" aria-label="Contextual inspector">
-      <div className="inspector-title-row">
-        <div>
-          <h2>Inspector</h2>
-          <p>
-            Read-only context for selected workspace objects. It reports identity,
-            provenance, status and raw metadata without inventing links or implying
-            editability.
-          </p>
+    <aside className="contextual-inspector workbench-inspector" aria-label="Contextual inspector">
+      <div className="inspector-hero">
+        <div className="inspector-hero-title">
+          <DashboardIcon kind="evidence" />
+          <div>
+            <span className="cockpit-eyebrow">Inspector</span>
+            <h2>Detail panel</h2>
+          </div>
         </div>
-        <div className="badge-row">
+        <p>
+          Read-only context for the selected workspace object. Studio reports
+          provenance and state without inventing relationships or editability.
+        </p>
+        <div className="badge-row inspector-badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <StatusBadge label={hasSelection ? "REPORTED" : "UNAVAILABLE"} />
         </div>
       </div>
 
-      {!hasSelection ? (
-        <div className="inspector-section inspector-empty-state">
-          <h3>No selection</h3>
-          <span>Open a workspace or select a source/generated artifact.</span>
+      <section className="inspector-object-card" aria-label="Inspector selected context">
+        <div className="inspector-object-title">
+          <div>
+            <span className="cockpit-eyebrow">Selected context</span>
+            <h3>{selectedTitle}</h3>
+          </div>
+          <StatusBadge label={formatDashboardStatusLabel(hasSelection ? selectedKind : null)} />
         </div>
-      ) : null}
 
-      {selectedDetail ? (
-        <div className="inspector-section">
-          <h3>Active detail</h3>
-          <strong>{selectedDetail.title}</strong>
-          <span>Kind: {selectedDetail.kind}</span>
-          <span>Source: {selectedDetail.source}</span>
+        <div className="inspector-property-grid">
+          <InspectorField label="Kind" value={selectedKind} />
+          <InspectorField label="Source" value={formatInspectorPath(selectedSource)} title={selectedSource} />
         </div>
-      ) : null}
+      </section>
 
-      <div className="inspector-section">
-        <h3>Workspace</h3>
-        <span>Status: {workspace ? "open" : "not selected"}</span>
-        {workspace ? <span>Path: {workspace.selected_path}</span> : null}
-        {workspace?.mission_dir ? <span>Mission directory: {workspace.mission_dir}</span> : null}
-        {workspace?.generated_dir ? <span>Generated directory: {workspace.generated_dir}</span> : null}
-      </div>
+      <section className="inspector-section-modern">
+        <div className="inspector-section-heading">
+          <h3>Workspace</h3>
+          <StatusBadge label={workspace ? "OPEN" : "UNAVAILABLE"} />
+        </div>
 
-      <div className="inspector-section">
-        <h3>Selected object</h3>
+        <div className="inspector-property-grid">
+          <InspectorField label="Status" value={workspace ? "open" : "not selected"} />
+          <InspectorField
+            label="Path"
+            value={formatInspectorPath(workspace?.selected_path)}
+            title={workspace?.selected_path}
+          />
+          <InspectorField
+            label="Mission"
+            value={formatInspectorPath(workspace?.mission_dir)}
+            title={workspace?.mission_dir ?? undefined}
+          />
+          <InspectorField
+            label="Generated"
+            value={formatInspectorPath(workspace?.generated_dir)}
+            title={workspace?.generated_dir ?? undefined}
+          />
+        </div>
+      </section>
+
+      <section className="inspector-section-modern">
+        <div className="inspector-section-heading">
+          <h3>Selected object</h3>
+          <StatusBadge
+            label={
+              selectedSimulationRecord
+                ? selectedSimulationRecord.kind.toUpperCase()
+                : selectedGeneratedArtifact
+                  ? selectedGeneratedArtifact.knownStatus
+                  : selectedFile
+                    ? "SOURCE"
+                    : "UNAVAILABLE"
+            }
+          />
+        </div>
+
         {selectedSimulationRecord ? (
           <>
-            <div className="badge-row inspector-badge-row">
+            <div className="inspector-status-strip">
               <ProvenanceBadge label="CORE-DERIVED" />
-              <StatusBadge label={selectedSimulationRecord.kind.toUpperCase()} />
               <ProvenanceBadge label="READ-ONLY" />
             </div>
-            <strong>{selectedSimulationRecord.title}</strong>
-            <span>Kind: {selectedSimulationRecord.kind}</span>
-            <span>Source: structured `orbitfabric-sim` JSON report</span>
-            <span>No source link is inferred by Studio.</span>
-            <pre className="raw-output-block">
+            <div className="inspector-property-grid">
+              <InspectorField label="Title" value={selectedSimulationRecord.title} />
+              <InspectorField label="Kind" value={selectedSimulationRecord.kind} />
+              <InspectorField label="Source" value="orbitfabric-sim JSON report" />
+              <InspectorField label="Inference" value="none" />
+            </div>
+            <pre className="raw-output-block inspector-raw-block">
               {formatUnknownBlock(selectedSimulationRecord.record)}
             </pre>
           </>
         ) : selectedGeneratedArtifact ? (
           <>
-            <div className="badge-row inspector-badge-row">
+            <div className="inspector-status-strip">
               <ProvenanceBadge label="GENERATED" />
               <StatusBadge
                 label={selectedGeneratedArtifact.knownStatus === "known" ? "REPORTED" : "UNKNOWN"}
@@ -962,68 +1020,142 @@ function InspectorPanel({
                 }
               />
             </div>
-            <strong>{selectedGeneratedArtifact.name}</strong>
-            <span>Class: {selectedGeneratedArtifact.artifactClass}</span>
-            <span>Relative path: {selectedGeneratedArtifact.relativePath}</span>
-            <span>Path: {selectedGeneratedArtifact.path}</span>
-            <span>Size: {selectedGeneratedArtifact.sizeBytes} bytes</span>
-            <span>Extension: {selectedGeneratedArtifact.extension ?? "none"}</span>
-            <span>Provenance: {selectedGeneratedArtifact.provenanceSource}</span>
-            {selectedGeneratedArtifact.provenanceDetail ? (
-              <span>{selectedGeneratedArtifact.provenanceDetail}</span>
-            ) : null}
+            <div className="inspector-property-grid">
+              <InspectorField label="Name" value={selectedGeneratedArtifact.name} />
+              <InspectorField label="Class" value={selectedGeneratedArtifact.artifactClass} />
+              <InspectorField label="Relative path" value={selectedGeneratedArtifact.relativePath} />
+              <InspectorField
+                label="Path"
+                value={formatInspectorPath(selectedGeneratedArtifact.path)}
+                title={selectedGeneratedArtifact.path}
+              />
+              <InspectorField label="Size" value={`${selectedGeneratedArtifact.sizeBytes} bytes`} />
+              <InspectorField label="Extension" value={selectedGeneratedArtifact.extension ?? "none"} />
+              <InspectorField label="Provenance" value={selectedGeneratedArtifact.provenanceSource} />
+              <InspectorField
+                label="Detail"
+                value={selectedGeneratedArtifact.provenanceDetail ?? "not reported"}
+              />
+            </div>
           </>
         ) : selectedFile ? (
           <>
-            <div className="badge-row inspector-badge-row">
+            <div className="inspector-status-strip">
               <ProvenanceBadge label="SOURCE" />
               {selectedFileIsScenarioSource ? <StatusBadge label="SCENARIO SOURCE" /> : null}
               <ProvenanceBadge label="READ-ONLY" />
               <ProvenanceBadge label="PREVIEW ONLY" />
             </div>
-            <strong>{selectedFile.name}</strong>
-            <span>Category: {selectedFileIsScenarioSource ? "scenario source" : "source preview"}</span>
-            <span>Language: {selectedFile.language}</span>
-            <span>Size: {selectedFile.size_bytes} bytes</span>
-            <span>Path: {selectedFile.path}</span>
+            <div className="inspector-property-grid">
+              <InspectorField label="Name" value={selectedFile.name} />
+              <InspectorField
+                label="Category"
+                value={selectedFileIsScenarioSource ? "scenario source" : "source preview"}
+              />
+              <InspectorField label="Language" value={selectedFile.language} />
+              <InspectorField label="Size" value={`${selectedFile.size_bytes} bytes`} />
+              <InspectorField
+                label="Path"
+                value={formatInspectorPath(selectedFile.path)}
+                title={selectedFile.path}
+              />
+            </div>
           </>
         ) : (
-          <span>No source or generated artifact selected.</span>
+          <p className="inspector-empty-copy">No source or generated artifact selected.</p>
         )}
-      </div>
+      </section>
 
-      <div className="inspector-section">
-        <h3>Core output</h3>
+      <section className="inspector-section-modern">
+        <div className="inspector-section-heading">
+          <h3>Core output</h3>
+          <StatusBadge label={coreResult ? (coreResult.success ? "PASS" : "FAIL") : "UNAVAILABLE"} />
+        </div>
+
         {coreResult ? (
           <>
-            <div className="badge-row inspector-badge-row">
+            <div className="inspector-status-strip">
               <ProvenanceBadge label="CORE-DERIVED" />
-              <StatusBadge label={coreResult.success ? "PASS" : "FAIL"} />
               {coreResult.json_report_available ? <StatusBadge label="REPORTED" /> : null}
             </div>
-            <strong>{coreResult.command}</strong>
-            <span>Args: {coreResult.args.join(" ") || "none"}</span>
-            <span>Exit code: {coreResult.exit_code ?? "not available"}</span>
-            <span>JSON report: {coreResult.json_report_available ? "available" : "not available"}</span>
-            {coreResult.json_report_path ? <span>{coreResult.json_report_path}</span> : null}
-            <span>Log: {coreResult.log_available ? "available" : "not available"}</span>
-            {coreResult.log_path ? <span>{coreResult.log_path}</span> : null}
+            <div className="inspector-property-grid">
+              <InspectorField label="Command" value={coreResult.command} />
+              <InspectorField label="Args" value={coreResult.args.join(" ") || "none"} />
+              <InspectorField label="Exit code" value={String(coreResult.exit_code ?? "not available")} />
+              <InspectorField
+                label="JSON report"
+                value={coreResult.json_report_available ? "available" : "not available"}
+              />
+              <InspectorField
+                label="Report path"
+                value={formatInspectorPath(coreResult.json_report_path)}
+                title={coreResult.json_report_path ?? undefined}
+              />
+              <InspectorField
+                label="Log"
+                value={coreResult.log_available ? "available" : "not available"}
+              />
+              <InspectorField
+                label="Log path"
+                value={formatInspectorPath(coreResult.log_path)}
+                title={coreResult.log_path ?? undefined}
+              />
+            </div>
           </>
         ) : (
-          <span>No Core command result selected.</span>
+          <p className="inspector-empty-copy">No Core command result selected.</p>
         )}
-      </div>
+      </section>
 
-      <div className="inspector-section">
-        <h3>Safety boundary</h3>
-        <span>No editing.</span>
-        <span>No automatic fixes.</span>
-        <span>No private relationship inference.</span>
-        <span>No generated artifact mutation.</span>
-      </div>
+      <section className="inspector-section-modern inspector-boundary-section">
+        <div className="inspector-section-heading">
+          <h3>Safety boundary</h3>
+          <DashboardIcon kind="shield" />
+        </div>
+
+        <div className="inspector-guardrail-list">
+          <span>No editing</span>
+          <span>No automatic fixes</span>
+          <span>No private relationship inference</span>
+          <span>No generated artifact mutation</span>
+        </div>
+      </section>
     </aside>
   );
 }
+
+function InspectorField({
+  label,
+  value,
+  title,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+  title?: string;
+}) {
+  return (
+    <div className="inspector-field" title={title}>
+      <span>{label}</span>
+      <strong>{value === null || value === undefined || value === "" ? "not available" : value}</strong>
+    </div>
+  );
+}
+
+function formatInspectorPath(value: string | null | undefined): string {
+  if (!value) {
+    return "not available";
+  }
+
+  const parts = value.split(/[\\/]/).filter(Boolean);
+
+  if (parts.length <= 3) {
+    return value;
+  }
+
+  return `…/${parts.slice(-3).join("/")}`;
+}
+
+
 
 
 function ScenarioEvidenceSurface({
