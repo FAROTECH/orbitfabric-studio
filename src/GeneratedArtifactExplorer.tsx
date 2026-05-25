@@ -6,10 +6,12 @@ import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { CoverageSummaryPanel } from "./CoverageSummaryPanel";
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
 import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
+import { SimulationExpectationAccountingPanel } from "./SimulationExpectationAccountingPanel";
 import {
   parseCoreCoverageSummary,
   parseCoreDashboardSummary,
   parseCoreScenarioRunIndex,
+  parseCoreSimulationReport,
 } from "./coreReports";
 
 import type {
@@ -422,6 +424,7 @@ function GeneratedArtifactPreviewPanel({
   const coverageSummary = parseCoreCoverageSummary(reportContent);
   const dashboardSummary = parseCoreDashboardSummary(reportContent);
   const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
+  const simulationReport = parseCoreSimulationReport(reportContent);
 
   return (
     <section className="file-viewer" aria-label="Generated artifact read-only preview">
@@ -476,6 +479,9 @@ function GeneratedArtifactPreviewPanel({
           ) : null}
           {coverageSummary ? (
             <CoverageSummaryPanel summary={coverageSummary} />
+          ) : null}
+          {simulationReport ? (
+            <SimulationExpectationAccountingPanel report={simulationReport} />
           ) : null}
         </>
       ) : null}
