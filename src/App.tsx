@@ -1717,6 +1717,8 @@ function WorkspaceDashboard({
   const topRelationshipTypes = dashboardSummary
     ? dashboardTopEntries(dashboardSummary.relationship_inventory.relationship_types)
     : [];
+  const indexedScenarioRuns = scenarioRunIndex?.runs ?? [];
+  const displayedIndexedScenarioRuns = indexedScenarioRuns.slice(0, 3);
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -1806,13 +1808,37 @@ function WorkspaceDashboard({
               : "Not available"}
           </strong>
           {scenarioRunIndex ? (
-            <div className="dashboard-card-status-row">
-              <span>Passed: {scenarioRunIndex.summary.passed}</span>
-              <span>Failed: {scenarioRunIndex.summary.failed}</span>
-            </div>
+            <>
+              <div className="dashboard-card-status-row">
+                <span>Passed: {scenarioRunIndex.summary.passed}</span>
+                <span>Failed: {scenarioRunIndex.summary.failed}</span>
+                <span>Displayed: {displayedIndexedScenarioRuns.length}</span>
+              </div>
+
+              {displayedIndexedScenarioRuns.length > 0 ? (
+                <ul className="dashboard-mini-list" aria-label="Core-indexed scenario run records">
+                  {displayedIndexedScenarioRuns.map((run) => (
+                    <li key={`${run.report_path}-${run.scenario}`}>
+                      <strong>{run.scenario}</strong>
+                      <span>
+                        {run.result}, mission {run.mission}, report {run.report_file}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>No scenario run records were emitted by Core.</span>
+              )}
+            </>
           ) : (
             <span>Run Core scenario-run-index after producing simulation reports.</span>
           )}
+          <span className="dashboard-card-meta">
+            Source: {scenarioRunIndex ? "Core scenario run index" : "unavailable"}
+          </span>
+          <span className="dashboard-card-meta">
+            Latest simulation report: {simulationReport ? simulationReport.result : "not available"}
+          </span>
           <a className="dashboard-inline-link" href="#studio-evidence">
             Open evidence surface
           </a>
