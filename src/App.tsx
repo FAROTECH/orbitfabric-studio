@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
+import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
 import {
   GeneratedArtifactExplorerPanel,
   type GeneratedArtifactDashboardSummary,
@@ -12,6 +13,7 @@ import {
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 
 import {
+  parseCoreDashboardSummary,
   parseCoreEntityIndex,
   parseCoreLintReport,
   parseCoreModelSummary,
@@ -256,6 +258,22 @@ function App() {
     });
   }
 
+  async function handleCoreExportDashboardSummary() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core dashboard summary export.");
+      return;
+    }
+
+    const result = await runCoreCommand("run_core_export_dashboard_summary", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+
+    if (result?.json_report_available) {
+      setGeneratedArtifactRefreshToken((current) => current + 1);
+    }
+  }
+
   async function handleCoreSimScenario(scenario: ProjectEntry) {
     if (!workspace) {
       setCoreError("No workspace is available for Core scenario execution.");
@@ -451,6 +469,7 @@ function App() {
               onCoreExportModelSummary={handleCoreExportModelSummary}
               onCoreExportEntityIndex={handleCoreExportEntityIndex}
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+              onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
               generatedArtifactRefreshToken={generatedArtifactRefreshToken}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
               onGeneratedArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
@@ -1694,6 +1713,7 @@ function WorkspacePanel({
   onCoreExportModelSummary,
   onCoreExportEntityIndex,
   onCoreExportRelationshipManifest,
+  onCoreExportDashboardSummary,
   generatedArtifactRefreshToken,
   onGeneratedArtifactSummaryChange,
   onGeneratedArtifactSelectionChange,
@@ -1716,6 +1736,7 @@ function WorkspacePanel({
   onCoreExportModelSummary: () => void;
   onCoreExportEntityIndex: () => void;
   onCoreExportRelationshipManifest: () => void;
+  onCoreExportDashboardSummary: () => void;
   onGeneratedArtifactSummaryChange: (
     summary: GeneratedArtifactDashboardSummary | null,
   ) => void;
@@ -1768,6 +1789,7 @@ function WorkspacePanel({
         onExportModelSummary={onCoreExportModelSummary}
         onExportEntityIndex={onCoreExportEntityIndex}
         onExportRelationshipManifest={onCoreExportRelationshipManifest}
+        onExportDashboardSummary={onCoreExportDashboardSummary}
         onOpenFile={onOpenFile}
       />
 
@@ -1840,6 +1862,7 @@ function CoreStatusPanel({
   onExportModelSummary,
   onExportEntityIndex,
   onExportRelationshipManifest,
+  onExportDashboardSummary,
   onOpenFile,
 }: {
   executable: string;
@@ -1855,6 +1878,7 @@ function CoreStatusPanel({
   onExportModelSummary: () => void;
   onExportEntityIndex: () => void;
   onExportRelationshipManifest: () => void;
+  onExportDashboardSummary: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -1922,6 +1946,13 @@ function CoreStatusPanel({
         >
           Run export relationship-manifest
         </button>
+        <button
+          type="button"
+          onClick={onExportDashboardSummary}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run export dashboard-summary
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -1950,9 +1981,11 @@ function CoreCommandOutput({
   const parsedModelSummary = parseCoreModelSummary(result.json_report_content);
   const parsedEntityIndex = parseCoreEntityIndex(result.json_report_content);
   const parsedRelationshipManifest = parseCoreRelationshipManifest(result.json_report_content);
+  const parsedDashboardSummary = parseCoreDashboardSummary(result.json_report_content);
   const isModelSummaryCommand = result.args.includes("model-summary");
   const isEntityIndexCommand = result.args.includes("entity-index");
   const isRelationshipManifestCommand = result.args.includes("relationship-manifest");
+  const isDashboardSummaryCommand = result.args.includes("dashboard-summary");
 
   return (
     <div id="studio-raw-output" className="command-output">
@@ -1997,11 +2030,15 @@ function CoreCommandOutput({
           rawContent={result.json_report_content ?? ""}
         />
       ) : null}
+      {parsedDashboardSummary ? (
+        <DashboardSummaryPanel summary={parsedDashboardSummary} />
+      ) : null}
       {result.json_report_content &&
       !parsedLintReport &&
       !parsedModelSummary &&
       !parsedEntityIndex &&
-      !parsedRelationshipManifest ? (
+      !parsedRelationshipManifest &&
+      !parsedDashboardSummary ? (
         <UnrecognizedCoreReport rawContent={result.json_report_content} />
       ) : null}
       {isModelSummaryCommand && !result.json_report_available ? (
@@ -2029,6 +2066,15 @@ function CoreCommandOutput({
             Core did not produce a relationship manifest report. Relationship
             inspection requires OrbitFabric Core v1.0.0 or newer and a successful
             fixed export command.
+          </p>
+        </section>
+      ) : null}
+      {isDashboardSummaryCommand && !result.json_report_available ? (
+        <section className="entry-section muted-section" aria-label="Core dashboard summary unavailable">
+          <h3>Dashboard summary unavailable</h3>
+          <p>
+            Core did not produce a dashboard summary report. Dashboard rendering
+            requires a successful fixed `dashboard-summary` export command.
           </p>
         </section>
       ) : null}
