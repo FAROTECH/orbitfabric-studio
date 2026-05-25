@@ -1719,6 +1719,22 @@ function WorkspaceDashboard({
     : [];
   const indexedScenarioRuns = scenarioRunIndex?.runs ?? [];
   const displayedIndexedScenarioRuns = indexedScenarioRuns.slice(0, 3);
+  const topEntityCoverageRecords = coverageSummary
+    ? dashboardTopCoverageRecords(coverageSummary.entity_coverage)
+    : [];
+  const topExpectationCoverageTypes = coverageSummary
+    ? dashboardTopEntries(
+        Object.fromEntries(
+          Object.entries(coverageSummary.expectation_coverage.by_type).map(
+            ([expectationType, coverage]) => [expectationType, coverage.total],
+          ),
+        ),
+      )
+    : [];
+  const unsupportedCoverageEntityDomains =
+    coverageSummary?.unsupported.entity_domains ?? [];
+  const unsupportedCoverageRelationshipTypes =
+    coverageSummary?.unsupported.relationship_types ?? [];
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -1851,22 +1867,75 @@ function WorkspaceDashboard({
           </div>
           <strong>{coverageSummary ? "Core coverage available" : "Not available"}</strong>
           {coverageSummary ? (
-            <div className="dashboard-card-status-row">
-              <span>Runs: {coverageSummary.scenario_runs.total}</span>
-              <span>
-                Expectations: {coverageSummary.expectation_coverage.passed}/
-                {coverageSummary.expectation_coverage.total}
-              </span>
-              <span>
+            <>
+              <div className="dashboard-card-status-row">
+                <span>Runs: {coverageSummary.scenario_runs.total}</span>
+                <span>
+                  Entity scopes: {Object.keys(coverageSummary.entity_coverage).length}
+                </span>
+                <span>
+                  Expectations: {coverageSummary.expectation_coverage.passed}/
+                  {coverageSummary.expectation_coverage.total}
+                </span>
+                <span>
+                  Relationships: {coverageSummary.relationship_coverage.covered_supported_relationships}/
+                  {coverageSummary.relationship_coverage.total_supported_relationships}
+                </span>
+              </div>
+
+              {topEntityCoverageRecords.length > 0 ? (
+                <ul className="dashboard-mini-list" aria-label="Core entity coverage records">
+                  {topEntityCoverageRecords.map(([domain, coverage]) => (
+                    <li key={domain}>
+                      <strong>{domain}</strong>
+                      <span>
+                        {coverage.covered}/{coverage.total} covered, ratio{" "}
+                        {formatDashboardRatio(coverage.coverage_ratio)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>No entity coverage records were reported by Core.</span>
+              )}
+
+              {topExpectationCoverageTypes.length > 0 ? (
+                <span className="dashboard-card-meta">
+                  Expectation types:{" "}
+                  {topExpectationCoverageTypes
+                    .map(([expectationType, total]) => `${expectationType}: ${total}`)
+                    .join(", ")}
+                </span>
+              ) : (
+                <span className="dashboard-card-meta">
+                  No expectation coverage types were reported by Core.
+                </span>
+              )}
+
+              <span className="dashboard-card-meta">
                 Relationship ratio:{" "}
                 {formatDashboardRatio(coverageSummary.relationship_coverage.coverage_ratio)}
               </span>
-            </div>
+
+              <span className="dashboard-card-meta">
+                Unsupported entity domains:{" "}
+                {unsupportedCoverageEntityDomains.length > 0
+                  ? unsupportedCoverageEntityDomains.join(", ")
+                  : "none reported"}
+              </span>
+
+              <span className="dashboard-card-meta">
+                Unsupported relationship types:{" "}
+                {unsupportedCoverageRelationshipTypes.length > 0
+                  ? unsupportedCoverageRelationshipTypes.join(", ")
+                  : "none reported"}
+              </span>
+            </>
           ) : (
             <span>Run Core coverage-summary after required Core reports exist.</span>
           )}
           <span className="dashboard-card-meta">
-            Unsupported scopes stay visible in the coverage report.
+            Source: {coverageSummary ? "Core coverage summary" : "unavailable"}
           </span>
         </article>
       </div>
@@ -2097,6 +2166,29 @@ function dashboardTopEntries(
     .sort(([leftKey, leftValue], [rightKey, rightValue]) => {
       if (leftValue !== rightValue) {
         return rightValue - leftValue;
+      }
+
+      return leftKey.localeCompare(rightKey);
+    })
+    .slice(0, limit);
+}
+
+function dashboardTopCoverageRecords(
+  records: Record<
+    string,
+    {
+      total: number;
+      covered: number;
+      uncovered: number;
+      coverage_ratio: number | null;
+    }
+  >,
+  limit = 4,
+) {
+  return Object.entries(records)
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) => {
+      if (leftValue.total !== rightValue.total) {
+        return rightValue.total - leftValue.total;
       }
 
       return leftKey.localeCompare(rightKey);
