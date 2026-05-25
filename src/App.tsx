@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
+import { CoverageSummaryPanel } from "./CoverageSummaryPanel";
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
 import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
 import {
@@ -14,6 +15,7 @@ import {
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 
 import {
+  parseCoreCoverageSummary,
   parseCoreDashboardSummary,
   parseCoreEntityIndex,
   parseCoreLintReport,
@@ -292,6 +294,22 @@ function App() {
     }
   }
 
+  async function handleCoreExportCoverageSummary() {
+    if (!workspace?.mission_dir) {
+      setCoreError("No mission directory is available for Core coverage summary export.");
+      return;
+    }
+
+    const result = await runCoreCommand("run_core_export_coverage_summary", {
+      executable: coreExecutable,
+      missionDir: workspace.mission_dir,
+    });
+
+    if (result?.json_report_available) {
+      setGeneratedArtifactRefreshToken((current) => current + 1);
+    }
+  }
+
   async function handleCoreSimScenario(scenario: ProjectEntry) {
     if (!workspace) {
       setCoreError("No workspace is available for Core scenario execution.");
@@ -489,6 +507,7 @@ function App() {
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
               onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
               onCoreExportScenarioRunIndex={handleCoreExportScenarioRunIndex}
+              onCoreExportCoverageSummary={handleCoreExportCoverageSummary}
               generatedArtifactRefreshToken={generatedArtifactRefreshToken}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
               onGeneratedArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
@@ -1734,6 +1753,7 @@ function WorkspacePanel({
   onCoreExportRelationshipManifest,
   onCoreExportDashboardSummary,
   onCoreExportScenarioRunIndex,
+  onCoreExportCoverageSummary,
   generatedArtifactRefreshToken,
   onGeneratedArtifactSummaryChange,
   onGeneratedArtifactSelectionChange,
@@ -1758,6 +1778,7 @@ function WorkspacePanel({
   onCoreExportRelationshipManifest: () => void;
   onCoreExportDashboardSummary: () => void;
   onCoreExportScenarioRunIndex: () => void;
+  onCoreExportCoverageSummary: () => void;
   onGeneratedArtifactSummaryChange: (
     summary: GeneratedArtifactDashboardSummary | null,
   ) => void;
@@ -1813,6 +1834,7 @@ function WorkspacePanel({
         onExportRelationshipManifest={onCoreExportRelationshipManifest}
         onExportDashboardSummary={onCoreExportDashboardSummary}
         onExportScenarioRunIndex={onCoreExportScenarioRunIndex}
+        onExportCoverageSummary={onCoreExportCoverageSummary}
         onOpenFile={onOpenFile}
       />
 
@@ -1888,6 +1910,7 @@ function CoreStatusPanel({
   onExportRelationshipManifest,
   onExportDashboardSummary,
   onExportScenarioRunIndex,
+  onExportCoverageSummary,
   onOpenFile,
 }: {
   executable: string;
@@ -1906,6 +1929,7 @@ function CoreStatusPanel({
   onExportRelationshipManifest: () => void;
   onExportDashboardSummary: () => void;
   onExportScenarioRunIndex: () => void;
+  onExportCoverageSummary: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -1987,6 +2011,13 @@ function CoreStatusPanel({
         >
           Run export scenario-run-index
         </button>
+        <button
+          type="button"
+          onClick={onExportCoverageSummary}
+          disabled={isRunning || !hasMissionDir}
+        >
+          Run export coverage-summary
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -2012,6 +2043,7 @@ function CoreCommandOutput({
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   const parsedLintReport = parseCoreLintReport(result.json_report_content);
+  const parsedCoverageSummary = parseCoreCoverageSummary(result.json_report_content);
   const parsedModelSummary = parseCoreModelSummary(result.json_report_content);
   const parsedEntityIndex = parseCoreEntityIndex(result.json_report_content);
   const parsedRelationshipManifest = parseCoreRelationshipManifest(result.json_report_content);
@@ -2022,6 +2054,7 @@ function CoreCommandOutput({
   const isRelationshipManifestCommand = result.args.includes("relationship-manifest");
   const isDashboardSummaryCommand = result.args.includes("dashboard-summary");
   const isScenarioRunIndexCommand = result.args.includes("scenario-run-index");
+  const isCoverageSummaryCommand = result.args.includes("coverage-summary");
 
   return (
     <div id="studio-raw-output" className="command-output">
@@ -2072,8 +2105,12 @@ function CoreCommandOutput({
       {parsedScenarioRunIndex ? (
         <ScenarioRunIndexPanel index={parsedScenarioRunIndex} />
       ) : null}
+      {parsedCoverageSummary ? (
+        <CoverageSummaryPanel summary={parsedCoverageSummary} />
+      ) : null}
       {result.json_report_content &&
       !parsedLintReport &&
+      !parsedCoverageSummary &&
       !parsedModelSummary &&
       !parsedEntityIndex &&
       !parsedRelationshipManifest &&
@@ -2125,6 +2162,16 @@ function CoreCommandOutput({
             Core did not produce a scenario run index report. Scenario run
             rendering requires simulation JSON reports and a successful fixed
             `scenario-run-index` export command.
+          </p>
+        </section>
+      ) : null}
+      {isCoverageSummaryCommand && !result.json_report_available ? (
+        <section className="entry-section muted-section" aria-label="Core coverage summary unavailable">
+          <h3>Coverage summary unavailable</h3>
+          <p>
+            Core did not produce a coverage summary report. Coverage rendering
+            requires existing entity index, relationship manifest and scenario run
+            index reports produced through fixed Core exports.
           </p>
         </section>
       ) : null}
