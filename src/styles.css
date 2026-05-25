@@ -1274,3 +1274,69 @@ h3 {
   font-size: 0.76rem;
   overflow-wrap: anywhere;
 }
+
+
+.dashboard-command-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background:
+    linear-gradient(135deg, rgba(8, 145, 178, 0.16), rgba(15, 23, 42, 0.34));
+}
+
+.dashboard-command-strip > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dashboard-command-strip strong {
+  color: #f8fafc;
+}
+
+.dashboard-command-strip span {
+  color: #94a3b8;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.dashboard-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dashboard-command-actions a {
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #cffafe;
+  background: rgba(2, 6, 23, 0.36);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dashboard-command-actions a:hover,
+.dashboard-command-actions a:focus-visible {
+  color: #f8fafc;
+  border-color: rgba(103, 232, 249, 0.42);
+  background: rgba(8, 145, 178, 0.22);
+}
+
+@media (max-width: 860px) {
+  .dashboard-command-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-command-actions {
+    justify-content: flex-start;
+  }
+}
