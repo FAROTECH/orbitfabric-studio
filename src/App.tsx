@@ -639,24 +639,20 @@ function App() {
           >
             <div className="eyebrow">OrbitFabric Studio</div>
             <h1 id="studio-title">Mission Contract Engineering Workbench</h1>
-            <p className="release">v0.7.1 dashboard and coverage foundation</p>
+            <p className="release">v0.7.2 single-page cockpit foundation</p>
             <div className="badge-row hero-badge-row">
               <ProvenanceBadge label="READ-ONLY" />
               <ProvenanceBadge label="CORE-DERIVED" />
-              <StatusBadge label="DASHBOARD FOUNDATION" />
+              <StatusBadge label="COCKPIT FOUNDATION" />
             </div>
             <p className="summary">
-              Open a local OrbitFabric workspace, inspect Mission Model files, run
-              fixed OrbitFabric Core validation, scenario and export commands,
-              navigate Core-derived contracts, relationships, scenario evidence,
-              dashboard summaries and coverage reports without leaving the read-only
-              Studio boundary.
+              Inspect mission contract state, Core reports, scenario evidence and
+              generated artifacts from a compact read-only engineering cockpit.
             </p>
             <p className="summary">
-              Studio renders Core-produced reports and generated artifacts.
-              OrbitFabric Core remains authoritative for validation, scenario
-              evidence, coverage, generation, artifact semantics and engineering
-              meaning.
+              OrbitFabric Core remains authoritative. Studio visualizes reported
+              evidence, provenance and generated artifacts without editing files,
+              inferring semantics or introducing mission-control behavior.
             </p>
             <button
               className="primary-action"
