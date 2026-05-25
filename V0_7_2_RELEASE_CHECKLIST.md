@@ -11,8 +11,15 @@ v0.7.2 - Core-derived Dashboard UX Realization
 Primary target loop:
 
 ```text
-Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Surfaces
+Open Workspace -> Inspect Single-page Cockpit -> Drill into Detail on Demand
 ```
+
+## Pivot status
+
+- [ ] v0.7.2 cockpit pivot document is present
+- [ ] v0.7.2 does not close as a vertically stacked report page
+- [ ] Responsive-polish-only closure branch remains unmerged or superseded
+- [ ] The final dashboard behaves as a compact workbench cockpit
 
 ## Required local checks
 
@@ -21,13 +28,14 @@ Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Su
 - [ ] Open `examples/demo-3u`
 - [ ] Verify workspace header remains visible
 - [ ] Verify primary navigation remains usable
-- [ ] Verify dashboard remains reachable
-- [ ] Verify Core command panel remains reachable
-- [ ] Verify Scenario Evidence surface remains reachable
-- [ ] Verify Generated Artifact Explorer remains reachable
+- [ ] Verify cockpit dashboard remains reachable
+- [ ] Verify only one primary surface is visible by default
+- [ ] Verify Core command panel is reachable without being always visible below the dashboard
+- [ ] Verify Scenario Evidence surface is reachable without being always visible below the dashboard
+- [ ] Verify Generated Artifact Explorer is reachable without being always visible below the dashboard
 - [ ] Verify generated artifact previews remain read-only
-- [ ] Verify Raw Core output remains visible
-- [ ] Verify Inspector remains usable
+- [ ] Verify Raw Core output remains visible only when the relevant surface/detail is selected
+- [ ] Verify Inspector or detail drawer remains usable
 
 ## Data-source checks
 
@@ -40,17 +48,21 @@ Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Su
 - [ ] Dashboard generated artifact cards use only generated artifact inventory or unavailable state
 - [ ] Dashboard reserved cards use explicit reserved state and do not imply implemented behavior
 
-## Dashboard UX checks
+## Cockpit UX checks
 
-- [ ] Dashboard has a visibly stronger card-oriented layout than v0.7.1
+- [ ] Dashboard fits mostly within one desktop viewport
+- [ ] Dashboard does not render major surfaces sequentially by default
 - [ ] Dashboard top card row is compact and readable
 - [ ] Dashboard separates validation, model inventory, scenario evidence, coverage and generated artifacts
 - [ ] Dashboard unavailable states are explicit and not confused with zero values
 - [ ] Dashboard reserved states are explicit and not confused with implemented features
-- [ ] Dashboard cards navigate or point to existing read-only surfaces where appropriate
+- [ ] Dashboard cards expose detail actions instead of inline long detail
+- [ ] Long lists open through inspector, drawer, modal or active surface
 - [ ] Dashboard remains readable on narrower desktop widths
 - [ ] Dashboard does not hide unsupported coverage scopes
 - [ ] Dashboard does not hide unknown generated artifacts
+- [ ] Sidebar uses compact surface navigation
+- [ ] Iconography is present for primary dashboard cards or navigation items
 
 ## Core command flow checks
 
@@ -73,14 +85,14 @@ Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Su
 - [ ] `orbitfabric.coverage_summary` still renders in Core output and generated artifact preview
 - [ ] Structured expectation accounting still renders only when Core emits it
 - [ ] Unsupported report shapes remain raw or unrecognized
-- [ ] Raw stdout, stderr and exit code remain visible
+- [ ] Raw stdout, stderr and exit code remain available through the appropriate surface/detail
 
 ## Boundary checks
 
 - [ ] No private coverage calculation
 - [ ] No frontend-defined coverage denominator
 - [ ] No alternative coverage percentage
-- [ ] No mission health score
+- [ ] No mission health score unless Core defines one
 - [ ] No model completeness score unless Core defines one
 - [ ] No live spacecraft health
 - [ ] No mission control behavior
@@ -89,8 +101,10 @@ Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Su
 - [ ] No scenario run history inferred from logs
 - [ ] No scenario-id deduplication in Studio
 - [ ] No YAML semantic parsing
-- [ ] No graph UI
-- [ ] No React Flow dependency
+- [ ] No generated artifact semantic inference
+- [ ] No runtime readiness claim
+- [ ] No graph UI unless explicitly implemented as a bounded read-only surface
+- [ ] No React Flow dependency unless explicitly approved in a dedicated PR
 - [ ] No ground segment behavior
 - [ ] No authoring
 - [ ] No editing
@@ -101,12 +115,12 @@ Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Su
 ## Sensitive file checks
 
 - [ ] No wholesale replacement of `src/App.tsx`
-- [ ] `src/App.tsx` changes are local, small and reviewable
-- [ ] Existing implemented surfaces are preserved
+- [ ] `src/App.tsx` changes are local, staged and reviewable
+- [ ] Existing implemented surfaces are preserved behind surface selection or detail panels
 - [ ] Existing Core command handlers are preserved
 - [ ] Existing generated artifact explorer behavior is preserved
 - [ ] Existing scenario evidence behavior is preserved
-- [ ] CSS changes are scoped to dashboard-specific classes where possible
+- [ ] CSS changes are scoped to dashboard/workbench-specific classes where possible
 - [ ] No references to non-existing `src/App.css`; repository uses `src/styles.css`
 
 ## Release metadata
@@ -135,6 +149,8 @@ git push origin v0.7.2
 
 The v0.7.2 release closes only when the dashboard visual realization is materially improved while remaining fully source/Core-derived/generated/local-state disciplined.
 
-A visually better dashboard is acceptable.
+A vertically longer but prettier report page is not acceptable.
+
+A compact single-page cockpit with controlled drilldown is acceptable.
 
 A semantically invented dashboard is not acceptable.
