@@ -661,6 +661,7 @@ function App() {
           coreResult={coreResult}
           coreReportSnapshots={coreReportSnapshots}
           generatedArtifactSummary={generatedArtifactSummary}
+          onActiveSurfaceChange={setActiveSurface}
         />
       );
     }
@@ -1851,11 +1852,13 @@ function WorkspaceDashboard({
   coreResult,
   coreReportSnapshots,
   generatedArtifactSummary,
+  onActiveSurfaceChange,
 }: {
   workspace: WorkspaceInspection | null;
   coreResult: CoreCommandResult | null;
   coreReportSnapshots: CoreReportSnapshots;
   generatedArtifactSummary: GeneratedArtifactDashboardSummary | null;
+  onActiveSurfaceChange: (surface: ActiveSurface) => void;
 }) {
   const currentReportContent = coreResult?.json_report_content ?? null;
   const lintReport =
@@ -1872,6 +1875,7 @@ function WorkspaceDashboard({
   const simulationReport =
     parseCoreSimulationReport(currentReportContent) ??
     coreReportSnapshots.simulationReport;
+
   const dashboardValidation = dashboardSummary?.validation ?? null;
   const validationResult = lintReport?.result ?? dashboardValidation?.result ?? null;
   const validationErrors =
@@ -1880,20 +1884,17 @@ function WorkspaceDashboard({
     lintReport?.summary.warnings ?? dashboardValidation?.warnings ?? null;
   const validationInfo =
     lintReport?.summary.info ?? dashboardValidation?.info ?? null;
+
   const dashboardDomains = dashboardSummary?.model_domains.domains ?? [];
-  const missingRequiredDomains = dashboardDomains.filter(
-    (domain) => domain.required && !domain.present,
-  );
   const topEntityDomains = dashboardSummary
-    ? dashboardTopEntries(dashboardSummary.entity_inventory.domains)
+    ? dashboardTopEntries(dashboardSummary.entity_inventory.domains, 5)
     : [];
   const topRelationshipTypes = dashboardSummary
-    ? dashboardTopEntries(dashboardSummary.relationship_inventory.relationship_types)
+    ? dashboardTopEntries(dashboardSummary.relationship_inventory.relationship_types, 4)
     : [];
-  const indexedScenarioRuns = scenarioRunIndex?.runs ?? [];
-  const displayedIndexedScenarioRuns = indexedScenarioRuns.slice(0, 3);
+  const displayedIndexedScenarioRuns = scenarioRunIndex?.runs.slice(0, 3) ?? [];
   const topEntityCoverageRecords = coverageSummary
-    ? dashboardTopCoverageRecords(coverageSummary.entity_coverage)
+    ? dashboardTopCoverageRecords(coverageSummary.entity_coverage, 4)
     : [];
   const topExpectationCoverageTypes = coverageSummary
     ? dashboardTopEntries(
@@ -1902,6 +1903,7 @@ function WorkspaceDashboard({
             ([expectationType, coverage]) => [expectationType, coverage.total],
           ),
         ),
+        3,
       )
     : [];
   const unsupportedCoverageEntityDomains =
@@ -1913,7 +1915,6 @@ function WorkspaceDashboard({
         ["Known", generatedArtifactSummary.knownArtifacts],
         ["Unknown", generatedArtifactSummary.unknownArtifacts],
         ["Previewable", generatedArtifactSummary.previewableArtifacts],
-        ["Not previewable", generatedArtifactSummary.notPreviewableArtifacts],
         ["Warnings", generatedArtifactSummary.warningCount],
       ]
     : [];
@@ -1923,445 +1924,412 @@ function WorkspaceDashboard({
   const hasLogsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "logs",
   );
+  const workspaceCockpitName = workspace?.selected_path
+    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
+    : null;
 
   return (
     <section
       id="studio-dashboard"
-      className="workspace-dashboard dashboard-shell-grid"
-      aria-label="Workspace dashboard"
+      className="workspace-dashboard cockpit-dashboard"
+      aria-label="Mission cockpit dashboard"
     >
-      <div className="file-viewer-header dashboard-shell-header">
-        <div>
-          <h2>Workspace dashboard</h2>
+      <div className="cockpit-hero">
+        <div className="cockpit-hero-main">
+          <div className="cockpit-title-row">
+            <DashboardIcon kind="mission" />
+            <div>
+              <span className="cockpit-eyebrow">Mission cockpit</span>
+              <h2>OrbitFabric Studio</h2>
+            </div>
+          </div>
           <p>
-            Core-derived dashboard shell for the selected workspace. It organizes
-            validation, model inventory, scenario runs, coverage and generated
-            artifact state without becoming a mission operations dashboard.
+            Compact Core-derived mission contract overview. Detail lives in
+            dedicated surfaces, not in a vertical report stack.
           </p>
         </div>
-        <div className="badge-row">
+
+        <div className="cockpit-hero-status">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="UX FOUNDATION" />
+          <StatusBadge label={workspace ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
+          <span
+            className="cockpit-workspace-name"
+            title={workspace?.selected_path ?? undefined}
+          >
+            {workspaceCockpitName ?? "No workspace selected"}
+          </span>
+          <span
+            className="cockpit-workspace-path"
+            title={workspace?.selected_path ?? undefined}
+          >
+            {workspace?.selected_path ?? "Open a workspace to inspect it."}
+          </span>
         </div>
       </div>
 
-      <nav className="dashboard-command-strip" aria-label="Dashboard navigation shortcuts">
-        <div>
-          <strong>Dashboard workflow</strong>
-          <span>
-            Use existing Core command wrappers, then inspect the derived dashboard,
-            evidence and generated artifact surfaces.
-          </span>
-        </div>
-
-        <div className="dashboard-command-actions">
-          <a href="#studio-validation">Core commands</a>
-          <a href="#studio-evidence">Evidence</a>
-          <a href="#studio-artifacts">Artifacts</a>
-          <a href="#studio-reports-logs">Reports & logs</a>
-        </div>
-      </nav>
-
-      <div className="dashboard-kpi-grid" aria-label="Dashboard top status cards">
-        <article className="dashboard-card dashboard-card-prominent">
-          <div className="dashboard-card-header">
-            <h3>Workspace</h3>
-            <StatusBadge label={workspace ? "OPEN" : "UNAVAILABLE"} />
+      <div className="cockpit-kpi-grid" aria-label="Mission cockpit status cards">
+        <article className="cockpit-kpi-card">
+          <DashboardIcon kind="validation" />
+          <div>
+            <h3>Validation</h3>
+            <strong>{validationResult ?? "Unavailable"}</strong>
+            <span>
+              {validationErrors === null &&
+              validationWarnings === null &&
+              validationInfo === null
+                ? "Run validation to populate status"
+                : `Errors ${validationErrors ?? 0} · Warnings ${
+                    validationWarnings ?? 0
+                  } · Info ${validationInfo ?? 0}`}
+            </span>
           </div>
-          <strong>{workspace ? "Workspace open" : "No workspace selected"}</strong>
-          <span>{workspace?.selected_path ?? "Open a workspace to inspect it."}</span>
-          <div className="dashboard-card-status-row">
-            <span>Mission: {workspace?.mission_dir ? "detected" : "not detected"}</span>
-            <span>Generated: {workspace?.generated_dir ? "detected" : "not detected"}</span>
-          </div>
+          <StatusBadge label={formatDashboardStatusLabel(validationResult)} />
         </article>
 
-        <article className="dashboard-card dashboard-card-prominent">
-          <div className="dashboard-card-header">
-            <h3>Validation status</h3>
-            <StatusBadge label={formatDashboardStatusLabel(validationResult)} />
+        <article className="cockpit-kpi-card">
+          <DashboardIcon kind="model" />
+          <div>
+            <h3>Model inventory</h3>
+            <strong>
+              {dashboardSummary
+                ? `${dashboardSummary.entity_inventory.total_entities} entities`
+                : workspace
+                  ? `${workspace.source_model_files.length} files`
+                  : "Unavailable"}
+            </strong>
+            <span>
+              {dashboardSummary
+                ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
+                : "Core dashboard summary not loaded"}
+            </span>
           </div>
-          <strong>{validationResult ?? "Not available"}</strong>
-          {lintReport || dashboardValidation ? (
-            <>
-              <div className="dashboard-card-status-row">
-                <span>Errors: {validationErrors ?? "not reported"}</span>
-                <span>Warnings: {validationWarnings ?? "not reported"}</span>
-                <span>Info: {validationInfo ?? "not reported"}</span>
-                <span>
-                  Findings: {lintReport ? lintReport.findings.length : "not reported"}
-                </span>
-              </div>
-              {lintReport && lintReport.findings.length > 0 ? (
-                <ul className="dashboard-mini-list" aria-label="Recent validation findings">
-                  {lintReport.findings.slice(0, 3).map((finding) => (
-                    <li key={`${finding.severity}-${finding.code}-${finding.message}`}>
-                      <strong>{finding.code}</strong>
-                      <span>{finding.severity}: {finding.message}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </>
-          ) : (
-            <span>Run Core lint or dashboard-summary to populate this card.</span>
-          )}
-          <span className="dashboard-card-meta">
-            Source: {lintReport ? "Core lint report" : dashboardValidation ? "Core dashboard summary" : "unavailable"}
-          </span>
+          <button
+            type="button"
+            className="cockpit-card-action"
+            onClick={() => onActiveSurfaceChange("model-inventory")}
+            disabled={!workspace}
+          >
+            Detail
+          </button>
         </article>
 
-        <article className="dashboard-card dashboard-card-prominent">
-          <div className="dashboard-card-header">
+        <article className="cockpit-kpi-card">
+          <DashboardIcon kind="scenario" />
+          <div>
             <h3>Scenario runs</h3>
-            <StatusBadge label={scenarioRunIndex ? "INDEXED" : "UNAVAILABLE"} />
+            <strong>
+              {scenarioRunIndex
+                ? `${scenarioRunIndex.summary.total} indexed`
+                : "Unavailable"}
+            </strong>
+            <span>
+              {scenarioRunIndex
+                ? `${scenarioRunIndex.summary.passed} passed, ${scenarioRunIndex.summary.failed} failed`
+                : "Run scenario-run-index"}
+            </span>
           </div>
-          <strong>
-            {scenarioRunIndex
-              ? `${scenarioRunIndex.summary.total} Core-indexed runs`
-              : "Not available"}
-          </strong>
-          {scenarioRunIndex ? (
-            <>
-              <div className="dashboard-card-status-row">
-                <span>Passed: {scenarioRunIndex.summary.passed}</span>
-                <span>Failed: {scenarioRunIndex.summary.failed}</span>
-                <span>Displayed: {displayedIndexedScenarioRuns.length}</span>
-              </div>
-
-              {displayedIndexedScenarioRuns.length > 0 ? (
-                <ul className="dashboard-mini-list" aria-label="Core-indexed scenario run records">
-                  {displayedIndexedScenarioRuns.map((run) => (
-                    <li key={`${run.report_path}-${run.scenario}`}>
-                      <strong>{run.scenario}</strong>
-                      <span>
-                        {run.result}, mission {run.mission}, report {run.report_file}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span>No scenario run records were emitted by Core.</span>
-              )}
-            </>
-          ) : (
-            <span>Run Core scenario-run-index after producing simulation reports.</span>
-          )}
-          <span className="dashboard-card-meta">
-            Source: {scenarioRunIndex ? "Core scenario run index" : "unavailable"}
-          </span>
-          <span className="dashboard-card-meta">
-            Latest simulation report: {simulationReport ? simulationReport.result : "not available"}
-          </span>
-          <a className="dashboard-inline-link" href="#studio-evidence">
-            Open evidence surface
-          </a>
+          <button
+            type="button"
+            className="cockpit-card-action"
+            onClick={() => onActiveSurfaceChange("scenario-evidence")}
+            disabled={!workspace}
+          >
+            Evidence
+          </button>
         </article>
 
-        <article className="dashboard-card dashboard-card-prominent">
-          <div className="dashboard-card-header">
-            <h3>Coverage summary</h3>
-            <StatusBadge label={coverageSummary ? "CORE REPORT" : "UNAVAILABLE"} />
+        <article className="cockpit-kpi-card">
+          <DashboardIcon kind="coverage" />
+          <div>
+            <h3>Coverage</h3>
+            <strong>{coverageSummary ? "Available" : "Unavailable"}</strong>
+            <span>
+              {coverageSummary
+                ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total} expectations`
+                : "Run coverage-summary"}
+            </span>
           </div>
-          <strong>{coverageSummary ? "Core coverage available" : "Not available"}</strong>
-          {coverageSummary ? (
-            <>
-              <div className="dashboard-card-status-row">
-                <span>Runs: {coverageSummary.scenario_runs.total}</span>
-                <span>
-                  Entity scopes: {Object.keys(coverageSummary.entity_coverage).length}
-                </span>
-                <span>
-                  Expectations: {coverageSummary.expectation_coverage.passed}/
-                  {coverageSummary.expectation_coverage.total}
-                </span>
-                <span>
-                  Relationships: {coverageSummary.relationship_coverage.covered_supported_relationships}/
-                  {coverageSummary.relationship_coverage.total_supported_relationships}
-                </span>
-              </div>
+          <button
+            type="button"
+            className="cockpit-card-action"
+            onClick={() => onActiveSurfaceChange("reports-logs")}
+            disabled={!workspace}
+          >
+            Report
+          </button>
+        </article>
 
-              {topEntityCoverageRecords.length > 0 ? (
-                <ul className="dashboard-mini-list" aria-label="Core entity coverage records">
-                  {topEntityCoverageRecords.map(([domain, coverage]) => (
-                    <li key={domain}>
-                      <strong>{domain}</strong>
-                      <span>
-                        {coverage.covered}/{coverage.total} covered, ratio{" "}
-                        {formatDashboardRatio(coverage.coverage_ratio)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span>No entity coverage records were reported by Core.</span>
-              )}
-
-              {topExpectationCoverageTypes.length > 0 ? (
-                <span className="dashboard-card-meta">
-                  Expectation types:{" "}
-                  {topExpectationCoverageTypes
-                    .map(([expectationType, total]) => `${expectationType}: ${total}`)
-                    .join(", ")}
-                </span>
-              ) : (
-                <span className="dashboard-card-meta">
-                  No expectation coverage types were reported by Core.
-                </span>
-              )}
-
-              <span className="dashboard-card-meta">
-                Relationship ratio:{" "}
-                {formatDashboardRatio(coverageSummary.relationship_coverage.coverage_ratio)}
-              </span>
-
-              <span className="dashboard-card-meta">
-                Unsupported entity domains:{" "}
-                {unsupportedCoverageEntityDomains.length > 0
-                  ? unsupportedCoverageEntityDomains.join(", ")
-                  : "none reported"}
-              </span>
-
-              <span className="dashboard-card-meta">
-                Unsupported relationship types:{" "}
-                {unsupportedCoverageRelationshipTypes.length > 0
-                  ? unsupportedCoverageRelationshipTypes.join(", ")
-                  : "none reported"}
-              </span>
-            </>
-          ) : (
-            <span>Run Core coverage-summary after required Core reports exist.</span>
-          )}
-          <span className="dashboard-card-meta">
-            Source: {coverageSummary ? "Core coverage summary" : "unavailable"}
-          </span>
+        <article className="cockpit-kpi-card">
+          <DashboardIcon kind="artifacts" />
+          <div>
+            <h3>Artifacts</h3>
+            <strong>
+              {generatedArtifactSummary
+                ? `${generatedArtifactSummary.totalArtifacts} files`
+                : "Unavailable"}
+            </strong>
+            <span>
+              {generatedArtifactSummary
+                ? `${generatedArtifactSummary.previewableArtifacts} previewable`
+                : "Inspect generated artifacts"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="cockpit-card-action"
+            onClick={() => onActiveSurfaceChange("generated-artifacts")}
+            disabled={!workspace}
+          >
+            Open
+          </button>
         </article>
       </div>
 
-      <div className="dashboard-section-grid">
-        <article className="dashboard-section-card dashboard-card-wide">
-          <div className="dashboard-section-title">
+      <div className="cockpit-work-grid">
+        <article className="cockpit-panel cockpit-panel-large">
+          <div className="cockpit-panel-header">
             <div>
-              <h3>Core-derived inventory</h3>
-              <p>
-                Inventory values are shown only from Core reports or workspace
-                structural inspection.
-              </p>
+              <span className="cockpit-eyebrow">Mission data contract</span>
+              <h3>Core-derived contract map</h3>
             </div>
-            <ProvenanceBadge label="CORE-DERIVED" />
+            <StatusBadge label={dashboardSummary ? "REPORTED" : "PARTIAL"} />
           </div>
 
-          <div className="dashboard-card-grid">
-            <article className="dashboard-card">
-              <h3>Model inventory</h3>
-              <strong>
-                {dashboardSummary
-                  ? `${dashboardSummary.entity_inventory.total_entities} Core entities`
-                  : workspace
-                    ? `${workspace.source_model_files.length} source files`
-                    : "Not inspected"}
-              </strong>
-              {dashboardSummary ? (
-                <>
-                  <div className="dashboard-card-status-row">
-                    <span>
-                      Required domains: {dashboardSummary.model_domains.required.present}/
-                      {dashboardSummary.model_domains.required.total}
-                    </span>
-                    <span>
-                      Missing required: {dashboardSummary.model_domains.required.missing}
-                    </span>
-                    <span>
-                      Optional domains: {dashboardSummary.model_domains.optional.present}/
-                      {dashboardSummary.model_domains.optional.total}
-                    </span>
-                    <span>
-                      Entity domains: {topEntityDomains.length}
-                    </span>
+          <div className="cockpit-domain-strip">
+            {dashboardDomains.length > 0 ? (
+              dashboardDomains.slice(0, 8).map((domain) => (
+                <div className="cockpit-domain-chip" key={domain.id}>
+                  <span>{domain.display_name}</span>
+                  <strong>{domain.count}</strong>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="cockpit-domain-chip">
+                  <span>Source files</span>
+                  <strong>{workspace?.source_model_files.length ?? 0}</strong>
+                </div>
+                <div className="cockpit-domain-chip">
+                  <span>Scenarios</span>
+                  <strong>{workspace?.scenario_files.length ?? 0}</strong>
+                </div>
+                <div className="cockpit-domain-chip">
+                  <span>Generated</span>
+                  <strong>{workspace?.generated_locations.length ?? 0}</strong>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="cockpit-two-column">
+            <div className="cockpit-compact-list">
+              <h4>Top entity domains</h4>
+              {topEntityDomains.length > 0 ? (
+                topEntityDomains.map(([domain, count]) => (
+                  <div className="cockpit-row" key={domain}>
+                    <span>{domain}</span>
+                    <strong>{count}</strong>
                   </div>
-
-                  {dashboardDomains.length > 0 ? (
-                    <ul className="dashboard-mini-list" aria-label="Core dashboard model domains">
-                      {dashboardDomains.slice(0, 5).map((domain) => (
-                        <li key={domain.id}>
-                          <strong>{domain.display_name}</strong>
-                          <span>
-                            {formatDashboardDomainState(domain.present)}, count {domain.count}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
-                  {missingRequiredDomains.length > 0 ? (
-                    <span className="dashboard-card-meta">
-                      Missing required domains:{" "}
-                      {missingRequiredDomains.map((domain) => domain.display_name).join(", ")}
-                    </span>
-                  ) : (
-                    <span className="dashboard-card-meta">
-                      No missing required domains reported by Core dashboard summary.
-                    </span>
-                  )}
-                </>
+                ))
               ) : (
-                <>
-                  <span>Missing expected files: {workspace?.missing_expected_source_files.length ?? 0}</span>
-                  <span>Scenario files: {workspace?.scenario_files.length ?? 0}</span>
-                  <span>Generated locations: {workspace?.generated_locations.length ?? 0}</span>
-                </>
+                <p>No Core entity inventory loaded.</p>
               )}
-            </article>
+            </div>
 
-            <article className="dashboard-card">
-              <h3>Relationship inventory</h3>
-              <strong>
-                {dashboardSummary
-                  ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
-                  : "Not available"}
-              </strong>
-              {dashboardSummary ? (
-                <>
-                  <div className="dashboard-card-status-row">
-                    <span>Relationship types: {topRelationshipTypes.length}</span>
-                    <span>Source: Core dashboard summary</span>
+            <div className="cockpit-compact-list">
+              <h4>Top relationships</h4>
+              {topRelationshipTypes.length > 0 ? (
+                topRelationshipTypes.map(([relationshipType, count]) => (
+                  <div className="cockpit-row" key={relationshipType}>
+                    <span>{relationshipType}</span>
+                    <strong>{count}</strong>
                   </div>
-
-                  {topRelationshipTypes.length > 0 ? (
-                    <ul className="dashboard-mini-list" aria-label="Core dashboard relationship types">
-                      {topRelationshipTypes.map(([relationshipType, count]) => (
-                        <li key={relationshipType}>
-                          <strong>{relationshipType}</strong>
-                          <span>{count} relationships</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span>No relationship types were reported by Core.</span>
-                  )}
-                </>
+                ))
               ) : (
-                <span>Run Core dashboard-summary to populate this card.</span>
+                <p>No Core relationship inventory loaded.</p>
               )}
-            </article>
-
-            <article className="dashboard-card">
-              <h3>Generated artifact inventory</h3>
-              <strong>
-                {generatedArtifactSummary
-                  ? `${generatedArtifactSummary.totalArtifacts} artifacts`
-                  : "Not inspected"}
-              </strong>
-              {generatedArtifactSummary ? (
-                <>
-                  <div className="dashboard-card-status-row">
-                    <span>Total: {generatedArtifactSummary.totalArtifacts}</span>
-                    <span>Known: {generatedArtifactSummary.knownArtifacts}</span>
-                    <span>Unknown: {generatedArtifactSummary.unknownArtifacts}</span>
-                    <span>Warnings: {generatedArtifactSummary.warningCount}</span>
-                  </div>
-
-                  <ul className="dashboard-mini-list" aria-label="Generated artifact inventory status">
-                    {generatedArtifactStatusItems.map(([label, value]) => (
-                      <li key={label}>
-                        <strong>{label}</strong>
-                        <span>{value} artifacts</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <span className="dashboard-card-meta">
-                    Generated directory: {generatedArtifactSummary.generatedDir ?? "not detected"}
-                  </span>
-                  <span className="dashboard-card-meta">
-                    Source: generated artifact inventory. No artifact runtime readiness is inferred.
-                  </span>
-                </>
-              ) : (
-                <span>Run Generated Artifact Explorer to populate this card.</span>
-              )}
-              <a className="dashboard-inline-link" href="#studio-artifacts">
-                Open generated artifacts
-              </a>
-            </article>
+            </div>
           </div>
         </article>
 
-        <article className="dashboard-section-card">
-          <div className="dashboard-section-title">
+        <article className="cockpit-panel">
+          <div className="cockpit-panel-header">
             <div>
-              <h3>Reports and logs</h3>
-              <p>Availability state only. Studio does not infer evidence from logs.</p>
+              <span className="cockpit-eyebrow">Activity</span>
+              <h3>Recent evidence</h3>
             </div>
-            <StatusBadge label="READ-ONLY" />
+            <DashboardIcon kind="evidence" />
           </div>
 
-          <div className="dashboard-card-grid dashboard-card-grid-single">
-            <article className="dashboard-card">
-              <h3>Generated locations</h3>
-              <strong>Workspace generated area</strong>
-              <span>Reports: {hasReportsLocation ? "detected" : "not detected"}</span>
-              <span>Logs: {hasLogsLocation ? "detected" : "not detected"}</span>
-              <span>Core JSON report: {coreResult?.json_report_available ? "available" : "not available"}</span>
-              <span>Dashboard summary: {dashboardSummary ? "available" : "not available"}</span>
-              <span>
-                Scenario run index:{" "}
-                {scenarioRunIndex ? `${scenarioRunIndex.summary.total} runs` : "not available"}
-              </span>
-              <span>Coverage summary: {coverageSummary ? "available" : "not available"}</span>
-              <span>Simulation report: {simulationReport ? simulationReport.result : "not available"}</span>
-            </article>
+          <div className="cockpit-compact-list">
+            {displayedIndexedScenarioRuns.length > 0 ? (
+              displayedIndexedScenarioRuns.map((run) => (
+                <div className="cockpit-row" key={`${run.report_path}-${run.scenario}`}>
+                  <span>{run.scenario}</span>
+                  <strong>{run.result}</strong>
+                </div>
+              ))
+            ) : (
+              <p>No Core-indexed scenario runs loaded.</p>
+            )}
+          </div>
 
-            <article className="dashboard-card">
-              <h3>Warnings</h3>
-              <strong>{workspace?.warnings.length ?? 0} warnings</strong>
-              {workspace && workspace.warnings.length > 0 ? (
-                <ul className="dashboard-card-list">
-                  {workspace.warnings.map((warning) => (
-                    <li key={warning}>{warning}</li>
-                  ))}
-                </ul>
-              ) : (
-                <span>No structural workspace warnings.</span>
-              )}
-            </article>
+          <div className="cockpit-mini-status">
+            <span>Latest sim</span>
+            <strong>{simulationReport ? simulationReport.result : "not available"}</strong>
           </div>
         </article>
 
-        <article className="dashboard-section-card dashboard-card-muted">
-          <div className="dashboard-section-title">
+        <article className="cockpit-panel">
+          <div className="cockpit-panel-header">
             <div>
-              <h3>Boundary and reserved surfaces</h3>
-              <p>
-                This dashboard remains a read-only engineering workbench surface.
-              </p>
+              <span className="cockpit-eyebrow">Coverage</span>
+              <h3>Reported scopes</h3>
             </div>
-            <StatusBadge label="BOUNDARY" />
+            <DashboardIcon kind="coverage" />
           </div>
 
-          <div className="dashboard-card-grid dashboard-card-grid-single">
-            <article className="dashboard-card">
-              <h3>Read-only boundary</h3>
-              <strong>Enforced by current UI</strong>
-              <span>No Mission Model editing</span>
-              <span>No generated artifact editing</span>
-              <span>No arbitrary command execution</span>
-            </article>
+          <div className="cockpit-compact-list">
+            {topEntityCoverageRecords.length > 0 ? (
+              topEntityCoverageRecords.map(([domain, coverage]) => (
+                <div className="cockpit-row" key={domain}>
+                  <span>{domain}</span>
+                  <strong>
+                    {coverage.covered}/{coverage.total}
+                  </strong>
+                </div>
+              ))
+            ) : (
+              <p>No entity coverage records loaded.</p>
+            )}
+          </div>
 
-            <article className="dashboard-card surface-card-anchor">
-              <h3>Future surfaces</h3>
-              <strong>Reserved</strong>
-              <span>Ground: reserved for generated ground-facing artifacts</span>
-              <span>Graph: not implemented in this milestone</span>
-              <span>Authoring: not implemented in this milestone</span>
-            </article>
+          <div className="cockpit-mini-status">
+            <span>Expectation types</span>
+            <strong>{topExpectationCoverageTypes.length}</strong>
           </div>
         </article>
+
+        <article className="cockpit-panel">
+          <div className="cockpit-panel-header">
+            <div>
+              <span className="cockpit-eyebrow">Generated</span>
+              <h3>Artifact state</h3>
+            </div>
+            <DashboardIcon kind="artifacts" />
+          </div>
+
+          <div className="cockpit-compact-list">
+            {generatedArtifactStatusItems.length > 0 ? (
+              generatedArtifactStatusItems.map(([label, value]) => (
+                <div className="cockpit-row" key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))
+            ) : (
+              <p>Generated artifact inventory not inspected.</p>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="cockpit-secondary-action"
+            onClick={() => onActiveSurfaceChange("generated-artifacts")}
+            disabled={!workspace}
+          >
+            Open artifact surface
+          </button>
+        </article>
+
+        <article className="cockpit-panel cockpit-boundary-panel">
+          <div className="cockpit-panel-header">
+            <div>
+              <span className="cockpit-eyebrow">Boundary</span>
+              <h3>Read-only guardrails</h3>
+            </div>
+            <DashboardIcon kind="shield" />
+          </div>
+
+          <div className="cockpit-guardrail-grid">
+            <span>No editing</span>
+            <span>No uplink</span>
+            <span>No live telemetry</span>
+            <span>No private coverage</span>
+          </div>
+
+          <div className="cockpit-mini-status">
+            <span>Reports</span>
+            <strong>{hasReportsLocation ? "detected" : "not detected"}</strong>
+          </div>
+          <div className="cockpit-mini-status">
+            <span>Logs</span>
+            <strong>{hasLogsLocation ? "detected" : "not detected"}</strong>
+          </div>
+        </article>
+      </div>
+
+      <div className="cockpit-footer">
+        <div>
+          <strong>Unsupported coverage scopes</strong>
+          <span>
+            Entities:{" "}
+            {unsupportedCoverageEntityDomains.length > 0
+              ? unsupportedCoverageEntityDomains.join(", ")
+              : "none reported"}
+          </span>
+          <span>
+            Relationships:{" "}
+            {unsupportedCoverageRelationshipTypes.length > 0
+              ? unsupportedCoverageRelationshipTypes.join(", ")
+              : "none reported"}
+          </span>
+        </div>
+        <button
+          type="button"
+          className="cockpit-secondary-action"
+          onClick={() => onActiveSurfaceChange("core-commands")}
+          disabled={!workspace}
+        >
+          Run Core commands
+        </button>
       </div>
     </section>
   );
 }
+
+type DashboardIconKind =
+  | "mission"
+  | "validation"
+  | "model"
+  | "scenario"
+  | "coverage"
+  | "artifacts"
+  | "evidence"
+  | "shield";
+
+function DashboardIcon({ kind }: { kind: DashboardIconKind }) {
+  const iconPath = {
+    mission: "M12 3l7 4v10l-7 4-7-4V7l7-4z M12 7v10 M5 7l7 4 7-4",
+    validation: "M5 12l4 4L19 6 M4 4h16v16H4z",
+    model: "M4 5h7v7H4z M13 5h7v7h-7z M4 14h7v5H4z M13 14h7v5h-7z",
+    scenario: "M4 6h5l3 6 3-6h5 M4 18h5l3-6 3 6h5",
+    coverage: "M12 20a8 8 0 1 0-8-8 M12 12l5-5 M12 12v8",
+    artifacts: "M6 4h9l3 3v13H6z M15 4v4h4 M8 12h8 M8 16h6",
+    evidence: "M5 5h14v10H8l-3 3z M8 9h8 M8 12h6",
+    shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z",
+  }[kind];
+
+  return (
+    <span className={`dashboard-icon dashboard-icon-${kind}`} aria-hidden="true">
+      <svg viewBox="0 0 24 24" role="img">
+        <path d={iconPath} />
+      </svg>
+    </span>
+  );
+}
+
 
 function formatDashboardRatio(value: number | null | undefined): string {
   return value === null || value === undefined ? "not reported" : String(value);
