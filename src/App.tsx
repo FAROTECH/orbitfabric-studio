@@ -76,60 +76,80 @@ const shellSurfaceItems = [
     status: "active",
     targetId: "studio-dashboard",
     surface: "mission-dashboard",
+    icon: "mission",
+    caption: "Mission cockpit",
   },
   {
     label: "Model",
     status: "available",
     targetId: "studio-model",
     surface: "model-inventory",
+    icon: "model",
+    caption: "Model inventory",
   },
   {
-    label: "Core Commands",
+    label: "Core",
     status: "available",
     targetId: "studio-validation",
     surface: "core-commands",
+    icon: "core",
+    caption: "Core commands",
   },
   {
     label: "Contracts",
     status: "available",
     targetId: "studio-contracts",
     surface: "contracts",
+    icon: "contracts",
+    caption: "Contract reports",
   },
   {
-    label: "Relationships",
+    label: "Relations",
     status: "available",
     targetId: "studio-relationships",
     surface: "relationships",
+    icon: "relationships",
+    caption: "Relationship data",
   },
   {
     label: "Artifacts",
     status: "available",
     targetId: "studio-artifacts",
     surface: "generated-artifacts",
+    icon: "artifacts",
+    caption: "Generated files",
   },
   {
-    label: "Reports & Logs",
+    label: "Reports",
     status: "available",
     targetId: "studio-reports-logs",
     surface: "reports-logs",
+    icon: "reports",
+    caption: "Reports and logs",
   },
   {
     label: "Evidence",
     status: "available",
     targetId: "studio-evidence",
     surface: "scenario-evidence",
+    icon: "evidence",
+    caption: "Scenario evidence",
   },
   {
     label: "Ground",
     status: "reserved",
     targetId: "studio-future-surfaces",
     surface: "reserved-ground",
+    icon: "ground",
+    caption: "Reserved surface",
   },
   {
     label: "Raw",
     status: "available",
     targetId: "studio-raw-output",
     surface: "raw-output",
+    icon: "raw",
+    caption: "Raw output",
   },
 ] as const;
 
@@ -773,9 +793,16 @@ function PrimarySidebar({
   onActiveSurfaceChange: (surface: ActiveSurface) => void;
 }) {
   return (
-    <nav className="primary-sidebar" aria-label="Studio surfaces">
-      <h2>Surfaces</h2>
-      <ul className="surface-nav-list">
+    <nav className="primary-sidebar cockpit-sidebar" aria-label="Studio surfaces">
+      <div className="cockpit-sidebar-brand">
+        <div className="cockpit-sidebar-mark">OF</div>
+        <div>
+          <strong>Studio</strong>
+          <span>Workbench</span>
+        </div>
+      </div>
+
+      <ul className="surface-nav-list cockpit-surface-nav-list">
         {shellSurfaceItems.map((item) => {
           const isReserved = item.status === "reserved";
           const isActive = item.surface === activeSurface;
@@ -787,30 +814,43 @@ function PrimarySidebar({
               : isEnabled
                 ? item.status
                 : "unavailable";
+          const itemClassName = [
+            "surface-nav-item",
+            "cockpit-surface-nav-item",
+            isActive ? "surface-nav-item-active" : "",
+            !isEnabled ? "surface-nav-item-disabled" : "",
+            isReserved ? "surface-nav-item-reserved" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          const itemContent = (
+            <>
+              <DashboardIcon kind={item.icon} />
+              <span className="surface-nav-copy">
+                <strong>{item.label}</strong>
+                <span>{item.caption}</span>
+              </span>
+              <span className={`surface-status surface-status-${displayedStatus}`}>
+                {displayedStatus}
+              </span>
+            </>
+          );
 
           return (
             <li key={item.label}>
               {isEnabled ? (
                 <a
-                  className="surface-nav-item surface-nav-link"
+                  className={`${itemClassName} surface-nav-link`}
                   href={`#${item.targetId}`}
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => onActiveSurfaceChange(item.surface)}
                 >
-                  <span>{item.label}</span>
-                  <span className={`surface-status surface-status-${displayedStatus}`}>
-                    {displayedStatus}
-                  </span>
+                  {itemContent}
                 </a>
               ) : (
-                <span
-                  className="surface-nav-item surface-nav-item-disabled"
-                  aria-disabled="true"
-                >
-                  <span>{item.label}</span>
-                  <span className={`surface-status surface-status-${displayedStatus}`}>
-                    {displayedStatus}
-                  </span>
+                <span className={itemClassName} aria-disabled="true">
+                  {itemContent}
                 </span>
               )}
             </li>
@@ -2307,7 +2347,13 @@ type DashboardIconKind =
   | "coverage"
   | "artifacts"
   | "evidence"
-  | "shield";
+  | "shield"
+  | "core"
+  | "contracts"
+  | "relationships"
+  | "reports"
+  | "ground"
+  | "raw";
 
 function DashboardIcon({ kind }: { kind: DashboardIconKind }) {
   const iconPath = {
@@ -2319,6 +2365,12 @@ function DashboardIcon({ kind }: { kind: DashboardIconKind }) {
     artifacts: "M6 4h9l3 3v13H6z M15 4v4h4 M8 12h8 M8 16h6",
     evidence: "M5 5h14v10H8l-3 3z M8 9h8 M8 12h6",
     shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z",
+    core: "M8 9h8 M8 15h8 M5 6h14v12H5z",
+    contracts: "M7 4h10v16H7z M9 8h6 M9 12h6 M9 16h4",
+    relationships: "M6 7a2 2 0 1 0 0.1 0 M18 7a2 2 0 1 0 0.1 0 M12 17a2 2 0 1 0 0.1 0 M8 8l3 7 M16 8l-3 7 M8 7h8",
+    reports: "M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5",
+    ground: "M4 18h16 M7 18l5-12 5 12 M9 13h6",
+    raw: "M8 8l-4 4 4 4 M16 8l4 4-4 4 M13 6l-2 12",
   }[kind];
 
   return (
