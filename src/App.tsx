@@ -26,6 +26,8 @@ import {
 } from "./coreReports";
 import type {
   CoreCommandResult,
+  CoreCoverageSummary,
+  CoreDashboardSummary,
   CoreEntityIndex,
   CoreEntityIndexDomain,
   CoreEntityIndexEntity,
@@ -38,6 +40,7 @@ import type {
   CoreRelationshipType,
   CoreSimulationJsonValue,
   CoreSimulationReport,
+  CoreScenarioRunIndex,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
@@ -104,11 +107,31 @@ interface SimulationInspectorRecord {
   record: unknown;
 }
 
+interface CoreReportSnapshots {
+  lintReport: CoreLintReport | null;
+  dashboardSummary: CoreDashboardSummary | null;
+  scenarioRunIndex: CoreScenarioRunIndex | null;
+  coverageSummary: CoreCoverageSummary | null;
+  simulationReport: CoreSimulationReport | null;
+}
+
+function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
+  return {
+    lintReport: null,
+    dashboardSummary: null,
+    scenarioRunIndex: null,
+    coverageSummary: null,
+    simulationReport: null,
+  };
+}
+
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
   const [coreExecutable, setCoreExecutable] = useState("orbitfabric");
   const [coreResult, setCoreResult] = useState<CoreCommandResult | null>(null);
+  const [coreReportSnapshots, setCoreReportSnapshots] =
+    useState<CoreReportSnapshots>(() => createEmptyCoreReportSnapshots());
   const [generatedArtifactSummary, setGeneratedArtifactSummary] =
     useState<GeneratedArtifactDashboardSummary | null>(null);
   const [selectedGeneratedArtifact, setSelectedGeneratedArtifact] =
@@ -132,6 +155,7 @@ function App() {
     setCoreError(null);
     setSelectedFile(null);
     setCoreResult(null);
+    setCoreReportSnapshots(createEmptyCoreReportSnapshots());
     setGeneratedArtifactSummary(null);
     setSelectedGeneratedArtifact(null);
     setGeneratedEvidenceArtifactSummary(null);
@@ -345,6 +369,7 @@ function App() {
     try {
       const result = await invoke<CoreCommandResult>(commandName, payload);
       setCoreResult(result);
+      updateCoreReportSnapshots(result);
       return result;
     } catch (caught) {
       setCoreError(caught instanceof Error ? caught.message : String(caught));
@@ -354,17 +379,54 @@ function App() {
     }
   }
 
+  function updateCoreReportSnapshots(result: CoreCommandResult) {
+    const reportContent = result.json_report_content ?? null;
+
+    if (!reportContent) {
+      return;
+    }
+
+    const lintReport = parseCoreLintReport(reportContent);
+    const dashboardSummary = parseCoreDashboardSummary(reportContent);
+    const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
+    const coverageSummary = parseCoreCoverageSummary(reportContent);
+    const simulationReport = parseCoreSimulationReport(reportContent);
+
+    if (
+      !lintReport &&
+      !dashboardSummary &&
+      !scenarioRunIndex &&
+      !coverageSummary &&
+      !simulationReport
+    ) {
+      return;
+    }
+
+    setCoreReportSnapshots((current) => ({
+      lintReport: lintReport ?? current.lintReport,
+      dashboardSummary: dashboardSummary ?? current.dashboardSummary,
+      scenarioRunIndex: scenarioRunIndex ?? current.scenarioRunIndex,
+      coverageSummary: coverageSummary ?? current.coverageSummary,
+      simulationReport: simulationReport ?? current.simulationReport,
+    }));
+  }
+
   const coreReportContent = coreResult?.json_report_content ?? null;
   const coreSimulationReport = parseCoreSimulationReport(coreReportContent);
   const selectedFileSimulationReport = parseCoreSimulationReport(
     selectedFile?.content ?? null,
   );
-  const simulationReport = selectedFileSimulationReport ?? coreSimulationReport;
+  const simulationReport =
+    selectedFileSimulationReport ??
+    coreSimulationReport ??
+    coreReportSnapshots.simulationReport;
   const simulationReportSource = selectedFileSimulationReport
     ? "selected file preview"
     : coreSimulationReport
       ? "Core command output"
-      : null;
+      : coreReportSnapshots.simulationReport
+        ? "latest Core simulation report snapshot"
+        : null;
   const hasCoreModelSummary = Boolean(parseCoreModelSummary(coreReportContent));
   const hasCoreEntityIndex = Boolean(parseCoreEntityIndex(coreReportContent));
   const hasCoreRelationshipManifest = Boolean(
@@ -470,6 +532,7 @@ function App() {
           <WorkspaceDashboard
             workspace={workspace}
             coreResult={coreResult}
+            coreReportSnapshots={coreReportSnapshots}
             generatedArtifactSummary={generatedArtifactSummary}
           />
 
@@ -1613,13 +1676,30 @@ function EmptyState() {
 function WorkspaceDashboard({
   workspace,
   coreResult,
+  coreReportSnapshots,
   generatedArtifactSummary,
 }: {
   workspace: WorkspaceInspection | null;
   coreResult: CoreCommandResult | null;
+  coreReportSnapshots: CoreReportSnapshots;
   generatedArtifactSummary: GeneratedArtifactDashboardSummary | null;
 }) {
-  const lintReport = parseCoreLintReport(coreResult?.json_report_content ?? null);
+  const currentReportContent = coreResult?.json_report_content ?? null;
+  const lintReport =
+    parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport;
+  const dashboardSummary =
+    parseCoreDashboardSummary(currentReportContent) ??
+    coreReportSnapshots.dashboardSummary;
+  const scenarioRunIndex =
+    parseCoreScenarioRunIndex(currentReportContent) ??
+    coreReportSnapshots.scenarioRunIndex;
+  const coverageSummary =
+    parseCoreCoverageSummary(currentReportContent) ??
+    coreReportSnapshots.coverageSummary;
+  const simulationReport =
+    parseCoreSimulationReport(currentReportContent) ??
+    coreReportSnapshots.simulationReport;
+  const dashboardValidation = dashboardSummary?.validation ?? null;
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -1655,24 +1735,59 @@ function WorkspaceDashboard({
 
         <article className="dashboard-card">
           <h3>Validation summary</h3>
-          <strong>{lintReport ? lintReport.result : "Not available"}</strong>
-          {lintReport ? (
+          <strong>
+            {lintReport?.result ?? dashboardValidation?.result ?? "Not available"}
+          </strong>
+          {lintReport || dashboardValidation ? (
             <>
-              <span>Errors: {lintReport.summary.errors}</span>
-              <span>Warnings: {lintReport.summary.warnings}</span>
-              <span>Info: {lintReport.summary.info}</span>
+              <span>
+                Errors: {lintReport?.summary.errors ?? dashboardValidation?.errors}
+              </span>
+              <span>
+                Warnings: {lintReport?.summary.warnings ?? dashboardValidation?.warnings}
+              </span>
+              <span>
+                Info: {lintReport?.summary.info ?? dashboardValidation?.info}
+              </span>
+              <span>
+                Source: {lintReport ? "Core lint report" : "Core dashboard summary"}
+              </span>
             </>
           ) : (
-            <span>Run Core lint to populate this summary.</span>
+            <span>Run Core lint or dashboard-summary to populate this summary.</span>
           )}
         </article>
 
         <article className="dashboard-card">
-          <h3>Model surfaces</h3>
-          <strong>{workspace ? `${workspace.source_model_files.length} source files` : "Not inspected"}</strong>
-          <span>Missing expected files: {workspace?.missing_expected_source_files.length ?? 0}</span>
-          <span>Scenario files: {workspace?.scenario_files.length ?? 0}</span>
-          <span>Generated locations: {workspace?.generated_locations.length ?? 0}</span>
+          <h3>Model inventory</h3>
+          <strong>
+            {dashboardSummary
+              ? `${dashboardSummary.entity_inventory.total_entities} Core entities`
+              : workspace
+                ? `${workspace.source_model_files.length} source files`
+                : "Not inspected"}
+          </strong>
+          {dashboardSummary ? (
+            <>
+              <span>
+                Required domains: {dashboardSummary.model_domains.required.present}/
+                {dashboardSummary.model_domains.required.total}
+              </span>
+              <span>
+                Optional domains: {dashboardSummary.model_domains.optional.present}/
+                {dashboardSummary.model_domains.optional.total}
+              </span>
+              <span>
+                Relationships: {dashboardSummary.relationship_inventory.total_relationships}
+              </span>
+            </>
+          ) : (
+            <>
+              <span>Missing expected files: {workspace?.missing_expected_source_files.length ?? 0}</span>
+              <span>Scenario files: {workspace?.scenario_files.length ?? 0}</span>
+              <span>Generated locations: {workspace?.generated_locations.length ?? 0}</span>
+            </>
+          )}
         </article>
 
         <article className="dashboard-card">
@@ -1700,6 +1815,19 @@ function WorkspaceDashboard({
           <span>Reports: {hasReportsLocation ? "detected" : "not detected"}</span>
           <span>Logs: {hasLogsLocation ? "detected" : "not detected"}</span>
           <span>Core JSON report: {coreResult?.json_report_available ? "available" : "not available"}</span>
+          <span>
+            Dashboard summary: {dashboardSummary ? "available" : "not available"}
+          </span>
+          <span>
+            Scenario run index:{" "}
+            {scenarioRunIndex ? `${scenarioRunIndex.summary.total} runs` : "not available"}
+          </span>
+          <span>
+            Coverage summary: {coverageSummary ? "available" : "not available"}
+          </span>
+          <span>
+            Simulation report: {simulationReport ? simulationReport.result : "not available"}
+          </span>
         </article>
 
         <article className="dashboard-card">
