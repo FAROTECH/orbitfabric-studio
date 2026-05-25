@@ -58,17 +58,79 @@ const nonGoalItems = [
   "No visual Mission Model editor",
 ];
 
+type ActiveSurface =
+  | "mission-dashboard"
+  | "model-inventory"
+  | "core-commands"
+  | "contracts"
+  | "relationships"
+  | "generated-artifacts"
+  | "reports-logs"
+  | "scenario-evidence"
+  | "reserved-ground"
+  | "raw-output";
+
 const shellSurfaceItems = [
-  { label: "Overview", status: "active", targetId: "studio-overview" },
-  { label: "Model", status: "available", targetId: "studio-model" },
-  { label: "Validation", status: "available", targetId: "studio-validation" },
-  { label: "Contracts", status: "available", targetId: "studio-contracts" },
-  { label: "Relationships", status: "available", targetId: "studio-relationships" },
-  { label: "Artifacts", status: "available", targetId: "studio-artifacts" },
-  { label: "Reports & Logs", status: "available", targetId: "studio-reports-logs" },
-  { label: "Evidence", status: "available", targetId: "studio-evidence" },
-  { label: "Ground", status: "reserved", targetId: "studio-future-surfaces" },
-  { label: "Raw", status: "available", targetId: "studio-raw-output" },
+  {
+    label: "Mission",
+    status: "active",
+    targetId: "studio-dashboard",
+    surface: "mission-dashboard",
+  },
+  {
+    label: "Model",
+    status: "available",
+    targetId: "studio-model",
+    surface: "model-inventory",
+  },
+  {
+    label: "Core Commands",
+    status: "available",
+    targetId: "studio-validation",
+    surface: "core-commands",
+  },
+  {
+    label: "Contracts",
+    status: "available",
+    targetId: "studio-contracts",
+    surface: "contracts",
+  },
+  {
+    label: "Relationships",
+    status: "available",
+    targetId: "studio-relationships",
+    surface: "relationships",
+  },
+  {
+    label: "Artifacts",
+    status: "available",
+    targetId: "studio-artifacts",
+    surface: "generated-artifacts",
+  },
+  {
+    label: "Reports & Logs",
+    status: "available",
+    targetId: "studio-reports-logs",
+    surface: "reports-logs",
+  },
+  {
+    label: "Evidence",
+    status: "available",
+    targetId: "studio-evidence",
+    surface: "scenario-evidence",
+  },
+  {
+    label: "Ground",
+    status: "reserved",
+    targetId: "studio-future-surfaces",
+    surface: "reserved-ground",
+  },
+  {
+    label: "Raw",
+    status: "available",
+    targetId: "studio-raw-output",
+    surface: "raw-output",
+  },
 ] as const;
 
 const reservedSurfaceItems = [
@@ -115,6 +177,19 @@ interface CoreReportSnapshots {
   simulationReport: CoreSimulationReport | null;
 }
 
+type StudioDetailKind =
+  | "workspace"
+  | "source-file"
+  | "generated-artifact"
+  | "simulation-record"
+  | "core-output";
+
+interface StudioDetailSelection {
+  kind: StudioDetailKind;
+  title: string;
+  source: string;
+}
+
 function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
   return {
     lintReport: null,
@@ -142,6 +217,10 @@ function App() {
     useState(0);
   const [selectedSimulationRecord, setSelectedSimulationRecord] =
     useState<SimulationInspectorRecord | null>(null);
+  const [activeSurface, setActiveSurface] =
+    useState<ActiveSurface>("mission-dashboard");
+  const [selectedDetail, setSelectedDetail] =
+    useState<StudioDetailSelection | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
@@ -161,6 +240,8 @@ function App() {
     setGeneratedEvidenceArtifactSummary(null);
     setGeneratedArtifactRefreshToken(0);
     setSelectedSimulationRecord(null);
+    setActiveSurface("mission-dashboard");
+    setSelectedDetail(null);
     setIsOpening(true);
 
     try {
@@ -179,6 +260,11 @@ function App() {
       });
 
       setWorkspace(inspection);
+      setSelectedDetail({
+        kind: "workspace",
+        title: "Workspace inspection",
+        source: inspection.selected_path,
+      });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
@@ -203,6 +289,11 @@ function App() {
       });
 
       setSelectedFile(file);
+      setSelectedDetail({
+        kind: "source-file",
+        title: file.name,
+        source: file.path,
+      });
     } catch (caught) {
       setViewerError(caught instanceof Error ? caught.message : String(caught));
     } finally {
@@ -215,11 +306,25 @@ function App() {
   ) {
     setSelectedGeneratedArtifact(artifact);
     setSelectedSimulationRecord(null);
+    setSelectedDetail(
+      artifact
+        ? {
+            kind: "generated-artifact",
+            title: artifact.name,
+            source: artifact.relativePath,
+          }
+        : null,
+    );
   }
 
   function handleSelectSimulationRecord(record: SimulationInspectorRecord) {
     setSelectedSimulationRecord(record);
     setSelectedGeneratedArtifact(null);
+    setSelectedDetail({
+      kind: "simulation-record",
+      title: record.title,
+      source: record.kind,
+    });
   }
 
   async function handleCoreVersion() {
@@ -369,6 +474,11 @@ function App() {
     try {
       const result = await invoke<CoreCommandResult>(commandName, payload);
       setCoreResult(result);
+      setSelectedDetail({
+        kind: "core-output",
+        title: result.command,
+        source: result.args.join(" ") || "fixed Core command",
+      });
       updateCoreReportSnapshots(result);
       return result;
     } catch (caught) {
@@ -433,19 +543,17 @@ function App() {
     parseCoreRelationshipManifest(coreReportContent),
   );
 
-  const surfaceAvailability: Record<string, boolean> = {
-    Overview: true,
-    Model: Boolean(workspace && workspace.source_model_files.length > 0),
-    Validation: Boolean(workspace?.mission_dir),
-    Contracts: hasCoreModelSummary || hasCoreEntityIndex,
-    Relationships: hasCoreRelationshipManifest,
-    Artifacts: Boolean(workspace),
-    "Reports & Logs": Boolean(
-      workspace && workspace.generated_locations.length > 0,
-    ),
-    Evidence: Boolean(workspace),
-    Ground: false,
-    Raw: Boolean(coreResult),
+  const surfaceAvailability: Record<ActiveSurface, boolean> = {
+    "mission-dashboard": true,
+    "model-inventory": Boolean(workspace && workspace.source_model_files.length > 0),
+    "core-commands": Boolean(workspace?.mission_dir),
+    contracts: hasCoreModelSummary || hasCoreEntityIndex,
+    relationships: hasCoreRelationshipManifest,
+    "generated-artifacts": Boolean(workspace),
+    "reports-logs": Boolean(workspace && workspace.generated_locations.length > 0),
+    "scenario-evidence": Boolean(workspace),
+    "reserved-ground": false,
+    "raw-output": Boolean(coreResult),
   };
 
   return (
@@ -453,7 +561,11 @@ function App() {
       <WorkspaceHeader workspace={workspace} />
 
       <div className="workbench-layout">
-        <PrimarySidebar surfaceAvailability={surfaceAvailability} />
+        <PrimarySidebar
+          activeSurface={activeSurface}
+          surfaceAvailability={surfaceAvailability}
+          onActiveSurfaceChange={setActiveSurface}
+        />
 
         <section className="main-surface" aria-label="Studio main surface">
           <section
@@ -588,6 +700,7 @@ function App() {
           selectedFile={selectedFile}
           selectedGeneratedArtifact={selectedGeneratedArtifact}
           selectedSimulationRecord={selectedSimulationRecord}
+          selectedDetail={selectedDetail}
           coreResult={coreResult}
         />
       </div>
@@ -614,9 +727,13 @@ function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null 
 }
 
 function PrimarySidebar({
+  activeSurface,
   surfaceAvailability,
+  onActiveSurfaceChange,
 }: {
-  surfaceAvailability: Record<string, boolean>;
+  activeSurface: ActiveSurface;
+  surfaceAvailability: Record<ActiveSurface, boolean>;
+  onActiveSurfaceChange: (surface: ActiveSurface) => void;
 }) {
   return (
     <nav className="primary-sidebar" aria-label="Studio surfaces">
@@ -624,17 +741,25 @@ function PrimarySidebar({
       <ul className="surface-nav-list">
         {shellSurfaceItems.map((item) => {
           const isReserved = item.status === "reserved";
-          const isEnabled = !isReserved && Boolean(surfaceAvailability[item.label]);
-          const displayedStatus = isReserved
-            ? "reserved"
-            : isEnabled
-              ? item.status
-              : "unavailable";
+          const isActive = item.surface === activeSurface;
+          const isEnabled = !isReserved && Boolean(surfaceAvailability[item.surface]);
+          const displayedStatus = isActive
+            ? "active"
+            : isReserved
+              ? "reserved"
+              : isEnabled
+                ? item.status
+                : "unavailable";
 
           return (
             <li key={item.label}>
               {isEnabled ? (
-                <a className="surface-nav-item surface-nav-link" href={`#${item.targetId}`}>
+                <a
+                  className="surface-nav-item surface-nav-link"
+                  href={`#${item.targetId}`}
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => onActiveSurfaceChange(item.surface)}
+                >
                   <span>{item.label}</span>
                   <span className={`surface-status surface-status-${displayedStatus}`}>
                     {displayedStatus}
@@ -664,18 +789,21 @@ function InspectorPanel({
   selectedFile,
   selectedGeneratedArtifact,
   selectedSimulationRecord,
+  selectedDetail,
   coreResult,
 }: {
   workspace: WorkspaceInspection | null;
   selectedFile: FileContent | null;
   selectedGeneratedArtifact: GeneratedArtifactInspectorItem | null;
   selectedSimulationRecord: SimulationInspectorRecord | null;
+  selectedDetail: StudioDetailSelection | null;
   coreResult: CoreCommandResult | null;
 }) {
   const hasSelection = Boolean(
     selectedFile ||
       selectedGeneratedArtifact ||
       selectedSimulationRecord ||
+      selectedDetail ||
       coreResult ||
       workspace,
   );
@@ -705,6 +833,15 @@ function InspectorPanel({
         <div className="inspector-section inspector-empty-state">
           <h3>No selection</h3>
           <span>Open a workspace or select a source/generated artifact.</span>
+        </div>
+      ) : null}
+
+      {selectedDetail ? (
+        <div className="inspector-section">
+          <h3>Active detail</h3>
+          <strong>{selectedDetail.title}</strong>
+          <span>Kind: {selectedDetail.kind}</span>
+          <span>Source: {selectedDetail.source}</span>
         </div>
       ) : null}
 
