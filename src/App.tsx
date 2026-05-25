@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
+import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
 import {
   GeneratedArtifactExplorerPanel,
   type GeneratedArtifactDashboardSummary,
@@ -18,6 +19,7 @@ import {
   parseCoreLintReport,
   parseCoreModelSummary,
   parseCoreRelationshipManifest,
+  parseCoreScenarioRunIndex,
   parseCoreSimulationReport,
 } from "./coreReports";
 import type {
@@ -274,6 +276,22 @@ function App() {
     }
   }
 
+  async function handleCoreExportScenarioRunIndex() {
+    if (!workspace) {
+      setCoreError("No workspace is available for Core scenario run index export.");
+      return;
+    }
+
+    const result = await runCoreCommand("run_core_export_scenario_run_index", {
+      executable: coreExecutable,
+      workspacePath: workspace.selected_path,
+    });
+
+    if (result?.json_report_available) {
+      setGeneratedArtifactRefreshToken((current) => current + 1);
+    }
+  }
+
   async function handleCoreSimScenario(scenario: ProjectEntry) {
     if (!workspace) {
       setCoreError("No workspace is available for Core scenario execution.");
@@ -470,6 +488,7 @@ function App() {
               onCoreExportEntityIndex={handleCoreExportEntityIndex}
               onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
               onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
+              onCoreExportScenarioRunIndex={handleCoreExportScenarioRunIndex}
               generatedArtifactRefreshToken={generatedArtifactRefreshToken}
               onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
               onGeneratedArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
@@ -1714,6 +1733,7 @@ function WorkspacePanel({
   onCoreExportEntityIndex,
   onCoreExportRelationshipManifest,
   onCoreExportDashboardSummary,
+  onCoreExportScenarioRunIndex,
   generatedArtifactRefreshToken,
   onGeneratedArtifactSummaryChange,
   onGeneratedArtifactSelectionChange,
@@ -1737,6 +1757,7 @@ function WorkspacePanel({
   onCoreExportEntityIndex: () => void;
   onCoreExportRelationshipManifest: () => void;
   onCoreExportDashboardSummary: () => void;
+  onCoreExportScenarioRunIndex: () => void;
   onGeneratedArtifactSummaryChange: (
     summary: GeneratedArtifactDashboardSummary | null,
   ) => void;
@@ -1781,6 +1802,7 @@ function WorkspacePanel({
         error={coreError}
         isRunning={isRunningCoreCommand}
         hasMissionDir={Boolean(workspace.mission_dir)}
+        hasWorkspace={Boolean(workspace.selected_path)}
         sourceModelFiles={workspace.source_model_files}
         onExecutableChange={onCoreExecutableChange}
         onVersion={onCoreVersion}
@@ -1790,6 +1812,7 @@ function WorkspacePanel({
         onExportEntityIndex={onCoreExportEntityIndex}
         onExportRelationshipManifest={onCoreExportRelationshipManifest}
         onExportDashboardSummary={onCoreExportDashboardSummary}
+        onExportScenarioRunIndex={onCoreExportScenarioRunIndex}
         onOpenFile={onOpenFile}
       />
 
@@ -1854,6 +1877,7 @@ function CoreStatusPanel({
   error,
   isRunning,
   hasMissionDir,
+  hasWorkspace,
   sourceModelFiles,
   onExecutableChange,
   onVersion,
@@ -1863,6 +1887,7 @@ function CoreStatusPanel({
   onExportEntityIndex,
   onExportRelationshipManifest,
   onExportDashboardSummary,
+  onExportScenarioRunIndex,
   onOpenFile,
 }: {
   executable: string;
@@ -1870,6 +1895,7 @@ function CoreStatusPanel({
   error: string | null;
   isRunning: boolean;
   hasMissionDir: boolean;
+  hasWorkspace: boolean;
   sourceModelFiles: ProjectEntry[];
   onExecutableChange: (value: string) => void;
   onVersion: () => void;
@@ -1879,6 +1905,7 @@ function CoreStatusPanel({
   onExportEntityIndex: () => void;
   onExportRelationshipManifest: () => void;
   onExportDashboardSummary: () => void;
+  onExportScenarioRunIndex: () => void;
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
@@ -1953,6 +1980,13 @@ function CoreStatusPanel({
         >
           Run export dashboard-summary
         </button>
+        <button
+          type="button"
+          onClick={onExportScenarioRunIndex}
+          disabled={isRunning || !hasWorkspace}
+        >
+          Run export scenario-run-index
+        </button>
       </div>
 
       {error ? <p className="error-text">{error}</p> : null}
@@ -1982,10 +2016,12 @@ function CoreCommandOutput({
   const parsedEntityIndex = parseCoreEntityIndex(result.json_report_content);
   const parsedRelationshipManifest = parseCoreRelationshipManifest(result.json_report_content);
   const parsedDashboardSummary = parseCoreDashboardSummary(result.json_report_content);
+  const parsedScenarioRunIndex = parseCoreScenarioRunIndex(result.json_report_content);
   const isModelSummaryCommand = result.args.includes("model-summary");
   const isEntityIndexCommand = result.args.includes("entity-index");
   const isRelationshipManifestCommand = result.args.includes("relationship-manifest");
   const isDashboardSummaryCommand = result.args.includes("dashboard-summary");
+  const isScenarioRunIndexCommand = result.args.includes("scenario-run-index");
 
   return (
     <div id="studio-raw-output" className="command-output">
@@ -2033,12 +2069,16 @@ function CoreCommandOutput({
       {parsedDashboardSummary ? (
         <DashboardSummaryPanel summary={parsedDashboardSummary} />
       ) : null}
+      {parsedScenarioRunIndex ? (
+        <ScenarioRunIndexPanel index={parsedScenarioRunIndex} />
+      ) : null}
       {result.json_report_content &&
       !parsedLintReport &&
       !parsedModelSummary &&
       !parsedEntityIndex &&
       !parsedRelationshipManifest &&
-      !parsedDashboardSummary ? (
+      !parsedDashboardSummary &&
+      !parsedScenarioRunIndex ? (
         <UnrecognizedCoreReport rawContent={result.json_report_content} />
       ) : null}
       {isModelSummaryCommand && !result.json_report_available ? (
@@ -2075,6 +2115,16 @@ function CoreCommandOutput({
           <p>
             Core did not produce a dashboard summary report. Dashboard rendering
             requires a successful fixed `dashboard-summary` export command.
+          </p>
+        </section>
+      ) : null}
+      {isScenarioRunIndexCommand && !result.json_report_available ? (
+        <section className="entry-section muted-section" aria-label="Core scenario run index unavailable">
+          <h3>Scenario run index unavailable</h3>
+          <p>
+            Core did not produce a scenario run index report. Scenario run
+            rendering requires simulation JSON reports and a successful fixed
+            `scenario-run-index` export command.
           </p>
         </section>
       ) : null}
