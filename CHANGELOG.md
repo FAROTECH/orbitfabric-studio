@@ -4,11 +4,111 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.7.0 - Scenario Evidence Explorer`.
+OrbitFabric Studio is currently at `v0.7.1 - Dashboard and Coverage Foundation`.
 
-The current released baseline is `v0.7.0 - Scenario Evidence Explorer`.
+The current released baseline is `v0.7.1 - Dashboard and Coverage Foundation`.
 
-The next roadmap baseline is `v0.7.1 - Dashboard and Coverage Foundation`.
+The next roadmap baseline is `v0.7.2 - Core-derived Dashboard UX Realization`.
+
+---
+
+## v0.7.1 - Dashboard and Coverage Foundation
+
+Released milestone.
+
+This milestone extends the Studio loop to:
+
+```text
+Open -> Run Core Dashboard/Coverage Exports -> Inspect Dashboard Summary -> Inspect Scenario Run Index -> Inspect Coverage Summary
+```
+
+v0.7.1 remains downstream from OrbitFabric Core.
+
+Studio consumes Core-owned dashboard, scenario run index and coverage report surfaces.
+
+Studio does not calculate coverage independently, does not invent dashboard percentages, does not introduce mission health scoring and does not implement the final dashboard UX mockup. The visual dashboard realization is intentionally deferred to v0.7.2.
+
+### Added
+
+- Added TypeScript types and conservative parsers for `orbitfabric.dashboard_summary`.
+- Added TypeScript types and conservative parsers for `orbitfabric.scenario_run_index`.
+- Added TypeScript types and conservative parsers for `orbitfabric.coverage_summary`.
+- Added optional structured expectation accounting fields to Core simulation report types.
+- Added fixed Tauri wrapper for Core `export dashboard-summary`.
+- Added fixed Tauri wrapper for Core `export scenario-run-index`.
+- Added fixed Tauri wrapper for Core `export coverage-summary`.
+- Added Core dashboard summary rendering component.
+- Added Core scenario run index rendering component.
+- Added Core coverage summary rendering component.
+- Added structured expectation accounting rendering component for Core simulation JSON reports.
+- Added generated artifact recognition for Core dashboard, scenario run index and coverage reports.
+- Added generated artifact preview binding for dashboard summary reports.
+- Added generated artifact preview binding for scenario run index reports.
+- Added generated artifact preview binding for coverage summary reports.
+- Added generated artifact preview binding for structured simulation expectation accounting.
+- Added UI action for `Run export dashboard-summary`.
+- Added UI action for `Run export scenario-run-index`.
+- Added UI action for `Run export coverage-summary`.
+- Added automatic generated artifact inventory refresh after successful dashboard, scenario run index and coverage exports.
+- Added explicit unavailable states for dashboard, scenario run index and coverage exports that do not produce JSON reports.
+
+### Changed
+
+- Updated Studio header copy to `v0.7.1 dashboard and coverage foundation`.
+- Updated the hero status badge to `DASHBOARD FOUNDATION`.
+- Clarified that Studio renders Core-produced reports and generated artifacts.
+- Clarified that OrbitFabric Core remains authoritative for validation, scenario evidence, coverage, generation, artifact semantics and engineering meaning.
+- Extended generated artifact recognition to include Studio-controlled dashboard, scenario run index and coverage report paths.
+
+### Validated Manually
+
+Manual verification was performed during the v0.7.1 implementation flow on:
+
+```text
+examples/demo-3u
+```
+
+Validated local checks included:
+
+```text
+npm run build
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+
+Recommended smoke flow before tagging:
+
+```text
+Open workspace
+Run export entity-index
+Run export relationship-manifest
+Run at least one scenario through Core
+Run export scenario-run-index
+Run export dashboard-summary
+Run export coverage-summary
+Verify Core command output renders recognized panels
+Verify Generated Artifact Explorer recognizes the new reports
+Verify generated artifact previews remain read-only
+```
+
+### Not Included
+
+- No private coverage calculation.
+- No frontend-defined coverage denominator.
+- No alternative coverage percentage.
+- No mission health score.
+- No model completeness score.
+- No scenario run history inferred from logs.
+- No scenario-id deduplication.
+- No YAML semantic parsing.
+- No graph UI.
+- No React Flow dependency.
+- No dashboard UX realization matching the target mockup.
+- No ground artifact viewer.
+- No authoring.
+- No editing.
+- No generated artifact mutation.
+- No source file mutation.
+- No arbitrary command execution.
 
 ---
 
