@@ -3,9 +3,11 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { CoverageSummaryPanel } from "./CoverageSummaryPanel";
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
 import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
 import {
+  parseCoreCoverageSummary,
   parseCoreDashboardSummary,
   parseCoreScenarioRunIndex,
 } from "./coreReports";
@@ -417,6 +419,7 @@ function GeneratedArtifactPreviewPanel({
   isReadingArtifact: boolean;
 }) {
   const reportContent = selectedArtifactFile?.content ?? null;
+  const coverageSummary = parseCoreCoverageSummary(reportContent);
   const dashboardSummary = parseCoreDashboardSummary(reportContent);
   const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
 
@@ -470,6 +473,9 @@ function GeneratedArtifactPreviewPanel({
           ) : null}
           {scenarioRunIndex ? (
             <ScenarioRunIndexPanel index={scenarioRunIndex} />
+          ) : null}
+          {coverageSummary ? (
+            <CoverageSummaryPanel summary={coverageSummary} />
           ) : null}
         </>
       ) : null}
