@@ -552,22 +552,66 @@ function App() {
     "generated-artifacts": Boolean(workspace),
     "reports-logs": Boolean(workspace && workspace.generated_locations.length > 0),
     "scenario-evidence": Boolean(workspace),
-    "reserved-ground": false,
+    "reserved-ground": true,
     "raw-output": Boolean(coreResult),
   };
 
-  return (
-    <main className="studio-app-shell">
-      <WorkspaceHeader workspace={workspace} />
+  function renderLegacyWorkspaceSurface(surfaceLabel: string) {
+    if (!workspace) {
+      return <EmptyState />;
+    }
 
-      <div className="workbench-layout">
-        <PrimarySidebar
-          activeSurface={activeSurface}
-          surfaceAvailability={surfaceAvailability}
-          onActiveSurfaceChange={setActiveSurface}
+    return (
+      <section className="active-surface-frame" aria-label={surfaceLabel}>
+        <div className="file-viewer-header">
+          <div>
+            <h2>{surfaceLabel}</h2>
+            <p>
+              Temporary legacy surface for the cockpit pivot. This keeps existing
+              read-only workspace, Core command, generated artifact and file viewer
+              behavior available while the UI is split into compact dedicated
+              surfaces.
+            </p>
+          </div>
+          <div className="badge-row">
+            <ProvenanceBadge label="READ-ONLY" />
+            <StatusBadge label="LEGACY SURFACE" />
+          </div>
+        </div>
+
+        <WorkspacePanel
+          workspace={workspace}
+          selectedFile={selectedFile}
+          viewerError={viewerError}
+          isReadingFile={isReadingFile}
+          coreExecutable={coreExecutable}
+          coreResult={coreResult}
+          coreError={coreError}
+          isRunningCoreCommand={isRunningCoreCommand}
+          onCoreExecutableChange={setCoreExecutable}
+          onCoreVersion={handleCoreVersion}
+          onCoreInspectMission={handleCoreInspectMission}
+          onCoreLintMission={handleCoreLintMission}
+          onCoreExportModelSummary={handleCoreExportModelSummary}
+          onCoreExportEntityIndex={handleCoreExportEntityIndex}
+          onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+          onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
+          onCoreExportScenarioRunIndex={handleCoreExportScenarioRunIndex}
+          onCoreExportCoverageSummary={handleCoreExportCoverageSummary}
+          generatedArtifactRefreshToken={generatedArtifactRefreshToken}
+          onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
+          onGeneratedArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
+          onGeneratedEvidenceArtifactSummaryChange={setGeneratedEvidenceArtifactSummary}
+          onOpenFile={handleOpenFile}
         />
+      </section>
+    );
+  }
 
-        <section className="main-surface" aria-label="Studio main surface">
+  function renderActiveSurface() {
+    if (!workspace) {
+      return (
+        <>
           <section
             id="studio-overview"
             className="hero-panel"
@@ -605,94 +649,86 @@ function App() {
             {error ? <p className="error-text">{error}</p> : null}
           </section>
 
-          <section className="grid" aria-label="workspace inspection">
-            <article className="card">
-              <h2>Primary loop</h2>
-              <ol className="workflow-steps" aria-label="Studio primary workflow">
-                {[
-                  "Open",
-                  "Inspect",
-                  "Validate",
-                  "Navigate",
-                  "Explain Relationships",
-                  "Inspect Generated Artifacts",
-                  "Inspect Scenario Evidence",
-                ].map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-              <p>
-                Studio classifies workspace files and generated artifacts conservatively,
-                renders Core-derived validation, domain, entity and relationship reports,
-                previews supported generated text artifacts read-only, and keeps future
-                Evidence and Ground surfaces explicitly reserved. It does not validate
-                the Mission Model independently and does not infer mission semantics from
-                generated artifacts.
-              </p>
-            </article>
+          <EmptyState />
+        </>
+      );
+    }
 
-            <article className="card warning-card">
-              <h2>Not in this release</h2>
-              <ul>
-                {nonGoalItems.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-          </section>
+    if (activeSurface === "mission-dashboard") {
+      return (
+        <WorkspaceDashboard
+          workspace={workspace}
+          coreResult={coreResult}
+          coreReportSnapshots={coreReportSnapshots}
+          generatedArtifactSummary={generatedArtifactSummary}
+        />
+      );
+    }
 
-          <WorkspaceDashboard
-            workspace={workspace}
-            coreResult={coreResult}
-            coreReportSnapshots={coreReportSnapshots}
-            generatedArtifactSummary={generatedArtifactSummary}
-          />
+    if (activeSurface === "scenario-evidence") {
+      return (
+        <ScenarioEvidenceSurface
+          workspace={workspace}
+          generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
+          coreResult={coreResult}
+          simulationReport={simulationReport}
+          simulationReportSource={simulationReportSource}
+          isRunningCoreCommand={isRunningCoreCommand}
+          onOpenFile={handleOpenFile}
+          onRunScenario={handleCoreSimScenario}
+          onSelectSimulationRecord={handleSelectSimulationRecord}
+        />
+      );
+    }
 
-          {workspace ? (
-            <ScenarioEvidenceSurface
-              workspace={workspace}
-              generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
-              coreResult={coreResult}
-              simulationReport={simulationReport}
-              simulationReportSource={simulationReportSource}
-              isRunningCoreCommand={isRunningCoreCommand}
-              onOpenFile={handleOpenFile}
-              onRunScenario={handleCoreSimScenario}
-              onSelectSimulationRecord={handleSelectSimulationRecord}
-            />
-          ) : null}
+    if (activeSurface === "reserved-ground") {
+      return <ReservedFutureSurfaces />;
+    }
 
-          <ReservedFutureSurfaces />
+    if (activeSurface === "model-inventory") {
+      return renderLegacyWorkspaceSurface("Model Inventory");
+    }
 
-          {workspace ? (
-            <WorkspacePanel
-              workspace={workspace}
-              selectedFile={selectedFile}
-              viewerError={viewerError}
-              isReadingFile={isReadingFile}
-              coreExecutable={coreExecutable}
-              coreResult={coreResult}
-              coreError={coreError}
-              isRunningCoreCommand={isRunningCoreCommand}
-              onCoreExecutableChange={setCoreExecutable}
-              onCoreVersion={handleCoreVersion}
-              onCoreInspectMission={handleCoreInspectMission}
-              onCoreLintMission={handleCoreLintMission}
-              onCoreExportModelSummary={handleCoreExportModelSummary}
-              onCoreExportEntityIndex={handleCoreExportEntityIndex}
-              onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
-              onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
-              onCoreExportScenarioRunIndex={handleCoreExportScenarioRunIndex}
-              onCoreExportCoverageSummary={handleCoreExportCoverageSummary}
-              generatedArtifactRefreshToken={generatedArtifactRefreshToken}
-              onGeneratedArtifactSummaryChange={setGeneratedArtifactSummary}
-              onGeneratedArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
-              onGeneratedEvidenceArtifactSummaryChange={setGeneratedEvidenceArtifactSummary}
-              onOpenFile={handleOpenFile}
-            />
-          ) : (
-            <EmptyState />
-          )}
+    if (activeSurface === "core-commands") {
+      return renderLegacyWorkspaceSurface("Core Commands");
+    }
+
+    if (activeSurface === "contracts") {
+      return renderLegacyWorkspaceSurface("Contracts");
+    }
+
+    if (activeSurface === "relationships") {
+      return renderLegacyWorkspaceSurface("Relationships");
+    }
+
+    if (activeSurface === "generated-artifacts") {
+      return renderLegacyWorkspaceSurface("Generated Artifacts");
+    }
+
+    if (activeSurface === "reports-logs") {
+      return renderLegacyWorkspaceSurface("Reports and Logs");
+    }
+
+    if (activeSurface === "raw-output") {
+      return renderLegacyWorkspaceSurface("Raw Core Output");
+    }
+
+    return null;
+  }
+
+  return (
+    <main className="studio-app-shell">
+      <WorkspaceHeader workspace={workspace} />
+
+      <div className="workbench-layout">
+        <PrimarySidebar
+          activeSurface={activeSurface}
+          surfaceAvailability={surfaceAvailability}
+          onActiveSurfaceChange={setActiveSurface}
+        />
+
+        <section className="main-surface" aria-label="Studio main surface">
+          {renderActiveSurface()}
         </section>
 
         <InspectorPanel
