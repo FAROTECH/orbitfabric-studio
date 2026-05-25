@@ -1701,6 +1701,22 @@ function WorkspaceDashboard({
     coreReportSnapshots.simulationReport;
   const dashboardValidation = dashboardSummary?.validation ?? null;
   const validationResult = lintReport?.result ?? dashboardValidation?.result ?? null;
+  const validationErrors =
+    lintReport?.summary.errors ?? dashboardValidation?.errors ?? null;
+  const validationWarnings =
+    lintReport?.summary.warnings ?? dashboardValidation?.warnings ?? null;
+  const validationInfo =
+    lintReport?.summary.info ?? dashboardValidation?.info ?? null;
+  const dashboardDomains = dashboardSummary?.model_domains.domains ?? [];
+  const missingRequiredDomains = dashboardDomains.filter(
+    (domain) => domain.required && !domain.present,
+  );
+  const topEntityDomains = dashboardSummary
+    ? dashboardTopEntries(dashboardSummary.entity_inventory.domains)
+    : [];
+  const topRelationshipTypes = dashboardSummary
+    ? dashboardTopEntries(dashboardSummary.relationship_inventory.relationship_types)
+    : [];
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -1747,21 +1763,30 @@ function WorkspaceDashboard({
         <article className="dashboard-card dashboard-card-prominent">
           <div className="dashboard-card-header">
             <h3>Validation status</h3>
-            <StatusBadge label={validationResult ?? "UNAVAILABLE"} />
+            <StatusBadge label={formatDashboardStatusLabel(validationResult)} />
           </div>
           <strong>{validationResult ?? "Not available"}</strong>
           {lintReport || dashboardValidation ? (
-            <div className="dashboard-card-status-row">
-              <span>
-                Errors: {lintReport?.summary.errors ?? dashboardValidation?.errors}
-              </span>
-              <span>
-                Warnings: {lintReport?.summary.warnings ?? dashboardValidation?.warnings}
-              </span>
-              <span>
-                Info: {lintReport?.summary.info ?? dashboardValidation?.info}
-              </span>
-            </div>
+            <>
+              <div className="dashboard-card-status-row">
+                <span>Errors: {validationErrors ?? "not reported"}</span>
+                <span>Warnings: {validationWarnings ?? "not reported"}</span>
+                <span>Info: {validationInfo ?? "not reported"}</span>
+                <span>
+                  Findings: {lintReport ? lintReport.findings.length : "not reported"}
+                </span>
+              </div>
+              {lintReport && lintReport.findings.length > 0 ? (
+                <ul className="dashboard-mini-list" aria-label="Recent validation findings">
+                  {lintReport.findings.slice(0, 3).map((finding) => (
+                    <li key={`${finding.severity}-${finding.code}-${finding.message}`}>
+                      <strong>{finding.code}</strong>
+                      <span>{finding.severity}: {finding.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
           ) : (
             <span>Run Core lint or dashboard-summary to populate this card.</span>
           )}
@@ -1845,17 +1870,46 @@ function WorkspaceDashboard({
               </strong>
               {dashboardSummary ? (
                 <>
-                  <span>
-                    Required domains: {dashboardSummary.model_domains.required.present}/
-                    {dashboardSummary.model_domains.required.total}
-                  </span>
-                  <span>
-                    Optional domains: {dashboardSummary.model_domains.optional.present}/
-                    {dashboardSummary.model_domains.optional.total}
-                  </span>
-                  <span>
-                    Entity domains: {Object.keys(dashboardSummary.entity_inventory.domains).length}
-                  </span>
+                  <div className="dashboard-card-status-row">
+                    <span>
+                      Required domains: {dashboardSummary.model_domains.required.present}/
+                      {dashboardSummary.model_domains.required.total}
+                    </span>
+                    <span>
+                      Missing required: {dashboardSummary.model_domains.required.missing}
+                    </span>
+                    <span>
+                      Optional domains: {dashboardSummary.model_domains.optional.present}/
+                      {dashboardSummary.model_domains.optional.total}
+                    </span>
+                    <span>
+                      Entity domains: {topEntityDomains.length}
+                    </span>
+                  </div>
+
+                  {dashboardDomains.length > 0 ? (
+                    <ul className="dashboard-mini-list" aria-label="Core dashboard model domains">
+                      {dashboardDomains.slice(0, 5).map((domain) => (
+                        <li key={domain.id}>
+                          <strong>{domain.display_name}</strong>
+                          <span>
+                            {formatDashboardDomainState(domain.present)}, count {domain.count}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  {missingRequiredDomains.length > 0 ? (
+                    <span className="dashboard-card-meta">
+                      Missing required domains:{" "}
+                      {missingRequiredDomains.map((domain) => domain.display_name).join(", ")}
+                    </span>
+                  ) : (
+                    <span className="dashboard-card-meta">
+                      No missing required domains reported by Core dashboard summary.
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
@@ -1875,11 +1929,23 @@ function WorkspaceDashboard({
               </strong>
               {dashboardSummary ? (
                 <>
-                  <span>
-                    Relationship types:{" "}
-                    {Object.keys(dashboardSummary.relationship_inventory.relationship_types).length}
-                  </span>
-                  <span>Source: Core dashboard summary</span>
+                  <div className="dashboard-card-status-row">
+                    <span>Relationship types: {topRelationshipTypes.length}</span>
+                    <span>Source: Core dashboard summary</span>
+                  </div>
+
+                  {topRelationshipTypes.length > 0 ? (
+                    <ul className="dashboard-mini-list" aria-label="Core dashboard relationship types">
+                      {topRelationshipTypes.map(([relationshipType, count]) => (
+                        <li key={relationshipType}>
+                          <strong>{relationshipType}</strong>
+                          <span>{count} relationships</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span>No relationship types were reported by Core.</span>
+                  )}
                 </>
               ) : (
                 <span>Run Core dashboard-summary to populate this card.</span>
@@ -1987,6 +2053,29 @@ function WorkspaceDashboard({
 
 function formatDashboardRatio(value: number | null | undefined): string {
   return value === null || value === undefined ? "not reported" : String(value);
+}
+
+function formatDashboardStatusLabel(value: string | null): string {
+  return value ? value.toUpperCase() : "UNAVAILABLE";
+}
+
+function formatDashboardDomainState(present: boolean): string {
+  return present ? "present" : "missing";
+}
+
+function dashboardTopEntries(
+  records: Record<string, number>,
+  limit = 4,
+): [string, number][] {
+  return Object.entries(records)
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) => {
+      if (leftValue !== rightValue) {
+        return rightValue - leftValue;
+      }
+
+      return leftKey.localeCompare(rightKey);
+    })
+    .slice(0, limit);
 }
 
 
