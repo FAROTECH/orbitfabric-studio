@@ -1773,6 +1773,23 @@ function WorkspaceDashboard({
         </div>
       </div>
 
+      <nav className="dashboard-command-strip" aria-label="Dashboard navigation shortcuts">
+        <div>
+          <strong>Dashboard workflow</strong>
+          <span>
+            Use existing Core command wrappers, then inspect the derived dashboard,
+            evidence and generated artifact surfaces.
+          </span>
+        </div>
+
+        <div className="dashboard-command-actions">
+          <a href="#studio-validation">Core commands</a>
+          <a href="#studio-evidence">Evidence</a>
+          <a href="#studio-artifacts">Artifacts</a>
+          <a href="#studio-reports-logs">Reports & logs</a>
+        </div>
+      </nav>
+
       <div className="dashboard-kpi-grid" aria-label="Dashboard top status cards">
         <article className="dashboard-card dashboard-card-prominent">
           <div className="dashboard-card-header">
