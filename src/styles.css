@@ -1243,3 +1243,34 @@ h3 {
     flex-direction: column;
   }
 }
+
+
+.dashboard-mini-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-mini-list li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.dashboard-mini-list strong {
+  color: #f8fafc;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-mini-list span {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
