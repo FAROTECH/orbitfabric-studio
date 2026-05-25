@@ -1735,6 +1735,15 @@ function WorkspaceDashboard({
     coverageSummary?.unsupported.entity_domains ?? [];
   const unsupportedCoverageRelationshipTypes =
     coverageSummary?.unsupported.relationship_types ?? [];
+  const generatedArtifactStatusItems = generatedArtifactSummary
+    ? [
+        ["Known", generatedArtifactSummary.knownArtifacts],
+        ["Unknown", generatedArtifactSummary.unknownArtifacts],
+        ["Previewable", generatedArtifactSummary.previewableArtifacts],
+        ["Not previewable", generatedArtifactSummary.notPreviewableArtifacts],
+        ["Warnings", generatedArtifactSummary.warningCount],
+      ]
+    : [];
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -2056,10 +2065,28 @@ function WorkspaceDashboard({
               </strong>
               {generatedArtifactSummary ? (
                 <>
-                  <span>Known: {generatedArtifactSummary.knownArtifacts}</span>
-                  <span>Unknown: {generatedArtifactSummary.unknownArtifacts}</span>
-                  <span>Previewable: {generatedArtifactSummary.previewableArtifacts}</span>
-                  <span>Not previewable: {generatedArtifactSummary.notPreviewableArtifacts}</span>
+                  <div className="dashboard-card-status-row">
+                    <span>Total: {generatedArtifactSummary.totalArtifacts}</span>
+                    <span>Known: {generatedArtifactSummary.knownArtifacts}</span>
+                    <span>Unknown: {generatedArtifactSummary.unknownArtifacts}</span>
+                    <span>Warnings: {generatedArtifactSummary.warningCount}</span>
+                  </div>
+
+                  <ul className="dashboard-mini-list" aria-label="Generated artifact inventory status">
+                    {generatedArtifactStatusItems.map(([label, value]) => (
+                      <li key={label}>
+                        <strong>{label}</strong>
+                        <span>{value} artifacts</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <span className="dashboard-card-meta">
+                    Generated directory: {generatedArtifactSummary.generatedDir ?? "not detected"}
+                  </span>
+                  <span className="dashboard-card-meta">
+                    Source: generated artifact inventory. No artifact runtime readiness is inferred.
+                  </span>
                 </>
               ) : (
                 <span>Run Generated Artifact Explorer to populate this card.</span>
