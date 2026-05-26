@@ -750,6 +750,7 @@ function App() {
 
         <InspectorPanel
           workspace={workspace}
+          activeSurface={activeSurface}
           selectedFile={selectedFile}
           selectedGeneratedArtifact={selectedGeneratedArtifact}
           selectedSimulationRecord={selectedSimulationRecord}
@@ -859,6 +860,7 @@ function PrimarySidebar({
 
 function InspectorPanel({
   workspace,
+  activeSurface,
   selectedFile,
   selectedGeneratedArtifact,
   selectedSimulationRecord,
@@ -866,6 +868,7 @@ function InspectorPanel({
   coreResult,
 }: {
   workspace: WorkspaceInspection | null;
+  activeSurface: ActiveSurface;
   selectedFile: FileContent | null;
   selectedGeneratedArtifact: GeneratedArtifactInspectorItem | null;
   selectedSimulationRecord: SimulationInspectorRecord | null;
@@ -907,6 +910,8 @@ function InspectorPanel({
     selectedDetail?.source ??
     workspace?.selected_path ??
     "not available";
+  const showInspectorSafetyBoundary =
+    !workspace || activeSurface !== "mission-dashboard";
 
   return (
     <aside className="contextual-inspector workbench-inspector" aria-label="Contextual inspector">
@@ -918,10 +923,6 @@ function InspectorPanel({
             <h2>Detail panel</h2>
           </div>
         </div>
-        <p>
-          Read-only context for the selected workspace object. Studio reports
-          provenance and state without inventing relationships or editability.
-        </p>
         <div className="badge-row inspector-badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <StatusBadge label={hasSelection ? "REPORTED" : "UNAVAILABLE"} />
@@ -1103,19 +1104,21 @@ function InspectorPanel({
         )}
       </section>
 
-      <section className="inspector-section-modern inspector-boundary-section">
-        <div className="inspector-section-heading">
-          <h3>Safety boundary</h3>
-          <DashboardIcon kind="shield" />
-        </div>
+      {showInspectorSafetyBoundary ? (
+        <section className="inspector-section-modern inspector-boundary-section">
+          <div className="inspector-section-heading">
+            <h3>Safety boundary</h3>
+            <DashboardIcon kind="shield" />
+          </div>
 
-        <div className="inspector-guardrail-list">
-          <span>No editing</span>
-          <span>No automatic fixes</span>
-          <span>No private relationship inference</span>
-          <span>No generated artifact mutation</span>
-        </div>
-      </section>
+          <div className="inspector-guardrail-list">
+            <span>No editing</span>
+            <span>No automatic fixes</span>
+            <span>No private relationship inference</span>
+            <span>No generated artifact mutation</span>
+          </div>
+        </section>
+      ) : null}
     </aside>
   );
 }
@@ -2111,10 +2114,6 @@ function WorkspaceDashboard({
               <h2>OrbitFabric Studio</h2>
             </div>
           </div>
-          <p>
-            Compact Core-derived mission contract overview. Detail lives in
-            dedicated surfaces, not in a vertical report stack.
-          </p>
         </div>
 
         <div className="cockpit-hero-status">
