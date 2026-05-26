@@ -2443,56 +2443,56 @@ function WorkspaceDashboard({
           </button>
         </article>
 
-        <article className="cockpit-panel cockpit-boundary-panel">
-          <div className="cockpit-panel-header">
-            <div>
-              <span className="cockpit-eyebrow">Boundary</span>
-              <h3>Read-only guardrails</h3>
-            </div>
-            <DashboardIcon kind="shield" />
-          </div>
 
-          <div className="cockpit-guardrail-grid">
-            <span>No editing</span>
-            <span>No uplink</span>
-            <span>No live telemetry</span>
-            <span>No private coverage</span>
-          </div>
-
-          <div className="cockpit-mini-status">
-            <span>Reports</span>
-            <strong>{hasReportsLocation ? "detected" : "not detected"}</strong>
-          </div>
-          <div className="cockpit-mini-status">
-            <span>Logs</span>
-            <strong>{hasLogsLocation ? "detected" : "not detected"}</strong>
-          </div>
-        </article>
       </div>
 
-      <div className="cockpit-footer">
-        <div>
-          <strong>Unsupported coverage scopes</strong>
-          <span>
+      <div className="cockpit-bottom-rail" aria-label="Mission cockpit status rail">
+        <div className="cockpit-bottom-cell cockpit-bottom-cell-primary">
+          <DashboardIcon kind="shield" />
+          <div>
+            <span className="cockpit-eyebrow">Boundary</span>
+            <strong>Read-only Studio surface</strong>
+          </div>
+        </div>
+
+        <div className="cockpit-bottom-guardrails">
+          <span>No editing</span>
+          <span>No uplink</span>
+          <span>No live telemetry</span>
+          <span>No private coverage</span>
+        </div>
+
+        <div className="cockpit-bottom-cell">
+          <span>Reports</span>
+          <strong>{hasReportsLocation ? "detected" : "not detected"}</strong>
+        </div>
+
+        <div className="cockpit-bottom-cell">
+          <span>Logs</span>
+          <strong>{hasLogsLocation ? "detected" : "not detected"}</strong>
+        </div>
+
+        <div className="cockpit-bottom-cell cockpit-bottom-cell-wide">
+          <span>Unsupported coverage</span>
+          <strong>
             Entities:{" "}
             {unsupportedCoverageEntityDomains.length > 0
               ? unsupportedCoverageEntityDomains.join(", ")
-              : "none reported"}
-          </span>
-          <span>
-            Relationships:{" "}
+              : "none"}{" "}
+            · Relationships:{" "}
             {unsupportedCoverageRelationshipTypes.length > 0
               ? unsupportedCoverageRelationshipTypes.join(", ")
-              : "none reported"}
-          </span>
+              : "none"}
+          </strong>
         </div>
+
         <button
           type="button"
           className="cockpit-secondary-action"
           onClick={() => onActiveSurfaceChange("core-commands")}
           disabled={!workspace}
         >
-          Run Core commands
+          Run Core
         </button>
       </div>
     </section>
