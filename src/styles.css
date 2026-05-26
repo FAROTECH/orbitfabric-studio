@@ -3702,3 +3702,27 @@ h3 {
     grid-column: auto;
   }
 }
+
+
+/* v0.7.2 cockpit command bar navigation actions. */
+.cockpit-command-button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.cockpit-command-button:not(:disabled):hover,
+.cockpit-command-button:not(:disabled):focus-visible {
+  color: #f8fafc;
+  border-color: rgba(103, 232, 249, 0.42);
+  background: rgba(8, 145, 178, 0.24);
+  outline: none;
+}
+
+.cockpit-command-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.cockpit-command-actions {
+  align-items: center;
+}
