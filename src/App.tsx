@@ -2219,6 +2219,30 @@ function WorkspaceDashboard({
     },
   ] as const;
   const cockpitReadinessScore = cockpitReadinessItems.filter((item) => item.ready).length;
+  const cockpitContractMapItems =
+    dashboardDomains.length > 0
+      ? dashboardDomains.slice(0, 6).map((domain) => ({
+          label: domain.display_name,
+          value: String(domain.count),
+          state: "reported",
+        }))
+      : [
+          {
+            label: "Source files",
+            value: String(workspace?.source_model_files.length ?? 0),
+            state: workspace ? "detected" : "missing",
+          },
+          {
+            label: "Scenarios",
+            value: String(workspace?.scenario_files.length ?? 0),
+            state: workspace ? "detected" : "missing",
+          },
+          {
+            label: "Generated",
+            value: String(workspace?.generated_locations.length ?? 0),
+            state: workspace ? "detected" : "missing",
+          },
+        ];
 
   return (
     <section
@@ -2438,30 +2462,26 @@ function WorkspaceDashboard({
             <StatusBadge label={dashboardSummary ? "REPORTED" : "PARTIAL"} />
           </div>
 
-          <div className="cockpit-domain-strip">
-            {dashboardDomains.length > 0 ? (
-              dashboardDomains.slice(0, 8).map((domain) => (
-                <div className="cockpit-domain-chip" key={domain.id}>
-                  <span>{domain.display_name}</span>
-                  <strong>{domain.count}</strong>
+          <div className="cockpit-contract-topology" aria-label="Mission contract topology map">
+            {cockpitContractMapItems.map((item, index) => (
+              <div
+                className={`cockpit-contract-node ${
+                  item.state === "missing"
+                    ? "cockpit-contract-node-missing"
+                    : "cockpit-contract-node-detected"
+                }`}
+                key={`${item.label}-${index}`}
+              >
+                <span className="cockpit-contract-node-index">
+                  {index + 1 < 10 ? `0${index + 1}` : index + 1}
+                </span>
+                <div>
+                  <strong>{item.value}</strong>
+                  <span>{item.label}</span>
                 </div>
-              ))
-            ) : (
-              <>
-                <div className="cockpit-domain-chip">
-                  <span>Source files</span>
-                  <strong>{workspace?.source_model_files.length ?? 0}</strong>
-                </div>
-                <div className="cockpit-domain-chip">
-                  <span>Scenarios</span>
-                  <strong>{workspace?.scenario_files.length ?? 0}</strong>
-                </div>
-                <div className="cockpit-domain-chip">
-                  <span>Generated</span>
-                  <strong>{workspace?.generated_locations.length ?? 0}</strong>
-                </div>
-              </>
-            )}
+                <small>{item.state}</small>
+              </div>
+            ))}
           </div>
 
           <div className="cockpit-two-column">
