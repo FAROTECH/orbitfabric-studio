@@ -4068,3 +4068,234 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* v0.7.2 cockpit viewport fit and density polish. */
+
+/* Make the Studio shell behave more like a full-screen cockpit surface. */
+.studio-app-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  min-height: 100vh;
+  padding: 10px clamp(10px, 0.85vw, 16px);
+}
+
+.cockpit-command-bar {
+  margin-bottom: 0;
+}
+
+/* Desktop cockpit mode: sidebar plus central mission surface should fill the viewport. */
+@media (min-width: 1101px) and (min-height: 740px) {
+  .workbench-layout-dashboard {
+    min-height: calc(100vh - 96px);
+    align-items: stretch;
+  }
+
+  .workbench-layout-dashboard .cockpit-sidebar {
+    top: 10px;
+    height: calc(100vh - 96px);
+    max-height: calc(100vh - 96px);
+    overflow: auto;
+  }
+
+  .workbench-layout-dashboard .main-surface {
+    display: grid;
+    min-height: 0;
+  }
+
+  .workbench-layout-dashboard .cockpit-dashboard {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    min-height: calc(100vh - 96px);
+    max-height: calc(100vh - 96px);
+    overflow: hidden;
+  }
+
+  .workbench-layout-dashboard .cockpit-work-grid {
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .workbench-layout-dashboard .cockpit-panel {
+    min-height: 0;
+  }
+
+  .workbench-layout-dashboard .cockpit-panel-large,
+  .workbench-layout-dashboard .cockpit-panel-validation,
+  .workbench-layout-dashboard .cockpit-panel-scenario,
+  .workbench-layout-dashboard .cockpit-panel-coverage,
+  .workbench-layout-dashboard .cockpit-panel-generated {
+    height: 100%;
+  }
+}
+
+/* The top status elements stay compact so the module grid can breathe. */
+.workbench-layout-dashboard .cockpit-status-strip {
+  padding: 9px;
+}
+
+.workbench-layout-dashboard .cockpit-status-chip {
+  min-height: 54px;
+  padding: 7px 9px;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-grid {
+  gap: 10px;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card {
+  min-height: 96px;
+}
+
+.workbench-layout-dashboard .cockpit-tactical-band {
+  padding: 8px;
+}
+
+.workbench-layout-dashboard .cockpit-tactical-summary {
+  padding: 7px 9px;
+}
+
+.workbench-layout-dashboard .cockpit-tactical-segment {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+/* Module grid: stronger full-screen distribution. */
+.workbench-layout-dashboard .cockpit-work-grid {
+  grid-template-columns: minmax(500px, 1.28fr) repeat(4, minmax(210px, 0.66fr));
+}
+
+.workbench-layout-dashboard .cockpit-panel-large {
+  grid-row: span 1;
+}
+
+.workbench-layout-dashboard .cockpit-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.workbench-layout-dashboard .cockpit-panel-large {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.workbench-layout-dashboard .cockpit-compact-list {
+  min-height: 0;
+  align-content: start;
+}
+
+.workbench-layout-dashboard .cockpit-two-column {
+  min-height: 0;
+  align-items: stretch;
+}
+
+.workbench-layout-dashboard .cockpit-domain-strip {
+  align-self: start;
+}
+
+/* Bottom rail stays a rail, not a large footer panel. */
+.workbench-layout-dashboard .cockpit-bottom-rail {
+  min-height: 54px;
+  padding: 8px;
+}
+
+.workbench-layout-dashboard .cockpit-bottom-cell,
+.workbench-layout-dashboard .cockpit-bottom-cell-primary,
+.workbench-layout-dashboard .cockpit-bottom-guardrails {
+  min-height: 38px;
+}
+
+.workbench-layout-dashboard .cockpit-bottom-guardrails span {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+/* Very wide displays can carry the full cockpit in one dense row. */
+@media (min-width: 1780px) {
+  .workbench-layout-dashboard .cockpit-work-grid {
+    grid-template-columns: minmax(560px, 1.35fr) repeat(4, minmax(230px, 0.66fr));
+  }
+}
+
+/* Medium desktop: preserve readability before forcing density. */
+@media (max-width: 1540px) {
+  .workbench-layout-dashboard .cockpit-work-grid {
+    grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(260px, 0.8fr));
+  }
+
+  .workbench-layout-dashboard .cockpit-panel-large {
+    grid-row: span 2;
+  }
+}
+
+/* Narrow layouts keep natural scrolling. */
+@media (max-width: 1100px), (max-height: 739px) {
+  .workbench-layout-dashboard .cockpit-dashboard {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+
+/* v0.7.2 cockpit fullscreen fit correction. */
+
+/*
+  Tauri fullscreen needs a little more vertical safety margin than the
+  first viewport-fit pass. Keep the cockpit full-screen, but avoid clipping
+  the bottom rail.
+*/
+@media (min-width: 1101px) and (min-height: 740px) {
+  .workbench-layout-dashboard {
+    min-height: calc(100vh - 122px);
+  }
+
+  .workbench-layout-dashboard .cockpit-sidebar {
+    height: calc(100vh - 122px);
+    max-height: calc(100vh - 122px);
+  }
+
+  .workbench-layout-dashboard .cockpit-dashboard {
+    min-height: calc(100vh - 122px);
+    max-height: calc(100vh - 122px);
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .workbench-layout-dashboard .cockpit-status-strip {
+    padding: 7px;
+  }
+
+  .workbench-layout-dashboard .cockpit-status-chip {
+    min-height: 48px;
+  }
+
+  .workbench-layout-dashboard .cockpit-kpi-card {
+    min-height: 88px;
+  }
+
+  .workbench-layout-dashboard .cockpit-tactical-band {
+    padding: 7px;
+  }
+
+  .workbench-layout-dashboard .cockpit-panel {
+    padding: 10px;
+  }
+
+  .workbench-layout-dashboard .cockpit-row,
+  .workbench-layout-dashboard .cockpit-mini-status {
+    min-height: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .workbench-layout-dashboard .cockpit-bottom-rail {
+    min-height: 46px;
+    padding: 6px;
+  }
+
+  .workbench-layout-dashboard .cockpit-bottom-cell,
+  .workbench-layout-dashboard .cockpit-bottom-cell-primary,
+  .workbench-layout-dashboard .cockpit-bottom-guardrails {
+    min-height: 34px;
+  }
+}
