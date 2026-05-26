@@ -735,7 +735,10 @@ function App() {
 
   return (
     <main className="studio-app-shell">
-      <WorkspaceHeader workspace={workspace} />
+      <WorkspaceHeader
+        workspace={workspace}
+        onActiveSurfaceChange={setActiveSurface}
+      />
 
       <div
         className={`workbench-layout ${
@@ -768,7 +771,13 @@ function App() {
   );
 }
 
-function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null }) {
+function WorkspaceHeader({
+  workspace,
+  onActiveSurfaceChange,
+}: {
+  workspace: WorkspaceInspection | null;
+  onActiveSurfaceChange: (surface: ActiveSurface) => void;
+}) {
   const workspaceName = workspace?.selected_path
     ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
     : "No workspace";
@@ -789,11 +798,39 @@ function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null 
         <small>{workspace?.selected_path ?? "Open a workspace to begin."}</small>
       </div>
 
-      <div className="cockpit-command-actions" aria-label="Cockpit command status">
-        <span className="cockpit-command-chip">Validate</span>
-        <span className="cockpit-command-chip">Scenario</span>
-        <span className="cockpit-command-chip">Artifacts</span>
-        <span className="cockpit-command-chip cockpit-command-chip-muted">Read-only</span>
+      <div className="cockpit-command-actions" aria-label="Cockpit navigation actions">
+        <button
+          type="button"
+          className="cockpit-command-chip cockpit-command-button"
+          onClick={() => onActiveSurfaceChange("core-commands")}
+          disabled={!workspace?.mission_dir}
+        >
+          Validate
+        </button>
+        <button
+          type="button"
+          className="cockpit-command-chip cockpit-command-button"
+          onClick={() => onActiveSurfaceChange("scenario-evidence")}
+          disabled={!workspace}
+        >
+          Scenario
+        </button>
+        <button
+          type="button"
+          className="cockpit-command-chip cockpit-command-button"
+          onClick={() => onActiveSurfaceChange("generated-artifacts")}
+          disabled={!workspace}
+        >
+          Artifacts
+        </button>
+        <button
+          type="button"
+          className="cockpit-command-chip cockpit-command-button"
+          onClick={() => onActiveSurfaceChange("model-inventory")}
+          disabled={!workspace}
+        >
+          Model
+        </button>
       </div>
 
       <div className="workspace-header-status cockpit-command-status">
