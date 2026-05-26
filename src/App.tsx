@@ -737,6 +737,9 @@ function App() {
     <main className="studio-app-shell">
       <WorkspaceHeader
         workspace={workspace}
+        activeSurface={activeSurface}
+        isOpening={isOpening}
+        onOpenWorkspace={handleOpenWorkspace}
         onActiveSurfaceChange={setActiveSurface}
       />
 
@@ -773,9 +776,15 @@ function App() {
 
 function WorkspaceHeader({
   workspace,
+  activeSurface,
+  isOpening,
+  onOpenWorkspace,
   onActiveSurfaceChange,
 }: {
   workspace: WorkspaceInspection | null;
+  activeSurface: ActiveSurface;
+  isOpening: boolean;
+  onOpenWorkspace: () => void;
   onActiveSurfaceChange: (surface: ActiveSurface) => void;
 }) {
   const workspaceName = workspace?.selected_path
@@ -798,36 +807,57 @@ function WorkspaceHeader({
         <small>{workspace?.selected_path ?? "Open a workspace to begin."}</small>
       </div>
 
+      <button
+        type="button"
+        className="cockpit-workspace-switcher"
+        onClick={onOpenWorkspace}
+        disabled={isOpening}
+      >
+        {isOpening ? "Opening..." : workspace ? "Change workspace" : "Open workspace"}
+      </button>
+
       <div className="cockpit-command-actions" aria-label="Cockpit navigation actions">
         <button
           type="button"
-          className="cockpit-command-chip cockpit-command-button"
+          className={`cockpit-command-chip cockpit-command-button ${
+            activeSurface === "core-commands" ? "cockpit-command-button-active" : ""
+          }`}
           onClick={() => onActiveSurfaceChange("core-commands")}
           disabled={!workspace?.mission_dir}
+          aria-current={activeSurface === "core-commands" ? "page" : undefined}
         >
           Validate
         </button>
         <button
           type="button"
-          className="cockpit-command-chip cockpit-command-button"
+          className={`cockpit-command-chip cockpit-command-button ${
+            activeSurface === "scenario-evidence" ? "cockpit-command-button-active" : ""
+          }`}
           onClick={() => onActiveSurfaceChange("scenario-evidence")}
           disabled={!workspace}
+          aria-current={activeSurface === "scenario-evidence" ? "page" : undefined}
         >
           Scenario
         </button>
         <button
           type="button"
-          className="cockpit-command-chip cockpit-command-button"
+          className={`cockpit-command-chip cockpit-command-button ${
+            activeSurface === "generated-artifacts" ? "cockpit-command-button-active" : ""
+          }`}
           onClick={() => onActiveSurfaceChange("generated-artifacts")}
           disabled={!workspace}
+          aria-current={activeSurface === "generated-artifacts" ? "page" : undefined}
         >
           Artifacts
         </button>
         <button
           type="button"
-          className="cockpit-command-chip cockpit-command-button"
+          className={`cockpit-command-chip cockpit-command-button ${
+            activeSurface === "model-inventory" ? "cockpit-command-button-active" : ""
+          }`}
           onClick={() => onActiveSurfaceChange("model-inventory")}
           disabled={!workspace}
+          aria-current={activeSurface === "model-inventory" ? "page" : undefined}
         >
           Model
         </button>
