@@ -3164,3 +3164,254 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* v0.7.2 dashboard panel realignment. */
+
+/* Replace the large dashboard hero feeling with a compact cockpit status strip. */
+.cockpit-status-strip {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(300px, 0.75fr) minmax(340px, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 20px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.58));
+}
+
+.cockpit-status-main,
+.cockpit-status-workspace {
+  min-width: 0;
+}
+
+.cockpit-status-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cockpit-status-main .dashboard-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+}
+
+.cockpit-status-main .dashboard-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.cockpit-status-main h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.16rem;
+  line-height: 1.08;
+}
+
+.cockpit-status-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cockpit-status-chip {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 14px;
+  padding: 8px 10px;
+  background: rgba(2, 6, 23, 0.34);
+}
+
+.cockpit-status-chip strong {
+  color: #f8fafc;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.cockpit-status-chip span {
+  color: #7b8ba8;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cockpit-status-workspace {
+  display: grid;
+  gap: 5px;
+  justify-items: end;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  padding: 9px 10px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.cockpit-status-workspace .badge-row {
+  justify-content: flex-end;
+}
+
+.cockpit-status-workspace strong {
+  max-width: 100%;
+  color: #f8fafc;
+  font-size: 0.86rem;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-status-workspace span {
+  max-width: 100%;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dashboard central surface: denser, more cockpit-like, less page-like. */
+.workbench-layout-dashboard .cockpit-dashboard {
+  gap: 12px;
+  padding: 14px;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-grid {
+  gap: 12px;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card {
+  min-height: 104px;
+  padding-top: 10px;
+  padding-bottom: 9px;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card > .dashboard-icon {
+  top: 10px;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card h3 {
+  font-size: 0.84rem;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card strong {
+  font-size: 0.96rem;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card > div > span {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  -webkit-line-clamp: 2;
+}
+
+.workbench-layout-dashboard .cockpit-kpi-card > .status-badge,
+.workbench-layout-dashboard .cockpit-kpi-card > .cockpit-card-action {
+  min-height: 23px;
+  margin-top: 7px;
+  padding: 5px 9px;
+  font-size: 0.6rem;
+}
+
+/* Panels now behave more like dense dashboard modules. */
+.workbench-layout-dashboard .cockpit-panel {
+  gap: 10px;
+  padding: 12px;
+  border-radius: 17px;
+}
+
+.workbench-layout-dashboard .cockpit-panel-header {
+  gap: 10px;
+}
+
+.workbench-layout-dashboard .cockpit-panel-header .dashboard-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+}
+
+.workbench-layout-dashboard .cockpit-panel-header .dashboard-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.workbench-layout-dashboard .cockpit-panel h3 {
+  font-size: 0.9rem;
+  line-height: 1.1;
+}
+
+.workbench-layout-dashboard .cockpit-domain-strip {
+  gap: 7px;
+}
+
+.workbench-layout-dashboard .cockpit-domain-chip {
+  min-height: 38px;
+  padding: 7px 9px;
+  border-radius: 12px;
+}
+
+.workbench-layout-dashboard .cockpit-two-column {
+  gap: 8px;
+}
+
+.workbench-layout-dashboard .cockpit-compact-list {
+  gap: 6px;
+}
+
+.workbench-layout-dashboard .cockpit-row,
+.workbench-layout-dashboard .cockpit-mini-status {
+  min-height: 34px;
+  padding: 7px 9px;
+  border-radius: 11px;
+}
+
+.workbench-layout-dashboard .cockpit-row span,
+.workbench-layout-dashboard .cockpit-mini-status span {
+  font-size: 0.74rem;
+}
+
+.workbench-layout-dashboard .cockpit-row strong,
+.workbench-layout-dashboard .cockpit-mini-status strong {
+  font-size: 0.74rem;
+}
+
+.workbench-layout-dashboard .cockpit-guardrail-grid {
+  gap: 7px;
+}
+
+.workbench-layout-dashboard .cockpit-guardrail-grid span {
+  padding: 7px 8px;
+  font-size: 0.72rem;
+}
+
+.workbench-layout-dashboard .cockpit-footer {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+@media (max-width: 1320px) {
+  .cockpit-status-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cockpit-status-workspace {
+    justify-items: start;
+  }
+
+  .cockpit-status-workspace .badge-row {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .cockpit-status-metrics {
+    grid-template-columns: 1fr;
+  }
+}

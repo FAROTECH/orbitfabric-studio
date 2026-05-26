@@ -2129,31 +2129,40 @@ function WorkspaceDashboard({
       className="workspace-dashboard cockpit-dashboard"
       aria-label="Mission cockpit dashboard"
     >
-      <div className="cockpit-hero">
-        <div className="cockpit-hero-main">
-          <div className="cockpit-title-row">
-            <DashboardIcon kind="mission" />
-            <div>
-              <span className="cockpit-eyebrow">Mission cockpit</span>
-              <h2>OrbitFabric Studio</h2>
-            </div>
+      <div className="cockpit-status-strip">
+        <div className="cockpit-status-main">
+          <DashboardIcon kind="mission" />
+          <div>
+            <span className="cockpit-eyebrow">Mission cockpit</span>
+            <h2>OrbitFabric Studio</h2>
           </div>
         </div>
 
-        <div className="cockpit-hero-status">
-          <ProvenanceBadge label="READ-ONLY" />
-          <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label={workspace ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
-          <span
-            className="cockpit-workspace-name"
-            title={workspace?.selected_path ?? undefined}
-          >
+        <div className="cockpit-status-metrics" aria-label="Workspace quick metrics">
+          <div className="cockpit-status-chip">
+            <strong>{workspace?.source_model_files.length ?? 0}</strong>
+            <span>Sources</span>
+          </div>
+          <div className="cockpit-status-chip">
+            <strong>{workspace?.scenario_files.length ?? 0}</strong>
+            <span>Scenarios</span>
+          </div>
+          <div className="cockpit-status-chip">
+            <strong>{workspace?.generated_locations.length ?? 0}</strong>
+            <span>Generated</span>
+          </div>
+        </div>
+
+        <div className="cockpit-status-workspace">
+          <div className="badge-row">
+            <ProvenanceBadge label="READ-ONLY" />
+            <ProvenanceBadge label="CORE-DERIVED" />
+            <StatusBadge label={workspace ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
+          </div>
+          <strong title={workspace?.selected_path ?? undefined}>
             {workspaceCockpitName ?? "No workspace selected"}
-          </span>
-          <span
-            className="cockpit-workspace-path"
-            title={workspace?.selected_path ?? undefined}
-          >
+          </strong>
+          <span title={workspace?.selected_path ?? undefined}>
             {workspace?.selected_path ?? "Open a workspace to inspect it."}
           </span>
         </div>
