@@ -2495,7 +2495,10 @@ function WorkspaceDashboard({
                   </div>
                 ))
               ) : (
-                <p>No Core entity inventory loaded.</p>
+                <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                  <strong>No entity inventory</strong>
+                  <span>Run dashboard-summary to populate this lane.</span>
+                </div>
               )}
             </div>
 
@@ -2509,7 +2512,10 @@ function WorkspaceDashboard({
                   </div>
                 ))
               ) : (
-                <p>No Core relationship inventory loaded.</p>
+                <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                  <strong>No relationship inventory</strong>
+                  <span>Run dashboard-summary to populate this lane.</span>
+                </div>
               )}
             </div>
           </div>
