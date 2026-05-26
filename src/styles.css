@@ -2946,3 +2946,86 @@ h3 {
     min-height: 132px;
   }
 }
+
+
+/* v0.7.2 mission dashboard full-width cockpit mode. */
+.workbench-layout-dashboard {
+  width: min(1960px, 100%);
+  grid-template-columns: minmax(260px, 280px) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.workbench-layout-dashboard .main-surface {
+  min-width: 0;
+}
+
+.workbench-layout-dashboard .cockpit-dashboard {
+  gap: 14px;
+  padding: 18px;
+}
+
+.workbench-layout-dashboard .cockpit-hero {
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.55fr);
+}
+
+.workbench-layout-dashboard .cockpit-kpi-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.workbench-layout-dashboard .cockpit-work-grid {
+  grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(280px, 0.85fr));
+  gap: 14px;
+}
+
+.workbench-layout-dashboard .cockpit-panel-large {
+  grid-row: span 2;
+}
+
+.workbench-layout-dashboard .cockpit-domain-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workbench-layout-dashboard .cockpit-footer {
+  min-height: 48px;
+}
+
+@media (min-width: 1700px) {
+  .workbench-layout-dashboard .cockpit-kpi-card {
+    min-height: 112px;
+  }
+
+  .workbench-layout-dashboard .cockpit-work-grid {
+    grid-template-columns: minmax(0, 1.45fr) repeat(2, minmax(300px, 0.8fr));
+  }
+}
+
+@media (max-width: 1500px) {
+  .workbench-layout-dashboard .cockpit-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workbench-layout-dashboard .cockpit-work-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workbench-layout-dashboard .cockpit-panel-large {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 1100px) {
+  .workbench-layout-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-layout-dashboard .cockpit-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .workbench-layout-dashboard .cockpit-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
