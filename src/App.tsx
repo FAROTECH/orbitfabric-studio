@@ -2189,6 +2189,36 @@ function WorkspaceDashboard({
   const workspaceCockpitName = workspace?.selected_path
     ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
     : null;
+  const cockpitReadinessItems = [
+    {
+      label: "Contract",
+      value: dashboardSummary ? "reported" : "partial",
+      ready: Boolean(dashboardSummary),
+    },
+    {
+      label: "Validation",
+      value: validationResult ?? "unavailable",
+      ready: Boolean(validationResult),
+    },
+    {
+      label: "Scenario",
+      value: scenarioRunIndex ? `${scenarioRunIndex.summary.total} indexed` : "unavailable",
+      ready: Boolean(scenarioRunIndex),
+    },
+    {
+      label: "Coverage",
+      value: coverageSummary ? "available" : "unavailable",
+      ready: Boolean(coverageSummary),
+    },
+    {
+      label: "Artifacts",
+      value: generatedArtifactSummary
+        ? `${generatedArtifactSummary.totalArtifacts} files`
+        : "unavailable",
+      ready: Boolean(generatedArtifactSummary),
+    },
+  ] as const;
+  const cockpitReadinessScore = cockpitReadinessItems.filter((item) => item.ready).length;
 
   return (
     <section
@@ -2373,6 +2403,31 @@ function WorkspaceDashboard({
         </article>
       </div>
 
+      <div className="cockpit-tactical-band" aria-label="Mission readiness band">
+        <div className="cockpit-tactical-summary">
+          <span className="cockpit-eyebrow">Mission readiness</span>
+          <strong>
+            {cockpitReadinessScore}/{cockpitReadinessItems.length} evidence lanes populated
+          </strong>
+        </div>
+
+        <div className="cockpit-tactical-segments">
+          {cockpitReadinessItems.map((item) => (
+            <div
+              className={`cockpit-tactical-segment ${
+                item.ready
+                  ? "cockpit-tactical-segment-ready"
+                  : "cockpit-tactical-segment-missing"
+              }`}
+              key={item.label}
+            >
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="cockpit-work-grid">
         <article className="cockpit-panel cockpit-panel-large">
           <div className="cockpit-panel-header">
@@ -2505,7 +2560,10 @@ function WorkspaceDashboard({
                 </div>
               ))
             ) : (
-              <p>No Core-indexed scenario runs loaded.</p>
+              <div className="cockpit-empty-module">
+                <strong>No scenario index</strong>
+                <span>Run scenario-run-index to populate this module.</span>
+              </div>
             )}
           </div>
 
@@ -2544,7 +2602,10 @@ function WorkspaceDashboard({
                 </div>
               ))
             ) : (
-              <p>No entity coverage records loaded.</p>
+              <div className="cockpit-empty-module">
+                <strong>No coverage records</strong>
+                <span>Run coverage-summary to populate this module.</span>
+              </div>
             )}
           </div>
 
@@ -2572,7 +2633,10 @@ function WorkspaceDashboard({
                 </div>
               ))
             ) : (
-              <p>Generated artifact inventory not inspected.</p>
+              <div className="cockpit-empty-module">
+                <strong>No artifact inventory</strong>
+                <span>Open the generated artifact surface to inspect outputs.</span>
+              </div>
             )}
           </div>
 
