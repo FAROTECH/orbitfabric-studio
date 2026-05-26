@@ -3726,3 +3726,72 @@ h3 {
 .cockpit-command-actions {
   align-items: center;
 }
+
+
+/* v0.7.2 cockpit workspace switcher and active command state. */
+.cockpit-command-bar {
+  grid-template-columns:
+    minmax(280px, 0.82fr)
+    minmax(260px, 0.95fr)
+    auto
+    minmax(340px, auto)
+    auto;
+}
+
+.cockpit-workspace-switcher {
+  border: 1px solid rgba(103, 232, 249, 0.26);
+  border-radius: 999px;
+  padding: 8px 11px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.16);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cockpit-workspace-switcher:not(:disabled):hover,
+.cockpit-workspace-switcher:not(:disabled):focus-visible {
+  color: #f8fafc;
+  border-color: rgba(103, 232, 249, 0.46);
+  background: rgba(8, 145, 178, 0.26);
+  outline: none;
+}
+
+.cockpit-workspace-switcher:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cockpit-command-button-active {
+  color: #f8fafc;
+  border-color: rgba(103, 232, 249, 0.5);
+  background:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.2), transparent 46%),
+    rgba(8, 145, 178, 0.26);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.08);
+}
+
+@media (max-width: 1420px) {
+  .cockpit-command-bar {
+    grid-template-columns: minmax(280px, 1fr) minmax(240px, 1fr) auto;
+  }
+
+  .cockpit-command-actions,
+  .cockpit-command-status {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 900px) {
+  .cockpit-command-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-workspace-switcher {
+    width: fit-content;
+  }
+}
