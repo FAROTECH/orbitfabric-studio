@@ -2353,11 +2353,58 @@ function WorkspaceDashboard({
           </div>
         </article>
 
-        <article className="cockpit-panel">
+        <article className="cockpit-panel cockpit-panel-validation">
           <div className="cockpit-panel-header">
             <div>
-              <span className="cockpit-eyebrow">Activity</span>
-              <h3>Recent evidence</h3>
+              <span className="cockpit-eyebrow">Validation</span>
+              <h3>Recent results</h3>
+            </div>
+            <DashboardIcon kind="validation" />
+          </div>
+
+          <div className="cockpit-compact-list">
+            {validationResult ? (
+              <>
+                <div className="cockpit-row">
+                  <span>Result</span>
+                  <strong>{validationResult}</strong>
+                </div>
+                <div className="cockpit-row">
+                  <span>Errors</span>
+                  <strong>{validationErrors ?? 0}</strong>
+                </div>
+                <div className="cockpit-row">
+                  <span>Warnings</span>
+                  <strong>{validationWarnings ?? 0}</strong>
+                </div>
+                <div className="cockpit-row">
+                  <span>Info</span>
+                  <strong>{validationInfo ?? 0}</strong>
+                </div>
+              </>
+            ) : (
+              <div className="cockpit-empty-module">
+                <strong>No validation report</strong>
+                <span>Run Core validation to populate this module.</span>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="cockpit-secondary-action"
+            onClick={() => onActiveSurfaceChange("core-commands")}
+            disabled={!workspace}
+          >
+            Open Core
+          </button>
+        </article>
+
+        <article className="cockpit-panel cockpit-panel-scenario">
+          <div className="cockpit-panel-header">
+            <div>
+              <span className="cockpit-eyebrow">Scenario</span>
+              <h3>Recent runs</h3>
             </div>
             <DashboardIcon kind="evidence" />
           </div>
@@ -2379,6 +2426,15 @@ function WorkspaceDashboard({
             <span>Latest sim</span>
             <strong>{simulationReport ? simulationReport.result : "not available"}</strong>
           </div>
+
+          <button
+            type="button"
+            className="cockpit-secondary-action"
+            onClick={() => onActiveSurfaceChange("scenario-evidence")}
+            disabled={!workspace}
+          >
+            Open evidence
+          </button>
         </article>
 
         <article className="cockpit-panel">
