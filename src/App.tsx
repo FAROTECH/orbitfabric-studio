@@ -737,7 +737,11 @@ function App() {
     <main className="studio-app-shell">
       <WorkspaceHeader workspace={workspace} />
 
-      <div className="workbench-layout">
+      <div
+        className={`workbench-layout ${
+          activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : ""
+        }`}
+      >
         <PrimarySidebar
           activeSurface={activeSurface}
           surfaceAvailability={surfaceAvailability}
@@ -748,15 +752,17 @@ function App() {
           {renderActiveSurface()}
         </section>
 
-        <InspectorPanel
-          workspace={workspace}
-          activeSurface={activeSurface}
-          selectedFile={selectedFile}
-          selectedGeneratedArtifact={selectedGeneratedArtifact}
-          selectedSimulationRecord={selectedSimulationRecord}
-          selectedDetail={selectedDetail}
-          coreResult={coreResult}
-        />
+        {activeSurface !== "mission-dashboard" ? (
+          <InspectorPanel
+            workspace={workspace}
+            activeSurface={activeSurface}
+            selectedFile={selectedFile}
+            selectedGeneratedArtifact={selectedGeneratedArtifact}
+            selectedSimulationRecord={selectedSimulationRecord}
+            selectedDetail={selectedDetail}
+            coreResult={coreResult}
+          />
+        ) : null}
       </div>
     </main>
   );
