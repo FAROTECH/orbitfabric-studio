@@ -3029,3 +3029,138 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* v0.7.2 cockpit top command bar. */
+.cockpit-command-bar {
+  display: grid;
+  width: min(1960px, 100%);
+  grid-template-columns: minmax(300px, 0.9fr) minmax(260px, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  padding: 12px 14px;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.1), transparent 36%),
+    rgba(15, 23, 42, 0.82);
+}
+
+.cockpit-command-identity,
+.cockpit-command-workspace,
+.cockpit-command-actions,
+.cockpit-command-status {
+  min-width: 0;
+}
+
+.cockpit-command-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cockpit-command-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 15px;
+  color: #67e8f9;
+  background: rgba(8, 145, 178, 0.14);
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.cockpit-command-identity h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.cockpit-command-workspace {
+  display: grid;
+  gap: 2px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 14px;
+  padding: 8px 10px;
+  background: rgba(2, 6, 23, 0.3);
+}
+
+.cockpit-command-workspace span {
+  color: #64748b;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.cockpit-command-workspace strong {
+  color: #f8fafc;
+  font-size: 0.86rem;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-command-workspace small {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.cockpit-command-chip {
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 999px;
+  padding: 7px 9px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.12);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cockpit-command-chip-muted {
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.cockpit-command-status {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1320px) {
+  .cockpit-command-bar {
+    grid-template-columns: minmax(280px, 1fr) minmax(240px, 1fr);
+  }
+
+  .cockpit-command-actions,
+  .cockpit-command-status {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .cockpit-command-bar {
+    grid-template-columns: 1fr;
+  }
+}

@@ -769,16 +769,34 @@ function App() {
 }
 
 function WorkspaceHeader({ workspace }: { workspace: WorkspaceInspection | null }) {
+  const workspaceName = workspace?.selected_path
+    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
+    : "No workspace";
+
   return (
-    <header className="workspace-header" aria-label="Workspace header">
-      <div>
-        <div className="eyebrow">OrbitFabric Studio</div>
-        <h2>Mission Contract Engineering Workbench</h2>
-        <p>{workspace ? workspace.selected_path : "No workspace selected"}</p>
+    <header className="workspace-header cockpit-command-bar" aria-label="Workspace command bar">
+      <div className="cockpit-command-identity">
+        <div className="cockpit-command-mark">OF</div>
+        <div>
+          <span className="cockpit-eyebrow">OrbitFabric Studio</span>
+          <h2>Mission Contract Engineering Workbench</h2>
+        </div>
       </div>
 
-      <div className="workspace-header-status">
-        <ProvenanceBadge label="READ-ONLY" />
+      <div className="cockpit-command-workspace" title={workspace?.selected_path ?? undefined}>
+        <span>Workspace</span>
+        <strong>{workspaceName}</strong>
+        <small>{workspace?.selected_path ?? "Open a workspace to begin."}</small>
+      </div>
+
+      <div className="cockpit-command-actions" aria-label="Cockpit command status">
+        <span className="cockpit-command-chip">Validate</span>
+        <span className="cockpit-command-chip">Scenario</span>
+        <span className="cockpit-command-chip">Artifacts</span>
+        <span className="cockpit-command-chip cockpit-command-chip-muted">Read-only</span>
+      </div>
+
+      <div className="workspace-header-status cockpit-command-status">
         <ProvenanceBadge label="CORE-DERIVED" />
         <StatusBadge label={workspace?.mission_dir ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
       </div>
