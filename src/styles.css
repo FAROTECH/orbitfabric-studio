@@ -2771,3 +2771,178 @@ h3 {
 .workbench-inspector .inspector-field {
   overflow: hidden;
 }
+
+
+/* v0.7.2 cockpit QA polish. */
+
+/* Use more of the available desktop width. */
+.studio-app-shell {
+  padding: 12px clamp(12px, 1vw, 20px);
+}
+
+.workspace-header,
+.workbench-layout {
+  width: min(1920px, 100%);
+}
+
+.workbench-layout {
+  gap: 16px;
+  grid-template-columns: minmax(260px, 280px) minmax(0, 1fr) minmax(280px, 320px);
+}
+
+/* Mission cockpit hero is now compact: title plus status block only. */
+.cockpit-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.55fr);
+}
+
+.cockpit-hero-main {
+  align-content: center;
+}
+
+/* Contract map chips: avoid label/value overlap. */
+.cockpit-domain-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cockpit-domain-chip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 44px;
+}
+
+.cockpit-domain-chip span {
+  line-height: 1.15;
+}
+
+.cockpit-domain-chip strong {
+  min-width: 2.1ch;
+  text-align: right;
+}
+
+/* KPI cards get more breathing room after layout expansion. */
+.cockpit-kpi-grid {
+  gap: 14px;
+}
+
+.cockpit-kpi-card {
+  min-height: 168px;
+}
+
+.cockpit-kpi-card > div > span {
+  min-height: 3em;
+}
+
+/* Inspector hero without paragraph: tighter and less document-like. */
+.inspector-hero {
+  gap: 8px;
+}
+
+.inspector-hero .inspector-badge-row {
+  margin-top: 2px;
+}
+
+/* When Safety boundary is hidden on the dashboard, the inspector feels less repetitive. */
+.workbench-inspector {
+  padding-bottom: 16px;
+}
+
+@media (min-width: 1500px) {
+  .cockpit-kpi-card {
+    min-height: 158px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .workbench-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .cockpit-domain-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* v0.7.2 compact KPI tile height correction. */
+
+/* KPI cards are status tiles: compact, readable, not tall panels. */
+.cockpit-kpi-card {
+  min-height: 122px;
+  padding: 12px 12px 11px 52px;
+  border-radius: 18px;
+}
+
+.cockpit-kpi-card > .dashboard-icon {
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+}
+
+.cockpit-kpi-card > .dashboard-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.7;
+}
+
+.cockpit-kpi-card h3 {
+  min-height: auto;
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.08;
+}
+
+.cockpit-kpi-card strong {
+  margin-top: 6px;
+  padding-top: 0;
+  font-size: 0.98rem;
+  line-height: 1.1;
+}
+
+.cockpit-kpi-card > div > span {
+  min-height: auto;
+  margin-top: 7px;
+  padding-top: 0;
+  color: #8ea0bd;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.cockpit-kpi-card > .status-badge,
+.cockpit-kpi-card > .cockpit-card-action {
+  min-height: 24px;
+  margin-top: 9px;
+  padding: 5px 10px;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+/* Keep subtitles contained without forcing the card to grow. */
+.cockpit-kpi-card > div > span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* On large screens, keep the row visually dense. */
+@media (min-width: 1400px) {
+  .cockpit-kpi-card {
+    min-height: 118px;
+  }
+}
+
+/* On narrow screens, allow a little more height for wrapping. */
+@media (max-width: 760px) {
+  .cockpit-kpi-card {
+    min-height: 132px;
+  }
+}
