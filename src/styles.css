@@ -3795,3 +3795,141 @@ h3 {
     width: fit-content;
   }
 }
+
+
+/* v0.7.2 cockpit signal-state visual polish. */
+
+/* KPI tiles become state instruments, not plain cards. */
+.cockpit-kpi-card {
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 14px 36px rgba(0, 0, 0, 0.16);
+}
+
+.cockpit-kpi-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: rgba(148, 163, 184, 0.22);
+  content: "";
+  z-index: 1;
+}
+
+.cockpit-kpi-card::after {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.7);
+  box-shadow: 0 0 12px rgba(148, 163, 184, 0.3);
+  content: "";
+  z-index: 2;
+}
+
+.cockpit-kpi-state-reported::after {
+  background: #67e8f9;
+  box-shadow: 0 0 14px rgba(103, 232, 249, 0.55);
+}
+
+.cockpit-kpi-state-unavailable::after {
+  background: #64748b;
+  box-shadow: 0 0 10px rgba(100, 116, 139, 0.24);
+}
+
+.cockpit-kpi-card-validation::before {
+  background: linear-gradient(90deg, rgba(134, 239, 172, 0.95), rgba(34, 211, 238, 0.18));
+}
+
+.cockpit-kpi-card-model::before {
+  background: linear-gradient(90deg, rgba(147, 197, 253, 0.95), rgba(34, 211, 238, 0.18));
+}
+
+.cockpit-kpi-card-scenario::before {
+  background: linear-gradient(90deg, rgba(196, 181, 253, 0.95), rgba(34, 211, 238, 0.18));
+}
+
+.cockpit-kpi-card-coverage::before {
+  background: linear-gradient(90deg, rgba(165, 180, 252, 0.95), rgba(34, 211, 238, 0.18));
+}
+
+.cockpit-kpi-card-artifacts::before {
+  background: linear-gradient(90deg, rgba(125, 211, 252, 0.95), rgba(34, 211, 238, 0.18));
+}
+
+.cockpit-kpi-card .dashboard-icon {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 0 18px rgba(34, 211, 238, 0.08);
+}
+
+/* Dashboard modules get instrument-like accent rails. */
+.workbench-layout-dashboard .cockpit-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 16px 42px rgba(0, 0, 0, 0.14);
+}
+
+.workbench-layout-dashboard .cockpit-panel::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: rgba(148, 163, 184, 0.22);
+  content: "";
+}
+
+.workbench-layout-dashboard .cockpit-panel-large::before {
+  background: linear-gradient(180deg, #67e8f9, rgba(103, 232, 249, 0.08));
+}
+
+.workbench-layout-dashboard .cockpit-panel-validation::before {
+  background: linear-gradient(180deg, #86efac, rgba(134, 239, 172, 0.08));
+}
+
+.workbench-layout-dashboard .cockpit-panel-scenario::before {
+  background: linear-gradient(180deg, #c4b5fd, rgba(196, 181, 253, 0.08));
+}
+
+.workbench-layout-dashboard .cockpit-panel-coverage::before {
+  background: linear-gradient(180deg, #a5b4fc, rgba(165, 180, 252, 0.08));
+}
+
+.workbench-layout-dashboard .cockpit-panel-generated::before {
+  background: linear-gradient(180deg, #7dd3fc, rgba(125, 211, 252, 0.08));
+}
+
+/* Subtle cockpit scan texture, kept very light. */
+.workbench-layout-dashboard .cockpit-dashboard {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.022) 1px, transparent 1px);
+  background-size: 28px 28px;
+  border-radius: 22px;
+}
+
+/* Status strip and bottom rail become visually connected. */
+.cockpit-status-strip,
+.cockpit-bottom-rail {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 44px rgba(0, 0, 0, 0.16);
+}
+
+.cockpit-bottom-rail {
+  position: relative;
+  overflow: hidden;
+}
+
+.cockpit-bottom-rail::before {
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid rgba(103, 232, 249, 0.08);
+  pointer-events: none;
+  content: "";
+}

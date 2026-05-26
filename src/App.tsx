@@ -2236,7 +2236,11 @@ function WorkspaceDashboard({
       </div>
 
       <div className="cockpit-kpi-grid" aria-label="Mission cockpit status cards">
-        <article className="cockpit-kpi-card">
+        <article
+          className={`cockpit-kpi-card cockpit-kpi-card-validation ${
+            validationResult ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
+          }`}
+        >
           <DashboardIcon kind="validation" />
           <div>
             <h3>Validation</h3>
@@ -2254,7 +2258,11 @@ function WorkspaceDashboard({
           <StatusBadge label={formatDashboardStatusLabel(validationResult)} />
         </article>
 
-        <article className="cockpit-kpi-card">
+        <article
+          className={`cockpit-kpi-card cockpit-kpi-card-model ${
+            workspace ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
+          }`}
+        >
           <DashboardIcon kind="model" />
           <div>
             <h3>Model inventory</h3>
@@ -2281,7 +2289,11 @@ function WorkspaceDashboard({
           </button>
         </article>
 
-        <article className="cockpit-kpi-card">
+        <article
+          className={`cockpit-kpi-card cockpit-kpi-card-scenario ${
+            scenarioRunIndex ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
+          }`}
+        >
           <DashboardIcon kind="scenario" />
           <div>
             <h3>Scenario runs</h3>
@@ -2306,7 +2318,11 @@ function WorkspaceDashboard({
           </button>
         </article>
 
-        <article className="cockpit-kpi-card">
+        <article
+          className={`cockpit-kpi-card cockpit-kpi-card-coverage ${
+            coverageSummary ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
+          }`}
+        >
           <DashboardIcon kind="coverage" />
           <div>
             <h3>Coverage</h3>
@@ -2327,7 +2343,11 @@ function WorkspaceDashboard({
           </button>
         </article>
 
-        <article className="cockpit-kpi-card">
+        <article
+          className={`cockpit-kpi-card cockpit-kpi-card-artifacts ${
+            generatedArtifactSummary ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
+          }`}
+        >
           <DashboardIcon kind="artifacts" />
           <div>
             <h3>Artifacts</h3>
@@ -2504,7 +2524,7 @@ function WorkspaceDashboard({
           </button>
         </article>
 
-        <article className="cockpit-panel">
+        <article className="cockpit-panel cockpit-panel-coverage">
           <div className="cockpit-panel-header">
             <div>
               <span className="cockpit-eyebrow">Coverage</span>
@@ -2534,7 +2554,7 @@ function WorkspaceDashboard({
           </div>
         </article>
 
-        <article className="cockpit-panel">
+        <article className="cockpit-panel cockpit-panel-generated">
           <div className="cockpit-panel-header">
             <div>
               <span className="cockpit-eyebrow">Generated</span>
