@@ -4,9 +4,9 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.8.0 - Ground Integration Artifact Viewer`.
+OrbitFabric Studio is currently at `v0.9.0 - Semantic Navigation & Unified Shell`.
 
-The active planning baseline is `v0.9.0 - Semantic Navigation & Unified Shell`.
+The active planning baseline is `v0.10.0 - Mission Cockpit Consolidation`.
 
 ---
 
@@ -14,9 +14,9 @@ The active planning baseline is `v0.9.0 - Semantic Navigation & Unified Shell`.
 
 ### Planning
 
-- Rebaselined the immediate post-v0.8.0 direction toward `v0.9.0 - Semantic Navigation & Unified Shell`.
-- Deferred the previous immediate `Plugin-aware Studio Surface` direction until the shell, semantic navigation, Inspector, Mission Cockpit and Mission Data Flow Workbench foundations are stable.
-- Added v0.9.0 planning scope for mission-domain navigation, unified shell behavior, persistent Inspector, command bar consolidation and consistent availability states.
+- Rebaselined the immediate post-v0.9.0 direction toward `v0.10.0 - Mission Cockpit Consolidation`.
+- Confirmed that plugin-awareness remains deferred until the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
+- Confirmed that v0.10.0 must consolidate the Mission Cockpit using only Core-derived reports, generated artifact inventory, structural workspace inspection or explicit `unavailable`, `not reported`, `reserved` and `diagnostic` states.
 
 ### Not Included
 
@@ -28,6 +28,102 @@ The active planning baseline is `v0.9.0 - Semantic Navigation & Unified Shell`.
 - No plugin execution.
 - No generated artifact mutation.
 - No operational ground behavior.
+- No command uplink.
+- No live telemetry behavior.
+- No frontend-inferred mission health, operational readiness, model completeness or private coverage semantics.
+
+---
+
+## v0.9.0 - Semantic Navigation & Unified Shell
+
+Released milestone.
+
+This milestone transforms Studio from a surface-oriented workbench into a mission-domain-oriented shell.
+
+v0.9.0 remains downstream from OrbitFabric Core.
+
+Studio does not add mission semantics. It reorganizes existing read-only Studio capabilities around a typed navigation model, semantic sidebar, global command bar, persistent Inspector and shell status bar.
+
+### Added
+
+- Added typed navigation model for Studio shell surfaces.
+- Added explicit navigation item states:
+  - `available`;
+  - `unavailable`;
+  - `reserved`;
+  - `diagnostic`.
+- Added target mission-domain navigation entries:
+  - Mission;
+  - Spacecraft;
+  - Subsystems;
+  - Modes;
+  - Telemetry;
+  - Commands;
+  - Events;
+  - Faults;
+  - Packets;
+  - Payloads;
+  - Data Products;
+  - Contacts & Downlink;
+  - Commandability;
+  - Autonomy;
+  - Scenarios;
+  - Generated Artifacts.
+- Added explicit legacy surface mapping.
+- Added semantic sidebar skeleton and polish.
+- Added persistent Inspector behavior across the Mission surface.
+- Added standalone shell status bar component.
+- Wired shell status bar into the main Studio shell.
+- Added shell command bar action model.
+- Added reusable shell command actions component.
+- Wired model-backed shell command actions into the workspace header.
+- Added v0.9.0 release notes.
+- Added v0.9.0 release checklist.
+
+### Changed
+
+- Primary navigation now presents mission-domain destinations rather than implementation surface names.
+- Reserved mission domains route conservatively to the existing Model Inventory surface until dedicated domain surfaces exist.
+- Core Commands, Reports & Logs and Raw Output are treated as diagnostic access rather than primary mission destinations.
+- Mission Dashboard no longer hides the Inspector.
+- The shell now exposes a global footer/status bar with workspace and boundary state.
+- The top command bar is backed by a typed action model.
+- Ambiguous copy implying operational mission readiness has been replaced with reported evidence lane language.
+- Stale Scenario Evidence copy has been updated to reflect fixed Core-wrapper execution.
+- Updated Studio, package lock, Tauri and Cargo metadata to `0.9.0`.
+
+### Release notes
+
+```text
+docs/releases/v0.9.0-release-notes.md
+```
+
+### Checklist
+
+```text
+V0_9_0_RELEASE_CHECKLIST.md
+```
+
+### Not Included
+
+- No new OrbitFabric Core semantics.
+- No Mission Model editing.
+- No generated artifact editing.
+- No generated artifact mutation.
+- No visual authoring.
+- No graph UI.
+- No React Flow adoption.
+- No plugin execution.
+- No live telemetry.
+- No telemetry archive behavior.
+- No command uplink behavior.
+- No mission control behavior.
+- No operational ground behavior.
+- No private YAML semantic parsing.
+- No private coverage calculation.
+- No private mission health calculation.
+- No private readiness calculation.
+- No private model completeness calculation.
 
 ---
 
