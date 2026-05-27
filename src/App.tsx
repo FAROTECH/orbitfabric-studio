@@ -14,6 +14,12 @@ import {
 } from "./GeneratedArtifactExplorer";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
+import {
+  shellSurfaceItems,
+  reservedSurfaceItems,
+  type ActiveSurface,
+  type NavigationIconKind,
+} from "./navigationModel";
 
 import {
   parseCoreCoverageSummary,
@@ -58,123 +64,6 @@ const nonGoalItems = [
   "No private graph semantics",
   "No visual Mission Model editor",
 ];
-
-type ActiveSurface =
-  | "mission-dashboard"
-  | "model-inventory"
-  | "core-commands"
-  | "contracts"
-  | "relationships"
-  | "generated-artifacts"
-  | "reports-logs"
-  | "scenario-evidence"
-  | "ground-integration"
-  | "raw-output";
-
-const shellSurfaceItems = [
-  {
-    label: "Mission",
-    status: "available",
-    targetId: "studio-dashboard",
-    surface: "mission-dashboard",
-    icon: "mission",
-    caption: "Mission cockpit",
-  },
-  {
-    label: "Model",
-    status: "available",
-    targetId: "studio-model",
-    surface: "model-inventory",
-    icon: "model",
-    caption: "Model inventory",
-  },
-  {
-    label: "Core",
-    status: "available",
-    targetId: "studio-validation",
-    surface: "core-commands",
-    icon: "core",
-    caption: "Core commands",
-  },
-  {
-    label: "Contracts",
-    status: "available",
-    targetId: "studio-contracts",
-    surface: "contracts",
-    icon: "contracts",
-    caption: "Contract reports",
-  },
-  {
-    label: "Relations",
-    status: "available",
-    targetId: "studio-relationships",
-    surface: "relationships",
-    icon: "relationships",
-    caption: "Relationship data",
-  },
-  {
-    label: "Artifacts",
-    status: "available",
-    targetId: "studio-artifacts",
-    surface: "generated-artifacts",
-    icon: "artifacts",
-    caption: "Generated files",
-  },
-  {
-    label: "Reports",
-    status: "available",
-    targetId: "studio-reports-logs",
-    surface: "reports-logs",
-    icon: "reports",
-    caption: "Reports and logs",
-  },
-  {
-    label: "Evidence",
-    status: "available",
-    targetId: "studio-evidence",
-    surface: "scenario-evidence",
-    icon: "evidence",
-    caption: "Scenario evidence",
-  },
-  {
-    label: "Ground",
-    status: "available",
-    targetId: "studio-ground",
-    surface: "ground-integration",
-    icon: "ground",
-    caption: "Ground artifacts",
-  },
-  {
-    label: "Raw",
-    status: "available",
-    targetId: "studio-raw-output",
-    surface: "raw-output",
-    icon: "raw",
-    caption: "Raw output",
-  },
-] as const;
-
-const reservedSurfaceItems = [
-  {
-    id: "studio-reserved-ground",
-    title: "Ground Integration Artifact Viewer",
-    milestone: "v0.8.0",
-    summary:
-      "Reserved for inspecting generated ground-facing artifacts without becoming a ground segment.",
-    allowed: [
-      "Inspect generated ground-facing artifacts",
-      "Preview supported generated text artifacts",
-      "Explain generated artifact provenance",
-      "Keep ground artifacts read-only",
-    ],
-    forbidden: [
-      "No command uplink",
-      "No telemetry archive",
-      "No live decoder behavior",
-      "No ground segment operations",
-    ],
-  },
-] as const;
 
 type SimulationInspectorRecordKind =
   | "timeline"
@@ -2735,21 +2624,7 @@ function WorkspaceDashboard({
   );
 }
 
-type DashboardIconKind =
-  | "mission"
-  | "validation"
-  | "model"
-  | "scenario"
-  | "coverage"
-  | "artifacts"
-  | "evidence"
-  | "shield"
-  | "core"
-  | "contracts"
-  | "relationships"
-  | "reports"
-  | "ground"
-  | "raw";
+type DashboardIconKind = NavigationIconKind;
 
 function DashboardIcon({ kind }: { kind: DashboardIconKind }) {
   const iconPath = {
