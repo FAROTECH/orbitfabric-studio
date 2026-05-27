@@ -12,59 +12,36 @@ Studio is downstream.
 
 ---
 
-## Roadmap Philosophy
-
-OrbitFabric Studio grows through narrow, inspectable, validation-aligned vertical slices.
-
-The intended growth path is:
+## Current Baseline
 
 ```text
-charter
-  -> read-only inspection
-  -> validation visibility
-  -> contract navigation
-  -> relationship explanation from Core-owned relationship records
-  -> generated artifact inspection
-  -> information architecture and UX foundation
-  -> scenario evidence inspection
-  -> ground artifact inspection
-  -> UX consolidation
-  -> controlled authoring and editing
-  -> plugin-aware surfaces
-  -> stable mission contract engineering workbench
+Current released baseline: v0.8.0 - Ground Integration Artifact Viewer
+Active planning baseline: v0.9.0 - Semantic Navigation & Unified Shell
 ```
 
-The released v0.7.1 loop is:
+v0.8.0 is the current implementation baseline.
+
+v0.9.0 is the next implementation milestone.
+
+The previous immediate Plugin-aware Studio Surface direction is deferred. Plugin-awareness is now planned only after the shell, semantic navigation, Inspector, Mission Cockpit and Mission Data Flow Workbench foundations are stable.
+
+Reference planning document:
 
 ```text
-Open -> Run Core Dashboard/Coverage Exports -> Inspect Dashboard Summary -> Inspect Scenario Run Index -> Inspect Coverage Summary
+docs/roadmap/studio-target-ui-convergence-strategy.md
 ```
 
-The next roadmap loop is:
+v0.9.0 planning document:
 
 ```text
-Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Surfaces
+docs/roadmap/studio-v0.9.0-semantic-navigation-and-unified-shell.md
 ```
-
-This does not mean that Studio is only a post-processing viewer for already-completed contracts.
-
-Studio is not read-only by identity.
-
-Studio is read-only by initial maturity strategy.
-
-Editing and assisted authoring are intentionally delayed because Studio must first prove that it can load, inspect, validate, navigate, explain and inspect generated outputs from an OrbitFabric mission workspace without introducing semantic drift.
 
 ---
 
-## Core Alignment Rule
+## Roadmap Philosophy
 
-Studio follows OrbitFabric Core maturity.
-
-Studio must not expose stable workflows for unstable Core surfaces unless they are clearly marked experimental.
-
-Studio may request better machine-readable outputs from OrbitFabric Core.
-
-Studio must not compensate for missing Core outputs by duplicating validation, model loading or semantic interpretation logic.
+OrbitFabric Studio grows through narrow, inspectable, validation-aligned vertical slices.
 
 Correct pattern:
 
@@ -79,47 +56,7 @@ Incorrect pattern:
 Studio reimplements Core semantics because the required output is missing.
 ```
 
-For v0.3.0, the required Core outputs are:
-
-```text
-Core v0.8.1 model_summary.json for domain navigation
-Core v0.8.2 entity_index.json for entity navigation
-```
-
-For v0.4.0, the required Core output is available in OrbitFabric Core v1.0.0:
-
-```text
-Core v1.0.0 relationship_manifest.json for relationship inspection
-kind: orbitfabric.relationship_manifest
-manifest_version: 0.1-candidate
-status: candidate
-```
-
-For v0.5.0, the required Core baseline is the set of generated and exported artifact families documented by OrbitFabric Core v1.0.0.
-
-Studio v0.5.0 may inspect generated files already present in the selected workspace.
-
-Studio v0.5.0 must not generate artifacts, execute arbitrary commands, reinterpret generated files as Mission Model semantics or treat generated runtime and ground outputs as operational behavior.
-
-For v0.6.0, the required baseline is the set of existing Studio surfaces completed up to v0.5.0.
-
-Studio v0.6.0 does not require new OrbitFabric Core mission semantics.
-
-Studio v0.6.0 reorganizes the existing surfaces into a stable information architecture, introduces a consistent provenance vocabulary, defines a reusable application shell and documents the boundary for future graph-based visualizations.
-
-For v0.7.0, Scenario Evidence Explorer must consume Core-produced scenario outputs and evidence records.
-
-Studio v0.7.0 must not simulate independently from Core.
-
-For v0.8.0, Ground Integration Artifact Viewer must consume Core-generated ground-facing artifacts and manifests.
-
-Studio v0.8.0 must not become a ground segment, a live decoder, a telemetry archive or a mission control interface.
-
----
-
-## Source / Derived / Generated Discipline
-
-Every Studio milestone must preserve a clear distinction among:
+Every milestone must preserve a clear distinction among:
 
 ```text
 source model      = authoritative Mission Model files
@@ -128,1155 +65,277 @@ generated output  = disposable artifact generated from the contract
 UI state          = local Studio representation
 ```
 
-A user must always understand which category they are looking at.
+If Core does not report a value, Studio must show `unavailable`, `not reported`, `reserved` or `diagnostic` instead of calculating private meaning.
 
 ---
 
-## Release Status Legend
+## Released Baselines
+
+### v0.0.0 - Studio Charter
+
+Status: Completed
+
+Defined why Studio exists, what it is not, how it relates to OrbitFabric Core, and which architectural and UX principles govern future development.
+
+### v0.1.0 - Read-only Mission Project Viewer
+
+Status: Completed
+
+Introduced local OrbitFabric workspace opening, structural inspection and read-only source preview.
+
+### v0.2.0 - Validation and Diagnostics Workbench
+
+Status: Completed
+
+Introduced Core lint visibility through fixed command execution and Core JSON report rendering.
+
+### v0.3.0 - Contract Navigation Surface
+
+Status: Completed
+
+Introduced Core-derived contract domain and entity navigation through `model_summary.json` and `entity_index.json`.
+
+### v0.4.0 - Relationship Surface
+
+Status: Completed
+
+Introduced read-only relationship inspection through Core-owned `relationship_manifest.json`.
+
+### v0.5.0 - Generated Artifact Explorer
+
+Status: Completed
+
+Introduced conservative, read-only inspection of generated artifacts already present in the selected workspace.
+
+### v0.6.0 - Studio Information Architecture & UX Foundation
+
+Status: Completed
+
+Reorganized previous capabilities into a coherent application shell with workspace header, primary navigation, main surface, contextual Inspector, provenance vocabulary and read-only boundary language.
+
+### v0.7.0 - Scenario Evidence Explorer
+
+Status: Completed
+
+Introduced read-only inspection of scenario evidence produced by OrbitFabric Core through fixed `orbitfabric sim` execution and Core simulation JSON rendering.
+
+### v0.7.1 - Dashboard and Coverage Foundation
+
+Status: Completed
+
+Introduced Core dashboard summary, scenario run index and coverage summary rendering without private coverage calculation or mission health scoring.
+
+### v0.7.2 - Core-derived Dashboard UX Realization
+
+Status: Completed
+
+Moved the dashboard closer to the accepted cockpit direction while preserving the Core-derived boundary.
+
+### v0.8.0 - Ground Integration Artifact Viewer
+
+Status: Completed
+
+Introduced a dedicated read-only Ground Integration Artifact Viewer for generated ground-facing artifacts.
+
+v0.8.0 does not introduce ground segment behavior, mission control behavior, command uplink, live telemetry, telemetry archive behavior, live decoder behavior, generated artifact mutation, graph UI, React Flow, plugin execution or authoring.
+
+Release notes:
 
 ```text
-Planned        = part of the intended roadmap
-Active         = current planning or implementation target
-Experimental   = may change significantly
-Stable target  = expected to become part of the v1.0 workbench
-Completed      = implemented and documented
-Deferred       = intentionally postponed
-Out of scope   = not part of Studio identity
+docs/releases/v0.8.0-release-notes.md
 ```
 
 ---
 
-# v0.0.0 - Studio Charter
+## Accepted UI Convergence Direction
 
-Status: Completed  
-Nature: documentation-only  
-Implementation: released
+The post-v0.8.0 direction is a mission-domain cockpit and integrated data-flow workbench.
 
-## Goal
-
-Define why Studio exists, what it is not, how it relates to OrbitFabric Core, and which architectural and UX principles govern future development.
-
-## Deliverables
-
-- project README
-- roadmap
-- charter
-- vision
-- explicit non-goals
-- architecture principles
-- data boundary definition
-- UX principles
-- risk register
-- initial ADRs
-- mockups and examples directory policy
-
-## Explicit Non-goals
-
-- no runnable application
-- no frontend scaffold
-- no package manager setup
-- no fake screenshots
-- no mock operational console
-- no product claims
-- no compatibility claims
-
----
-
-# v0.1.0 - Read-only Mission Project Viewer
-
-Status: Completed  
-Nature: first application slice  
-Primary loop: Open -> Inspect
-
-## Goal
-
-Open an existing OrbitFabric mission workspace and inspect its structure without editing it.
-
-This release proves that Studio can operate on a real OrbitFabric project without becoming a second model engine.
-
-## Implemented Capabilities
-
-- open a local OrbitFabric mission directory
-- detect expected Mission Model files
-- display source files in read-only mode
-- detect scenario source files
-- detect generated artifact directories
-- show generated and derived locations
-- show source, scenario, derived and generated labels
-- invoke OrbitFabric Core through controlled local command paths
-- run `orbitfabric --version`
-- run `orbitfabric inspect mission <mission_dir>`
-- show raw command result status
-
-## Explicit Non-goals
-
-- no editing
-- no visual model editing
-- no graph view
-- no scenario runner
-- no generator workbench
-- no plugin support
-- no independent model validation
-- no deep semantic parsing inside Studio
-
----
-
-# v0.2.0 - Validation and Diagnostics Workbench
-
-Status: Completed  
-Nature: validation visibility slice  
-Primary loop: Open -> Inspect -> Validate -> Understand
-
-## Goal
-
-Make OrbitFabric validation results first-class and inspectable.
-
-This release turns validation from a terminal-only operation into a structured engineering surface.
-
-## Implemented Capabilities
-
-- run Core lint on demand through a fixed command
-- display validation pass, warning or failure status from Core JSON
-- display Core JSON report path and availability
-- display structured diagnostics from the Core JSON lint report
-- display errors, warnings and info counts
-- display finding severity, code, message, file, domain, object ID and suggestion
-- open related source model files read-only when the Core-provided file reference exactly matches a known source model file
-- preserve raw stdout, stderr and exit code access for transparency
-- distinguish source model files from derived validation reports
-- distinguish Studio structural inspection from Core validation result
-
-## OrbitFabric Core Surfaces Consumed
-
-- `orbitfabric lint <mission_dir> --json <path>`
-- JSON lint report
-- diagnostic messages
-- rule identifiers
-- file references when available
-- validation result
-- summary counts
-- model and Core version fields
-
-## Explicit Non-goals
-
-- no independent validation rules
-- no hidden diagnostic inference
-- no stdout diagnostics scraping when JSON exists
-- no automatic fixes
-- no suppressions
-- no model mutation
-- no editing
-- no graph view
-- no scenario runner
-- no generator workflow
-- no ground artifact generation UI
-- no ground artifact explorer
-- no line or column navigation unless Core later provides line or column metadata
-
----
-
-# v0.3.0 - Contract Navigation Surface
-
-Status: Completed  
-Nature: structured navigation slice  
-Primary loop: Open -> Inspect -> Validate -> Navigate
-
-## Goal
-
-Provide read-only navigation across Mission Data Contract domains and entities using Core-owned derived reports.
-
-This release answers two questions:
+Accepted roadmap:
 
 ```text
-What contract domains are present in this mission, and where can I inspect them?
-What contract entities are defined in this mission, and where can I inspect their source file?
-```
-
-This release does not answer:
-
-```text
-How are these entities related?
-```
-
-## Implemented Capabilities
-
-- run `orbitfabric export model-summary <mission_dir> --json <path>` through a fixed backend command
-- run `orbitfabric export entity-index <mission_dir> --json <path>` through a fixed backend command
-- detect and load `model_summary.json` read-only when produced by Core
-- detect and load `entity_index.json` read-only when produced by Core
-- display domains from Core `model_summary.domains`
-- display count, required, present, source_file and count_provenance for domains
-- display entities from Core `entity_index.entities`
-- group entities by domain
-- display entity id, display_name, domain, entity_type, source_file, provenance, required_domain and present
-- display domain summaries from Core `entity_index.domains`
-- distinguish indexed domains from summarized-only domains
-- show `mode_transitions` and `policies` as summarized but not entity-indexed when Core reports them that way
-- open a source file read-only only when the Core-provided `source_file` safely resolves to a known source model file
-- show clear provenance labels for Core model summary and Core entity index data
-- handle missing, invalid and unsupported reports gracefully
-- preserve raw stdout, stderr and exit code for Core export commands
-
-## OrbitFabric Core Surfaces Consumed
-
-- Core v0.8.1 `model_summary.json`
-- `kind: orbitfabric.model_summary`
-- `summary_version: 0.1`
-- Core v0.8.2 `entity_index.json`
-- `kind: orbitfabric.entity_index`
-- `index_version: 0.1`
-
-## Version Compatibility
-
-```text
-Core v0.8.0:
-  lint JSON available
-  no model-summary
-  no entity-index
-  Contract Navigation disabled with clear explanation
-
-Core v0.8.1:
-  model-summary available
-  entity-index unavailable
-  domain navigation enabled
-  entity navigation disabled with clear explanation
-
-Core v0.8.2:
-  model-summary available
-  entity-index available
-  domain navigation enabled
-  entity navigation enabled
-```
-
-Compatibility is based on command behavior and report availability.
-
-Version strings may be displayed, but they must not be the only compatibility signal.
-
-## Explicit Non-goals
-
-- no editing
-- no visual model editing
-- no semantic YAML parser
-- no private entity extraction
-- no private domain registry when Core `model_summary.json` is available
-- no private relationship resolver
-- no graph view
-- no relationship navigation
-- no dependency graph
-- no line or column navigation
-- no fake source span
-- no quick fixes
-- no suppressions
-- no scenario runner
-- no generator workflow beyond fixed Core-owned report exports
-- no ground artifact explorer
-- no runtime artifact explorer
-- no plugin UI
-- no arbitrary command execution
-- no arbitrary OrbitFabric CLI argument entry
-- no mission-control UI
-- no live telemetry
-- no command uplink
-
-## Exit Criteria
-
-v0.3.0 is complete because Studio can:
-
-1. consume Core `model_summary.json` without inventing domains;
-2. consume Core `entity_index.json` without inventing entities;
-3. present contract domains by Core-derived summary;
-4. present contract entities by Core-derived index;
-5. link domains and entities to source files only through Core-provided source_file values;
-6. handle Core v0.8.0, v0.8.1 and v0.8.2 behavior states through command behavior and report availability;
-7. avoid relationship, graph and dependency claims.
-
----
-
-# v0.4.0 - Relationship Surface
-
-Status: Completed  
-Nature: Core-derived relationship inspection slice  
-Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships
-
-## Goal
-
-Provide read-only relationship inspection across indexed Mission Data Contract entities by consuming Core v1.0.0 `relationship_manifest.json`.
-
-## Implemented Capabilities
-
-- run `orbitfabric export relationship-manifest <mission_dir> --json <path>` through a fixed backend command
-- detect and load `relationship_manifest.json` read-only when produced by Core
-- display manifest identity, version, status, mission and Core version
-- display Core boundary labels
-- display relationship type summaries from Core `relationship_types`
-- filter relationship types by type, source domain and destination domain
-- display relationship records from Core `relationships`
-- filter relationship records by type, source domain and destination domain
-- select one relationship record
-- explain selected relationship provenance and boundary statements
-- handle missing, invalid and unsupported reports gracefully
-- preserve raw stdout, stderr and exit code for Core export commands
-
-## OrbitFabric Core Surfaces Consumed
-
-- Core v1.0.0 `relationship_manifest.json`
-- `kind: orbitfabric.relationship_manifest`
-- `manifest_version: 0.1-candidate`
-- `status: candidate`
-- Core v0.8.2 or later `entity_index.json` for the existing entity navigation surface
-
-## Explicit Non-goals
-
-- no editing
-- no visual model editing
-- no semantic YAML parser
-- no private relationship inference
-- no private graph semantics
-- no dependency graph
-- no relationship graph engine
-- no source line or column navigation
-- no runtime behavior
-- no ground behavior
-- no arbitrary command execution
-- no relationship records invented by Studio
-- no synthetic nodes
-- no synthetic edges
-
-## Exit Criteria
-
-v0.4.0 is complete because Studio can run the fixed Core relationship-manifest export command, load Core `relationship_manifest.json` read-only, show relationship type summaries, show relationship records, select and explain one relationship record without inventing semantics, and verify `total_relationships = 46` on `examples/demo-3u` with Core v1.0.0.
-
----
-
-# v0.5.0 - Generated Artifact Explorer
-
-Status: Completed  
-Nature: artifact inspection slice  
-Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain Relationships -> Inspect Generated Artifacts
-
-## Goal
-
-Inspect OrbitFabric-generated artifacts already present in a selected workspace through a structured, read-only UI.
-
-Generated artifacts are derived from the Mission Data Contract and remain disposable.
-
-Studio must make them easier to inspect without treating them as source files, without generating new artifacts and without inventing artifact semantics.
-
-## Implemented Capabilities
-
-- define a generated artifact inventory model
-- inspect `generated/` recursively through a controlled backend command
-- classify files by conservative path, extension and known Core-documented names
-- group artifacts by reports, logs, docs, runtime, ground and unknown
-- show file name, path, extension, size, known or unknown status and preview eligibility
-- distinguish source model, derived report, generated output and UI state
-- open supported text artifacts in the existing read-only viewer
-- list unsupported, oversized or binary files without previewing them
-- show graceful fallback when `generated/` does not exist
-- keep unknown generated files visible without assigning invented meaning
-
-## Artifact Classes
-
-```text
-reports
-logs
-docs
-runtime
-ground
-unknown
-```
-
-## Explicit Non-goals
-
-- no editing
-- no generated file modification
-- no Mission Model modification
-- no arbitrary shell command
-- no arbitrary OrbitFabric CLI argument entry
-- no new generator workflow
-- no scenario runner
-- no runtime execution
-- no build-system integration
-- no flight software claim
-- no ground runtime claim
-- no mission-control UI
-- no live telemetry
-- no command uplink
-- no private YAML semantic parser
-- no private Mission Model validator
-- no private artifact semantics
-- no dependency graph
-- no relationship graph engine
-- no plugin execution
-- no plugin discovery
-
-## Exit Criteria
-
-v0.5.0 is complete because Studio can inspect generated artifacts already present in the selected workspace, group them into conservative classes, distinguish known Core-documented artifacts from unknown generated files, show metadata without modifying files, open supported text artifacts read-only, and avoid generation, arbitrary commands and Mission Model semantic inference.
-
----
-
-# v0.6.0 - Studio Information Architecture & UX Foundation
-
-Status: Completed  
-Nature: UX architecture and product foundation slice  
-Primary loop: Stabilize Studio IA -> Normalize Surfaces -> Prepare Evidence and Ground Inspection
-
-## Goal
-
-Establish the information architecture, UX foundation and visual organization model for OrbitFabric Studio.
-
-The goal is to prevent Studio from growing as a sequence of disconnected technical panels and to define it instead as a coherent local engineering workbench for inspecting Core-derived mission contract surfaces.
-
-This milestone does not introduce new mission semantics.
-
-It does not turn Studio into an editor, generator, simulator, runtime, ground segment, mission control interface or private graph engine.
-
-OrbitFabric Core remains authoritative.
-
-Studio remains downstream.
-
-## Motivation
-
-After v0.5.0, Studio can already open, inspect, validate, navigate, explain relationships and inspect generated artifacts.
-
-The next planned surfaces, Scenario Evidence and Ground Integration Artifacts, are cross-cutting surfaces.
-
-They should not be added as isolated panels.
-
-They require a stable shell, navigation model, provenance vocabulary, inspector pattern, read-only preview model and clear visual distinction among source, Core-derived, generated, unknown and preview-only information.
-
-## Implemented or Target Capabilities
-
-- stable application shell
-- workspace header
-- primary navigation
-- main surface area
-- contextual inspector area
-- workspace dashboard
-- normalized surface model
-- consistent provenance vocabulary
-- consistent read-only preview pattern
-- consistent empty states
-- consistent status, severity and provenance badges
-- reserved UX locations for Scenario Evidence and Ground Integration
-- documented boundary for future graph-based visualizations
-
-## Primary Surfaces
-
-```text
-Overview
-Model
-Validation
-Contracts
-Relationships
-Artifacts
-Reports & Logs
-Raw
-Evidence
-Ground
-```
-
-For v0.6.0, Evidence and Ground are reserved or placeholder surfaces only.
-
-Their domain logic is implemented in later milestones.
-
-## Provenance Vocabulary
-
-Studio v0.6.0 introduces a stable UI vocabulary for:
-
-```text
-SOURCE
-CORE-DERIVED
-GENERATED
-REPORT
-LOG
-DOC
-RUNTIME-FACING
-GROUND-FACING
-UNKNOWN
-PREVIEW ONLY
-READ-ONLY
-VALIDATED
-REPORTED
-RELATIONSHIP
-SCENARIO EVIDENCE
-```
-
-These labels are not cosmetic.
-
-They are part of Studio's safety model.
-
-A user must always understand whether they are looking at a Mission Model source file, a Core-derived report, a generated artifact, an unknown generated file, or a preview-only surface.
-
-## Graph Visualization Boundary
-
-Graph visualization may be evaluated later, for example with React Flow or an equivalent read-only graph visualization library.
-
-Graph visualization is not part of v0.6.0 implementation.
-
-Graph visualization must remain optional, constrained and read-only.
-
-Allowed future uses:
-
-```text
-Relationship Surface
-Scenario Evidence Chain
-Model -> Report -> Artifact derivation map
-```
-
-Rules:
-
-```text
-no visual Mission Model editing
-no node creation by the user
-no edge creation by the user
-no user-authored relationships
-no generated artifact mutation
-no Mission Model mutation
-no frontend-only semantic inference
-no graph layout persisted into Mission Model YAML
-relationships must come from Core-owned or accepted derived data
-selection may drive the inspector
-pan, zoom and fit-to-view may be allowed
-```
-
-Studio is not a graph engine.
-
-Studio is not a diagramming tool.
-
-Studio is not a visual authoring surface.
-
-## Explicit Non-goals
-
-- no Mission Model YAML editing
-- no visual Mission Model authoring
-- no generated artifact editing
-- no independent artifact generation
-- no arbitrary command execution
-- no private YAML interpretation
-- no private graph engine
-- no frontend-inferred mission semantics
-- no scenario execution
-- no scenario simulation
-- no mission control behavior
-- no ground segment behavior
-- no runtime behavior
-- no plugin execution
-- no Controlled Contract Authoring implementation
-- no Plugin-aware Studio implementation
-
-## Core Surfaces Consumed
-
-v0.6.0 consumes the existing Studio and Core-derived surfaces already introduced up to v0.5.0.
-
-It may consume:
-
-- workspace inspection results
-- Core version output
-- Core mission inspection output
-- Core lint JSON reports
-- Core model summary reports
-- Core entity index reports
-- Core relationship manifest reports
-- generated artifact inventory data produced by Studio's controlled backend inspection
-- supported read-only previews of source, report, log, documentation, CSV and text artifacts
-
-v0.6.0 must not require new Core semantics.
-
-## Exit Criteria
-
-v0.6.0 is complete because Studio can:
-
-1. expose a stable application shell with workspace header, primary navigation, main content area and contextual inspector;
-2. preserve all existing surfaces from v0.1.0 through v0.5.0;
-3. provide a workspace dashboard summarizing mission identity, validation state, available model surfaces, generated artifact groups, reports, logs and read-only state;
-4. consistently distinguish source, Core-derived, generated, report, log, doc, runtime-facing, ground-facing, unknown, preview-only and read-only content;
-5. keep unknown artifacts visible without assigning invented meaning;
-6. provide read-only previews only through safe and controlled paths;
-7. reserve UX locations for Scenario Evidence and Ground Integration without implementing their domain logic;
-8. document the boundary for future graph visualization;
-9. avoid all Mission Model mutation, generated artifact mutation, arbitrary command execution and private semantic inference.
-
-Detailed specification:
-
-```text
-docs/roadmap/studio-v0.6.0-information-architecture-and-ux-foundation.md
-```
-
-Target UX realization matrix:
-
-```text
-docs/roadmap/studio-target-ux-realization-matrix.md
+v0.9.0  - Semantic Navigation & Unified Shell
+v0.10.0 - Mission Cockpit Consolidation
+v0.11.0 - Domain Surfaces & Entity Detail System
+v0.12.0 - Mission Data Flow Workbench Foundation
+v0.13.0 - Evidence-integrated Workbench
+v0.14.0 - Artifact Traceability Integration
+v0.15.0 - Plugin-aware Studio Surface
 ```
 
 ---
 
-# v0.7.0 - Scenario Evidence Explorer
+# v0.9.0 - Semantic Navigation & Unified Shell
 
-Status: Completed  
-Nature: evidence inspection slice  
-Primary loop: Run Scenario through Core -> Inspect Evidence -> Review Reports and Logs
+Status: Active planning
 
-## Goal
+Nature: information architecture and shell convergence slice
 
-Make deterministic scenario evidence navigable without moving scenario semantics into Studio.
+Primary loop:
 
-Studio inspects evidence produced by OrbitFabric Core.
-
-Studio does not simulate independently from Core.
-
-## Implemented Capabilities
-
-- list scenario source files from workspace inspection
-- preview scenario source files read-only
-- discover generated report/log candidates passively
-- parse the real Core `tool: orbitfabric-sim` simulation JSON report
-- render Core simulation report summary
-- render Core simulation timeline
-- render Core simulation events
-- render Core simulation commands
-- render Core simulation mode transitions
-- render Core simulation `data_flow_evidence`
-- render Core simulation `failed_expectations`
-- execute a scenario only through a fixed Core `orbitfabric sim` wrapper
-- use Studio-controlled JSON report paths under `generated/reports`
-- use Studio-controlled text log paths under `generated/logs`
-- refresh generated artifact inventory after successful Core simulation
-- link the associated simulation log as read-only preview
-- bind selected Core simulation records to the contextual Inspector
-
-## OrbitFabric Core Surfaces Consumed
-
-- scenario source files
-- fixed `orbitfabric sim <scenario.yaml> --json <path> --log <path>` command
-- simulation JSON report with `tool: orbitfabric-sim`
-- structured summary, timeline, events, commands, mode transitions, data-flow evidence, final state and failed expectations
-- plain-text simulation log as preview-only artifact
-
-## Explicit Non-goals
-
-- no dynamic spacecraft simulator
-- no orbital simulation
-- no RF simulation
-- no payload physics simulation
-- no independent scenario semantics
-- no private scenario runner
-- no live runtime execution
-- no real onboard state
-- no real ground pass execution
-- no mission control UI
-- no command uplink
-- no live telemetry
-- no log-derived evidence
-- no coverage percentage invented by Studio
-- no mission health score invented by Studio
-- no passed expectation inference
-- no produced data product inference
-- no graph UI
-- no React Flow dependency
-
-## Exit Criteria
-
-v0.7.0 is complete because Studio can inspect Core-produced scenario evidence through the v0.6.0 application shell, execute scenarios only through a fixed Core command, display scenario execution outputs read-only, expose timeline and evidence information without inventing mission behavior, and keep the boundary among scenario source, Core-derived evidence, reports and logs explicit.
-
----
-
-# v0.7.1 - Dashboard and Coverage Foundation
-
-Status: Completed  
-Nature: dashboard and coverage foundation slice  
-Primary loop: Inspect Coverage -> Understand Gaps -> Navigate Evidence
+```text
+Open workspace -> Navigate mission domains -> Inspect context and provenance
+```
 
 ## Goal
 
-Introduce the first serious mission overview dashboard backed by Core-derived summaries.
+Transform Studio from surface-oriented navigation to mission-domain-oriented navigation.
 
-This milestone turns validation, scenario evidence and contract coverage into coherent dashboard surfaces without inventing coverage semantics inside Studio.
+The milestone is structural, not cosmetic.
 
-## Implemented Capabilities
+It must make Studio start to behave like a mission contract engineering workbench rather than a collection of implementation surfaces.
 
-- Core dashboard summary report type and parser
-- Core scenario run index report type and parser
-- Core coverage summary report type and parser
-- structured expectation accounting fields for Core simulation reports
-- fixed Core dashboard-summary export wrapper
-- fixed Core scenario-run-index export wrapper
-- fixed Core coverage-summary export wrapper
-- read-only dashboard summary rendering
-- read-only scenario run index rendering
-- read-only coverage summary rendering
-- read-only structured expectation accounting rendering
-- generated artifact recognition for dashboard, scenario run index and coverage reports
-- generated artifact preview binding for the new Core report surfaces
-- main UI command binding for dashboard-summary, scenario-run-index and coverage-summary
-- clear distinction between Core-derived coverage and local UI state
+## Scope
 
-## OrbitFabric Core Surfaces Consumed
+- semantic mission-domain sidebar;
+- explicit mapping from legacy surfaces to new navigation destinations;
+- global top command bar consolidation;
+- persistent Inspector behavior;
+- coherent footer/status bar;
+- explicit available, unavailable, reserved and diagnostic states;
+- no new Core semantics.
 
-- `orbitfabric export dashboard-summary <mission_dir> --json <path>`
-- `orbitfabric export scenario-run-index --simulation-reports <dir> --json <path>`
-- `orbitfabric export coverage-summary <mission_dir> --entity-index <path> --relationship-manifest <path> --scenario-run-index <path> --json <path>`
-- Core simulation JSON reports with structured expectation accounting, when available
-- generated report files under Studio-controlled `generated/reports` paths
+## Target Sidebar Domains
 
-## Explicit Non-goals
+```text
+Mission
+Spacecraft
+Subsystems
+Modes
+Telemetry
+Commands
+Events
+Faults
+Packets
+Payloads
+Data Products
+Contacts & Downlink
+Commandability
+Autonomy
+Scenarios
+Generated Artifacts
+```
 
-- no private coverage calculation
-- no invented mission health score
-- no live spacecraft health
-- no mission control behavior
-- no command uplink
-- no telemetry archive
-- no editing
-- no graph visualization
-- no dashboard UX realization matching the target mockup
+## Legacy Surface Mapping
 
-## Exit Criteria
-
-v0.7.1 is complete because Studio can render dashboard, scenario run index and coverage information from Core-derived summaries, expose structured expectation accounting when Core provides it, refresh generated artifact inventory after successful exports, and avoid presenting any frontend-inferred percentage as authoritative engineering meaning.
-
-The visual dashboard realization target is intentionally deferred to v0.7.2.
-
-
----
-
-# v0.7.2 - Core-derived Dashboard UX Realization
-
-Status: Planned  
-Nature: dashboard UX realization slice  
-Primary loop: Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Surfaces
-
-## Goal
-
-Transform the main Studio dashboard into a visual dashboard closer to the accepted target UX direction while preserving the Core-derived boundary.
-
-This milestone is visual and organizational.
-
-It must not introduce new mission semantics.
-
-## Candidate Capabilities
-
-- redesigned dashboard layout shell
-- top KPI row using Core-derived or unavailable states only
-- validation status card from Core lint/dashboard summaries
-- model inventory card from Core dashboard summary/entity index
-- scenario evidence card from Core scenario run index
-- coverage summary cards from Core coverage summary
-- generated artifact cards from generated artifact inventory
-- reserved graph and ground placeholders
-- clearer visual hierarchy, spacing and density
-- improved dashboard navigation to existing read-only surfaces
+| Current surface | Target destination | Decision |
+|---|---|---|
+| Mission Dashboard | Mission | Keep and consolidate. |
+| Model Inventory | Domain surfaces | Split into semantic mission-domain navigation. |
+| Core Commands | Global command bar / diagnostics | Declass from primary surface. |
+| Contracts | Domain surfaces and Inspector detail | Absorb into semantic domains. |
+| Relationships | Mission Data Flow Workbench | Keep as future workbench input, no graph in v0.9.0. |
+| Generated Artifacts | Generated Artifacts | Keep and integrate. |
+| Reports & Logs | Diagnostics / evidence support | Declass from primary surface. |
+| Scenario Evidence | Scenarios | Keep as scenario/evidence access. |
+| Ground Integration | Generated Artifacts / future traceability | Keep read-only and non-operational. |
+| Raw Output | Developer diagnostics | Declass from primary surface. |
 
 ## Explicit Non-goals
 
-- no private coverage calculation
-- no mission health score
-- no model completeness score unless Core defines one
-- no frontend-defined denominators
-- no live spacecraft health
-- no mission control behavior
-- no graph UI
-- no authoring
-- no editing
-- no generated artifact mutation
-- no arbitrary command execution
+- no Mission Model editing;
+- no generated artifact editing;
+- no generated artifact mutation;
+- no visual authoring;
+- no graph UI;
+- no React Flow adoption;
+- no plugin execution;
+- no live telemetry;
+- no telemetry archive behavior;
+- no command uplink behavior;
+- no mission control behavior;
+- no operational ground behavior;
+- no private YAML semantic parsing;
+- no private coverage calculation;
+- no private mission health calculation;
+- no private readiness calculation;
+- no private model completeness calculation.
+
+## Recommended PR Sequence
+
+1. Documentation rebaseline.
+2. Navigation model extraction.
+3. Semantic sidebar skeleton.
+4. Legacy surface routing map.
+5. Persistent Inspector.
+6. Top command bar consolidation.
+7. Footer/status bar.
+8. Copy cleanup and stale state cleanup.
+9. v0.9.0 release closure.
 
 ## Exit Criteria
 
-v0.7.2 is complete when the dashboard visually reflects the accepted target direction using only source model, Core-derived report, generated artifact and local UI state categories.
+v0.9.0 is complete when:
 
-
-# v0.8.0 - Ground Integration Artifact Viewer
-
-Status: Planned  
-Nature: ground-facing artifact inspection slice  
-Primary loop: Inspect Ground Artifacts -> Trace Provenance -> Understand Intended Integration Use
-
-## Goal
-
-Inspect ground-facing contract exports produced by OrbitFabric Core.
-
-Studio remains a viewer and not a ground segment.
-
-## Candidate Capabilities
-
-- ground export manifest viewer
-- telemetry dictionary viewer
-- command dictionary viewer
-- event dictionary viewer
-- fault dictionary viewer
-- packet dictionary viewer
-- data product dictionary viewer
-- mission database export viewer, if Core produces one
-- decoder skeleton preview, if Core produces one
-- CSV preview
-- JSON preview
-- Markdown preview
-- artifact provenance display
-- prototype, experimental or stable status display
-- model/report/artifact trace view where Core provides safe references
-- distinction between ground-facing contract artifacts and operational ground software
-
-## OrbitFabric Core Surfaces Expected
-
-- generated ground artifact files
-- ground export manifest
-- generated dictionaries
-- generated documentation
-- generated reports
-- safe references to source model entities, if provided by Core
-
-## Explicit Non-goals
-
-- no live ground segment
-- no mission control system
-- no command uplink service
-- no telemetry archive
-- no live decoder
-- no Yamcs/OpenC3 replacement
-- no compatibility claim unless implemented, tested and documented
-- no generated artifact editing
-- no private ground semantics
-- no operational behavior
-
-## Exit Criteria
-
-v0.8.0 is complete when Studio can inspect generated ground-facing artifacts through the v0.6.0 application shell, preview supported dictionaries and manifests read-only, expose provenance and intended integration use, and avoid any ground segment or operational claim.
+1. README, CHANGELOG and ROADMAP identify `v0.9.0 - Semantic Navigation & Unified Shell` as the active milestone.
+2. The primary sidebar is mission-domain-oriented.
+3. Legacy surfaces remain accessible but no longer define the primary navigation grammar.
+4. Core Commands, Reports & Logs and Raw Output are treated as diagnostic access.
+5. The Inspector is persistent as a shell primitive.
+6. The top command bar exposes only fixed and controlled actions.
+7. A coherent footer/status bar exposes workspace and boundary state.
+8. `available`, `unavailable`, `reserved` and `diagnostic` states are visible and consistent.
+9. Studio does not invent mission health, readiness, completeness or coverage semantics.
+10. No graph, React Flow, authoring, plugin execution, command uplink, live telemetry or generated artifact mutation is introduced.
 
 ---
 
-# v0.8.1 - Relationship and Flow Graph Foundation
+# v0.10.0 - Mission Cockpit Consolidation
 
-Status: Planned  
-Nature: read-only graph foundation slice  
-Primary loop: Inspect Flow -> Select Node -> Explain Provenance
+Status: Planned
 
-## Goal
+Purpose: Move the Mission dashboard substantially closer to the target cockpit direction using Core-derived or unavailable states only.
 
-Evaluate and introduce a read-only relationship and flow graph foundation only after Core exposes graph-ready structured data.
-
-This milestone exists to prevent graph visualization from becoming a private frontend semantics engine.
-
-## Candidate Capabilities
-
-- graph bundle contract consumption
-- read-only graph surface
-- node and edge type taxonomy
-- graph layout as UI state only
-- node selection driving the contextual inspector
-- edge selection driving the contextual inspector
-- graph filters
-- minimap, zoom and fit-to-view
-- selection to validation, evidence or artifact context when Core provides safe references
-- explicit provenance for every node and edge
-
-## OrbitFabric Core Surfaces Expected
-
-- graph bundle or equivalent Core-owned graph-ready output
-- evolved relationship manifest, if used as the graph source
-- typed nodes
-- typed edges
-- node metadata
-- edge metadata
-- safe references to source model entities, reports, evidence records and generated artifacts where available
-- stable finding-to-node or finding-to-edge targets, if available
-
-## Explicit Non-goals
-
-- no visual Mission Model editing
-- no graph-based authoring
-- no user-created nodes
-- no user-created edges
-- no frontend-inferred relationships
-- no graph layout persisted as Mission Model semantics
-- no generated artifact mutation
-- no Mission Model mutation
-- no mission control behavior
-- no ground segment behavior
-
-## Exit Criteria
-
-v0.8.1 is complete when Studio can render a constrained read-only graph from Core-owned or accepted derived graph data, use graph selection to drive inspection, and preserve the boundary between visual explanation and mission semantics.
-
+Non-goals: no invented mission health, no invented model completeness, no invented coverage semantics, no graph UI.
 
 ---
 
-# v0.9.0 - Studio UX Consolidation
+# v0.11.0 - Domain Surfaces & Entity Detail System
 
-Status: Planned  
-Nature: UX consolidation slice  
-Primary loop: Inspect -> Compare -> Refine Workbench Experience
+Status: Planned
 
-## Goal
-
-Consolidate Studio's real user experience after Scenario Evidence Explorer and Ground Integration Artifact Viewer have been implemented.
-
-v0.6.0 establishes the UX foundation.
-
-v0.9.0 validates and refines that foundation against the full read-only inspection scope.
-
-## Candidate Capabilities
-
-- refine workspace dashboard based on v0.7.0 and v0.8.0 surfaces
-- improve cross-surface navigation
-- improve breadcrumbs
-- improve inspector consistency
-- improve filters across validation, contracts, relationships, artifacts, evidence and ground surfaces
-- improve empty states
-- improve source, Core-derived, generated and unknown distinction
-- improve artifact and evidence traceability
-- evaluate global search or command palette for safe read-only navigation
-- evaluate read-only relationship graph spike if it demonstrably improves comprehension
-- improve visual hierarchy, density and keyboard navigation
-- document v1.0 target workbench behavior
-
-## Explicit Non-goals
-
-- no Mission Model editing
-- no generated artifact editing
-- no independent generation
-- no arbitrary command execution
-- no private semantic inference
-- no uncontrolled graph visualization
-- no authoring implementation
-- no plugin execution
-- no mission control behavior
-- no ground segment behavior
-
-## Exit Criteria
-
-v0.9.0 is complete when the full read-only Studio experience is coherent across workspace overview, model inspection, validation, contract navigation, relationships, generated artifacts, scenario evidence and ground artifacts, with consistent provenance, navigation, previews, empty states and read-only boundaries.
+Purpose: Introduce real semantic domain surfaces and consistent entity list/detail patterns using Core-derived or generated data only.
 
 ---
 
-# v0.10.0 - Controlled Contract Authoring Preview
+# v0.12.0 - Mission Data Flow Workbench Foundation
 
-Status: Planned  
-Nature: limited authoring preview slice  
-Primary loop: Inspect -> Propose Patch -> Validate -> Accept/Reject
+Status: Planned
 
-## Goal
+Purpose: Introduce the foundational graph/data-flow workspace only from Core-derived or report-derived relationship data.
 
-Introduce limited validation-gated authoring and editing for selected low-risk Mission Model domains.
-
-The purpose is not to create a parallel visual model format.
-
-The purpose is to assist users in producing explicit Mission Model changes that OrbitFabric Core can validate.
-
-This milestone is intentionally delayed until after the read-only workbench experience has matured.
-
-## Candidate Capabilities
-
-- controlled YAML patch generation
-- assisted creation of selected contract entities
-- visible diff before write
-- explicit user confirmation before write
-- save/revert flow
-- validation after write
-- accepted/rejected state
-- limited form-based editing for selected domains
-- unsupported domains remain read-only
-- generated-artifact impact hints where Core can support them
-- clear distinction between proposed changes and accepted source changes
-
-## Initial Candidate Domains
-
-- data products
-- payload expected products
-- storage intent
-- downlink intent
-- contact assumptions
-
-## Architectural Constraints
-
-- Core remains authoritative for validation
-- no hidden rewrites
-- no unsupported domain editing
-- no private semantic correction
-- every change must be visible as a diff before write
-- every accepted change must remain a Mission Model source change
-- every write path must be explicit and user-confirmed
-
-## Explicit Non-goals
-
-- no broad drag-and-drop editor
-- no full visual model editing
-- no hidden rewrites
-- no automatic semantic correction
-- no unsupported domain editing
-- no command/autonomy/fault editing until explicitly justified
-- no graph-based authoring
-- no visual relationship editing
-- no arbitrary YAML editor
-
-## Exit Criteria
-
-v0.10.0 is complete when Studio can assist with a narrowly scoped, validation-gated, explicitly confirmed contract change flow for selected low-risk domains without becoming a general Mission Model editor or introducing a parallel semantic model.
+Non-goals: no invented graph semantics, no arbitrary graph editing, no authoring, no plugin execution.
 
 ---
 
-# v0.11.0 - Plugin-aware Studio Surface
+# v0.13.0 - Evidence-integrated Workbench
 
-Status: Planned  
-Nature: extension visibility slice  
-Primary loop: Discover Plugin -> Inspect Outputs -> Trace Provenance
+Status: Planned
 
-## Goal
+Purpose: Integrate scenario evidence, validation and timeline into the workbench.
 
-Consume OrbitFabric plugin metadata and plugin-generated outputs after OrbitFabric Core exposes a controlled extension mechanism.
-
-Studio must not create a separate plugin ecosystem before Core supports one.
-
-Plugin-aware surfaces must preserve the same provenance discipline used for Core and generated outputs.
-
-## Candidate Capabilities
-
-- list detected plugins
-- display plugin metadata
-- display plugin-provided capabilities
-- display plugin-generated reports
-- display plugin-generated artifacts
-- distinguish Core outputs from plugin outputs
-- distinguish generated outputs from plugin-generated outputs
-- show plugin warnings
-- show plugin provenance
-- display plugin compatibility metadata where available
-- display plugin output status as experimental, candidate or stable where Core provides that metadata
-
-## OrbitFabric Core Surfaces Expected
-
-- controlled Core plugin registry or metadata output
-- plugin metadata
-- plugin-generated report manifests
-- plugin-generated artifact manifests
-- compatibility metadata, if provided by Core
-- provenance metadata, if provided by Core
-
-## Explicit Non-goals
-
-- no independent Studio plugin framework before Core support
-- no private extension semantics
-- no plugin marketplace
-- no remote plugin registry
-- no execution of untrusted plugin code without explicit security design
-- no Studio-only plugin output semantics
-- no plugin-based Mission Model mutation unless a future milestone explicitly defines it
-
-## Exit Criteria
-
-v0.11.0 is complete when Studio can display Core-exposed plugin metadata and plugin-generated outputs without executing plugins independently, without creating a separate extension system and without weakening the source, Core-derived, generated and plugin-derived provenance boundary.
+Non-goals: no private scenario runner, no log-derived evidence, no dynamic spacecraft simulator, no live telemetry.
 
 ---
 
-# v1.0.0 - Stable Mission Contract Engineering Workbench
+# v0.14.0 - Artifact Traceability Integration
 
-Status: Stable target  
-Nature: stable local mission contract engineering workbench  
-Primary loop: Open -> Inspect -> Validate -> Navigate -> Explain -> Inspect Evidence and Artifacts
+Status: Planned
 
-## Goal
+Purpose: Connect generated artifacts, runtime outputs and ground artifacts into mission flow traceability where Core provides safe references.
 
-Provide a stable local workbench aligned with stable OrbitFabric Mission Data Contract surfaces.
-
-Studio v1.0.0 should only be declared when the underlying OrbitFabric Core surfaces consumed by Studio are sufficiently stable and when Studio has proven a coherent product experience across the main read-only engineering surfaces.
-
-## Candidate Capabilities
-
-- stable local project loading
-- stable validation UX
-- stable diagnostics presentation
-- stable source, Core-derived, generated and unknown distinction
-- stable contract navigation
-- stable relationship inspection from Core-owned relationship data
-- stable generated artifact inspection
-- stable scenario evidence explorer
-- stable ground artifact inspection
-- stable workspace dashboard
-- stable provenance vocabulary
-- stable contextual inspector
-- documented compatibility with supported OrbitFabric Core versions
-- clear migration notes between supported versions
-- clearly bounded controlled authoring preview, if retained before v1.0
-- clearly bounded plugin-aware surface, if retained before v1.0
-
-## Explicit Non-goals
-
-- no expansion into flight software
-- no expansion into ground operations
-- no expansion into SaaS
-- no live telemetry
-- no command uplink
-- no mission control behavior
-- no compatibility claims without implementation and tests
-- no arbitrary execution
-- no private mission semantics
-
-## Exit Criteria
-
-v1.0.0 is complete when Studio provides a stable, coherent and bounded mission contract engineering workbench that preserves OrbitFabric Core authority, keeps source, derived, generated and plugin-derived surfaces distinct, and avoids expanding into runtime, ground segment or mission control behavior.
+Non-goals: no generated artifact mutation, no runtime execution, no ground segment behavior, no command uplink, no live decoder.
 
 ---
 
-# Deferred Capabilities
+# v0.15.0 - Plugin-aware Studio Surface
 
-The following capabilities are intentionally deferred and must not enter early milestones casually:
+Status: Deferred
 
-- full visual model editing
-- drag-and-drop mission modeling
-- collaborative cloud workspaces
-- account management
-- hosted project storage
-- live telemetry display
-- live command uplink
-- mission operations console
-- telemetry archive
-- real-time ground station integration
-- external tool compatibility claims
-- plugin marketplace
-- browser-only hosted Studio
-- AI-assisted model generation
-- graph-like relationship visualization unless it remains read-only, Core-derived and clearly non-authoring
+Purpose: Introduce plugin-awareness only after the shell, navigation, Inspector, cockpit and workbench foundations are stable.
 
-Deferred does not mean impossible.
+Non-goals until v0.15.0:
 
-It means not part of the foundation.
-
----
-
-# Out-of-scope Capabilities
-
-The following capabilities are outside the identity of OrbitFabric Studio:
-
-- flight software runtime
-- OBC framework
-- onboard scheduler
-- onboard fault manager
-- live ground segment
-- mission control system
-- spacecraft dynamics simulator
-- orbital propagator
-- RF/link simulator
-- CCSDS/PUS/CFDP implementation
-- generic YAML IDE
-- generic diagramming tool
-
----
-
-# Milestone Discipline
-
-Every future milestone must include:
-
-- goal
-- candidate capabilities
-- Core surfaces consumed
-- explicit non-goals
-- exit criteria
-- source/derived/generated impact
-- known risks
-
-A milestone is not ready if it cannot explain which OrbitFabric Core outputs it consumes.
-
-A milestone is not ready if it requires Studio to become authoritative for mission semantics.
-
-A milestone is not ready if it expands the project identity beyond visual inspection, validation support, navigation, evidence exploration, provenance-aware artifact inspection, UX foundation work and controlled interaction with Mission Data Contracts.
+- no plugin execution;
+- no plugin marketplace;
+- no plugin-authored mission semantics inside Studio.
