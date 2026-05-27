@@ -33,6 +33,7 @@ export type NavigationIconKind =
   | "raw";
 
 export interface ShellSurfaceItem {
+  id: TargetDomainId;
   label: string;
   status: NavigationItemStatus;
   targetId: string;
@@ -218,6 +219,7 @@ export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] 
 
 export const shellSurfaceItems: readonly ShellSurfaceItem[] =
   targetDomainNavigationItems.map((item) => ({
+    id: item.id,
     label: item.label,
     status: item.status,
     targetId: item.targetId,
@@ -225,7 +227,6 @@ export const shellSurfaceItems: readonly ShellSurfaceItem[] =
     icon: item.icon,
     caption: item.caption,
   }));
-
 export interface ReservedSurfaceItem {
   id: string;
   title: string;

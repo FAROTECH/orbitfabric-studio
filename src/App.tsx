@@ -22,6 +22,7 @@ import {
   shellSurfaceItems,
   reservedSurfaceItems,
   type ActiveSurface,
+  type TargetDomainId,
 } from "./navigationModel";
 
 import {
@@ -103,6 +104,19 @@ interface StudioDetailSelection {
   source: string;
 }
 
+const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
+  "mission-dashboard": "mission",
+  "model-inventory": "spacecraft",
+  "core-commands": "mission",
+  contracts: "spacecraft",
+  relationships: "spacecraft",
+  "generated-artifacts": "generated-artifacts",
+  "reports-logs": "mission",
+  "scenario-evidence": "scenarios",
+  "ground-integration": "generated-artifacts",
+  "raw-output": "mission",
+};
+
 function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
   return {
     lintReport: null,
@@ -132,6 +146,8 @@ function App() {
     useState<SimulationInspectorRecord | null>(null);
   const [activeSurface, setActiveSurface] =
     useState<ActiveSurface>("mission-dashboard");
+  const [activeNavigationId, setActiveNavigationId] =
+    useState<TargetDomainId>("mission");
   const [selectedDetail, setSelectedDetail] =
     useState<StudioDetailSelection | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +170,7 @@ function App() {
     setGeneratedArtifactRefreshToken(0);
     setSelectedSimulationRecord(null);
     setActiveSurface("mission-dashboard");
+    setActiveNavigationId("mission");
     setSelectedDetail(null);
     setIsOpening(true);
 
@@ -238,6 +255,19 @@ function App() {
       title: record.title,
       source: record.kind,
     });
+  }
+
+  function handleActiveSurfaceChange(surface: ActiveSurface) {
+    setActiveSurface(surface);
+    setActiveNavigationId(defaultNavigationIdBySurface[surface]);
+  }
+
+  function handlePrimaryNavigationSelect(
+    surface: ActiveSurface,
+    navigationId: TargetDomainId,
+  ) {
+    setActiveSurface(surface);
+    setActiveNavigationId(navigationId);
   }
 
   async function handleCoreVersion() {
@@ -532,7 +562,7 @@ function App() {
           >
             <div className="eyebrow">OrbitFabric Studio</div>
             <h1 id="studio-title">Mission Contract Engineering Workbench</h1>
-            <p className="release">v0.7.2 single-page cockpit foundation</p>
+            <p className="release">v0.10.0 Mission Cockpit consolidation preview</p>
             <div className="badge-row hero-badge-row">
               <ProvenanceBadge label="READ-ONLY" />
               <ProvenanceBadge label="CORE-DERIVED" />
@@ -570,7 +600,7 @@ function App() {
           coreResult={coreResult}
           coreReportSnapshots={coreReportSnapshots}
           generatedArtifactSummary={generatedArtifactSummary}
-          onActiveSurfaceChange={setActiveSurface}
+          onActiveSurfaceChange={handleActiveSurfaceChange}
         />
       );
     }
@@ -639,40 +669,46 @@ function App() {
         activeSurface={activeSurface}
         isOpening={isOpening}
         onOpenWorkspace={handleOpenWorkspace}
-        onActiveSurfaceChange={setActiveSurface}
+        onActiveSurfaceChange={handleActiveSurfaceChange}
       />
 
       <div
-        className={`workbench-layout ${
-          activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : ""
-        }`}
+        className={[
+          "workbench-layout",
+          activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : "",
+          workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <PrimarySidebar
-          activeSurface={activeSurface}
+          activeNavigationId={activeNavigationId}
           surfaceAvailability={surfaceAvailability}
-          onActiveSurfaceChange={setActiveSurface}
+          onNavigationSelect={handlePrimaryNavigationSelect}
         />
 
         <section className="main-surface" aria-label="Studio main surface">
           {renderActiveSurface()}
         </section>
 
-        <InspectorPanel
+        {workspace && activeSurface !== "mission-dashboard" ? (
+          <InspectorPanel
+            workspace={workspace}
+            activeSurface={activeSurface}
+            selectedFile={selectedFile}
+            selectedGeneratedArtifact={selectedGeneratedArtifact}
+            selectedSimulationRecord={selectedSimulationRecord}
+            selectedDetail={selectedDetail}
+            coreResult={coreResult}
+          />
+        ) : null}
+
+        <ShellStatusBar
           workspace={workspace}
           activeSurface={activeSurface}
-          selectedFile={selectedFile}
-          selectedGeneratedArtifact={selectedGeneratedArtifact}
-          selectedSimulationRecord={selectedSimulationRecord}
-          selectedDetail={selectedDetail}
           coreResult={coreResult}
         />
       </div>
-      
-      <ShellStatusBar
-        workspace={workspace}
-        activeSurface={activeSurface}
-        coreResult={coreResult}
-      />
     </main>
   );
 }
@@ -734,13 +770,13 @@ function WorkspaceHeader({
 }
 
 function PrimarySidebar({
-  activeSurface,
+  activeNavigationId,
   surfaceAvailability,
-  onActiveSurfaceChange,
+  onNavigationSelect,
 }: {
-  activeSurface: ActiveSurface;
+  activeNavigationId: TargetDomainId;
   surfaceAvailability: Record<ActiveSurface, boolean>;
-  onActiveSurfaceChange: (surface: ActiveSurface) => void;
+  onNavigationSelect: (surface: ActiveSurface, navigationId: TargetDomainId) => void;
 }) {
   return (
     <nav className="primary-sidebar cockpit-sidebar" aria-label="Studio surfaces">
@@ -754,7 +790,7 @@ function PrimarySidebar({
 
       <ul className="surface-nav-list cockpit-surface-nav-list">
         {shellSurfaceItems.map((item) => {
-          const isActive = item.surface === activeSurface;
+          const isActive = item.id === activeNavigationId;
           const isEnabled = Boolean(surfaceAvailability[item.surface]);
           const displayedStatus = isActive
             ? "active"
@@ -791,7 +827,10 @@ function PrimarySidebar({
                   className={`${itemClassName} surface-nav-link`}
                   href={`#${item.targetId}`}
                   aria-current={isActive ? "page" : undefined}
-                  onClick={() => onActiveSurfaceChange(item.surface)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onNavigationSelect(item.surface, item.id);
+                  }}
                 >
                   {itemContent}
                 </a>
