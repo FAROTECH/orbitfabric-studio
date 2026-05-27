@@ -73,7 +73,7 @@ type ActiveSurface =
 const shellSurfaceItems = [
   {
     label: "Mission",
-    status: "active",
+    status: "available",
     targetId: "studio-dashboard",
     surface: "mission-dashboard",
     icon: "mission",
