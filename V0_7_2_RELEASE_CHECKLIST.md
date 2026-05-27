@@ -16,10 +16,10 @@ Open Workspace -> Inspect Single-page Cockpit -> Drill into Detail on Demand
 
 ## Pivot status
 
-- [ ] v0.7.2 cockpit pivot document is present
-- [ ] v0.7.2 does not close as a vertically stacked report page
-- [ ] Responsive-polish-only closure branch remains unmerged or superseded
-- [ ] The final dashboard behaves as a compact workbench cockpit
+- [x] v0.7.2 cockpit pivot document is present.
+- [x] v0.7.2 does not close as a vertically stacked report page.
+- [x] The final dashboard behaves as a compact workbench cockpit.
+- [x] Ground remains reserved for v0.8.0.
 
 ## Required local checks
 
@@ -39,30 +39,29 @@ Open Workspace -> Inspect Single-page Cockpit -> Drill into Detail on Demand
 
 ## Data-source checks
 
-- [ ] Dashboard validation card uses only Core lint or Core dashboard summary validation data
-- [ ] Dashboard mission identity uses only Core dashboard summary mission identity or unavailable state
-- [ ] Dashboard model inventory uses only Core dashboard summary, entity index or unavailable state
-- [ ] Dashboard relationship inventory uses only Core dashboard summary, relationship manifest or unavailable state
-- [ ] Dashboard scenario run summary uses only Core scenario run index or unavailable state
-- [ ] Dashboard coverage cards use only Core coverage summary or unavailable state
-- [ ] Dashboard generated artifact cards use only generated artifact inventory or unavailable state
-- [ ] Dashboard reserved cards use explicit reserved state and do not imply implemented behavior
+- [x] Dashboard validation card uses only Core lint or Core dashboard summary validation data.
+- [x] Dashboard mission identity uses only Core dashboard summary mission identity or unavailable state.
+- [x] Dashboard model inventory uses only Core dashboard summary, entity index or unavailable state.
+- [x] Dashboard relationship inventory uses only Core dashboard summary, relationship manifest or unavailable state.
+- [x] Dashboard scenario run summary uses only Core scenario run index or unavailable state.
+- [x] Dashboard coverage cards use only Core coverage summary or unavailable state.
+- [x] Dashboard generated artifact cards use only generated artifact inventory or unavailable state.
+- [x] Dashboard reserved cards use explicit reserved state and do not imply implemented behavior.
 
 ## Cockpit UX checks
 
-- [ ] Dashboard fits mostly within one desktop viewport
-- [ ] Dashboard does not render major surfaces sequentially by default
-- [ ] Dashboard top card row is compact and readable
-- [ ] Dashboard separates validation, model inventory, scenario evidence, coverage and generated artifacts
-- [ ] Dashboard unavailable states are explicit and not confused with zero values
-- [ ] Dashboard reserved states are explicit and not confused with implemented features
-- [ ] Dashboard cards expose detail actions instead of inline long detail
-- [ ] Long lists open through inspector, drawer, modal or active surface
-- [ ] Dashboard remains readable on narrower desktop widths
-- [ ] Dashboard does not hide unsupported coverage scopes
-- [ ] Dashboard does not hide unknown generated artifacts
-- [ ] Sidebar uses compact surface navigation
-- [ ] Iconography is present for primary dashboard cards or navigation items
+- [x] Dashboard fits mostly within one desktop viewport.
+- [x] Dashboard does not render major surfaces sequentially by default.
+- [x] Dashboard top card row is compact and readable.
+- [x] Dashboard separates validation, model inventory, scenario evidence, coverage and generated artifacts.
+- [x] Dashboard unavailable states are explicit and not confused with zero values.
+- [x] Dashboard reserved states are explicit and not confused with implemented features.
+- [x] Dashboard cards expose detail actions instead of inline long detail.
+- [x] Long lists open through active surfaces or contextual inspection.
+- [x] Dashboard does not hide unsupported coverage scopes.
+- [x] Dashboard does not hide unknown generated artifacts.
+- [x] Sidebar uses compact surface navigation.
+- [x] Iconography is present for primary dashboard cards or navigation items.
 
 ## Core command flow checks
 
@@ -80,61 +79,60 @@ Open Workspace -> Inspect Single-page Cockpit -> Drill into Detail on Demand
 
 ## Report rendering checks
 
-- [ ] `orbitfabric.dashboard_summary` still renders in Core output and generated artifact preview
-- [ ] `orbitfabric.scenario_run_index` still renders in Core output and generated artifact preview
-- [ ] `orbitfabric.coverage_summary` still renders in Core output and generated artifact preview
-- [ ] Structured expectation accounting still renders only when Core emits it
-- [ ] Unsupported report shapes remain raw or unrecognized
-- [ ] Raw stdout, stderr and exit code remain available through the appropriate surface/detail
+- [x] `orbitfabric.dashboard_summary` still renders in Core output and generated artifact preview.
+- [x] `orbitfabric.scenario_run_index` still renders in Core output and generated artifact preview.
+- [x] `orbitfabric.coverage_summary` still renders in Core output and generated artifact preview.
+- [x] Structured expectation accounting still renders only when Core emits it.
+- [x] Unsupported report shapes remain raw or unrecognized.
+- [x] Raw stdout, stderr and exit code remain available through the appropriate surface/detail.
 
 ## Boundary checks
 
-- [ ] No private coverage calculation
-- [ ] No frontend-defined coverage denominator
-- [ ] No alternative coverage percentage
-- [ ] No mission health score unless Core defines one
-- [ ] No model completeness score unless Core defines one
-- [ ] No live spacecraft health
-- [ ] No mission control behavior
-- [ ] No command uplink behavior
-- [ ] No telemetry archive behavior
-- [ ] No scenario run history inferred from logs
-- [ ] No scenario-id deduplication in Studio
-- [ ] No YAML semantic parsing
-- [ ] No generated artifact semantic inference
-- [ ] No runtime readiness claim
-- [ ] No graph UI unless explicitly implemented as a bounded read-only surface
-- [ ] No React Flow dependency unless explicitly approved in a dedicated PR
-- [ ] No ground segment behavior
-- [ ] No authoring
-- [ ] No editing
-- [ ] No generated artifact mutation
-- [ ] No source file mutation
-- [ ] No arbitrary command execution
+- [x] No private coverage calculation.
+- [x] No frontend-defined coverage denominator.
+- [x] No alternative coverage percentage.
+- [x] No mission health score unless Core defines one.
+- [x] No model completeness score unless Core defines one.
+- [x] No live spacecraft health.
+- [x] No mission control behavior.
+- [x] No command uplink behavior.
+- [x] No telemetry archive behavior.
+- [x] No scenario run history inferred from logs.
+- [x] No scenario-id deduplication in Studio.
+- [x] No YAML semantic parsing.
+- [x] No generated artifact semantic inference.
+- [x] No runtime readiness claim.
+- [x] No graph UI.
+- [x] No React Flow dependency.
+- [x] No ground segment behavior.
+- [x] No authoring.
+- [x] No editing.
+- [x] No generated artifact mutation.
+- [x] No source file mutation.
+- [x] No arbitrary command execution.
 
 ## Sensitive file checks
 
-- [ ] No wholesale replacement of `src/App.tsx`
-- [ ] `src/App.tsx` changes are local, staged and reviewable
-- [ ] Existing implemented surfaces are preserved behind surface selection or detail panels
-- [ ] Existing Core command handlers are preserved
-- [ ] Existing generated artifact explorer behavior is preserved
-- [ ] Existing scenario evidence behavior is preserved
-- [ ] CSS changes are scoped to dashboard/workbench-specific classes where possible
-- [ ] No references to non-existing `src/App.css`; repository uses `src/styles.css`
+- [x] No wholesale replacement of `src/App.tsx`.
+- [x] Existing implemented surfaces are preserved behind surface selection or detail panels.
+- [x] Existing Core command handlers are preserved.
+- [x] Existing generated artifact explorer behavior is preserved.
+- [x] Existing scenario evidence behavior is preserved.
+- [x] CSS changes are scoped to dashboard/workbench-specific classes where possible.
+- [x] No references to non-existing `src/App.css`; repository uses `src/styles.css`.
 
 ## Release metadata
 
-To be completed only at final v0.7.2 release closure:
+Baseline alignment status:
 
-- [ ] `README.md` marks v0.7.2 as current released baseline
-- [ ] `CHANGELOG.md` contains v0.7.2 release notes
-- [ ] `ROADMAP.md` marks v0.7.2 as completed
-- [ ] `package.json` version is `0.7.2`
-- [ ] `package-lock.json` version is `0.7.2`
-- [ ] `src-tauri/Cargo.toml` version is `0.7.2`
-- [ ] `src-tauri/Cargo.lock` package version is `0.7.2`
-- [ ] `src-tauri/tauri.conf.json` version is `0.7.2`
+- [ ] `README.md` marks v0.7.2 as current released baseline.
+- [ ] `CHANGELOG.md` contains v0.7.2 release notes.
+- [ ] `ROADMAP.md` marks v0.7.2 as completed.
+- [x] `package.json` version is `0.7.2`.
+- [ ] `package-lock.json` version is `0.7.2`.
+- [x] `src-tauri/Cargo.toml` version is `0.7.2`.
+- [ ] `src-tauri/Cargo.lock` package version is `0.7.2`.
+- [ ] `src-tauri/tauri.conf.json` version is `0.7.2`.
 
 ## Tagging
 
@@ -154,3 +152,5 @@ A vertically longer but prettier report page is not acceptable.
 A compact single-page cockpit with controlled drilldown is acceptable.
 
 A semantically invented dashboard is not acceptable.
+
+v0.8.0 may start only after this baseline is explicitly understood as a closed cockpit foundation and Ground remains non-operational until implemented as a dedicated read-only generated artifact viewer.
