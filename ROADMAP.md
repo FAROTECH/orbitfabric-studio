@@ -190,6 +190,10 @@ V0_9_0_RELEASE_CHECKLIST.md
 
 The post-v0.9.0 direction remains a mission-domain cockpit and integrated data-flow workbench.
 
+UI north star reference:
+
+`docs/roadmap/studio-ui-north-star-reference.md`
+
 Accepted roadmap:
 
 ```text
