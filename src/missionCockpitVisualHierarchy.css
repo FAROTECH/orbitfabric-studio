@@ -1,0 +1,361 @@
+/* v0.10.0 Mission Cockpit visual hierarchy consolidation.
+   Visual-only overrides. No mission semantics are introduced here. */
+
+.cockpit-dashboard {
+  gap: 18px;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.12), transparent 34rem),
+    radial-gradient(circle at 88% 8%, rgba(139, 92, 246, 0.1), transparent 30rem),
+    rgba(2, 6, 23, 0.26);
+}
+
+.cockpit-status-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.9fr) minmax(280px, 0.95fr);
+  gap: 14px;
+  align-items: stretch;
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 24px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(8, 145, 178, 0.18), rgba(15, 23, 42, 0.74)),
+    rgba(2, 6, 23, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.cockpit-status-main,
+.cockpit-status-metrics,
+.cockpit-status-workspace {
+  min-width: 0;
+}
+
+.cockpit-status-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cockpit-status-main h2 {
+  margin: 2px 0 0;
+  color: #f8fafc;
+  font-size: clamp(1.35rem, 2vw, 2.05rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.cockpit-status-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cockpit-status-chip {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 16px;
+  padding: 11px 12px;
+  background: rgba(2, 6, 23, 0.34);
+}
+
+.cockpit-status-chip strong {
+  color: #f8fafc;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.cockpit-status-chip span {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cockpit-status-workspace {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.cockpit-status-workspace strong,
+.cockpit-status-workspace span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-status-workspace strong {
+  color: #f8fafc;
+  font-size: 0.92rem;
+}
+
+.cockpit-status-workspace span {
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+}
+
+.cockpit-kpi-grid {
+  gap: 14px;
+}
+
+.cockpit-kpi-card {
+  border-color: rgba(148, 163, 184, 0.18);
+  border-radius: 20px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.08), transparent 62%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.52));
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+}
+
+.cockpit-kpi-state-reported {
+  border-color: rgba(103, 232, 249, 0.24);
+}
+
+.cockpit-kpi-card strong {
+  font-size: 1.18rem;
+}
+
+.cockpit-tactical-band {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.35fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 22px;
+  padding: 12px;
+  background: rgba(2, 6, 23, 0.3);
+}
+
+.cockpit-tactical-summary {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cockpit-tactical-summary strong {
+  color: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.cockpit-tactical-segments {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cockpit-tactical-segment {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.cockpit-tactical-segment-ready {
+  border-color: rgba(103, 232, 249, 0.22);
+}
+
+.cockpit-tactical-segment-missing {
+  opacity: 0.76;
+}
+
+.cockpit-tactical-segment span {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cockpit-tactical-segment strong {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.cockpit-work-grid {
+  grid-template-columns: minmax(0, 1.48fr) repeat(2, minmax(260px, 0.76fr));
+  gap: 14px;
+}
+
+.cockpit-panel {
+  border-color: rgba(148, 163, 184, 0.17);
+  border-radius: 20px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(2, 6, 23, 0.42));
+}
+
+.cockpit-panel-large {
+  min-height: 100%;
+}
+
+.cockpit-panel-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.cockpit-panel-header h3 {
+  margin-top: 4px;
+  font-size: 0.98rem;
+}
+
+.cockpit-contract-topology {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cockpit-contract-node {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 10px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.cockpit-contract-node-index {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.18);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.cockpit-contract-node strong,
+.cockpit-contract-node span,
+.cockpit-contract-node small {
+  overflow-wrap: anywhere;
+}
+
+.cockpit-contract-node strong {
+  color: #f8fafc;
+  font-size: 0.95rem;
+}
+
+.cockpit-contract-node span,
+.cockpit-contract-node small {
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+
+.cockpit-contract-node small {
+  grid-column: 1 / -1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cockpit-bottom-rail {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(260px, 1.2fr) repeat(2, minmax(120px, 0.45fr)) minmax(260px, 1.2fr) auto;
+  gap: 10px;
+  align-items: stretch;
+  border: 1px solid rgba(245, 158, 11, 0.16);
+  border-radius: 22px;
+  padding: 12px;
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.cockpit-bottom-cell,
+.cockpit-bottom-guardrails {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.cockpit-bottom-cell {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+}
+
+.cockpit-bottom-cell-primary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cockpit-bottom-cell span {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cockpit-bottom-cell strong {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.cockpit-bottom-cell-wide {
+  align-content: center;
+}
+
+.cockpit-bottom-guardrails {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 6px;
+}
+
+.cockpit-bottom-guardrails span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #fef3c7;
+  background: rgba(245, 158, 11, 0.1);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1500px) {
+  .cockpit-status-strip,
+  .cockpit-bottom-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-tactical-band {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-tactical-segments {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .cockpit-status-metrics,
+  .cockpit-tactical-segments,
+  .cockpit-contract-topology {
+    grid-template-columns: 1fr;
+  }
+}
