@@ -2046,36 +2046,38 @@ function WorkspaceDashboard({
   const workspaceCockpitName = workspace?.selected_path
     ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
     : null;
-  const cockpitReadinessItems = [
+  const reportedEvidenceItems = [
     {
       label: "Contract",
       value: dashboardSummary ? "reported" : "partial",
-      ready: Boolean(dashboardSummary),
+      isReported: Boolean(dashboardSummary),
     },
     {
       label: "Validation",
       value: validationResult ?? "unavailable",
-      ready: Boolean(validationResult),
+      isReported: Boolean(validationResult),
     },
     {
       label: "Scenario",
       value: scenarioRunIndex ? `${scenarioRunIndex.summary.total} indexed` : "unavailable",
-      ready: Boolean(scenarioRunIndex),
+      isReported: Boolean(scenarioRunIndex),
     },
     {
       label: "Coverage",
       value: coverageSummary ? "available" : "unavailable",
-      ready: Boolean(coverageSummary),
+      isReported: Boolean(coverageSummary),
     },
     {
       label: "Artifacts",
       value: generatedArtifactSummary
         ? `${generatedArtifactSummary.totalArtifacts} files`
         : "unavailable",
-      ready: Boolean(generatedArtifactSummary),
+      isReported: Boolean(generatedArtifactSummary),
     },
   ] as const;
-  const cockpitReadinessScore = cockpitReadinessItems.filter((item) => item.ready).length;
+  const reportedEvidenceCount = reportedEvidenceItems.filter(
+    (item) => item.isReported,
+  ).length;
   const cockpitContractMapItems =
     dashboardDomains.length > 0
       ? dashboardDomains.slice(0, 6).map((domain) => ({
@@ -2288,15 +2290,15 @@ function WorkspaceDashboard({
         <div className="cockpit-tactical-summary">
           <span className="cockpit-eyebrow">Reported evidence lanes</span>
           <strong>
-            {cockpitReadinessScore}/{cockpitReadinessItems.length} evidence lanes populated
+            {reportedEvidenceCount}/{reportedEvidenceItems.length} evidence lanes populated
           </strong>
         </div>
 
         <div className="cockpit-tactical-segments">
-          {cockpitReadinessItems.map((item) => (
+          {reportedEvidenceItems.map((item) => (
             <div
               className={`cockpit-tactical-segment ${
-                item.ready
+                item.isReported
                   ? "cockpit-tactical-segment-ready"
                   : "cockpit-tactical-segment-missing"
               }`}
