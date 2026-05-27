@@ -14,6 +14,7 @@ import {
 } from "./GeneratedArtifactExplorer";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { ShellStatusBar } from "./ShellStatusBar";
+import { ShellCommandActions } from "./ShellCommandActions";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 import {
   shellSurfaceItems,
@@ -717,52 +718,11 @@ function WorkspaceHeader({
         {isOpening ? "Opening..." : workspace ? "Change workspace" : "Open workspace"}
       </button>
 
-      <div className="cockpit-command-actions" aria-label="Cockpit navigation actions">
-        <button
-          type="button"
-          className={`cockpit-command-chip cockpit-command-button ${
-            activeSurface === "core-commands" ? "cockpit-command-button-active" : ""
-          }`}
-          onClick={() => onActiveSurfaceChange("core-commands")}
-          disabled={!workspace?.mission_dir}
-          aria-current={activeSurface === "core-commands" ? "page" : undefined}
-        >
-          Validate
-        </button>
-        <button
-          type="button"
-          className={`cockpit-command-chip cockpit-command-button ${
-            activeSurface === "scenario-evidence" ? "cockpit-command-button-active" : ""
-          }`}
-          onClick={() => onActiveSurfaceChange("scenario-evidence")}
-          disabled={!workspace}
-          aria-current={activeSurface === "scenario-evidence" ? "page" : undefined}
-        >
-          Scenario
-        </button>
-        <button
-          type="button"
-          className={`cockpit-command-chip cockpit-command-button ${
-            activeSurface === "generated-artifacts" ? "cockpit-command-button-active" : ""
-          }`}
-          onClick={() => onActiveSurfaceChange("generated-artifacts")}
-          disabled={!workspace}
-          aria-current={activeSurface === "generated-artifacts" ? "page" : undefined}
-        >
-          Artifacts
-        </button>
-        <button
-          type="button"
-          className={`cockpit-command-chip cockpit-command-button ${
-            activeSurface === "model-inventory" ? "cockpit-command-button-active" : ""
-          }`}
-          onClick={() => onActiveSurfaceChange("model-inventory")}
-          disabled={!workspace}
-          aria-current={activeSurface === "model-inventory" ? "page" : undefined}
-        >
-          Model
-        </button>
-      </div>
+      <ShellCommandActions
+        workspace={workspace}
+        activeSurface={activeSurface}
+        onActiveSurfaceChange={onActiveSurfaceChange}
+      />
 
       <div className="workspace-header-status cockpit-command-status">
         <ProvenanceBadge label="CORE-DERIVED" />
