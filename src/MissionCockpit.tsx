@@ -1,6 +1,7 @@
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DashboardIcon } from "./DashboardIcon";
 import { MissionCockpitKpiCard } from "./MissionCockpitKpiCard";
+import { MissionCockpitEvidenceLanes } from "./MissionCockpitEvidenceLanes";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
 import { type ActiveSurface } from "./navigationModel";
 import {
@@ -309,30 +310,10 @@ export function MissionCockpit({
         />
       </div>
 
-      <div className="cockpit-tactical-band" aria-label="Reported evidence lanes band">
-        <div className="cockpit-tactical-summary">
-          <span className="cockpit-eyebrow">Reported evidence lanes</span>
-          <strong>
-            {reportedEvidenceCount}/{reportedEvidenceItems.length} evidence lanes populated
-          </strong>
-        </div>
-
-        <div className="cockpit-tactical-segments">
-          {reportedEvidenceItems.map((item) => (
-            <div
-              className={`cockpit-tactical-segment ${
-                item.isReported
-                  ? "cockpit-tactical-segment-ready"
-                  : "cockpit-tactical-segment-missing"
-              }`}
-              key={item.label}
-            >
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-            </div>
-          ))}
-        </div>
-      </div>
+      <MissionCockpitEvidenceLanes
+        reportedEvidenceCount={reportedEvidenceCount}
+        reportedEvidenceItems={reportedEvidenceItems}
+      />
 
       <div className="cockpit-work-grid">
         <article className="cockpit-panel cockpit-panel-large">
