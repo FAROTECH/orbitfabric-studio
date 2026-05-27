@@ -12,6 +12,7 @@ import {
   type GeneratedArtifactInspectorItem,
   type GeneratedEvidenceArtifactSummary,
 } from "./GeneratedArtifactExplorer";
+import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 
 import {
@@ -699,7 +700,12 @@ function App() {
     }
 
     if (activeSurface === "ground-integration") {
-      return <GroundIntegrationSurface workspace={workspace} />;
+      return (
+        <GroundIntegrationArtifactViewer
+          workspacePath={workspace.selected_path}
+          generatedDir={workspace.generated_dir}
+        />
+      );
     }
 
     if (activeSurface === "model-inventory") {
@@ -2023,80 +2029,6 @@ function formatUnknownBlock(value: unknown): string {
   }
 
   return JSON.stringify(value, null, 2);
-}
-
-function GroundIntegrationSurface({ workspace }: { workspace: WorkspaceInspection }) {
-  return (
-    <section
-      id="studio-ground"
-      className="entry-section ground-integration-surface"
-      aria-label="Ground Integration Artifact Viewer"
-    >
-      <div className="file-viewer-header">
-        <div>
-          <span className="cockpit-eyebrow">v0.8.0 surface shell</span>
-          <h3>Ground Integration Artifact Viewer</h3>
-          <p>
-            Read-only surface for generated ground-facing artifacts. This shell
-            establishes the Ground surface boundary before artifact filtering,
-            grouping and preview wiring are added in later PRs.
-          </p>
-        </div>
-        <div className="badge-row">
-          <ProvenanceBadge label="GENERATED" />
-          <ProvenanceBadge label="READ-ONLY" />
-          <StatusBadge label="SHELL" />
-        </div>
-      </div>
-
-      <div className="summary-grid">
-        <div className="summary-item">
-          <span>Workspace</span>
-          <strong>{workspace.selected_path}</strong>
-        </div>
-        <div className="summary-item">
-          <span>Generated directory</span>
-          <strong>{workspace.generated_dir ?? "Not detected"}</strong>
-        </div>
-        <div className="summary-item">
-          <span>Ground behavior</span>
-          <strong>Not implemented</strong>
-        </div>
-      </div>
-
-      <section className="entry-section">
-        <div className="entry-main">
-          <div>
-            <h3>Boundary</h3>
-            <p>
-              Studio may inspect generated ground-facing artifacts, but it does
-              not become a ground segment, mission control system, command uplink
-              surface, live decoder or telemetry archive.
-            </p>
-          </div>
-          <div className="badge-row">
-            <StatusBadge label="NON-OPERATIONAL" />
-          </div>
-        </div>
-      </section>
-
-      <section className="entry-section">
-        <div className="entry-main">
-          <div>
-            <h3>Next implementation step</h3>
-            <p>
-              A following PR will reuse the existing generated artifact inventory
-              and show only artifacts classified as ground-facing generated
-              outputs.
-            </p>
-          </div>
-          <div className="badge-row">
-            <StatusBadge label="PLANNED" />
-          </div>
-        </div>
-      </section>
-    </section>
-  );
 }
 
 function ReservedFutureSurfaces() {
