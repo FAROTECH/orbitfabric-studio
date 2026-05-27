@@ -1,6 +1,6 @@
 /* v0.7.2 output surface polish. */
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame {
   display: grid;
   gap: 12px;
   margin-top: 0;
@@ -13,7 +13,7 @@
   overflow: hidden;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame > .file-viewer-header {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame > .file-viewer-header {
   align-items: center;
   min-height: 64px;
   margin: 0;
@@ -23,26 +23,26 @@
   background: rgba(2, 6, 23, 0.3);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame > .file-viewer-header h2 {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame > .file-viewer-header h2 {
   margin: 0;
   font-size: 1rem;
   line-height: 1.1;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame > .file-viewer-header p {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame > .file-viewer-header p {
   max-width: 860px;
   color: #7b8ba8;
   font-size: 0.74rem;
   line-height: 1.35;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame #studio-artifacts,
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .workspace-layout,
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .warning-box {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame #studio-artifacts,
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .workspace-layout,
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .warning-box {
   display: none;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .inspection-panel {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .inspection-panel {
   display: grid;
   gap: 12px;
   margin-top: 0;
@@ -53,7 +53,7 @@
   box-shadow: none;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .inspection-header {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .inspection-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
@@ -67,12 +67,12 @@
     rgba(2, 6, 23, 0.34);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .inspection-header h2 {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .inspection-header h2 {
   margin: 0;
   font-size: 1rem;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .inspection-header p {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .inspection-header p {
   margin: 3px 0 0;
   color: #64748b;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -80,13 +80,13 @@
   line-height: 1.2;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame > .inspection-panel > .summary-grid {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame > .inspection-panel > .summary-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 9px;
   margin: 0;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .summary-item {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .summary-item {
   min-height: 62px;
   border-color: rgba(148, 163, 184, 0.13);
   border-radius: 14px;
@@ -94,7 +94,7 @@
   background: rgba(15, 23, 42, 0.42);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .summary-item span {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .summary-item span {
   margin-bottom: 5px;
   color: #64748b;
   font-size: 0.62rem;
@@ -103,13 +103,13 @@
   text-transform: uppercase;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .summary-item strong {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .summary-item strong {
   color: #f8fafc;
   font-size: 0.76rem;
   line-height: 1.25;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .core-panel {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .core-panel {
   display: grid;
   gap: 12px;
   margin-top: 0;
@@ -121,7 +121,7 @@
     rgba(2, 6, 23, 0.32);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .core-panel > .file-viewer-header {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .core-panel > .file-viewer-header {
   align-items: center;
   margin-bottom: 0;
   border: 1px solid rgba(148, 163, 184, 0.11);
@@ -130,7 +130,7 @@
   background: rgba(15, 23, 42, 0.46);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .core-panel h3 {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .core-panel h3 {
   margin: 0;
   color: #e8eefc;
   font-size: 0.88rem;
@@ -138,39 +138,39 @@
   text-transform: uppercase;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .core-panel p {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .core-panel p {
   color: #7b8ba8;
   font-size: 0.72rem;
   line-height: 1.35;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-label,
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-input,
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-actions {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-label,
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-input,
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-actions {
   display: none;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-output {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-output {
   margin-top: 0;
   border-color: rgba(148, 163, 184, 0.16);
   border-radius: 16px;
   background: rgba(2, 6, 23, 0.25);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-meta {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-meta {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   border-radius: 12px;
   padding: 9px 10px;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-meta strong,
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-meta span {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-meta strong,
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-meta span {
   font-size: 0.68rem;
   line-height: 1.25;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .entry-section {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .entry-section {
   margin-top: 0;
   border-color: rgba(148, 163, 184, 0.13);
   border-radius: 15px;
@@ -178,12 +178,12 @@
   background: rgba(15, 23, 42, 0.42);
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .entry-section h3 {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .entry-section h3 {
   margin-bottom: 9px;
   font-size: 0.82rem;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-output pre {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-output pre {
   max-height: 420px;
   padding: 12px;
   border-radius: 13px;
@@ -191,21 +191,21 @@
   line-height: 1.35;
 }
 
-.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .stderr-output {
+.studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .stderr-output {
   border-color: rgba(248, 113, 113, 0.28);
 }
 
 @media (max-width: 1320px) {
-  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-meta,
-  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame > .inspection-panel > .summary-grid {
+  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-meta,
+  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame > .inspection-panel > .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
-  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .command-meta,
-  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame > .inspection-panel > .summary-grid,
-  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(9) .surface-nav-item-active) .active-surface-frame .inspection-header {
+  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .command-meta,
+  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame > .inspection-panel > .summary-grid,
+  .studio-app-shell:has(.cockpit-surface-nav-list li:nth-child(10) .surface-nav-item-active) .active-surface-frame .inspection-header {
     grid-template-columns: 1fr;
   }
 }
