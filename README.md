@@ -13,15 +13,15 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.7.1 - Dashboard and Coverage Foundation
-Next roadmap baseline: v0.7.2 - Core-derived Dashboard UX Realization
+Current released baseline: v0.8.0 - Ground Integration Artifact Viewer
+Next roadmap baseline: v0.9.0 - Plugin-aware Studio Surface
 ```
 
 The `v0.0.0 - Studio Charter`, `v0.1.0 - Read-only Mission Project Viewer`, `v0.2.0 - Validation and Diagnostics Workbench`, `v0.3.0 - Contract Navigation Surface`, `v0.4.0 - Relationship Surface`, `v0.5.0 - Generated Artifact Explorer`, `v0.6.0 - Studio Information Architecture & UX Foundation`, `v0.7.0 - Scenario Evidence Explorer` and `v0.7.1 - Dashboard and Coverage Foundation` baselines have been created, tagged and released.
 
-The current implementation baseline is v0.7.1.
+The current implementation baseline is v0.8.0.
 
-The next roadmap milestone is v0.7.2.
+The next roadmap milestone is v0.9.0.
 
 The implemented v0.7.0 product loop is:
 
@@ -53,7 +53,7 @@ Studio does not infer entities, relationships, source locations, artifact semant
 
 ## Current Implementation State
 
-v0.7.1 currently implements:
+v0.8.0 currently implements:
 
 ```text
 Tauri 2 desktop shell
@@ -126,6 +126,14 @@ Structured expectation accounting renderer for Core simulation reports
 Fixed Core export dashboard-summary UI binding
 Fixed Core export scenario-run-index UI binding
 Fixed Core export coverage-summary UI binding
+Dedicated Ground Integration Artifact Viewer surface
+Generated ground artifact filtering
+Ground artifact family grouping
+Ground manifest / dictionary / CSV / documentation grouping
+Known / unknown ground artifact status
+Read-only ground artifact preview
+Ground artifact Inspector binding
+Explicit non-operational Ground boundary
 ```
 
 The implemented v0.6.0 loop remains conservative:

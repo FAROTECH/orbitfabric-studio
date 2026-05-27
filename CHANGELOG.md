@@ -4,11 +4,88 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.7.1 - Dashboard and Coverage Foundation`.
+OrbitFabric Studio is currently at `v0.8.0 - Ground Integration Artifact Viewer`.
 
-The current released baseline is `v0.7.1 - Dashboard and Coverage Foundation`.
+The current released baseline is `v0.8.0 - Ground Integration Artifact Viewer`.
 
-The next roadmap baseline is `v0.7.2 - Core-derived Dashboard UX Realization`.
+The next roadmap baseline is `v0.9.0 - Plugin-aware Studio Surface`.
+
+---
+
+## v0.8.0 - Ground Integration Artifact Viewer
+
+Released milestone.
+
+This milestone extends the Studio loop to:
+
+```text
+Open -> Inspect Ground Artifacts -> Trace Provenance -> Understand Intended Integration Use
+```
+
+v0.8.0 remains downstream from OrbitFabric Core.
+
+Studio consumes generated ground-facing artifacts already produced by Core and presents them through a dedicated read-only Ground surface.
+
+Studio does not become a ground segment, mission control interface, command uplink surface, live decoder or telemetry archive.
+
+### Added
+
+- Added dedicated Ground Integration Artifact Viewer surface.
+- Converted Ground from reserved placeholder to implemented read-only surface.
+- Added generated ground artifact filtering based on `artifact_class === "ground"`.
+- Added conservative ground artifact family grouping:
+  - manifest;
+  - dictionary-json;
+  - dictionary-csv;
+  - documentation;
+  - unknown-ground-artifact.
+- Added known/unknown status display for generated ground artifacts.
+- Added preview eligibility display for generated ground artifacts.
+- Added read-only preview for previewable generated ground artifacts.
+- Added Inspector binding for selected generated ground artifacts.
+- Added v0.8.0 release notes.
+- Added v0.8.0 release checklist.
+
+### Changed
+
+- Updated Studio version metadata to `0.8.0`.
+- Updated Tauri version metadata to `0.8.0`.
+- Preserved the generated artifact inventory backend as the source for Ground artifact discovery.
+- Preserved explicit non-operational Ground boundary wording.
+
+### Validated Manually
+
+Recommended local checks:
+
+```text
+npm run build
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+
+### Not Included
+
+- No ground segment behavior.
+- No mission control behavior.
+- No command uplink behavior.
+- No live telemetry behavior.
+- No telemetry archive behavior.
+- No live decoder behavior.
+- No Yamcs replacement.
+- No OpenC3 replacement.
+- No external ground system compatibility claim.
+- No generated artifact editing.
+- No generated artifact mutation.
+- No Mission Model editing.
+- No source file mutation.
+- No private ground semantics.
+- No YAML semantic parsing.
+- No dictionary semantic interpretation.
+- No runtime execution.
+- No arbitrary command execution.
+- No graph UI.
+- No React Flow adoption.
+- No plugin execution.
+- No authoring.
 
 ---
 
