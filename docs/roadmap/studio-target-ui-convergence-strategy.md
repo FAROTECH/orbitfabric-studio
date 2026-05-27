@@ -21,6 +21,16 @@ This is not a cosmetic restyle.
 
 It is an information architecture and product-structure convergence plan.
 
+## UI north star reference
+
+The visual and conceptual north star for the Mission Cockpit and Mission Data Flow Workbench direction is documented in:
+
+`docs/roadmap/studio-ui-north-star-reference.md`
+
+The reference images guide visual hierarchy, density, layout grammar and product direction.
+
+They do not authorize Studio to invent mission health, operational readiness, model completeness, coverage semantics, graph semantics, live telemetry behavior, command uplink behavior, plugin behavior or generated artifact mutation.
+
 ## Reference target UI direction
 
 The target UI direction is represented by two product-level mockups:
