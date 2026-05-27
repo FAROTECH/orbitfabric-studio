@@ -1,0 +1,111 @@
+.shell-status-bar {
+  display: grid;
+  width: min(1600px, 100%);
+  margin: 18px auto 0;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: stretch;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 20px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.1), transparent 34%),
+    rgba(15, 23, 42, 0.78);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+}
+
+.shell-status-primary,
+.shell-status-item,
+.shell-status-boundary {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.26);
+}
+
+.shell-status-primary {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.shell-status-kicker,
+.shell-status-item span {
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell-status-primary strong,
+.shell-status-item strong {
+  min-width: 0;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shell-status-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.shell-status-item {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.shell-status-boundary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: center;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 9px 10px;
+}
+
+.shell-status-boundary span {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.12);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .shell-status-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .shell-status-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .shell-status-boundary {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell-status-strip {
+    grid-template-columns: 1fr;
+  }
+}
