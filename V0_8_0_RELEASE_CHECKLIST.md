@@ -4,8 +4,9 @@
 
 ```text
 Milestone: v0.8.0 - Ground Integration Artifact Viewer
-Status: release closure
+Status: released baseline
 Previous baseline: v0.7.2 - Core-derived Dashboard UX Realization
+Next baseline: v0.9.0 - Semantic Navigation & Unified Shell
 ```
 
 ## Scope confirmation
@@ -35,6 +36,8 @@ Previous baseline: v0.7.2 - Core-derived Dashboard UX Realization
 
 - [ ] `npm run build`
 - [ ] `cargo check --manifest-path src-tauri/Cargo.toml`
+
+These checks remain explicitly unmarked in this checklist because they must be run locally in the development environment before final tagging or release publication.
 
 ## Recommended smoke flow
 
@@ -97,9 +100,9 @@ Verify no ground segment behavior exists
 
 - [x] `docs/releases/v0.8.0-release-notes.md` added.
 - [x] `V0_8_0_RELEASE_CHECKLIST.md` added.
-- [ ] `README.md` updated to mark v0.8.0 as current released baseline.
-- [ ] `CHANGELOG.md` updated with v0.8.0 release entry.
-- [ ] `ROADMAP.md` updated to mark v0.8.0 as completed.
+- [x] `README.md` updated to mark v0.8.0 as current released baseline.
+- [x] `CHANGELOG.md` updated with v0.8.0 release entry.
+- [x] `ROADMAP.md` updated to mark v0.8.0 as completed and v0.9.0 Semantic Navigation & Unified Shell as the next milestone.
 
 ## Final closure rule
 
