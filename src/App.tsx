@@ -13,6 +13,7 @@ import {
   type GeneratedEvidenceArtifactSummary,
 } from "./GeneratedArtifactExplorer";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
+import { ShellStatusBar } from "./ShellStatusBar";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 import {
   shellSurfaceItems,
@@ -664,6 +665,12 @@ function App() {
           coreResult={coreResult}
         />
       </div>
+      
+      <ShellStatusBar
+        workspace={workspace}
+        activeSurface={activeSurface}
+        coreResult={coreResult}
+      />
     </main>
   );
 }
