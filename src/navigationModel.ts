@@ -41,88 +41,190 @@ export interface ShellSurfaceItem {
   caption: string;
 }
 
-export const shellSurfaceItems: readonly ShellSurfaceItem[] = [
+export type TargetDomainId =
+  | "mission"
+  | "spacecraft"
+  | "subsystems"
+  | "modes"
+  | "telemetry"
+  | "commands"
+  | "events"
+  | "faults"
+  | "packets"
+  | "payloads"
+  | "data-products"
+  | "contacts-downlink"
+  | "commandability"
+  | "autonomy"
+  | "scenarios"
+  | "generated-artifacts";
+
+export interface TargetDomainNavigationItem {
+  id: TargetDomainId;
+  label: string;
+  status: NavigationItemStatus;
+  destinationSurface: ActiveSurface;
+  targetId: string;
+  icon: NavigationIconKind;
+  caption: string;
+}
+
+export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] = [
   {
+    id: "mission",
     label: "Mission",
     status: "available",
+    destinationSurface: "mission-dashboard",
     targetId: "studio-dashboard",
-    surface: "mission-dashboard",
     icon: "mission",
     caption: "Mission cockpit",
   },
   {
-    label: "Model",
-    status: "available",
+    id: "spacecraft",
+    label: "Spacecraft",
+    status: "reserved",
+    destinationSurface: "model-inventory",
     targetId: "studio-model",
-    surface: "model-inventory",
     icon: "model",
-    caption: "Model inventory",
+    caption: "Domain reserved",
   },
   {
-    label: "Core",
-    status: "diagnostic",
-    targetId: "studio-validation",
-    surface: "core-commands",
-    icon: "core",
-    caption: "Core commands",
+    id: "subsystems",
+    label: "Subsystems",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
   },
   {
-    label: "Contracts",
+    id: "modes",
+    label: "Modes",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "telemetry",
+    label: "Telemetry",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "commands",
+    label: "Commands",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "events",
+    label: "Events",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "faults",
+    label: "Faults",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "packets",
+    label: "Packets",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "payloads",
+    label: "Payloads",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "data-products",
+    label: "Data Products",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "contacts-downlink",
+    label: "Contacts & Downlink",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "commandability",
+    label: "Commandability",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "autonomy",
+    label: "Autonomy",
+    status: "reserved",
+    destinationSurface: "model-inventory",
+    targetId: "studio-model",
+    icon: "model",
+    caption: "Domain reserved",
+  },
+  {
+    id: "scenarios",
+    label: "Scenarios",
     status: "available",
-    targetId: "studio-contracts",
-    surface: "contracts",
-    icon: "contracts",
-    caption: "Contract reports",
-  },
-  {
-    label: "Relations",
-    status: "available",
-    targetId: "studio-relationships",
-    surface: "relationships",
-    icon: "relationships",
-    caption: "Relationship data",
-  },
-  {
-    label: "Artifacts",
-    status: "available",
-    targetId: "studio-artifacts",
-    surface: "generated-artifacts",
-    icon: "artifacts",
-    caption: "Generated files",
-  },
-  {
-    label: "Reports",
-    status: "diagnostic",
-    targetId: "studio-reports-logs",
-    surface: "reports-logs",
-    icon: "reports",
-    caption: "Reports and logs",
-  },
-  {
-    label: "Evidence",
-    status: "available",
+    destinationSurface: "scenario-evidence",
     targetId: "studio-evidence",
-    surface: "scenario-evidence",
     icon: "evidence",
     caption: "Scenario evidence",
   },
   {
-    label: "Ground",
+    id: "generated-artifacts",
+    label: "Generated Artifacts",
     status: "available",
-    targetId: "studio-ground",
-    surface: "ground-integration",
-    icon: "ground",
-    caption: "Ground artifacts",
-  },
-  {
-    label: "Raw",
-    status: "diagnostic",
-    targetId: "studio-raw-output",
-    surface: "raw-output",
-    icon: "raw",
-    caption: "Raw output",
+    destinationSurface: "generated-artifacts",
+    targetId: "studio-artifacts",
+    icon: "artifacts",
+    caption: "Generated outputs",
   },
 ] as const;
+
+export const shellSurfaceItems: readonly ShellSurfaceItem[] =
+  targetDomainNavigationItems.map((item) => ({
+    label: item.label,
+    status: item.status,
+    targetId: item.targetId,
+    surface: item.destinationSurface,
+    icon: item.icon,
+    caption: item.caption,
+  }));
 
 export interface ReservedSurfaceItem {
   id: string;
@@ -152,146 +254,5 @@ export const reservedSurfaceItems: readonly ReservedSurfaceItem[] = [
       "No live decoder behavior",
       "No ground segment operations",
     ],
-  },
-] as const;
-
-export type TargetDomainId =
-  | "mission"
-  | "spacecraft"
-  | "subsystems"
-  | "modes"
-  | "telemetry"
-  | "commands"
-  | "events"
-  | "faults"
-  | "packets"
-  | "payloads"
-  | "data-products"
-  | "contacts-downlink"
-  | "commandability"
-  | "autonomy"
-  | "scenarios"
-  | "generated-artifacts";
-
-export interface TargetDomainNavigationItem {
-  id: TargetDomainId;
-  label: string;
-  status: NavigationItemStatus;
-  destinationSurface: ActiveSurface;
-  caption: string;
-}
-
-export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] = [
-  {
-    id: "mission",
-    label: "Mission",
-    status: "available",
-    destinationSurface: "mission-dashboard",
-    caption: "Mission cockpit",
-  },
-  {
-    id: "spacecraft",
-    label: "Spacecraft",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "subsystems",
-    label: "Subsystems",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "modes",
-    label: "Modes",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "telemetry",
-    label: "Telemetry",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "commands",
-    label: "Commands",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "events",
-    label: "Events",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "faults",
-    label: "Faults",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "packets",
-    label: "Packets",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "payloads",
-    label: "Payloads",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "data-products",
-    label: "Data Products",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "contacts-downlink",
-    label: "Contacts & Downlink",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "commandability",
-    label: "Commandability",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "autonomy",
-    label: "Autonomy",
-    status: "reserved",
-    destinationSurface: "model-inventory",
-    caption: "Domain surface planned",
-  },
-  {
-    id: "scenarios",
-    label: "Scenarios",
-    status: "available",
-    destinationSurface: "scenario-evidence",
-    caption: "Scenario evidence",
-  },
-  {
-    id: "generated-artifacts",
-    label: "Generated Artifacts",
-    status: "available",
-    destinationSurface: "generated-artifacts",
-    caption: "Generated outputs",
   },
 ] as const;
