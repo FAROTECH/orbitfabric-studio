@@ -4,14 +4,14 @@
 
 ```text
 Milestone: v0.7.2 - Core-derived Dashboard UX Realization
-Status: Planning
-Nature: dashboard UX realization slice
-Primary loop: Open Dashboard -> Review Core-derived Cards -> Navigate Evidence and Coverage Surfaces
+Status: Implementation pass completed
+Nature: visual and organizational UX realization slice
+Primary loop: Open Dashboard -> Review Core-derived Cards -> Navigate Evidence, Model, Core, Artifact, Report and Output Surfaces
 ```
 
 ## Purpose
 
-v0.7.2 turns the v0.7.1 dashboard and coverage foundation into a visibly stronger engineering dashboard.
+v0.7.2 turns the v0.7.1 dashboard and coverage foundation into a visibly stronger engineering cockpit.
 
 This milestone is visual and organizational.
 
@@ -19,7 +19,7 @@ It does not introduce new mission semantics.
 
 Studio remains downstream from OrbitFabric Core.
 
-The dashboard may become more compact, card-oriented and closer to the accepted target UX direction only when each displayed value is clearly one of:
+The dashboard and operational surfaces may become more compact, card-oriented and closer to the accepted target UX direction only when each displayed value is clearly one of:
 
 ```text
 source model
@@ -32,7 +32,7 @@ reserved state
 
 ## Starting baseline
 
-v0.7.1 already provides the functional foundation required for v0.7.2:
+v0.7.1 already provided the functional foundation required for v0.7.2:
 
 - Core dashboard summary report parsing and rendering;
 - Core scenario run index report parsing and rendering;
@@ -42,13 +42,47 @@ v0.7.1 already provides the functional foundation required for v0.7.2:
 - UI bindings for the three Core exports;
 - generated artifact recognition and preview binding for the new report types.
 
-v0.7.2 must preserve these existing surfaces.
+v0.7.2 preserved these existing surfaces.
 
-v0.7.2 must not replace them with a separate dashboard semantics layer.
+v0.7.2 did not replace them with a separate dashboard semantics layer.
+
+## Implemented surface pass
+
+The v0.7.2 implementation pass covered the operational read-only Studio surfaces:
+
+```text
+Dashboard
+Scenario Evidence
+Model
+Core Commands
+Generated Artifacts
+Reports and Logs
+Contracts
+Relationships
+Raw Core Output
+```
+
+The Ground surface remains reserved for v0.8.0.
+
+## Implemented capabilities
+
+- Cockpit-style density and hierarchy applied to the Dashboard surface.
+- Cockpit-style density and hierarchy applied to the Model surface.
+- Cockpit-style density and hierarchy applied to the Core command surface.
+- Cockpit-style density and hierarchy applied to the Generated Artifacts surface.
+- Cockpit-style density and hierarchy applied to the Reports and Logs surface.
+- Cockpit-style density and hierarchy applied to the Contracts surface.
+- Cockpit-style density and hierarchy applied to the Relationships surface.
+- Cockpit-style density and hierarchy applied to the Raw Core Output surface.
+- Cockpit-style density and hierarchy applied to the Scenario Evidence surface.
+- Dedicated stylesheet entry points added for the focused surface passes.
+- Legacy workspace blocks visually suppressed only inside focused surfaces where they are not relevant.
+- Raw Core Output selector corrected to target the actual Raw sidebar item.
+- Scenario Evidence surface styled through its stable `#studio-evidence` root instead of sidebar position.
 
 ## Target UX direction
 
-The target dashboard direction is:
+The target dashboard direction remains:
 
 - a more compact application shell;
 - a stronger dashboard header;
@@ -120,138 +154,6 @@ v0.7.2 must not implement:
 | Auto-saved | Not allowed before authoring | Do not display in v0.7.2 |
 | Local Cache OK | Local UI State, only if implemented | Do not invent cache state |
 
-## PR plan
-
-### PR 1: v0.7.2 planning and acceptance criteria
-
-Documentation-only planning slice.
-
-Deliverables:
-
-- this planning document;
-- `V0_7_2_RELEASE_CHECKLIST.md`;
-- explicit acceptance criteria;
-- explicit data-source mapping;
-- explicit mockup label safety mapping.
-
-### PR 2: dashboard data snapshot foundation
-
-Prepare the dashboard to consume multiple Core-derived reports at the same time.
-
-Allowed work:
-
-- preserve the latest valid lint report snapshot;
-- preserve the latest valid dashboard summary snapshot;
-- preserve the latest valid scenario run index snapshot;
-- preserve the latest valid coverage summary snapshot;
-- preserve generated artifact summary state;
-- keep raw `coreResult` behavior unchanged.
-
-Forbidden work:
-
-- no new dashboard metrics;
-- no visual redesign yet;
-- no rewrite of `App.tsx`.
-
-### PR 3: dashboard layout shell
-
-Introduce the new dashboard layout structure without changing semantics.
-
-Allowed work:
-
-- compact dashboard container;
-- top card grid;
-- main dashboard columns;
-- reserved or unavailable card styling;
-- CSS classes scoped to the dashboard area.
-
-Forbidden work:
-
-- no global CSS rewrite;
-- no removal of existing surfaces;
-- no data invention.
-
-### PR 4: validation and model inventory cards
-
-Render Core-derived validation and model inventory cards.
-
-Allowed sources:
-
-- `CoreLintReport`;
-- `CoreDashboardSummary.validation`;
-- `CoreDashboardSummary.model_domains`;
-- `CoreDashboardSummary.entity_inventory`;
-- `CoreDashboardSummary.relationship_inventory`.
-
-### PR 5: scenario run and evidence cards
-
-Render Core-derived scenario run cards.
-
-Allowed sources:
-
-- `CoreScenarioRunIndex`;
-- selected or latest `CoreSimulationReport`, only when already parsed from Core JSON.
-
-### PR 6: coverage cards
-
-Render Core-derived coverage cards.
-
-Allowed sources:
-
-- `CoreCoverageSummary.scenario_runs`;
-- `CoreCoverageSummary.entity_coverage`;
-- `CoreCoverageSummary.expectation_coverage`;
-- `CoreCoverageSummary.relationship_coverage`;
-- `CoreCoverageSummary.unsupported`.
-
-### PR 7: generated artifact cards
-
-Render generated artifact inventory cards.
-
-Allowed sources:
-
-- `GeneratedArtifactDashboardSummary`;
-- generated artifact classes reported by the existing generated artifact inventory.
-
-### PR 8: dashboard command/header polish
-
-Improve dashboard-oriented actions without changing backend command authority.
-
-Allowed work:
-
-- preserve fixed Core command wrappers;
-- expose clearer navigation to existing commands;
-- use disabled or reserved states for future actions.
-
-### PR 9: responsive and regression closure
-
-Final polish and release preparation.
-
-Allowed work:
-
-- responsive tuning;
-- overflow containment;
-- visual consistency;
-- checklist closure;
-- changelog and release metadata updates.
-
-## Acceptance criteria
-
-v0.7.2 is complete when Studio can:
-
-1. show a visually stronger dashboard without removing existing read-only surfaces;
-2. display validation status only from Core lint or Core dashboard summary data;
-3. display model and relationship inventory only from Core-derived reports or unavailable states;
-4. display scenario run information only from Core scenario run index or unavailable states;
-5. display coverage only from Core coverage summary or unavailable states;
-6. display generated artifact summary only from generated artifact inventory;
-7. keep unsupported coverage scopes visible;
-8. keep reserved graph, ground, authoring and plugin states explicitly non-operational;
-9. avoid mission health, model completeness and private frontend percentages;
-10. pass `npm run build`;
-11. pass `cargo check --manifest-path src-tauri/Cargo.toml`;
-12. preserve the read-only boundary.
-
 ## Implementation constraints
 
 `src/App.tsx` is a sensitive file.
@@ -262,13 +164,13 @@ No PR may replace `src/App.tsx` wholesale.
 
 No PR may remove existing implemented surfaces.
 
-Dashboard CSS must be scoped as much as possible to avoid regressions across validation, evidence, generated artifact preview, Core output and Inspector surfaces.
+Dashboard and surface CSS must remain scoped as much as possible to avoid regressions across validation, evidence, generated artifact preview, Core output and Inspector surfaces.
 
 The repository currently uses `src/styles.css`, not `src/App.css`.
 
 ## Manual smoke flow
 
-Recommended smoke flow for implementation PRs:
+Recommended smoke flow before tagging:
 
 ```text
 Open examples/demo-3u
@@ -282,15 +184,43 @@ Run export dashboard-summary
 Run export coverage-summary
 Inspect the dashboard cards
 Inspect Scenario Evidence
+Inspect Model
+Inspect Core Commands
 Inspect Generated Artifact Explorer
+Inspect Reports and Logs
+Inspect Contracts
+Inspect Relationships
+Inspect Raw Core Output
 Preview dashboard, scenario run index and coverage reports
-Verify Raw Core output remains visible
+Verify inactive legacy blocks do not leak into focused surfaces
+Verify source previews remain read-only
+Verify generated previews remain read-only
 Verify no editing affordance exists
 ```
 
+Recommended local checks:
+
+```bash
+npm run build
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+
+## Exit criteria
+
+v0.7.2 is complete when Studio visually reflects the accepted cockpit direction across the operational surfaces while using only these categories:
+
+```text
+source model
+Core-derived report
+generated output
+local UI state
+```
+
+The milestone is also complete only if the UX pass does not introduce semantic drift, editing, private parsing, arbitrary commands, graph behavior or ground-segment behavior.
+
 ## Release closure notes
 
-The v0.7.2 release must close only after the dashboard visual realization is achieved without changing Studio authority.
+The v0.7.2 release closes only after the dashboard and operational surface visual realization is achieved without changing Studio authority.
 
 Studio visualizes Core-derived engineering evidence.
 
