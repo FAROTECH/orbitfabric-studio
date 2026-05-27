@@ -654,17 +654,15 @@ function App() {
           {renderActiveSurface()}
         </section>
 
-        {activeSurface !== "mission-dashboard" ? (
-          <InspectorPanel
-            workspace={workspace}
-            activeSurface={activeSurface}
-            selectedFile={selectedFile}
-            selectedGeneratedArtifact={selectedGeneratedArtifact}
-            selectedSimulationRecord={selectedSimulationRecord}
-            selectedDetail={selectedDetail}
-            coreResult={coreResult}
-          />
-        ) : null}
+        <InspectorPanel
+          workspace={workspace}
+          activeSurface={activeSurface}
+          selectedFile={selectedFile}
+          selectedGeneratedArtifact={selectedGeneratedArtifact}
+          selectedSimulationRecord={selectedSimulationRecord}
+          selectedDetail={selectedDetail}
+          coreResult={coreResult}
+        />
       </div>
     </main>
   );
