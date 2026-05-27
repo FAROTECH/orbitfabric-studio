@@ -704,6 +704,7 @@ function App() {
         <GroundIntegrationArtifactViewer
           workspacePath={workspace.selected_path}
           generatedDir={workspace.generated_dir}
+          onArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
         />
       );
     }

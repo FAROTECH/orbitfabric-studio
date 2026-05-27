@@ -1,9 +1,12 @@
 import { useState } from "react";
+import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import type { GeneratedArtifactInspectorItem } from "./GeneratedArtifactExplorer";
 
 import type {
+  FileContent,
   GeneratedArtifactEntry,
   GeneratedArtifactInventory,
   GeneratedArtifactKnownStatus,
@@ -48,6 +51,7 @@ type ClassifiedGroundArtifact = GeneratedArtifactEntry & {
 interface GroundIntegrationArtifactViewerProps {
   workspacePath: string;
   generatedDir: string | null;
+  onArtifactSelectionChange?: (artifact: GeneratedArtifactInspectorItem | null) => void;
 }
 
 interface GroundArtifactCounts {
@@ -69,10 +73,14 @@ const groundArtifactFamilyOrder: GroundArtifactFamily[] = [
 export function GroundIntegrationArtifactViewer({
   workspacePath,
   generatedDir,
+  onArtifactSelectionChange,
 }: GroundIntegrationArtifactViewerProps) {
   const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [selectedArtifactFile, setSelectedArtifactFile] = useState<FileContent | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
+  const [isReadingArtifact, setIsReadingArtifact] = useState(false);
 
   const groundArtifacts = classifyGroundArtifacts(inventory?.artifacts ?? []);
   const groupedGroundArtifacts = groupGroundArtifactsByFamily(groundArtifacts);
@@ -80,6 +88,9 @@ export function GroundIntegrationArtifactViewer({
 
   async function handleInspectGroundArtifacts() {
     setError(null);
+    setPreviewError(null);
+    setSelectedArtifactFile(null);
+    onArtifactSelectionChange?.(null);
     setIsInspecting(true);
 
     try {
@@ -95,6 +106,32 @@ export function GroundIntegrationArtifactViewer({
     }
   }
 
+  async function handleOpenGroundArtifactPreview(artifact: ClassifiedGroundArtifact) {
+    onArtifactSelectionChange?.(toGroundArtifactInspectorItem(artifact));
+
+    if (artifact.preview_status !== "previewable") {
+      setSelectedArtifactFile(null);
+      setPreviewError("This generated ground artifact is listed but is not previewable.");
+      return;
+    }
+
+    setPreviewError(null);
+    setIsReadingArtifact(true);
+
+    try {
+      const file = await invoke<FileContent>("read_text_file", {
+        workspacePath,
+        filePath: artifact.path,
+      });
+      setSelectedArtifactFile(file);
+    } catch (caught) {
+      setSelectedArtifactFile(null);
+      setPreviewError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsReadingArtifact(false);
+    }
+  }
+
   return (
     <section
       id="studio-ground"
@@ -103,12 +140,13 @@ export function GroundIntegrationArtifactViewer({
     >
       <div className="file-viewer-header">
         <div>
-          <span className="cockpit-eyebrow">v0.8.0 artifact grouping slice</span>
+          <span className="cockpit-eyebrow">v0.8.0 preview binding slice</span>
           <h3>Ground Integration Artifact Viewer</h3>
           <p>
             Read-only inspection of generated ground-facing artifacts. Studio lists
-            artifact identity, conservative family grouping and preview eligibility
-            without interpreting dictionaries as operational ground behavior.
+            artifact identity, conservative family grouping, Inspector context and
+            preview eligibility without interpreting dictionaries as operational
+            ground behavior.
           </p>
         </div>
         <div className="badge-row">
@@ -190,11 +228,18 @@ export function GroundIntegrationArtifactViewer({
                 key={family}
                 family={family}
                 artifacts={groupedGroundArtifacts[family] ?? []}
+                onOpenArtifactPreview={handleOpenGroundArtifactPreview}
               />
             ))
           )}
         </>
       ) : null}
+
+      <GroundArtifactPreviewPanel
+        selectedArtifactFile={selectedArtifactFile}
+        previewError={previewError}
+        isReadingArtifact={isReadingArtifact}
+      />
 
       <section className="entry-section">
         <div className="entry-main">
@@ -218,9 +263,11 @@ export function GroundIntegrationArtifactViewer({
 function GroundArtifactFamilySection({
   family,
   artifacts,
+  onOpenArtifactPreview,
 }: {
   family: GroundArtifactFamily;
   artifacts: ClassifiedGroundArtifact[];
+  onOpenArtifactPreview: (artifact: ClassifiedGroundArtifact) => void;
 }) {
   return (
     <section className="entry-section" aria-label={`${family} ground artifacts`}>
@@ -239,7 +286,13 @@ function GroundArtifactFamilySection({
           {artifacts.map((artifact) => (
             <li key={artifact.path}>
               <div className="entry-main">
-                <strong>{artifact.name}</strong>
+                <button
+                  className="entry-button"
+                  type="button"
+                  onClick={() => onOpenArtifactPreview(artifact)}
+                >
+                  {artifact.name}
+                </button>
                 <div className="badge-row artifact-entry-badges">
                   <StatusBadge
                     label={artifact.known_status === "known" ? "REPORTED" : "UNKNOWN"}
@@ -266,6 +319,68 @@ function GroundArtifactFamilySection({
           ))}
         </ul>
       )}
+    </section>
+  );
+}
+
+function GroundArtifactPreviewPanel({
+  selectedArtifactFile,
+  previewError,
+  isReadingArtifact,
+}: {
+  selectedArtifactFile: FileContent | null;
+  previewError: string | null;
+  isReadingArtifact: boolean;
+}) {
+  return (
+    <section className="file-viewer" aria-label="Ground artifact read-only preview">
+      <div className="file-viewer-header">
+        <div>
+          <h3>Ground artifact preview</h3>
+          <p>
+            Read-only preview for supported generated ground text artifacts. Preview
+            does not imply validation, ground system compatibility, decoder
+            availability or operational readiness.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="GENERATED" />
+          <ProvenanceBadge label="READ-ONLY" />
+          <ProvenanceBadge label="PREVIEW ONLY" />
+        </div>
+      </div>
+
+      {previewError ? <p className="error-text">{previewError}</p> : null}
+      {isReadingArtifact ? <p className="empty-text">Reading ground artifact...</p> : null}
+
+      {!selectedArtifactFile && !isReadingArtifact ? (
+        <p className="empty-text">
+          Select a listed generated ground artifact to bind it to the Inspector and
+          preview it when supported.
+        </p>
+      ) : null}
+
+      {selectedArtifactFile ? (
+        <>
+          <div className="command-meta">
+            <strong>{selectedArtifactFile.name}</strong>
+            <span>{selectedArtifactFile.path}</span>
+            <span>{selectedArtifactFile.size_bytes} bytes</span>
+          </div>
+          <Editor
+            height="360px"
+            language={selectedArtifactFile.language}
+            value={selectedArtifactFile.content}
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              wordWrap: "on",
+              scrollBeyondLastLine: false,
+              renderLineHighlight: "none",
+            }}
+          />
+        </>
+      ) : null}
     </section>
   );
 }
@@ -310,6 +425,23 @@ function classifyGroundArtifact(
       detail:
         "The file remains visible, but Studio does not interpret it as a known ground integration artifact.",
     },
+  };
+}
+
+function toGroundArtifactInspectorItem(
+  artifact: ClassifiedGroundArtifact,
+): GeneratedArtifactInspectorItem {
+  return {
+    name: artifact.name,
+    path: artifact.path,
+    relativePath: artifact.relative_path,
+    artifactClass: artifact.artifact_class,
+    knownStatus: artifact.known_status,
+    previewStatus: artifact.preview_status,
+    provenanceSource: artifact.provenance.source,
+    provenanceDetail: artifact.provenance.detail,
+    sizeBytes: artifact.size_bytes,
+    extension: artifact.extension,
   };
 }
 
