@@ -2,6 +2,7 @@ import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DashboardIcon } from "./DashboardIcon";
 import { MissionCockpitKpiCard } from "./MissionCockpitKpiCard";
 import { MissionCockpitEvidenceLanes } from "./MissionCockpitEvidenceLanes";
+import { MissionCockpitPanelHeader } from "./MissionCockpitPanelHeader";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
 import { type ActiveSurface } from "./navigationModel";
 import {
@@ -317,13 +318,17 @@ export function MissionCockpit({
 
       <div className="cockpit-work-grid">
         <article className="cockpit-panel cockpit-panel-large">
-          <div className="cockpit-panel-header">
-            <div>
-              <span className="cockpit-eyebrow">Mission data contract</span>
-              <h3>{dashboardSummary ? "Core-derived contract map" : "Workspace structural map"}</h3>
-            </div>
-            <StatusBadge label={dashboardSummary ? "CORE-REPORTED" : "STRUCTURAL"} />
-          </div>
+          <MissionCockpitPanelHeader
+            eyebrow="Mission data contract"
+            title={
+              dashboardSummary ? "Core-derived contract map" : "Workspace structural map"
+            }
+            trailing={
+              <StatusBadge
+                label={dashboardSummary ? "CORE-REPORTED" : "STRUCTURAL"}
+              />
+            }
+          />
 
           <div className="cockpit-contract-topology" aria-label="Mission contract topology map">
             {cockpitContractMapItems.map((item, index) => (
@@ -385,13 +390,11 @@ export function MissionCockpit({
         </article>
 
         <article className="cockpit-panel cockpit-panel-validation">
-          <div className="cockpit-panel-header">
-            <div>
-              <span className="cockpit-eyebrow">Validation</span>
-              <h3>Recent results</h3>
-            </div>
-            <DashboardIcon kind="validation" />
-          </div>
+          <MissionCockpitPanelHeader
+            eyebrow="Validation"
+            title="Recent results"
+            trailing={<DashboardIcon kind="validation" />}
+          />
 
           <div className="cockpit-compact-list">
             {validationResult ? (
@@ -432,13 +435,11 @@ export function MissionCockpit({
         </article>
 
         <article className="cockpit-panel cockpit-panel-scenario">
-          <div className="cockpit-panel-header">
-            <div>
-              <span className="cockpit-eyebrow">Scenario</span>
-              <h3>Recent runs</h3>
-            </div>
-            <DashboardIcon kind="evidence" />
-          </div>
+          <MissionCockpitPanelHeader
+            eyebrow="Scenario"
+            title="Recent runs"
+            trailing={<DashboardIcon kind="evidence" />}
+          />
 
           <div className="cockpit-compact-list">
             {displayedIndexedScenarioRuns.length > 0 ? (
@@ -472,13 +473,11 @@ export function MissionCockpit({
         </article>
 
         <article className="cockpit-panel cockpit-panel-coverage">
-          <div className="cockpit-panel-header">
-            <div>
-              <span className="cockpit-eyebrow">Coverage</span>
-              <h3>Reported scopes</h3>
-            </div>
-            <DashboardIcon kind="coverage" />
-          </div>
+          <MissionCockpitPanelHeader
+            eyebrow="Coverage"
+            title="Reported scopes"
+            trailing={<DashboardIcon kind="coverage" />}
+          />
 
           <div className="cockpit-compact-list">
             {topEntityCoverageRecords.length > 0 ? (
@@ -505,13 +504,11 @@ export function MissionCockpit({
         </article>
 
         <article className="cockpit-panel cockpit-panel-generated">
-          <div className="cockpit-panel-header">
-            <div>
-              <span className="cockpit-eyebrow">Generated</span>
-              <h3>Artifact state</h3>
-            </div>
-            <DashboardIcon kind="artifacts" />
-          </div>
+          <MissionCockpitPanelHeader
+            eyebrow="Generated"
+            title="Artifact state"
+            trailing={<DashboardIcon kind="artifacts" />}
+          />
 
           <div className="cockpit-compact-list">
             {generatedArtifactStatusItems.length > 0 ? (
