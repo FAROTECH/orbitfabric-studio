@@ -2049,12 +2049,12 @@ function WorkspaceDashboard({
   const reportedEvidenceItems = [
     {
       label: "Contract",
-      value: dashboardSummary ? "reported" : "partial",
+      value: dashboardSummary ? "Core report" : "structural",
       isReported: Boolean(dashboardSummary),
     },
     {
       label: "Validation",
-      value: validationResult ?? "unavailable",
+      value: validationResult ?? "not reported",
       isReported: Boolean(validationResult),
     },
     {
@@ -2064,7 +2064,7 @@ function WorkspaceDashboard({
     },
     {
       label: "Coverage",
-      value: coverageSummary ? "available" : "unavailable",
+      value: coverageSummary ? "Core report" : "not reported",
       isReported: Boolean(coverageSummary),
     },
     {
@@ -2121,7 +2121,7 @@ function WorkspaceDashboard({
         <div className="cockpit-status-metrics" aria-label="Workspace quick metrics">
           <div className="cockpit-status-chip">
             <strong>{workspace?.source_model_files.length ?? 0}</strong>
-            <span>Sources</span>
+            <span>Source files</span>
           </div>
           <div className="cockpit-status-chip">
             <strong>{workspace?.scenario_files.length ?? 0}</strong>
@@ -2129,7 +2129,7 @@ function WorkspaceDashboard({
           </div>
           <div className="cockpit-status-chip">
             <strong>{workspace?.generated_locations.length ?? 0}</strong>
-            <span>Generated</span>
+            <span>Generated paths</span>
           </div>
         </div>
 
@@ -2178,7 +2178,7 @@ function WorkspaceDashboard({
         >
           <DashboardIcon kind="model" />
           <div>
-            <h3>Model inventory</h3>
+            <h3>{dashboardSummary ? "Core entity inventory" : "Workspace source files"}</h3>
             <strong>
               {dashboardSummary
                 ? `${dashboardSummary.entity_inventory.total_entities} entities`
@@ -2189,7 +2189,7 @@ function WorkspaceDashboard({
             <span>
               {dashboardSummary
                 ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
-                : "Core dashboard summary not loaded"}
+                : workspace ? "Structural workspace detection" : "Core dashboard summary not loaded"}
             </span>
           </div>
           <button
@@ -2209,7 +2209,7 @@ function WorkspaceDashboard({
         >
           <DashboardIcon kind="scenario" />
           <div>
-            <h3>Scenario runs</h3>
+            <h3>Scenario run index</h3>
             <strong>
               {scenarioRunIndex
                 ? `${scenarioRunIndex.summary.total} indexed`
@@ -2218,7 +2218,7 @@ function WorkspaceDashboard({
             <span>
               {scenarioRunIndex
                 ? `${scenarioRunIndex.summary.passed} passed, ${scenarioRunIndex.summary.failed} failed`
-                : "Run scenario-run-index"}
+                : "Run Core scenario-run-index"}
             </span>
           </div>
           <button
@@ -2238,12 +2238,12 @@ function WorkspaceDashboard({
         >
           <DashboardIcon kind="coverage" />
           <div>
-            <h3>Coverage</h3>
-            <strong>{coverageSummary ? "Available" : "Unavailable"}</strong>
+            <h3>Coverage summary</h3>
+            <strong>{coverageSummary ? "Reported" : "Not reported"}</strong>
             <span>
               {coverageSummary
                 ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total} expectations`
-                : "Run coverage-summary"}
+                : "Run Core coverage-summary"}
             </span>
           </div>
           <button
@@ -2263,7 +2263,7 @@ function WorkspaceDashboard({
         >
           <DashboardIcon kind="artifacts" />
           <div>
-            <h3>Artifacts</h3>
+            <h3>Generated artifact inventory</h3>
             <strong>
               {generatedArtifactSummary
                 ? `${generatedArtifactSummary.totalArtifacts} files`
@@ -2272,7 +2272,7 @@ function WorkspaceDashboard({
             <span>
               {generatedArtifactSummary
                 ? `${generatedArtifactSummary.previewableArtifacts} previewable`
-                : "Inspect generated artifacts"}
+                : "Inspect generated artifacts to load inventory"}
             </span>
           </div>
           <button
@@ -2316,9 +2316,9 @@ function WorkspaceDashboard({
           <div className="cockpit-panel-header">
             <div>
               <span className="cockpit-eyebrow">Mission data contract</span>
-              <h3>Core-derived contract map</h3>
+              <h3>{dashboardSummary ? "Core-derived contract map" : "Workspace structural map"}</h3>
             </div>
-            <StatusBadge label={dashboardSummary ? "REPORTED" : "PARTIAL"} />
+            <StatusBadge label={dashboardSummary ? "CORE-REPORTED" : "STRUCTURAL"} />
           </div>
 
           <div className="cockpit-contract-topology" aria-label="Mission contract topology map">
@@ -2356,7 +2356,7 @@ function WorkspaceDashboard({
               ) : (
                 <div className="cockpit-empty-module cockpit-empty-module-dormant">
                   <strong>No entity inventory</strong>
-                  <span>Run dashboard-summary to populate this lane.</span>
+                  <span>Run Core dashboard-summary to populate this lane.</span>
                 </div>
               )}
             </div>
@@ -2373,7 +2373,7 @@ function WorkspaceDashboard({
               ) : (
                 <div className="cockpit-empty-module cockpit-empty-module-dormant">
                   <strong>No relationship inventory</strong>
-                  <span>Run dashboard-summary to populate this lane.</span>
+                  <span>Run Core dashboard-summary to populate this lane.</span>
                 </div>
               )}
             </div>
@@ -2454,7 +2454,7 @@ function WorkspaceDashboard({
 
           <div className="cockpit-mini-status">
             <span>Latest sim</span>
-            <strong>{simulationReport ? simulationReport.result : "not available"}</strong>
+            <strong>{simulationReport ? simulationReport.result : "not reported"}</strong>
           </div>
 
           <button
@@ -2489,7 +2489,7 @@ function WorkspaceDashboard({
             ) : (
               <div className="cockpit-empty-module">
                 <strong>No coverage records</strong>
-                <span>Run coverage-summary to populate this module.</span>
+                <span>Run Core coverage-summary to populate this module.</span>
               </div>
             )}
           </div>
@@ -2520,7 +2520,7 @@ function WorkspaceDashboard({
             ) : (
               <div className="cockpit-empty-module">
                 <strong>No artifact inventory</strong>
-                <span>Open the generated artifact surface to inspect outputs.</span>
+                <span>Open the generated artifact surface to load inventory.</span>
               </div>
             )}
           </div>
