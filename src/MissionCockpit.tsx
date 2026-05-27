@@ -1,5 +1,6 @@
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DashboardIcon } from "./DashboardIcon";
+import { MissionCockpitKpiCard } from "./MissionCockpitKpiCard";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
 import { type ActiveSurface } from "./navigationModel";
 import {
@@ -203,141 +204,109 @@ export function MissionCockpit({
       </div>
 
       <div className="cockpit-kpi-grid" aria-label="Mission cockpit status cards">
-        <article
-          className={`cockpit-kpi-card cockpit-kpi-card-validation ${
-            validationResult ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
-          }`}
-        >
-          <DashboardIcon kind="validation" />
-          <div>
-            <h3>Validation</h3>
-            <strong>{validationResult ?? "Unavailable"}</strong>
-            <span>
-              {validationErrors === null &&
-              validationWarnings === null &&
-              validationInfo === null
-                ? "Run validation to populate status"
-                : `Errors ${validationErrors ?? 0} · Warnings ${
-                    validationWarnings ?? 0
-                  } · Info ${validationInfo ?? 0}`}
-            </span>
-          </div>
-          <StatusBadge label={formatDashboardStatusLabel(validationResult)} />
-        </article>
+        <MissionCockpitKpiCard
+          variant="validation"
+          iconKind="validation"
+          isReported={Boolean(validationResult)}
+          title="Validation"
+          value={validationResult ?? "Unavailable"}
+          detail={
+            validationErrors === null &&
+            validationWarnings === null &&
+            validationInfo === null
+              ? "Run validation to populate status"
+              : `Errors ${validationErrors ?? 0} · Warnings ${
+                  validationWarnings ?? 0
+                } · Info ${validationInfo ?? 0}`
+          }
+          status={<StatusBadge label={formatDashboardStatusLabel(validationResult)} />}
+        />
 
-        <article
-          className={`cockpit-kpi-card cockpit-kpi-card-model ${
-            workspace ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
-          }`}
-        >
-          <DashboardIcon kind="model" />
-          <div>
-            <h3>{dashboardSummary ? "Core entity inventory" : "Workspace source files"}</h3>
-            <strong>
-              {dashboardSummary
-                ? `${dashboardSummary.entity_inventory.total_entities} entities`
-                : workspace
-                  ? `${workspace.source_model_files.length} files`
-                  : "Unavailable"}
-            </strong>
-            <span>
-              {dashboardSummary
-                ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
-                : workspace ? "Structural workspace detection" : "Core dashboard summary not loaded"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="cockpit-card-action"
-            onClick={() => onActiveSurfaceChange("model-inventory")}
-            disabled={!workspace}
-          >
-            Detail
-          </button>
-        </article>
+        <MissionCockpitKpiCard
+          variant="model"
+          iconKind="model"
+          isReported={Boolean(workspace)}
+          title={dashboardSummary ? "Core entity inventory" : "Workspace source files"}
+          value={
+            dashboardSummary
+              ? `${dashboardSummary.entity_inventory.total_entities} entities`
+              : workspace
+                ? `${workspace.source_model_files.length} files`
+                : "Unavailable"
+          }
+          detail={
+            dashboardSummary
+              ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
+              : workspace ? "Structural workspace detection" : "Core dashboard summary not loaded"
+          }
+          action={{
+            label: "Detail",
+            onClick: () => onActiveSurfaceChange("model-inventory"),
+            disabled: !workspace,
+          }}
+        />
 
-        <article
-          className={`cockpit-kpi-card cockpit-kpi-card-scenario ${
-            scenarioRunIndex ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
-          }`}
-        >
-          <DashboardIcon kind="scenario" />
-          <div>
-            <h3>Scenario run index</h3>
-            <strong>
-              {scenarioRunIndex
-                ? `${scenarioRunIndex.summary.total} indexed`
-                : "Unavailable"}
-            </strong>
-            <span>
-              {scenarioRunIndex
-                ? `${scenarioRunIndex.summary.passed} passed, ${scenarioRunIndex.summary.failed} failed`
-                : "Run Core scenario-run-index"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="cockpit-card-action"
-            onClick={() => onActiveSurfaceChange("scenario-evidence")}
-            disabled={!workspace}
-          >
-            Evidence
-          </button>
-        </article>
+        <MissionCockpitKpiCard
+          variant="scenario"
+          iconKind="scenario"
+          isReported={Boolean(scenarioRunIndex)}
+          title="Scenario run index"
+          value={
+            scenarioRunIndex
+              ? `${scenarioRunIndex.summary.total} indexed`
+              : "Unavailable"
+          }
+          detail={
+            scenarioRunIndex
+              ? `${scenarioRunIndex.summary.passed} passed, ${scenarioRunIndex.summary.failed} failed`
+              : "Run Core scenario-run-index"
+          }
+          action={{
+            label: "Evidence",
+            onClick: () => onActiveSurfaceChange("scenario-evidence"),
+            disabled: !workspace,
+          }}
+        />
 
-        <article
-          className={`cockpit-kpi-card cockpit-kpi-card-coverage ${
-            coverageSummary ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
-          }`}
-        >
-          <DashboardIcon kind="coverage" />
-          <div>
-            <h3>Coverage summary</h3>
-            <strong>{coverageSummary ? "Reported" : "Not reported"}</strong>
-            <span>
-              {coverageSummary
-                ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total} expectations`
-                : "Run Core coverage-summary"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="cockpit-card-action"
-            onClick={() => onActiveSurfaceChange("reports-logs")}
-            disabled={!workspace}
-          >
-            Report
-          </button>
-        </article>
+        <MissionCockpitKpiCard
+          variant="coverage"
+          iconKind="coverage"
+          isReported={Boolean(coverageSummary)}
+          title="Coverage summary"
+          value={coverageSummary ? "Reported" : "Not reported"}
+          detail={
+            coverageSummary
+              ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total} expectations`
+              : "Run Core coverage-summary"
+          }
+          action={{
+            label: "Report",
+            onClick: () => onActiveSurfaceChange("reports-logs"),
+            disabled: !workspace,
+          }}
+        />
 
-        <article
-          className={`cockpit-kpi-card cockpit-kpi-card-artifacts ${
-            generatedArtifactSummary ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
-          }`}
-        >
-          <DashboardIcon kind="artifacts" />
-          <div>
-            <h3>Generated artifact inventory</h3>
-            <strong>
-              {generatedArtifactSummary
-                ? `${generatedArtifactSummary.totalArtifacts} files`
-                : "Unavailable"}
-            </strong>
-            <span>
-              {generatedArtifactSummary
-                ? `${generatedArtifactSummary.previewableArtifacts} previewable`
-                : "Inspect generated artifacts to load inventory"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="cockpit-card-action"
-            onClick={() => onActiveSurfaceChange("generated-artifacts")}
-            disabled={!workspace}
-          >
-            Open
-          </button>
-        </article>
+        <MissionCockpitKpiCard
+          variant="artifacts"
+          iconKind="artifacts"
+          isReported={Boolean(generatedArtifactSummary)}
+          title="Generated artifact inventory"
+          value={
+            generatedArtifactSummary
+              ? `${generatedArtifactSummary.totalArtifacts} files`
+              : "Unavailable"
+          }
+          detail={
+            generatedArtifactSummary
+              ? `${generatedArtifactSummary.previewableArtifacts} previewable`
+              : "Inspect generated artifacts to load inventory"
+          }
+          action={{
+            label: "Open",
+            onClick: () => onActiveSurfaceChange("generated-artifacts"),
+            disabled: !workspace,
+          }}
+        />
       </div>
 
       <div className="cockpit-tactical-band" aria-label="Reported evidence lanes band">
