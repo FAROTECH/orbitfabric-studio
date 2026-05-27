@@ -1185,9 +1185,9 @@ function ScenarioEvidenceSurface({
         <div>
           <h3>Scenario Evidence Explorer</h3>
           <p>
-            v0.7.0 starts with read-only scenario source inspection. Scenario
-            sources are detected structurally from the workspace. Studio does not
-            parse scenario YAML semantically, execute scenarios or infer evidence.
+            Scenario sources are detected structurally from the workspace. Studio can
+            run a selected scenario only through the fixed Core wrapper and renders
+            evidence only from Core-produced simulation JSON reports.
           </p>
         </div>
         <div className="badge-row">
@@ -1199,7 +1199,7 @@ function ScenarioEvidenceSurface({
 
       <div className="summary-grid">
         <SummaryItem label="Scenario sources" value={String(scenarioFiles.length)} />
-        <SummaryItem label="Execution" value="Not implemented" />
+        <SummaryItem label="Execution boundary" value="Fixed Core wrapper" />
         <SummaryItem
           label="Simulation report"
           value={simulationReport ? simulationReport.result.toUpperCase() : "Not selected"}
@@ -2324,9 +2324,9 @@ function WorkspaceDashboard({
         </article>
       </div>
 
-      <div className="cockpit-tactical-band" aria-label="Mission readiness band">
+      <div className="cockpit-tactical-band" aria-label="Reported evidence lanes band">
         <div className="cockpit-tactical-summary">
-          <span className="cockpit-eyebrow">Mission readiness</span>
+          <span className="cockpit-eyebrow">Reported evidence lanes</span>
           <strong>
             {cockpitReadinessScore}/{cockpitReadinessItems.length} evidence lanes populated
           </strong>
