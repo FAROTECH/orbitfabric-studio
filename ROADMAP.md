@@ -15,15 +15,15 @@ Studio is downstream.
 ## Current Baseline
 
 ```text
-Current released baseline: v0.8.0 - Ground Integration Artifact Viewer
-Active planning baseline: v0.9.0 - Semantic Navigation & Unified Shell
+Current released baseline: v0.9.0 - Semantic Navigation & Unified Shell
+Active planning baseline: v0.10.0 - Mission Cockpit Consolidation
 ```
 
-v0.8.0 is the current implementation baseline.
+v0.9.0 is the current implementation baseline.
 
-v0.9.0 is the next implementation milestone.
+v0.10.0 is the next implementation milestone.
 
-The previous immediate Plugin-aware Studio Surface direction is deferred. Plugin-awareness is now planned only after the shell, semantic navigation, Inspector, Mission Cockpit and Mission Data Flow Workbench foundations are stable.
+The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
 Reference planning document:
 
@@ -31,10 +31,16 @@ Reference planning document:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 ```
 
-v0.9.0 planning document:
+v0.9.0 release notes:
 
 ```text
-docs/roadmap/studio-v0.9.0-semantic-navigation-and-unified-shell.md
+docs/releases/v0.9.0-release-notes.md
+```
+
+v0.9.0 release checklist:
+
+```text
+V0_9_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -145,11 +151,44 @@ Release notes:
 docs/releases/v0.8.0-release-notes.md
 ```
 
+### v0.9.0 - Semantic Navigation & Unified Shell
+
+Status: Completed
+
+Transformed Studio from a surface-oriented workbench into a mission-domain-oriented shell.
+
+v0.9.0 introduced:
+
+- typed navigation model;
+- semantic mission-domain sidebar;
+- explicit legacy surface mapping;
+- `available`, `unavailable`, `reserved` and `diagnostic` shell states;
+- persistent Inspector across the Mission surface;
+- model-backed shell command bar;
+- global shell status bar;
+- copy cleanup to avoid readiness, health or completeness semantics invented in Studio;
+- release notes and checklist;
+- metadata alignment to `0.9.0`.
+
+v0.9.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private mission health calculation, private readiness calculation or private model completeness calculation.
+
+Release notes:
+
+```text
+docs/releases/v0.9.0-release-notes.md
+```
+
+Release checklist:
+
+```text
+V0_9_0_RELEASE_CHECKLIST.md
+```
+
 ---
 
 ## Accepted UI Convergence Direction
 
-The post-v0.8.0 direction is a mission-domain cockpit and integrated data-flow workbench.
+The post-v0.9.0 direction remains a mission-domain cockpit and integrated data-flow workbench.
 
 Accepted roadmap:
 
@@ -165,71 +204,48 @@ v0.15.0 - Plugin-aware Studio Surface
 
 ---
 
-# v0.9.0 - Semantic Navigation & Unified Shell
+# v0.10.0 - Mission Cockpit Consolidation
 
 Status: Active planning
 
-Nature: information architecture and shell convergence slice
+Nature: cockpit consolidation and provenance clarity slice
 
 Primary loop:
 
 ```text
-Open workspace -> Navigate mission domains -> Inspect context and provenance
+Open workspace -> Inspect Mission cockpit -> Understand reported, unavailable and generated state
 ```
 
 ## Goal
 
-Transform Studio from surface-oriented navigation to mission-domain-oriented navigation.
+Consolidate the Mission Dashboard into a clearer Mission Cockpit without adding new OrbitFabric Core semantics.
 
-The milestone is structural, not cosmetic.
+The milestone is not a graph milestone, not an authoring milestone and not a plugin milestone.
 
-It must make Studio start to behave like a mission contract engineering workbench rather than a collection of implementation surfaces.
+It must make the Mission surface more useful while preserving the rule that OrbitFabric Core owns mission semantics.
 
 ## Scope
 
-- semantic mission-domain sidebar;
-- explicit mapping from legacy surfaces to new navigation destinations;
-- global top command bar consolidation;
-- persistent Inspector behavior;
-- coherent footer/status bar;
-- explicit available, unavailable, reserved and diagnostic states;
+- Mission Dashboard visual hierarchy consolidation;
+- cockpit card copy cleanup;
+- explicit provenance for cockpit data;
+- clearer unavailable and not reported states;
+- clearer distinction among source model, Core-derived report, generated output and UI state;
+- recent validation result presentation;
+- recent scenario run index presentation;
+- generated artifact inventory presentation;
+- coverage summary presentation only where Core reports it;
 - no new Core semantics.
 
-## Target Sidebar Domains
+## Data Allowed
 
-```text
-Mission
-Spacecraft
-Subsystems
-Modes
-Telemetry
-Commands
-Events
-Faults
-Packets
-Payloads
-Data Products
-Contacts & Downlink
-Commandability
-Autonomy
-Scenarios
-Generated Artifacts
-```
+v0.10.0 may use only:
 
-## Legacy Surface Mapping
-
-| Current surface | Target destination | Decision |
-|---|---|---|
-| Mission Dashboard | Mission | Keep and consolidate. |
-| Model Inventory | Domain surfaces | Split into semantic mission-domain navigation. |
-| Core Commands | Global command bar / diagnostics | Declass from primary surface. |
-| Contracts | Domain surfaces and Inspector detail | Absorb into semantic domains. |
-| Relationships | Mission Data Flow Workbench | Keep as future workbench input, no graph in v0.9.0. |
-| Generated Artifacts | Generated Artifacts | Keep and integrate. |
-| Reports & Logs | Diagnostics / evidence support | Declass from primary surface. |
-| Scenario Evidence | Scenarios | Keep as scenario/evidence access. |
-| Ground Integration | Generated Artifacts / future traceability | Keep read-only and non-operational. |
-| Raw Output | Developer diagnostics | Declass from primary surface. |
+- structural workspace inspection already returned by Studio backend;
+- Core-derived reports already parsed by Studio;
+- generated artifact inventory already returned by Studio backend;
+- local UI state required to display the selected workspace or selected surface;
+- explicit `unavailable`, `not reported`, `reserved` or `diagnostic` states.
 
 ## Explicit Non-goals
 
@@ -240,6 +256,7 @@ Generated Artifacts
 - no graph UI;
 - no React Flow adoption;
 - no plugin execution;
+- no plugin marketplace;
 - no live telemetry;
 - no telemetry archive behavior;
 - no command uplink behavior;
@@ -253,40 +270,25 @@ Generated Artifacts
 
 ## Recommended PR Sequence
 
-1. Documentation rebaseline.
-2. Navigation model extraction.
-3. Semantic sidebar skeleton.
-4. Legacy surface routing map.
-5. Persistent Inspector.
-6. Top command bar consolidation.
-7. Footer/status bar.
-8. Copy cleanup and stale state cleanup.
-9. v0.9.0 release closure.
+1. Documentation rebaseline after v0.9.0 closure.
+2. v0.10.0 planning note.
+3. Cockpit vocabulary cleanup.
+4. Cockpit provenance and unavailable-state clarification.
+5. KPI card copy normalization.
+6. Mechanical Mission Cockpit extraction if needed.
+7. v0.10.0 release closure.
 
 ## Exit Criteria
 
-v0.9.0 is complete when:
+v0.10.0 is complete when:
 
-1. README, CHANGELOG and ROADMAP identify `v0.9.0 - Semantic Navigation & Unified Shell` as the active milestone.
-2. The primary sidebar is mission-domain-oriented.
-3. Legacy surfaces remain accessible but no longer define the primary navigation grammar.
-4. Core Commands, Reports & Logs and Raw Output are treated as diagnostic access.
-5. The Inspector is persistent as a shell primitive.
-6. The top command bar exposes only fixed and controlled actions.
-7. A coherent footer/status bar exposes workspace and boundary state.
-8. `available`, `unavailable`, `reserved` and `diagnostic` states are visible and consistent.
-9. Studio does not invent mission health, readiness, completeness or coverage semantics.
-10. No graph, React Flow, authoring, plugin execution, command uplink, live telemetry or generated artifact mutation is introduced.
-
----
-
-# v0.10.0 - Mission Cockpit Consolidation
-
-Status: Planned
-
-Purpose: Move the Mission dashboard substantially closer to the target cockpit direction using Core-derived or unavailable states only.
-
-Non-goals: no invented mission health, no invented model completeness, no invented coverage semantics, no graph UI.
+1. README, CHANGELOG and ROADMAP identify `v0.9.0 - Semantic Navigation & Unified Shell` as the current released baseline and `v0.10.0 - Mission Cockpit Consolidation` as the active or completed milestone.
+2. The Mission Cockpit no longer contains readiness, health or completeness vocabulary except as explicit non-goals or unsupported states.
+3. Cockpit cards clearly distinguish Core-derived reports, generated artifacts, structural workspace inspection and UI state.
+4. Missing Core data is shown as `unavailable`, `not reported`, `reserved` or `diagnostic`.
+5. Studio does not compute private mission health, operational readiness, model completeness or coverage semantics.
+6. No graph, React Flow, authoring, plugin execution, command uplink, live telemetry or generated artifact mutation is introduced.
+7. `npm run build` and `cargo check --manifest-path src-tauri/Cargo.toml` are run locally before release closure.
 
 ---
 
