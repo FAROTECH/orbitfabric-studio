@@ -67,13 +67,13 @@ type ActiveSurface =
   | "generated-artifacts"
   | "reports-logs"
   | "scenario-evidence"
-  | "reserved-ground"
+  | "ground-integration"
   | "raw-output";
 
 const shellSurfaceItems = [
   {
     label: "Mission",
-    status: "active",
+    status: "available",
     targetId: "studio-dashboard",
     surface: "mission-dashboard",
     icon: "mission",
@@ -137,11 +137,11 @@ const shellSurfaceItems = [
   },
   {
     label: "Ground",
-    status: "reserved",
-    targetId: "studio-future-surfaces",
-    surface: "reserved-ground",
+    status: "available",
+    targetId: "studio-ground",
+    surface: "ground-integration",
     icon: "ground",
-    caption: "Reserved surface",
+    caption: "Ground artifacts",
   },
   {
     label: "Raw",
@@ -572,7 +572,7 @@ function App() {
     "generated-artifacts": Boolean(workspace),
     "reports-logs": Boolean(workspace && workspace.generated_locations.length > 0),
     "scenario-evidence": Boolean(workspace),
-    "reserved-ground": true,
+    "ground-integration": Boolean(workspace),
     "raw-output": Boolean(coreResult),
   };
 
@@ -698,8 +698,8 @@ function App() {
       );
     }
 
-    if (activeSurface === "reserved-ground") {
-      return <ReservedFutureSurfaces />;
+    if (activeSurface === "ground-integration") {
+      return <GroundIntegrationSurface workspace={workspace} />;
     }
 
     if (activeSurface === "model-inventory") {
@@ -892,22 +892,19 @@ function PrimarySidebar({
 
       <ul className="surface-nav-list cockpit-surface-nav-list">
         {shellSurfaceItems.map((item) => {
-          const isReserved = item.status === "reserved";
           const isActive = item.surface === activeSurface;
-          const isEnabled = !isReserved && Boolean(surfaceAvailability[item.surface]);
+          const isEnabled = Boolean(surfaceAvailability[item.surface]);
           const displayedStatus = isActive
             ? "active"
-            : isReserved
-              ? "reserved"
-              : isEnabled
-                ? item.status
-                : "unavailable";
+            : isEnabled
+              ? item.status
+              : "unavailable";
+
           const itemClassName = [
             "surface-nav-item",
             "cockpit-surface-nav-item",
             isActive ? "surface-nav-item-active" : "",
             !isEnabled ? "surface-nav-item-disabled" : "",
-            isReserved ? "surface-nav-item-reserved" : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -2028,6 +2025,79 @@ function formatUnknownBlock(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
+function GroundIntegrationSurface({ workspace }: { workspace: WorkspaceInspection }) {
+  return (
+    <section
+      id="studio-ground"
+      className="entry-section ground-integration-surface"
+      aria-label="Ground Integration Artifact Viewer"
+    >
+      <div className="file-viewer-header">
+        <div>
+          <span className="cockpit-eyebrow">v0.8.0 surface shell</span>
+          <h3>Ground Integration Artifact Viewer</h3>
+          <p>
+            Read-only surface for generated ground-facing artifacts. This shell
+            establishes the Ground surface boundary before artifact filtering,
+            grouping and preview wiring are added in later PRs.
+          </p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="GENERATED" />
+          <ProvenanceBadge label="READ-ONLY" />
+          <StatusBadge label="SHELL" />
+        </div>
+      </div>
+
+      <div className="summary-grid">
+        <div className="summary-item">
+          <span>Workspace</span>
+          <strong>{workspace.selected_path}</strong>
+        </div>
+        <div className="summary-item">
+          <span>Generated directory</span>
+          <strong>{workspace.generated_dir ?? "Not detected"}</strong>
+        </div>
+        <div className="summary-item">
+          <span>Ground behavior</span>
+          <strong>Not implemented</strong>
+        </div>
+      </div>
+
+      <section className="entry-section">
+        <div className="entry-main">
+          <div>
+            <h3>Boundary</h3>
+            <p>
+              Studio may inspect generated ground-facing artifacts, but it does
+              not become a ground segment, mission control system, command uplink
+              surface, live decoder or telemetry archive.
+            </p>
+          </div>
+          <div className="badge-row">
+            <StatusBadge label="NON-OPERATIONAL" />
+          </div>
+        </div>
+      </section>
+
+      <section className="entry-section">
+        <div className="entry-main">
+          <div>
+            <h3>Next implementation step</h3>
+            <p>
+              A following PR will reuse the existing generated artifact inventory
+              and show only artifacts classified as ground-facing generated
+              outputs.
+            </p>
+          </div>
+          <div className="badge-row">
+            <StatusBadge label="PLANNED" />
+          </div>
+        </div>
+      </section>
+    </section>
+  );
+}
 
 function ReservedFutureSurfaces() {
   return (
