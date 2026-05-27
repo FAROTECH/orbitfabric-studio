@@ -174,8 +174,7 @@
 }
 
 .studio-app-shell:has(.surface-nav-item-active[href="#studio-contracts"]) .active-surface-frame .command-output > pre,
-.studio-app-shell:has(.surface-nav-item-active[href="#studio-contracts"]) .active-surface-frame .command-output > .stderr-output,
-.studio-app-shell:has(.surface-nav-item-active[href="#studio-contracts"]) .active-surface-frame .command-output > .entry-section.muted-section:has(h3:not(:where(:contains("Contract")))) {
+.studio-app-shell:has(.surface-nav-item-active[href="#studio-contracts"]) .active-surface-frame .command-output > .stderr-output {
   max-height: 220px;
 }
 
