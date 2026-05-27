@@ -1,0 +1,262 @@
+/* v0.7.2 Generated Artifacts cockpit layout polish.
+   Scoped through the active Artifacts top-command button so this remains a
+   visual-only surface refinement without changing artifact inspection behavior. */
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame {
+  display: grid;
+  gap: 12px;
+  margin-top: 0;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 20px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.42));
+  overflow: hidden;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame > .file-viewer-header {
+  align-items: center;
+  min-height: 64px;
+  margin: 0;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: rgba(2, 6, 23, 0.3);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame > .file-viewer-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame > .file-viewer-header p {
+  max-width: 860px;
+  color: #7b8ba8;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+/* Keep the Artifacts surface focused on generated artifact inventory and preview. */
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .core-panel,
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .workspace-layout,
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .summary-grid,
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .warning-box {
+  display: none;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .inspection-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .inspection-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 18px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at left, rgba(139, 92, 246, 0.11), transparent 38%),
+    rgba(2, 6, 23, 0.34);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .inspection-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .inspection-header p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts {
+  display: grid;
+  gap: 12px;
+  margin-top: 0;
+  border-color: rgba(139, 92, 246, 0.2);
+  border-radius: 18px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.1), transparent 30%),
+    rgba(2, 6, 23, 0.32);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .file-viewer-header {
+  align-items: center;
+  margin-bottom: 0;
+  border: 1px solid rgba(148, 163, 184, 0.11);
+  border-radius: 15px;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts h3 {
+  margin: 0;
+  color: #e8eefc;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts p {
+  color: #7b8ba8;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .command-actions {
+  margin-top: 0;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .command-actions button {
+  min-height: 38px;
+  border-color: rgba(139, 92, 246, 0.28);
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #ede9fe;
+  background: rgba(139, 92, 246, 0.15);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 9px;
+  margin-bottom: 0;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .summary-grid .summary-item {
+  min-height: 62px;
+  border-color: rgba(148, 163, 184, 0.13);
+  border-radius: 14px;
+  padding: 10px 11px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .summary-grid .summary-item span {
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .summary-grid .summary-item strong {
+  color: #f8fafc;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .warning-box {
+  display: block;
+  margin-top: 0;
+  border-radius: 14px;
+  padding: 11px 12px;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-section {
+  margin-top: 0;
+  border-color: rgba(148, 163, 184, 0.13);
+  border-radius: 15px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-section > .entry-main {
+  margin-bottom: 9px;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-list {
+  gap: 7px;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-list li {
+  gap: 6px;
+  border-color: rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: rgba(2, 6, 23, 0.3);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-button,
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-main strong {
+  color: #f8fafc;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .entry-path {
+  color: #64748b;
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .command-meta {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  border-radius: 10px;
+  padding: 8px 9px;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .command-meta span,
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .command-meta strong {
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .file-viewer {
+  margin-top: 0;
+  border-color: rgba(139, 92, 246, 0.18);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .file-viewer .file-viewer-header {
+  margin-bottom: 10px;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .badge-row {
+  gap: 6px;
+}
+
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .status-badge,
+.studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .provenance-badge {
+  min-height: 24px;
+  padding: 5px 8px;
+  font-size: 0.56rem;
+  line-height: 1;
+}
+
+@media (max-width: 1500px) {
+  .studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .summary-grid,
+  .studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .command-meta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts > .summary-grid,
+  .studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame #studio-artifacts .command-meta,
+  .studio-app-shell:has(.cockpit-command-actions .cockpit-command-button:nth-child(3).cockpit-command-button-active) .active-surface-frame .inspection-header {
+    grid-template-columns: 1fr;
+  }
+}
