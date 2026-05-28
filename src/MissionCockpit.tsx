@@ -3,6 +3,7 @@ import { DashboardIcon } from "./DashboardIcon";
 import { MissionCockpitKpiCard } from "./MissionCockpitKpiCard";
 import { MissionCockpitEvidenceLanes } from "./MissionCockpitEvidenceLanes";
 import { MissionCockpitPanelHeader } from "./MissionCockpitPanelHeader";
+import { MissionDataFlowWorkbenchSurface } from "./MissionDataFlowWorkbenchSurface";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
 import { type ActiveSurface } from "./navigationModel";
 import {
@@ -22,6 +23,7 @@ import {
   formatDashboardStatusLabel,
   type CoreReportSnapshots,
 } from "./missionCockpitModel";
+import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
 
 export function MissionCockpit({
   workspace,
@@ -51,6 +53,15 @@ export function MissionCockpit({
   const simulationReport =
     parseCoreSimulationReport(currentReportContent) ??
     coreReportSnapshots.simulationReport;
+  const missionDataFlowWorkbenchSnapshot = createMissionDataFlowWorkbenchSnapshot({
+    modelSummary: null,
+    entityIndex: null,
+    relationshipManifest: null,
+    dashboardSummary,
+    simulationReport,
+    coverageSummary,
+    generatedArtifactInventory: null,
+  });
 
   const dashboardValidation = dashboardSummary?.validation ?? null;
   const validationResult = lintReport?.result ?? dashboardValidation?.result ?? null;
@@ -540,9 +551,9 @@ export function MissionCockpit({
             Open artifact surface
           </button>
         </article>
-
-
       </div>
+
+      <MissionDataFlowWorkbenchSurface snapshot={missionDataFlowWorkbenchSnapshot} />
 
       <div className="cockpit-bottom-rail" aria-label="Mission cockpit status rail">
         <div className="cockpit-bottom-cell cockpit-bottom-cell-primary">
@@ -573,11 +584,11 @@ export function MissionCockpit({
         <div className="cockpit-bottom-cell cockpit-bottom-cell-wide">
           <span>Unsupported coverage</span>
           <strong>
-            Entities:{" "}
+            Entities: {" "}
             {unsupportedCoverageEntityDomains.length > 0
               ? unsupportedCoverageEntityDomains.join(", ")
               : "none"}{" "}
-            · Relationships:{" "}
+            · Relationships: {" "}
             {unsupportedCoverageRelationshipTypes.length > 0
               ? unsupportedCoverageRelationshipTypes.join(", ")
               : "none"}
