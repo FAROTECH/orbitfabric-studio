@@ -83,11 +83,11 @@ export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] 
   {
     id: "spacecraft",
     label: "Spacecraft",
-    status: "reserved",
+    status: "available",
     destinationSurface: "model-inventory",
     targetId: "studio-model",
     icon: "shield",
-    caption: "Reserved via inventory",
+    caption: "Domain surface ready",
   },
   {
     id: "subsystems",
