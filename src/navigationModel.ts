@@ -182,11 +182,11 @@ export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] 
   {
     id: "commandability",
     label: "Commandability",
-    status: "reserved",
+    status: "available",
     destinationSurface: "model-inventory",
     targetId: "studio-model",
     icon: "core",
-    caption: "Reserved via inventory",
+    caption: "Conservative domain surface",
   },
   {
     id: "autonomy",
