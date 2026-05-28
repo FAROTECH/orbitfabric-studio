@@ -745,6 +745,7 @@ function App() {
             selectedFile={selectedFile}
             selectedGeneratedArtifact={selectedGeneratedArtifact}
             selectedSimulationRecord={selectedSimulationRecord}
+            selectedSpacecraftEntity={selectedSpacecraftEntity}
             selectedDetail={selectedDetail}
             coreResult={coreResult}
           />
@@ -900,6 +901,7 @@ function InspectorPanel({
   selectedFile,
   selectedGeneratedArtifact,
   selectedSimulationRecord,
+  selectedSpacecraftEntity,
   selectedDetail,
   coreResult,
 }: {
@@ -908,6 +910,7 @@ function InspectorPanel({
   selectedFile: FileContent | null;
   selectedGeneratedArtifact: GeneratedArtifactInspectorItem | null;
   selectedSimulationRecord: SimulationInspectorRecord | null;
+  selectedSpacecraftEntity: DomainEntitySummary | null;
   selectedDetail: StudioDetailSelection | null;
   coreResult: CoreCommandResult | null;
 }) {
@@ -915,6 +918,7 @@ function InspectorPanel({
     selectedFile ||
       selectedGeneratedArtifact ||
       selectedSimulationRecord ||
+      selectedSpacecraftEntity ||
       selectedDetail ||
       coreResult ||
       workspace,
@@ -927,6 +931,8 @@ function InspectorPanel({
   const selectedTitle =
     selectedSimulationRecord?.title ??
     selectedGeneratedArtifact?.name ??
+    selectedSpacecraftEntity?.displayName ??
+    selectedSpacecraftEntity?.id ??
     selectedFile?.name ??
     selectedDetail?.title ??
     (workspace ? "Workspace inspection" : "No selection");
@@ -934,11 +940,13 @@ function InspectorPanel({
   const selectedKind =
     selectedSimulationRecord?.kind ??
     selectedGeneratedArtifact?.artifactClass ??
-    (selectedFileIsScenarioSource
-      ? "scenario source"
-      : selectedFile
-        ? "source file"
-        : selectedDetail?.kind ?? "workspace");
+    (selectedSpacecraftEntity
+      ? "core entity"
+      : selectedFileIsScenarioSource
+        ? "scenario source"
+        : selectedFile
+          ? "source file"
+          : selectedDetail?.kind ?? "workspace");
 
   const selectedSource =
     selectedGeneratedArtifact?.relativePath ??
@@ -1015,9 +1023,11 @@ function InspectorPanel({
                 ? selectedSimulationRecord.kind.toUpperCase()
                 : selectedGeneratedArtifact
                   ? selectedGeneratedArtifact.knownStatus
-                  : selectedFile
-                    ? "SOURCE"
-                    : "UNAVAILABLE"
+                  : selectedSpacecraftEntity
+                    ? selectedSpacecraftEntity.present ? "PRESENT" : "NOT PRESENT"
+                    : selectedFile
+                      ? "SOURCE"
+                      : "UNAVAILABLE"
             }
           />
         </div>
@@ -1070,6 +1080,31 @@ function InspectorPanel({
                 value={selectedGeneratedArtifact.provenanceDetail ?? "not reported"}
               />
             </div>
+          </>
+        ) : selectedSpacecraftEntity ? (
+          <>
+            <div className="inspector-status-strip">
+              <ProvenanceBadge label="CORE-DERIVED" />
+              <ProvenanceBadge label="READ-ONLY" />
+              <StatusBadge label={selectedSpacecraftEntity.present ? "PRESENT" : "NOT PRESENT"} />
+            </div>
+            <div className="inspector-property-grid">
+              <InspectorField label="ID" value={selectedSpacecraftEntity.id} />
+              <InspectorField label="Display name" value={selectedSpacecraftEntity.displayName} />
+              <InspectorField label="Domain" value={selectedSpacecraftEntity.domain} />
+              <InspectorField label="Type" value={selectedSpacecraftEntity.entityType} />
+              <InspectorField label="Source" value="Core entity_index.json" />
+              <InspectorField label="Source file" value={selectedSpacecraftEntity.sourceFile} />
+              <InspectorField label="Provenance" value={selectedSpacecraftEntity.provenance} />
+              <InspectorField
+                label="Required domain"
+                value={selectedSpacecraftEntity.requiredDomain ? "yes" : "no"}
+              />
+              <InspectorField label="Inference" value="none" />
+            </div>
+            <pre className="raw-output-block inspector-raw-block">
+              {formatUnknownBlock(selectedSpacecraftEntity.raw)}
+            </pre>
           </>
         ) : selectedFile ? (
           <>
