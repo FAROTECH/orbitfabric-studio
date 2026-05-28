@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DashboardIcon } from "./DashboardIcon";
 import { MissionCockpitKpiCard } from "./MissionCockpitKpiCard";
@@ -18,6 +20,7 @@ import {
 } from "./coreReports";
 import type {
   CoreCommandResult,
+  CoreRelationshipManifest,
   WorkspaceInspection,
 } from "./types/workspace";
 import {
@@ -42,13 +45,31 @@ export function MissionCockpit({
   onActiveSurfaceChange: (surface: ActiveSurface) => void;
 }) {
   const currentReportContent = coreResult?.json_report_content ?? null;
+  const currentRelationshipManifest = useMemo(
+    () => parseCoreRelationshipManifest(currentReportContent),
+    [currentReportContent],
+  );
+  const [relationshipManifestSnapshot, setRelationshipManifestSnapshot] =
+    useState<CoreRelationshipManifest | null>(null);
+
+  useEffect(() => {
+    setRelationshipManifestSnapshot(null);
+  }, [workspace?.selected_path]);
+
+  useEffect(() => {
+    if (currentRelationshipManifest) {
+      setRelationshipManifestSnapshot(currentRelationshipManifest);
+    }
+  }, [currentRelationshipManifest]);
+
   const lintReport =
     parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport;
   const modelSummary =
     parseCoreModelSummary(currentReportContent) ?? coreReportSnapshots.modelSummary;
   const entityIndex =
     parseCoreEntityIndex(currentReportContent) ?? coreReportSnapshots.entityIndex;
-  const relationshipManifest = parseCoreRelationshipManifest(currentReportContent);
+  const relationshipManifest =
+    currentRelationshipManifest ?? relationshipManifestSnapshot;
   const dashboardSummary =
     parseCoreDashboardSummary(currentReportContent) ??
     coreReportSnapshots.dashboardSummary;
