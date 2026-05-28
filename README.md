@@ -13,33 +13,39 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.11.0 - Domain Surfaces & Entity Detail System
+Current implementation baseline: v0.11.1 - Runtime UI triage hotfix
+Current released milestone: v0.11.0 - Domain Surfaces & Entity Detail System
 Active planning baseline: v0.12.0 - Mission Data Flow Workbench Foundation
 ```
 
-The current implementation baseline is `v0.11.0`.
+The current implementation baseline is `v0.11.1`.
+
+`v0.11.1` is a runtime UI triage hotfix over the released `v0.11.0 - Domain Surfaces & Entity Detail System` milestone. It does not introduce v0.12.0 functionality.
 
 The next implementation milestone is `v0.12.0 - Mission Data Flow Workbench Foundation`.
 
 The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
-The accepted UI convergence direction is documented in:
+Planning references:
 
 ```text
 docs/roadmap/studio-target-ui-convergence-strategy.md
+docs/roadmap/studio-ui-north-star-reference.md
+docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
 ```
 
-The v0.11.0 release notes are documented in:
+Release references:
 
 ```text
 docs/releases/v0.11.0-release-notes.md
+docs/releases/v0.11.1-release-notes.md
 ```
 
 ---
 
 ## Current Implementation State
 
-v0.11.0 implements a local-first Tauri 2 and React Mission Cockpit workbench with dedicated read-only Core-derived mission-domain surfaces.
+v0.11.1 preserves the v0.11.0 local-first Tauri 2 and React Mission Cockpit workbench with dedicated read-only Core-derived mission-domain surfaces.
 
 Implemented areas include:
 
@@ -59,13 +65,12 @@ Implemented areas include:
 - global shell status bar;
 - Mission Cockpit visual hierarchy consolidation;
 - reported evidence lanes for contract, validation, scenario, coverage and artifacts;
-- no-Inspector Mission dashboard layout;
-- stabilized sidebar, main surface, Inspector and shell status bar grid;
 - provenance, status and severity badge system;
 - explicit read-only and Core-derived boundaries;
 - dedicated Core-derived domain surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
 - consistent Core entity list/detail inspection through the contextual Inspector;
-- Autonomy preserved as a reserved domain.
+- Autonomy preserved as a reserved domain;
+- v0.11.1 runtime UI triage fixes for navigation scroll reset, source file action copy, reserved Autonomy routing and Scenario recent-runs empty-state copy.
 
 Studio remains downstream from OrbitFabric Core.
 
@@ -75,9 +80,9 @@ OrbitFabric Core remains authoritative for validation, scenario evidence, genera
 
 ## Current UI Direction
 
-The v0.11.0 UI keeps the Mission Cockpit as the entry point and adds dedicated Core-derived domain surfaces for implemented mission-domain navigation items.
+The v0.11.1 UI keeps the Mission Cockpit as the entry point and preserves dedicated Core-derived domain surfaces for implemented mission-domain navigation items.
 
-The primary sidebar now follows the accepted target domain grammar:
+The primary sidebar follows the accepted target domain grammar:
 
 ```text
 Mission
@@ -108,7 +113,19 @@ Diagnostic and developer-oriented surfaces remain accessible, but they do not de
 
 v0.12.0 is a Mission Data Flow Workbench Foundation milestone.
 
-It should introduce the first data-flow workbench foundation using Core-derived or generated data only.
+It must introduce the first data-flow workbench foundation using Core-derived or generated data only.
+
+The milestone is guided by Reference B in:
+
+```text
+docs/roadmap/studio-ui-north-star-reference.md
+```
+
+The v0.12.0 planning boundary is defined in:
+
+```text
+docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
+```
 
 v0.12.0 must not introduce:
 
@@ -121,7 +138,10 @@ v0.12.0 must not introduce:
 - plugin behavior;
 - operational ground behavior;
 - live telemetry behavior;
-- command uplink behavior.
+- command uplink behavior;
+- private YAML semantic parsing;
+- private relationship inference;
+- private data-flow inference.
 
 ---
 
