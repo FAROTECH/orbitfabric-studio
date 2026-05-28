@@ -15,6 +15,8 @@ import {
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { MissionCockpit } from "./MissionCockpit";
 import { SpacecraftDomainSurface } from "./SpacecraftDomainSurface";
+import { SubsystemsDomainSurface } from "./SubsystemsDomainSurface";
+import { ModesDomainSurface } from "./ModesDomainSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -151,7 +153,7 @@ function App() {
     useState(0);
   const [selectedSimulationRecord, setSelectedSimulationRecord] =
     useState<SimulationInspectorRecord | null>(null);
-  const [selectedSpacecraftEntity, setSelectedSpacecraftEntity] =
+  const [selectedCoreDomainEntity, setSelectedCoreDomainEntity] =
     useState<DomainEntitySummary | null>(null);
   const [activeSurface, setActiveSurface] =
     useState<ActiveSurface>("mission-dashboard");
@@ -178,7 +180,7 @@ function App() {
     setGeneratedEvidenceArtifactSummary(null);
     setGeneratedArtifactRefreshToken(0);
     setSelectedSimulationRecord(null);
-    setSelectedSpacecraftEntity(null);
+    setSelectedCoreDomainEntity(null);
     setActiveSurface("mission-dashboard");
     setActiveNavigationId("mission");
     setSelectedDetail(null);
@@ -220,7 +222,7 @@ function App() {
     setViewerError(null);
     setSelectedGeneratedArtifact(null);
     setSelectedSimulationRecord(null);
-    setSelectedSpacecraftEntity(null);
+    setSelectedCoreDomainEntity(null);
     setIsReadingFile(true);
 
     try {
@@ -247,7 +249,7 @@ function App() {
   ) {
     setSelectedGeneratedArtifact(artifact);
     setSelectedSimulationRecord(null);
-    setSelectedSpacecraftEntity(null);
+    setSelectedCoreDomainEntity(null);
     setSelectedDetail(
       artifact
         ? {
@@ -262,7 +264,7 @@ function App() {
   function handleSelectSimulationRecord(record: SimulationInspectorRecord) {
     setSelectedSimulationRecord(record);
     setSelectedGeneratedArtifact(null);
-    setSelectedSpacecraftEntity(null);
+    setSelectedCoreDomainEntity(null);
     setSelectedDetail({
       kind: "simulation-record",
       title: record.title,
@@ -270,8 +272,8 @@ function App() {
     });
   }
 
-  function handleSelectSpacecraftEntity(entity: DomainEntitySummary) {
-    setSelectedSpacecraftEntity(entity);
+  function handleSelectCoreDomainEntity(entity: DomainEntitySummary) {
+    setSelectedCoreDomainEntity(entity);
     setSelectedGeneratedArtifact(null);
     setSelectedSimulationRecord(null);
     setSelectedDetail({
@@ -282,6 +284,7 @@ function App() {
   }
 
   function handleActiveSurfaceChange(surface: ActiveSurface) {
+    setSelectedCoreDomainEntity(null);
     setActiveSurface(surface);
     setActiveNavigationId(defaultNavigationIdBySurface[surface]);
   }
@@ -290,6 +293,7 @@ function App() {
     surface: ActiveSurface,
     navigationId: TargetDomainId,
   ) {
+    setSelectedCoreDomainEntity(null);
     setActiveSurface(surface);
     setActiveNavigationId(navigationId);
   }
@@ -671,8 +675,34 @@ function App() {
           workspace={workspace}
           modelSummary={modelSummary}
           entityIndex={entityIndex}
-          selectedEntity={selectedSpacecraftEntity}
-          onSelectEntity={handleSelectSpacecraftEntity}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "subsystems") {
+      return (
+        <SubsystemsDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "modes") {
+      return (
+        <ModesDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
           onOpenFile={handleOpenFile}
         />
       );
@@ -745,7 +775,7 @@ function App() {
             selectedFile={selectedFile}
             selectedGeneratedArtifact={selectedGeneratedArtifact}
             selectedSimulationRecord={selectedSimulationRecord}
-            selectedSpacecraftEntity={selectedSpacecraftEntity}
+            selectedCoreDomainEntity={selectedCoreDomainEntity}
             selectedDetail={selectedDetail}
             coreResult={coreResult}
           />
@@ -901,7 +931,7 @@ function InspectorPanel({
   selectedFile,
   selectedGeneratedArtifact,
   selectedSimulationRecord,
-  selectedSpacecraftEntity,
+  selectedCoreDomainEntity,
   selectedDetail,
   coreResult,
 }: {
@@ -910,7 +940,7 @@ function InspectorPanel({
   selectedFile: FileContent | null;
   selectedGeneratedArtifact: GeneratedArtifactInspectorItem | null;
   selectedSimulationRecord: SimulationInspectorRecord | null;
-  selectedSpacecraftEntity: DomainEntitySummary | null;
+  selectedCoreDomainEntity: DomainEntitySummary | null;
   selectedDetail: StudioDetailSelection | null;
   coreResult: CoreCommandResult | null;
 }) {
@@ -918,7 +948,7 @@ function InspectorPanel({
     selectedFile ||
       selectedGeneratedArtifact ||
       selectedSimulationRecord ||
-      selectedSpacecraftEntity ||
+      selectedCoreDomainEntity ||
       selectedDetail ||
       coreResult ||
       workspace,
@@ -931,8 +961,8 @@ function InspectorPanel({
   const selectedTitle =
     selectedSimulationRecord?.title ??
     selectedGeneratedArtifact?.name ??
-    selectedSpacecraftEntity?.displayName ??
-    selectedSpacecraftEntity?.id ??
+    selectedCoreDomainEntity?.displayName ??
+    selectedCoreDomainEntity?.id ??
     selectedFile?.name ??
     selectedDetail?.title ??
     (workspace ? "Workspace inspection" : "No selection");
@@ -940,7 +970,7 @@ function InspectorPanel({
   const selectedKind =
     selectedSimulationRecord?.kind ??
     selectedGeneratedArtifact?.artifactClass ??
-    (selectedSpacecraftEntity
+    (selectedCoreDomainEntity
       ? "core entity"
       : selectedFileIsScenarioSource
         ? "scenario source"
@@ -1023,8 +1053,8 @@ function InspectorPanel({
                 ? selectedSimulationRecord.kind.toUpperCase()
                 : selectedGeneratedArtifact
                   ? selectedGeneratedArtifact.knownStatus
-                  : selectedSpacecraftEntity
-                    ? selectedSpacecraftEntity.present ? "PRESENT" : "NOT PRESENT"
+                  : selectedCoreDomainEntity
+                    ? selectedCoreDomainEntity.present ? "PRESENT" : "NOT PRESENT"
                     : selectedFile
                       ? "SOURCE"
                       : "UNAVAILABLE"
@@ -1081,29 +1111,29 @@ function InspectorPanel({
               />
             </div>
           </>
-        ) : selectedSpacecraftEntity ? (
+        ) : selectedCoreDomainEntity ? (
           <>
             <div className="inspector-status-strip">
               <ProvenanceBadge label="CORE-DERIVED" />
               <ProvenanceBadge label="READ-ONLY" />
-              <StatusBadge label={selectedSpacecraftEntity.present ? "PRESENT" : "NOT PRESENT"} />
+              <StatusBadge label={selectedCoreDomainEntity.present ? "PRESENT" : "NOT PRESENT"} />
             </div>
             <div className="inspector-property-grid">
-              <InspectorField label="ID" value={selectedSpacecraftEntity.id} />
-              <InspectorField label="Display name" value={selectedSpacecraftEntity.displayName} />
-              <InspectorField label="Domain" value={selectedSpacecraftEntity.domain} />
-              <InspectorField label="Type" value={selectedSpacecraftEntity.entityType} />
+              <InspectorField label="ID" value={selectedCoreDomainEntity.id} />
+              <InspectorField label="Display name" value={selectedCoreDomainEntity.displayName} />
+              <InspectorField label="Domain" value={selectedCoreDomainEntity.domain} />
+              <InspectorField label="Type" value={selectedCoreDomainEntity.entityType} />
               <InspectorField label="Source" value="Core entity_index.json" />
-              <InspectorField label="Source file" value={selectedSpacecraftEntity.sourceFile} />
-              <InspectorField label="Provenance" value={selectedSpacecraftEntity.provenance} />
+              <InspectorField label="Source file" value={selectedCoreDomainEntity.sourceFile} />
+              <InspectorField label="Provenance" value={selectedCoreDomainEntity.provenance} />
               <InspectorField
                 label="Required domain"
-                value={selectedSpacecraftEntity.requiredDomain ? "yes" : "no"}
+                value={selectedCoreDomainEntity.requiredDomain ? "yes" : "no"}
               />
               <InspectorField label="Inference" value="none" />
             </div>
             <pre className="raw-output-block inspector-raw-block">
-              {formatUnknownBlock(selectedSpacecraftEntity.raw)}
+              {formatUnknownBlock(selectedCoreDomainEntity.raw)}
             </pre>
           </>
         ) : selectedFile ? (
