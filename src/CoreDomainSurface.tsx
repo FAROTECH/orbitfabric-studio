@@ -60,7 +60,7 @@ export function CoreDomainSurface({
             type="button"
             onClick={() => onOpenFile(sourceFile)}
           >
-            Preview {definition.expectedSourceFile ?? sourceFile.name}
+            Inspect source file: {definition.expectedSourceFile ?? sourceFile.name}
           </button>
         ) : null}
       </section>

@@ -1,4 +1,4 @@
-import { type ComponentType, useState } from "react";
+import { type ComponentType, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -26,6 +26,7 @@ import { PayloadsDomainSurface } from "./PayloadsDomainSurface";
 import { DataProductsDomainSurface } from "./DataProductsDomainSurface";
 import { ContactsDownlinkDomainSurface } from "./ContactsDownlinkDomainSurface";
 import { CommandabilityDomainSurface } from "./CommandabilityDomainSurface";
+import { AutonomyReservedSurface } from "./AutonomyReservedSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -141,6 +142,7 @@ const modelInventoryDomainSurfaceComponents: Partial<
   faults: FaultsDomainSurface,
   packets: PacketsDomainSurface,
   payloads: PayloadsDomainSurface,
+  autonomy: AutonomyReservedSurface,
   "data-products": DataProductsDomainSurface,
   "contacts-downlink": ContactsDownlinkDomainSurface,
   commandability: CommandabilityDomainSurface,
@@ -197,12 +199,23 @@ function App() {
     useState<TargetDomainId>("mission");
   const [selectedDetail, setSelectedDetail] =
     useState<StudioDetailSelection | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
   const [isReadingFile, setIsReadingFile] = useState(false);
   const [isRunningCoreCommand, setIsRunningCoreCommand] = useState(false);
+
+  const mainContentRef = useRef<HTMLElement | null>(null);
+
+  function resetMainContentScroll() {
+    requestAnimationFrame(() => {
+      mainContentRef.current?.scrollTo({ top: 0, left: 0 });
+      document.documentElement.scrollTo({ top: 0, left: 0 });
+      document.body.scrollTo({ top: 0, left: 0 });
+    });
+  }
 
   async function handleOpenWorkspace() {
     setError(null);
@@ -323,6 +336,7 @@ function App() {
     setSelectedCoreDomainEntity(null);
     setActiveSurface(surface);
     setActiveNavigationId(defaultNavigationIdBySurface[surface]);
+    resetMainContentScroll();
   }
 
   function handlePrimaryNavigationSelect(
@@ -332,6 +346,7 @@ function App() {
     setSelectedCoreDomainEntity(null);
     setActiveSurface(surface);
     setActiveNavigationId(navigationId);
+    resetMainContentScroll();
   }
 
   async function handleCoreVersion() {
@@ -753,7 +768,7 @@ function App() {
   }
 
   return (
-    <main className="studio-app-shell">
+     <main ref={mainContentRef} className="studio-app-shell">
       <WorkspaceHeader
         workspace={workspace}
         activeSurface={activeSurface}
