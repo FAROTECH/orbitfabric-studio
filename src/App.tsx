@@ -25,6 +25,7 @@ import { PacketsDomainSurface } from "./PacketsDomainSurface";
 import { PayloadsDomainSurface } from "./PayloadsDomainSurface";
 import { DataProductsDomainSurface } from "./DataProductsDomainSurface";
 import { ContactsDownlinkDomainSurface } from "./ContactsDownlinkDomainSurface";
+import { CommandabilityDomainSurface } from "./CommandabilityDomainSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -810,6 +811,19 @@ function App() {
     if (activeSurface === "model-inventory" && activeNavigationId === "contacts-downlink") {
       return (
         <ContactsDownlinkDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "commandability") {
+      return (
+        <CommandabilityDomainSurface
           workspace={workspace}
           modelSummary={modelSummary}
           entityIndex={entityIndex}
