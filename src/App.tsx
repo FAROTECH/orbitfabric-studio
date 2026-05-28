@@ -14,6 +14,7 @@ import {
 } from "./GeneratedArtifactExplorer";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { MissionCockpit } from "./MissionCockpit";
+import { SpacecraftDomainSurface } from "./SpacecraftDomainSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -24,6 +25,7 @@ import {
   type ActiveSurface,
   type TargetDomainId,
 } from "./navigationModel";
+import type { DomainEntitySummary } from "./domainSurfaceModel";
 
 import {
   parseCoreCoverageSummary,
@@ -85,6 +87,8 @@ interface SimulationInspectorRecord {
 
 interface CoreReportSnapshots {
   lintReport: CoreLintReport | null;
+  modelSummary: CoreModelSummary | null;
+  entityIndex: CoreEntityIndex | null;
   dashboardSummary: CoreDashboardSummary | null;
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
@@ -96,6 +100,7 @@ type StudioDetailKind =
   | "source-file"
   | "generated-artifact"
   | "simulation-record"
+  | "core-entity"
   | "core-output";
 
 interface StudioDetailSelection {
@@ -120,6 +125,8 @@ const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
 function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
   return {
     lintReport: null,
+    modelSummary: null,
+    entityIndex: null,
     dashboardSummary: null,
     scenarioRunIndex: null,
     coverageSummary: null,
@@ -144,6 +151,8 @@ function App() {
     useState(0);
   const [selectedSimulationRecord, setSelectedSimulationRecord] =
     useState<SimulationInspectorRecord | null>(null);
+  const [selectedSpacecraftEntity, setSelectedSpacecraftEntity] =
+    useState<DomainEntitySummary | null>(null);
   const [activeSurface, setActiveSurface] =
     useState<ActiveSurface>("mission-dashboard");
   const [activeNavigationId, setActiveNavigationId] =
@@ -169,6 +178,7 @@ function App() {
     setGeneratedEvidenceArtifactSummary(null);
     setGeneratedArtifactRefreshToken(0);
     setSelectedSimulationRecord(null);
+    setSelectedSpacecraftEntity(null);
     setActiveSurface("mission-dashboard");
     setActiveNavigationId("mission");
     setSelectedDetail(null);
@@ -210,6 +220,7 @@ function App() {
     setViewerError(null);
     setSelectedGeneratedArtifact(null);
     setSelectedSimulationRecord(null);
+    setSelectedSpacecraftEntity(null);
     setIsReadingFile(true);
 
     try {
@@ -236,6 +247,7 @@ function App() {
   ) {
     setSelectedGeneratedArtifact(artifact);
     setSelectedSimulationRecord(null);
+    setSelectedSpacecraftEntity(null);
     setSelectedDetail(
       artifact
         ? {
@@ -250,10 +262,22 @@ function App() {
   function handleSelectSimulationRecord(record: SimulationInspectorRecord) {
     setSelectedSimulationRecord(record);
     setSelectedGeneratedArtifact(null);
+    setSelectedSpacecraftEntity(null);
     setSelectedDetail({
       kind: "simulation-record",
       title: record.title,
       source: record.kind,
+    });
+  }
+
+  function handleSelectSpacecraftEntity(entity: DomainEntitySummary) {
+    setSelectedSpacecraftEntity(entity);
+    setSelectedGeneratedArtifact(null);
+    setSelectedSimulationRecord(null);
+    setSelectedDetail({
+      kind: "core-entity",
+      title: entity.displayName || entity.id,
+      source: "Core entity_index.json",
     });
   }
 
@@ -440,6 +464,8 @@ function App() {
     }
 
     const lintReport = parseCoreLintReport(reportContent);
+    const modelSummary = parseCoreModelSummary(reportContent);
+    const entityIndex = parseCoreEntityIndex(reportContent);
     const dashboardSummary = parseCoreDashboardSummary(reportContent);
     const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
     const coverageSummary = parseCoreCoverageSummary(reportContent);
@@ -447,6 +473,8 @@ function App() {
 
     if (
       !lintReport &&
+      !modelSummary &&
+      !entityIndex &&
       !dashboardSummary &&
       !scenarioRunIndex &&
       !coverageSummary &&
@@ -457,6 +485,8 @@ function App() {
 
     setCoreReportSnapshots((current) => ({
       lintReport: lintReport ?? current.lintReport,
+      modelSummary: modelSummary ?? current.modelSummary,
+      entityIndex: entityIndex ?? current.entityIndex,
       dashboardSummary: dashboardSummary ?? current.dashboardSummary,
       scenarioRunIndex: scenarioRunIndex ?? current.scenarioRunIndex,
       coverageSummary: coverageSummary ?? current.coverageSummary,
@@ -480,8 +510,12 @@ function App() {
       : coreReportSnapshots.simulationReport
         ? "latest Core simulation report snapshot"
         : null;
-  const hasCoreModelSummary = Boolean(parseCoreModelSummary(coreReportContent));
-  const hasCoreEntityIndex = Boolean(parseCoreEntityIndex(coreReportContent));
+  const coreModelSummary = parseCoreModelSummary(coreReportContent);
+  const coreEntityIndex = parseCoreEntityIndex(coreReportContent);
+  const modelSummary = coreModelSummary ?? coreReportSnapshots.modelSummary;
+  const entityIndex = coreEntityIndex ?? coreReportSnapshots.entityIndex;
+  const hasCoreModelSummary = Boolean(modelSummary);
+  const hasCoreEntityIndex = Boolean(entityIndex);
   const hasCoreRelationshipManifest = Boolean(
     parseCoreRelationshipManifest(coreReportContent),
   );
@@ -627,6 +661,19 @@ function App() {
           workspacePath={workspace.selected_path}
           generatedDir={workspace.generated_dir}
           onArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "spacecraft") {
+      return (
+        <SpacecraftDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedSpacecraftEntity}
+          onSelectEntity={handleSelectSpacecraftEntity}
+          onOpenFile={handleOpenFile}
         />
       );
     }
