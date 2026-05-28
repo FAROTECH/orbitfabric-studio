@@ -82,6 +82,54 @@ export function CoreDomainSurface({
   );
 }
 
+
+export interface CoreDomainSurfaceRuntimeProps {
+  workspace: WorkspaceInspection;
+  modelSummary: CoreModelSummary | null;
+  entityIndex: CoreEntityIndex | null;
+  selectedEntity: DomainEntitySummary | null;
+  onSelectEntity: (entity: DomainEntitySummary) => void;
+  onOpenFile: (entry: ProjectEntry) => void;
+}
+
+export interface CoreDomainSurfaceFactoryConfig {
+  definition: DomainSurfaceDefinition;
+  description: string;
+  boundary: string;
+  emptySelectionDetail: string;
+}
+
+export function createCoreDomainSurface({
+  definition,
+  description,
+  boundary,
+  emptySelectionDetail,
+}: CoreDomainSurfaceFactoryConfig) {
+  return function ConfiguredCoreDomainSurface({
+    workspace,
+    modelSummary,
+    entityIndex,
+    selectedEntity,
+    onSelectEntity,
+    onOpenFile,
+  }: CoreDomainSurfaceRuntimeProps) {
+    return (
+      <CoreDomainSurface
+        definition={definition}
+        workspace={workspace}
+        modelSummary={modelSummary}
+        entityIndex={entityIndex}
+        selectedEntity={selectedEntity}
+        onSelectEntity={onSelectEntity}
+        onOpenFile={onOpenFile}
+        description={description}
+        boundary={boundary}
+        emptySelectionDetail={emptySelectionDetail}
+      />
+    );
+  };
+}
+
 function createCoreDomainSnapshot(
   workspace: WorkspaceInspection,
   modelSummary: CoreModelSummary | null,

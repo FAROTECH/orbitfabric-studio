@@ -1,14 +1,5 @@
-import { CoreDomainSurface } from "./CoreDomainSurface";
-import type {
-  DomainEntitySummary,
-  DomainSurfaceDefinition,
-} from "./domainSurfaceModel";
-import type {
-  CoreEntityIndex,
-  CoreModelSummary,
-  ProjectEntry,
-  WorkspaceInspection,
-} from "./types/workspace";
+import { createCoreDomainSurface } from "./CoreDomainSurface";
+import type { DomainSurfaceDefinition } from "./domainSurfaceModel";
 
 const packetsDomainDefinition: DomainSurfaceDefinition = {
   id: "packets",
@@ -24,33 +15,9 @@ const packetsDomainDefinition: DomainSurfaceDefinition = {
   ],
 };
 
-export function PacketsDomainSurface({
-  workspace,
-  modelSummary,
-  entityIndex,
-  selectedEntity,
-  onSelectEntity,
-  onOpenFile,
-}: {
-  workspace: WorkspaceInspection;
-  modelSummary: CoreModelSummary | null;
-  entityIndex: CoreEntityIndex | null;
-  selectedEntity: DomainEntitySummary | null;
-  onSelectEntity: (entity: DomainEntitySummary) => void;
-  onOpenFile: (entry: ProjectEntry) => void;
-}) {
-  return (
-    <CoreDomainSurface
-      definition={packetsDomainDefinition}
-      workspace={workspace}
-      modelSummary={modelSummary}
-      entityIndex={entityIndex}
-      selectedEntity={selectedEntity}
-      onSelectEntity={onSelectEntity}
-      onOpenFile={onOpenFile}
-      description="Read-only Packets domain surface backed by structural workspace inspection and Core-reported entity records."
-      boundary="This surface shows packet contract records only as reported by Core. It does not perform protocol execution or live decoding."
-      emptySelectionDetail="Select a Core-reported packet entity to inspect its read-only detail."
-    />
-  );
-}
+export const PacketsDomainSurface = createCoreDomainSurface({
+  definition: packetsDomainDefinition,
+  description: "Read-only Packets domain surface backed by structural workspace inspection and Core-reported entity records.",
+  boundary: "This surface shows packet contract records only as reported by Core. It does not perform protocol execution or live decoding.",
+  emptySelectionDetail: "Select a Core-reported packet entity to inspect its read-only detail.",
+});

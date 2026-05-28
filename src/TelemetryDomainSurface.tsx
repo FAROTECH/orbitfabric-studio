@@ -1,14 +1,5 @@
-import { CoreDomainSurface } from "./CoreDomainSurface";
-import type {
-  DomainEntitySummary,
-  DomainSurfaceDefinition,
-} from "./domainSurfaceModel";
-import type {
-  CoreEntityIndex,
-  CoreModelSummary,
-  ProjectEntry,
-  WorkspaceInspection,
-} from "./types/workspace";
+import { createCoreDomainSurface } from "./CoreDomainSurface";
+import type { DomainSurfaceDefinition } from "./domainSurfaceModel";
 
 const telemetryDomainDefinition: DomainSurfaceDefinition = {
   id: "telemetry",
@@ -24,33 +15,9 @@ const telemetryDomainDefinition: DomainSurfaceDefinition = {
   ],
 };
 
-export function TelemetryDomainSurface({
-  workspace,
-  modelSummary,
-  entityIndex,
-  selectedEntity,
-  onSelectEntity,
-  onOpenFile,
-}: {
-  workspace: WorkspaceInspection;
-  modelSummary: CoreModelSummary | null;
-  entityIndex: CoreEntityIndex | null;
-  selectedEntity: DomainEntitySummary | null;
-  onSelectEntity: (entity: DomainEntitySummary) => void;
-  onOpenFile: (entry: ProjectEntry) => void;
-}) {
-  return (
-    <CoreDomainSurface
-      definition={telemetryDomainDefinition}
-      workspace={workspace}
-      modelSummary={modelSummary}
-      entityIndex={entityIndex}
-      selectedEntity={selectedEntity}
-      onSelectEntity={onSelectEntity}
-      onOpenFile={onOpenFile}
-      description="Read-only Telemetry domain surface backed by structural workspace inspection and Core-reported entity records."
-      boundary="This surface does not parse telemetry YAML semantically, does not render live telemetry, and does not implement telemetry archive or decoder runtime behavior."
-      emptySelectionDetail="Select a Core-reported telemetry entity to inspect its read-only detail."
-    />
-  );
-}
+export const TelemetryDomainSurface = createCoreDomainSurface({
+  definition: telemetryDomainDefinition,
+  description: "Read-only Telemetry domain surface backed by structural workspace inspection and Core-reported entity records.",
+  boundary: "This surface does not parse telemetry YAML semantically, does not render live telemetry, and does not implement telemetry archive or decoder runtime behavior.",
+  emptySelectionDetail: "Select a Core-reported telemetry entity to inspect its read-only detail.",
+});
