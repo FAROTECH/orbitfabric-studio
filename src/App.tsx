@@ -17,6 +17,8 @@ import { MissionCockpit } from "./MissionCockpit";
 import { SpacecraftDomainSurface } from "./SpacecraftDomainSurface";
 import { SubsystemsDomainSurface } from "./SubsystemsDomainSurface";
 import { ModesDomainSurface } from "./ModesDomainSurface";
+import { TelemetryDomainSurface } from "./TelemetryDomainSurface";
+import { CommandsDomainSurface } from "./CommandsDomainSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -698,6 +700,32 @@ function App() {
     if (activeSurface === "model-inventory" && activeNavigationId === "modes") {
       return (
         <ModesDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "telemetry") {
+      return (
+        <TelemetryDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "commands") {
+      return (
+        <CommandsDomainSurface
           workspace={workspace}
           modelSummary={modelSummary}
           entityIndex={entityIndex}
