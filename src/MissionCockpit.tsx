@@ -9,7 +9,10 @@ import { type ActiveSurface } from "./navigationModel";
 import {
   parseCoreCoverageSummary,
   parseCoreDashboardSummary,
+  parseCoreEntityIndex,
   parseCoreLintReport,
+  parseCoreModelSummary,
+  parseCoreRelationshipManifest,
   parseCoreScenarioRunIndex,
   parseCoreSimulationReport,
 } from "./coreReports";
@@ -41,6 +44,11 @@ export function MissionCockpit({
   const currentReportContent = coreResult?.json_report_content ?? null;
   const lintReport =
     parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport;
+  const modelSummary =
+    parseCoreModelSummary(currentReportContent) ?? coreReportSnapshots.modelSummary;
+  const entityIndex =
+    parseCoreEntityIndex(currentReportContent) ?? coreReportSnapshots.entityIndex;
+  const relationshipManifest = parseCoreRelationshipManifest(currentReportContent);
   const dashboardSummary =
     parseCoreDashboardSummary(currentReportContent) ??
     coreReportSnapshots.dashboardSummary;
@@ -54,9 +62,9 @@ export function MissionCockpit({
     parseCoreSimulationReport(currentReportContent) ??
     coreReportSnapshots.simulationReport;
   const missionDataFlowWorkbenchSnapshot = createMissionDataFlowWorkbenchSnapshot({
-    modelSummary: null,
-    entityIndex: null,
-    relationshipManifest: null,
+    modelSummary,
+    entityIndex,
+    relationshipManifest,
     dashboardSummary,
     simulationReport,
     coverageSummary,
