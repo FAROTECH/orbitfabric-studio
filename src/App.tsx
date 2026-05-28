@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ComponentType, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -119,6 +119,33 @@ interface StudioDetailSelection {
   title: string;
   source: string;
 }
+
+interface CoreDomainSurfaceComponentProps {
+  workspace: WorkspaceInspection;
+  modelSummary: CoreModelSummary | null;
+  entityIndex: CoreEntityIndex | null;
+  selectedEntity: DomainEntitySummary | null;
+  onSelectEntity: (entity: DomainEntitySummary) => void;
+  onOpenFile: (entry: ProjectEntry) => void;
+}
+
+const modelInventoryDomainSurfaceComponents: Partial<
+  Record<TargetDomainId, ComponentType<CoreDomainSurfaceComponentProps>>
+> = {
+  spacecraft: SpacecraftDomainSurface,
+  subsystems: SubsystemsDomainSurface,
+  modes: ModesDomainSurface,
+  telemetry: TelemetryDomainSurface,
+  commands: CommandsDomainSurface,
+  events: EventsDomainSurface,
+  faults: FaultsDomainSurface,
+  packets: PacketsDomainSurface,
+  payloads: PayloadsDomainSurface,
+  "data-products": DataProductsDomainSurface,
+  "contacts-downlink": ContactsDownlinkDomainSurface,
+  commandability: CommandabilityDomainSurface,
+};
+
 
 const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
   "mission-dashboard": "mission",
@@ -678,163 +705,23 @@ function App() {
       );
     }
 
-    if (activeSurface === "model-inventory" && activeNavigationId === "spacecraft") {
-      return (
-        <SpacecraftDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "subsystems") {
-      return (
-        <SubsystemsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "modes") {
-      return (
-        <ModesDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "telemetry") {
-      return (
-        <TelemetryDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "commands") {
-      return (
-        <CommandsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "events") {
-      return (
-        <EventsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "faults") {
-      return (
-        <FaultsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "packets") {
-      return (
-        <PacketsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "payloads") {
-      return (
-        <PayloadsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "data-products") {
-      return (
-        <DataProductsDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "contacts-downlink") {
-      return (
-        <ContactsDownlinkDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
-    if (activeSurface === "model-inventory" && activeNavigationId === "commandability") {
-      return (
-        <CommandabilityDomainSurface
-          workspace={workspace}
-          modelSummary={modelSummary}
-          entityIndex={entityIndex}
-          selectedEntity={selectedCoreDomainEntity}
-          onSelectEntity={handleSelectCoreDomainEntity}
-          onOpenFile={handleOpenFile}
-        />
-      );
-    }
-
     if (activeSurface === "model-inventory") {
+      const DomainSurfaceComponent =
+        modelInventoryDomainSurfaceComponents[activeNavigationId];
+
+      if (DomainSurfaceComponent) {
+        return (
+          <DomainSurfaceComponent
+            workspace={workspace}
+            modelSummary={modelSummary}
+            entityIndex={entityIndex}
+            selectedEntity={selectedCoreDomainEntity}
+            onSelectEntity={handleSelectCoreDomainEntity}
+            onOpenFile={handleOpenFile}
+          />
+        );
+      }
+
       return renderLegacyWorkspaceSurface("Model Inventory");
     }
 
