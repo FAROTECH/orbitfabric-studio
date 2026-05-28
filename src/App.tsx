@@ -21,6 +21,8 @@ import { TelemetryDomainSurface } from "./TelemetryDomainSurface";
 import { CommandsDomainSurface } from "./CommandsDomainSurface";
 import { EventsDomainSurface } from "./EventsDomainSurface";
 import { FaultsDomainSurface } from "./FaultsDomainSurface";
+import { PacketsDomainSurface } from "./PacketsDomainSurface";
+import { PayloadsDomainSurface } from "./PayloadsDomainSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -754,6 +756,32 @@ function App() {
     if (activeSurface === "model-inventory" && activeNavigationId === "faults") {
       return (
         <FaultsDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "packets") {
+      return (
+        <PacketsDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "payloads") {
+      return (
+        <PayloadsDomainSurface
           workspace={workspace}
           modelSummary={modelSummary}
           entityIndex={entityIndex}
