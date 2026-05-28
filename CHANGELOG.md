@@ -4,32 +4,98 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.10.0 - Mission Cockpit Consolidation`.
+OrbitFabric Studio is currently at `v0.11.0 - Domain Surfaces & Entity Detail System`.
 
-The active planning baseline is `v0.11.0 - Domain Surfaces & Entity Detail System`.
+The active planning baseline is `v0.12.0 - Mission Data Flow Workbench Foundation`.
 
 ---
 
 ## Unreleased
 
-### Planning
+No changes yet.
 
-- Rebaselined the immediate post-v0.10.0 direction toward `v0.11.0 - Domain Surfaces & Entity Detail System`.
-- Confirmed that domain surfaces must remain downstream from OrbitFabric Core and generated artifacts.
-- Confirmed that graph UI, React Flow, authoring and plugin-awareness remain deferred.
+---
+
+## v0.11.0 - Domain Surfaces & Entity Detail System
+
+Released milestone.
+
+This milestone introduces dedicated read-only Core-derived mission-domain surfaces and consistent entity list/detail inspection.
+
+v0.11.0 remains downstream from OrbitFabric Core.
+
+Studio does not add mission semantics. It renders Core-reported model summary and entity index data through dedicated domain surfaces, while preserving conservative boundaries and the contextual Inspector.
+
+### Added
+
+- Added reusable CoreDomainSurface pattern.
+- Added Core domain surface factory.
+- Added typed runtime registry for model-inventory domain surfaces.
+- Added dedicated read-only domain surfaces for:
+  - Spacecraft;
+  - Subsystems;
+  - Modes;
+  - Telemetry;
+  - Commands;
+  - Events;
+  - Faults;
+  - Packets;
+  - Payloads;
+  - Data Products;
+  - Contacts & Downlink;
+  - Commandability.
+- Added consistent Core entity list/detail inspection.
+- Added contextual Inspector binding for selected Core entities.
+- Added v0.11.0 release notes.
+- Added v0.11.0 release checklist.
+
+### Changed
+
+- Promoted implemented mission-domain navigation entries from reserved to available.
+- Kept Data Products, Contacts & Downlink and Commandability conservative.
+- Kept Autonomy reserved.
+- Replaced repeated model-inventory domain rendering branches with a typed registry.
+- Converted domain surface wrappers into declarative exports backed by a shared factory.
+- Updated Studio, package lock, Tauri and Cargo metadata to `0.11.0`.
+
+### Release notes
+
+```text
+docs/releases/v0.11.0-release-notes.md
+```
+
+### Checklist
+
+```text
+V0_11_0_RELEASE_CHECKLIST.md
+```
 
 ### Not Included
 
-- No code changes.
 - No new OrbitFabric Core semantics.
+- No Mission Model editing.
+- No generated artifact editing.
+- No generated artifact mutation.
+- No visual authoring.
 - No graph UI.
 - No React Flow adoption.
-- No authoring.
 - No plugin execution.
-- No generated artifact mutation.
+- No plugin marketplace.
+- No live telemetry.
+- No telemetry archive behavior.
+- No command uplink behavior.
+- No mission control behavior.
 - No operational ground behavior.
-- No command uplink.
-- No live telemetry behavior.
+- No private YAML semantic parsing.
+- No private relationship inference.
+- No private coverage calculation.
+- No private mission health calculation.
+- No private readiness calculation.
+- No private model completeness calculation.
+- No command authorization.
+- No command scheduling.
+- No command execution.
+- No Autonomy promotion.
 
 ---
 

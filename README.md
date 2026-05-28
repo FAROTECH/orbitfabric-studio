@@ -13,13 +13,13 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.10.0 - Mission Cockpit Consolidation
-Active planning baseline: v0.11.0 - Domain Surfaces & Entity Detail System
+Current released baseline: v0.11.0 - Domain Surfaces & Entity Detail System
+Active planning baseline: v0.12.0 - Mission Data Flow Workbench Foundation
 ```
 
-The current implementation baseline is `v0.10.0`.
+The current implementation baseline is `v0.11.0`.
 
-The next implementation milestone is `v0.11.0 - Domain Surfaces & Entity Detail System`.
+The next implementation milestone is `v0.12.0 - Mission Data Flow Workbench Foundation`.
 
 The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
@@ -29,17 +29,17 @@ The accepted UI convergence direction is documented in:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 ```
 
-The v0.10.0 release notes are documented in:
+The v0.11.0 release notes are documented in:
 
 ```text
-docs/releases/v0.10.0-release-notes.md
+docs/releases/v0.11.0-release-notes.md
 ```
 
 ---
 
 ## Current Implementation State
 
-v0.10.0 implements a local-first Tauri 2 and React Mission Cockpit workbench for read-only inspection of OrbitFabric workspaces.
+v0.11.0 implements a local-first Tauri 2 and React Mission Cockpit workbench with dedicated read-only Core-derived mission-domain surfaces.
 
 Implemented areas include:
 
@@ -62,7 +62,10 @@ Implemented areas include:
 - no-Inspector Mission dashboard layout;
 - stabilized sidebar, main surface, Inspector and shell status bar grid;
 - provenance, status and severity badge system;
-- explicit read-only and Core-derived boundaries.
+- explicit read-only and Core-derived boundaries;
+- dedicated Core-derived domain surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
+- consistent Core entity list/detail inspection through the contextual Inspector;
+- Autonomy preserved as a reserved domain.
 
 Studio remains downstream from OrbitFabric Core.
 
@@ -72,7 +75,7 @@ OrbitFabric Core remains authoritative for validation, scenario evidence, genera
 
 ## Current UI Direction
 
-The v0.10.0 UI consolidates the mission-domain shell into a clearer Mission Cockpit entry point while preserving the accepted target domain grammar.
+The v0.11.0 UI keeps the Mission Cockpit as the entry point and adds dedicated Core-derived domain surfaces for implemented mission-domain navigation items.
 
 The primary sidebar now follows the accepted target domain grammar:
 
@@ -95,19 +98,19 @@ Scenarios
 Generated Artifacts
 ```
 
-Reserved domains remain conservative until dedicated domain surfaces exist.
+Autonomy remains reserved until an explicit Core-derived implementation path exists.
 
 Diagnostic and developer-oriented surfaces remain accessible, but they do not define the primary navigation model.
 
 ---
 
-## v0.11.0 Direction
+## v0.12.0 Direction
 
-v0.11.0 is a Domain Surfaces & Entity Detail System milestone.
+v0.12.0 is a Mission Data Flow Workbench Foundation milestone.
 
-It should introduce dedicated domain surfaces and consistent entity list/detail patterns for mission-domain navigation items, using Core-derived or generated data only.
+It should introduce the first data-flow workbench foundation using Core-derived or generated data only.
 
-v0.11.0 must not introduce:
+v0.12.0 must not introduce:
 
 - new OrbitFabric Core semantics;
 - Mission Model editing;

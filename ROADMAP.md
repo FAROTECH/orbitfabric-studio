@@ -15,13 +15,13 @@ Studio is downstream.
 ## Current Baseline
 
 ```text
-Current released baseline: v0.10.0 - Mission Cockpit Consolidation
-Active planning baseline: v0.11.0 - Domain Surfaces & Entity Detail System
+Current released baseline: v0.11.0 - Domain Surfaces & Entity Detail System
+Active planning baseline: v0.12.0 - Mission Data Flow Workbench Foundation
 ```
 
-v0.10.0 is the current implementation baseline.
+v0.11.0 is the current implementation baseline.
 
-v0.11.0 is the next implementation milestone.
+v0.12.0 is the next implementation milestone.
 
 The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
@@ -31,16 +31,16 @@ Reference planning document:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 ```
 
-v0.10.0 release notes:
+v0.11.0 release notes:
 
 ```text
-docs/releases/v0.10.0-release-notes.md
+docs/releases/v0.11.0-release-notes.md
 ```
 
-v0.10.0 release checklist:
+v0.11.0 release checklist:
 
 ```text
-V0_10_0_RELEASE_CHECKLIST.md
+V0_11_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -214,6 +214,38 @@ Release checklist:
 
 ```text
 V0_10_0_RELEASE_CHECKLIST.md
+```
+
+### v0.11.0 - Domain Surfaces & Entity Detail System
+
+Status: Completed
+
+Introduced dedicated read-only Core-derived mission-domain surfaces and consistent entity list/detail inspection.
+
+v0.11.0 introduced:
+
+- reusable CoreDomainSurface pattern;
+- domain surface runtime registry;
+- Core domain surface factory;
+- dedicated surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
+- contextual Inspector binding for selected Core entities;
+- conservative handling for Data Products, Contacts & Downlink and Commandability;
+- Autonomy retained as reserved;
+- release notes and checklist;
+- metadata alignment to `0.11.0`.
+
+v0.11.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private YAML semantic parsing, private relationship inference, private mission health calculation, private readiness calculation or private model completeness calculation.
+
+Release notes:
+
+```text
+docs/releases/v0.11.0-release-notes.md
+```
+
+Release checklist:
+
+```text
+V0_11_0_RELEASE_CHECKLIST.md
 ```
 
 ---
