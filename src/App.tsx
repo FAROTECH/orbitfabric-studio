@@ -23,6 +23,8 @@ import { EventsDomainSurface } from "./EventsDomainSurface";
 import { FaultsDomainSurface } from "./FaultsDomainSurface";
 import { PacketsDomainSurface } from "./PacketsDomainSurface";
 import { PayloadsDomainSurface } from "./PayloadsDomainSurface";
+import { DataProductsDomainSurface } from "./DataProductsDomainSurface";
+import { ContactsDownlinkDomainSurface } from "./ContactsDownlinkDomainSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
@@ -782,6 +784,32 @@ function App() {
     if (activeSurface === "model-inventory" && activeNavigationId === "payloads") {
       return (
         <PayloadsDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "data-products") {
+      return (
+        <DataProductsDomainSurface
+          workspace={workspace}
+          modelSummary={modelSummary}
+          entityIndex={entityIndex}
+          selectedEntity={selectedCoreDomainEntity}
+          onSelectEntity={handleSelectCoreDomainEntity}
+          onOpenFile={handleOpenFile}
+        />
+      );
+    }
+
+    if (activeSurface === "model-inventory" && activeNavigationId === "contacts-downlink") {
+      return (
+        <ContactsDownlinkDomainSurface
           workspace={workspace}
           modelSummary={modelSummary}
           entityIndex={entityIndex}
