@@ -449,8 +449,13 @@ export function MissionCockpit({
                   <strong>{run.result}</strong>
                 </div>
               ))
+            ) : scenarioRunIndex ? (
+              <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                <strong>Scenario index reported</strong>
+                <span>No scenario runs indexed yet.</span>
+              </div>
             ) : (
-              <div className="cockpit-empty-module">
+              <div className="cockpit-empty-module cockpit-empty-module-dormant">
                 <strong>No scenario index</strong>
                 <span>Run scenario-run-index to populate this module.</span>
               </div>

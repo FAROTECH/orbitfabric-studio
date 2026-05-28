@@ -16,6 +16,21 @@ No changes yet.
 
 ---
 
+## v0.11.1
+
+Runtime UI triage hotfix for v0.11.0.
+
+### Fixed
+
+- Reset main content scroll position when navigating between Studio surfaces.
+- Clarified source file inspection behavior across domain surfaces.
+- Added explicit reserved Autonomy state instead of generic legacy fallback.
+- Fixed Scenario / Recent runs empty-state copy when the scenario index is reported but empty.
+
+### Notes
+
+- No v0.12.0 functionality is introduced in this release.
+
 ## v0.11.0 - Domain Surfaces & Entity Detail System
 
 Released milestone.
