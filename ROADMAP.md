@@ -15,13 +15,13 @@ Studio is downstream.
 ## Current Baseline
 
 ```text
-Current released baseline: v0.9.0 - Semantic Navigation & Unified Shell
-Active planning baseline: v0.10.0 - Mission Cockpit Consolidation
+Current released baseline: v0.10.0 - Mission Cockpit Consolidation
+Active planning baseline: v0.11.0 - Domain Surfaces & Entity Detail System
 ```
 
-v0.9.0 is the current implementation baseline.
+v0.10.0 is the current implementation baseline.
 
-v0.10.0 is the next implementation milestone.
+v0.11.0 is the next implementation milestone.
 
 The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
@@ -31,16 +31,16 @@ Reference planning document:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 ```
 
-v0.9.0 release notes:
+v0.10.0 release notes:
 
 ```text
-docs/releases/v0.9.0-release-notes.md
+docs/releases/v0.10.0-release-notes.md
 ```
 
-v0.9.0 release checklist:
+v0.10.0 release checklist:
 
 ```text
-V0_9_0_RELEASE_CHECKLIST.md
+V0_10_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -184,6 +184,38 @@ Release checklist:
 V0_9_0_RELEASE_CHECKLIST.md
 ```
 
+### v0.10.0 - Mission Cockpit Consolidation
+
+Status: Completed
+
+Consolidated the Mission Dashboard into a clearer Mission Cockpit without adding new OrbitFabric Core semantics.
+
+v0.10.0 introduced:
+
+- Mission Cockpit visual hierarchy consolidation;
+- reported evidence lanes;
+- clearer cockpit provenance vocabulary;
+- no-Inspector Mission dashboard layout;
+- stabilized sidebar, main surface, Inspector and shell status bar placement;
+- active navigation tracking by mission-domain item;
+- CSS consolidation after visual polish;
+- release notes and checklist;
+- metadata alignment to `0.10.0`.
+
+v0.10.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private mission health calculation, private readiness calculation or private model completeness calculation.
+
+Release notes:
+
+```text
+docs/releases/v0.10.0-release-notes.md
+```
+
+Release checklist:
+
+```text
+V0_10_0_RELEASE_CHECKLIST.md
+```
+
 ---
 
 ## Accepted UI Convergence Direction
@@ -210,7 +242,7 @@ v0.15.0 - Plugin-aware Studio Surface
 
 # v0.10.0 - Mission Cockpit Consolidation
 
-Status: Active planning
+Status: Completed
 
 Nature: cockpit consolidation and provenance clarity slice
 
@@ -286,7 +318,7 @@ v0.10.0 may use only:
 
 v0.10.0 is complete when:
 
-1. README, CHANGELOG and ROADMAP identify `v0.9.0 - Semantic Navigation & Unified Shell` as the current released baseline and `v0.10.0 - Mission Cockpit Consolidation` as the active or completed milestone.
+1. README, CHANGELOG and ROADMAP identify `v0.10.0 - Mission Cockpit Consolidation` as the current released baseline and `v0.11.0 - Domain Surfaces & Entity Detail System` as the active planning milestone.
 2. The Mission Cockpit no longer contains readiness, health or completeness vocabulary except as explicit non-goals or unsupported states.
 3. Cockpit cards clearly distinguish Core-derived reports, generated artifacts, structural workspace inspection and UI state.
 4. Missing Core data is shown as `unavailable`, `not reported`, `reserved` or `diagnostic`.
@@ -298,7 +330,7 @@ v0.10.0 is complete when:
 
 # v0.11.0 - Domain Surfaces & Entity Detail System
 
-Status: Planned
+Status: Active planning
 
 Purpose: Introduce real semantic domain surfaces and consistent entity list/detail patterns using Core-derived or generated data only.
 

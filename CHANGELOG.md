@@ -4,9 +4,9 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.9.0 - Semantic Navigation & Unified Shell`.
+OrbitFabric Studio is currently at `v0.10.0 - Mission Cockpit Consolidation`.
 
-The active planning baseline is `v0.10.0 - Mission Cockpit Consolidation`.
+The active planning baseline is `v0.11.0 - Domain Surfaces & Entity Detail System`.
 
 ---
 
@@ -14,9 +14,9 @@ The active planning baseline is `v0.10.0 - Mission Cockpit Consolidation`.
 
 ### Planning
 
-- Rebaselined the immediate post-v0.9.0 direction toward `v0.10.0 - Mission Cockpit Consolidation`.
-- Confirmed that plugin-awareness remains deferred until the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
-- Confirmed that v0.10.0 must consolidate the Mission Cockpit using only Core-derived reports, generated artifact inventory, structural workspace inspection or explicit `unavailable`, `not reported`, `reserved` and `diagnostic` states.
+- Rebaselined the immediate post-v0.10.0 direction toward `v0.11.0 - Domain Surfaces & Entity Detail System`.
+- Confirmed that domain surfaces must remain downstream from OrbitFabric Core and generated artifacts.
+- Confirmed that graph UI, React Flow, authoring and plugin-awareness remain deferred.
 
 ### Not Included
 
@@ -30,7 +30,73 @@ The active planning baseline is `v0.10.0 - Mission Cockpit Consolidation`.
 - No operational ground behavior.
 - No command uplink.
 - No live telemetry behavior.
-- No frontend-inferred mission health, operational readiness, model completeness or private coverage semantics.
+
+---
+
+## v0.10.0 - Mission Cockpit Consolidation
+
+Released milestone.
+
+This milestone consolidates the Mission Dashboard into a clearer Mission Cockpit.
+
+v0.10.0 remains downstream from OrbitFabric Core.
+
+Studio does not add mission semantics. It improves the read-only Mission Cockpit, reported evidence presentation, cockpit provenance vocabulary and shell layout stability.
+
+### Added
+
+- Added dedicated Mission Cockpit implementation path around the mission dashboard.
+- Added extracted Mission Cockpit model, KPI card, evidence lane and panel header components.
+- Added denser Mission Cockpit visual hierarchy aligned with the accepted UI north star direction.
+- Added reported evidence lanes for contract, validation, scenario, coverage and artifact state.
+- Added active navigation tracking by mission-domain item instead of only by destination surface.
+- Added v0.10.0 release notes.
+- Added v0.10.0 release checklist.
+
+### Changed
+
+- Reworked the Mission Dashboard into a Mission Cockpit entry point.
+- Updated stale no-workspace hero version copy away from old v0.7.2 wording.
+- Kept the Mission Cockpit dashboard free from the Inspector so the cockpit has enough horizontal space.
+- Preserved Inspector behavior for detail-oriented surfaces.
+- Prevented sidebar hash navigation from scrolling the shell when switching surfaces.
+- Stabilized sidebar, main surface, Inspector and shell status bar grid placement.
+- Consolidated duplicated Mission Cockpit shell CSS after visual polish.
+- Updated Studio, package lock, Tauri and Cargo metadata to `0.10.0`.
+
+### Release notes
+
+```text
+docs/releases/v0.10.0-release-notes.md
+```
+
+### Checklist
+
+```text
+V0_10_0_RELEASE_CHECKLIST.md
+```
+
+### Not Included
+
+- No new OrbitFabric Core semantics.
+- No Mission Model editing.
+- No generated artifact editing.
+- No generated artifact mutation.
+- No visual authoring.
+- No graph UI.
+- No React Flow adoption.
+- No plugin execution.
+- No plugin marketplace.
+- No live telemetry.
+- No telemetry archive behavior.
+- No command uplink behavior.
+- No mission control behavior.
+- No operational ground behavior.
+- No private YAML semantic parsing.
+- No private coverage calculation.
+- No private mission health calculation.
+- No private readiness calculation.
+- No private model completeness calculation.
 
 ---
 

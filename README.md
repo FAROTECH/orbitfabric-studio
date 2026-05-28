@@ -13,13 +13,13 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current released baseline: v0.9.0 - Semantic Navigation & Unified Shell
-Active planning baseline: v0.10.0 - Mission Cockpit Consolidation
+Current released baseline: v0.10.0 - Mission Cockpit Consolidation
+Active planning baseline: v0.11.0 - Domain Surfaces & Entity Detail System
 ```
 
-The current implementation baseline is `v0.9.0`.
+The current implementation baseline is `v0.10.0`.
 
-The next implementation milestone is `v0.10.0 - Mission Cockpit Consolidation`.
+The next implementation milestone is `v0.11.0 - Domain Surfaces & Entity Detail System`.
 
 The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
@@ -29,17 +29,17 @@ The accepted UI convergence direction is documented in:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 ```
 
-The v0.9.0 release notes are documented in:
+The v0.10.0 release notes are documented in:
 
 ```text
-docs/releases/v0.9.0-release-notes.md
+docs/releases/v0.10.0-release-notes.md
 ```
 
 ---
 
 ## Current Implementation State
 
-v0.9.0 implements a local-first Tauri 2 and React workbench for read-only inspection of OrbitFabric workspaces.
+v0.10.0 implements a local-first Tauri 2 and React Mission Cockpit workbench for read-only inspection of OrbitFabric workspaces.
 
 Implemented areas include:
 
@@ -57,6 +57,10 @@ Implemented areas include:
 - persistent contextual Inspector;
 - model-backed shell command bar;
 - global shell status bar;
+- Mission Cockpit visual hierarchy consolidation;
+- reported evidence lanes for contract, validation, scenario, coverage and artifacts;
+- no-Inspector Mission dashboard layout;
+- stabilized sidebar, main surface, Inspector and shell status bar grid;
 - provenance, status and severity badge system;
 - explicit read-only and Core-derived boundaries.
 
@@ -68,7 +72,7 @@ OrbitFabric Core remains authoritative for validation, scenario evidence, genera
 
 ## Current UI Direction
 
-The v0.9.0 UI moved Studio away from implementation-surface navigation and toward mission-domain navigation.
+The v0.10.0 UI consolidates the mission-domain shell into a clearer Mission Cockpit entry point while preserving the accepted target domain grammar.
 
 The primary sidebar now follows the accepted target domain grammar:
 
@@ -97,36 +101,24 @@ Diagnostic and developer-oriented surfaces remain accessible, but they do not de
 
 ---
 
-## v0.10.0 Direction
+## v0.11.0 Direction
 
-v0.10.0 is a Mission Cockpit consolidation milestone.
+v0.11.0 is a Domain Surfaces & Entity Detail System milestone.
 
-It must improve the Mission Dashboard as the central cockpit while preserving the Core-derived boundary.
+It should introduce dedicated domain surfaces and consistent entity list/detail patterns for mission-domain navigation items, using Core-derived or generated data only.
 
-v0.10.0 should consolidate:
-
-- Mission Dashboard hierarchy;
-- cockpit cards;
-- provenance visibility;
-- unavailable and not reported states;
-- distinction among source model, Core-derived report, generated output and UI state;
-- recent validation, scenario, coverage and artifact summary presentation.
-
-v0.10.0 must not introduce:
+v0.11.0 must not introduce:
 
 - new OrbitFabric Core semantics;
-- mission health scoring;
-- operational readiness scoring;
-- model completeness scoring;
-- private coverage calculation;
+- Mission Model editing;
+- generated artifact mutation;
 - graph UI;
 - React Flow;
 - authoring;
 - plugin behavior;
 - operational ground behavior;
 - live telemetry behavior;
-- command uplink behavior;
-- generated artifact mutation.
+- command uplink behavior.
 
 ---
 
