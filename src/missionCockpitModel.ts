@@ -1,13 +1,17 @@
 import type {
   CoreCoverageSummary,
   CoreDashboardSummary,
+  CoreEntityIndex,
   CoreLintReport,
+  CoreModelSummary,
   CoreScenarioRunIndex,
   CoreSimulationReport,
 } from "./types/workspace";
 
 export interface CoreReportSnapshots {
   lintReport: CoreLintReport | null;
+  modelSummary: CoreModelSummary | null;
+  entityIndex: CoreEntityIndex | null;
   dashboardSummary: CoreDashboardSummary | null;
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
