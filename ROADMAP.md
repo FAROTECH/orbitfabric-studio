@@ -15,26 +15,37 @@ Studio is downstream.
 ## Current Baseline
 
 ```text
-Current released baseline: v0.11.0 - Domain Surfaces & Entity Detail System
+Current implementation baseline: v0.11.1 - Runtime UI triage hotfix
+Current released milestone: v0.11.0 - Domain Surfaces & Entity Detail System
 Active planning baseline: v0.12.0 - Mission Data Flow Workbench Foundation
 ```
 
-v0.11.0 is the current implementation baseline.
+v0.11.1 is the current implementation baseline.
+
+v0.11.1 is a runtime UI triage hotfix over the released v0.11.0 milestone. It does not introduce v0.12.0 functionality.
 
 v0.12.0 is the next implementation milestone.
 
 The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
 
-Reference planning document:
+Reference planning documents:
 
 ```text
 docs/roadmap/studio-target-ui-convergence-strategy.md
+docs/roadmap/studio-ui-north-star-reference.md
+docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
 ```
 
 v0.11.0 release notes:
 
 ```text
 docs/releases/v0.11.0-release-notes.md
+```
+
+v0.11.1 release notes:
+
+```text
+docs/releases/v0.11.1-release-notes.md
 ```
 
 v0.11.0 release checklist:
@@ -248,6 +259,66 @@ Release checklist:
 V0_11_0_RELEASE_CHECKLIST.md
 ```
 
+### v0.11.1 - Runtime UI triage hotfix
+
+Status: Completed
+
+Prepared the real implementation baseline for v0.12.0 by fixing runtime UI issues after v0.11.0 without introducing Mission Data Flow Workbench functionality.
+
+v0.11.1 fixed:
+
+- main content scroll reset when navigating between Studio surfaces;
+- source file inspection copy across domain surfaces;
+- explicit reserved Autonomy surface routing;
+- Scenario / Recent runs empty-state copy when the scenario run index exists but contains no runs.
+
+v0.11.1 does not introduce Mission Data Flow Workbench, React Flow, graph UI, authoring, plugin behavior, command uplink, live telemetry, Autonomy implementation or generated artifact semantic mutation.
+
+Release notes:
+
+```text
+docs/releases/v0.11.1-release-notes.md
+```
+
+---
+
+## Active Planning Baseline
+
+### v0.12.0 - Mission Data Flow Workbench Foundation
+
+Status: Active planning
+
+v0.12.0 must introduce the first read-only, Core-derived Mission Data Flow Workbench foundation.
+
+It must be guided by Reference B in:
+
+```text
+docs/roadmap/studio-ui-north-star-reference.md
+```
+
+The implementation boundary is defined in:
+
+```text
+docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
+```
+
+v0.12.0 must build on v0.11.1 and preserve the existing Mission Cockpit, domain surfaces, Inspector, generated artifact and ground artifact inspection boundaries.
+
+Allowed source categories:
+
+- Core model summary;
+- Core entity index;
+- Core relationship manifest;
+- Core dashboard summary;
+- Core scenario run index;
+- Core coverage summary;
+- Core simulation report;
+- reported simulation data-flow evidence;
+- generated artifact inventory;
+- explicit unavailable, not reported, reserved or diagnostic states.
+
+v0.12.0 must not introduce React Flow, full graph UI, visual authoring, Mission Model editing, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private relationship inference, private data-flow inference, health calculation, readiness calculation or completeness calculation.
+
 ---
 
 ## Accepted UI Convergence Direction
@@ -258,7 +329,7 @@ UI north star reference:
 
 `docs/roadmap/studio-ui-north-star-reference.md`
 
-Accepted roadmap:
+Accepted roadmap direction:
 
 ```text
 v0.9.0  - Semantic Navigation & Unified Shell
@@ -269,143 +340,3 @@ v0.13.0 - Evidence-integrated Workbench
 v0.14.0 - Artifact Traceability Integration
 v0.15.0 - Plugin-aware Studio Surface
 ```
-
----
-
-# v0.10.0 - Mission Cockpit Consolidation
-
-Status: Completed
-
-Nature: cockpit consolidation and provenance clarity slice
-
-Primary loop:
-
-```text
-Open workspace -> Inspect Mission cockpit -> Understand reported, unavailable and generated state
-```
-
-## Goal
-
-Consolidate the Mission Dashboard into a clearer Mission Cockpit without adding new OrbitFabric Core semantics.
-
-The milestone is not a graph milestone, not an authoring milestone and not a plugin milestone.
-
-It must make the Mission surface more useful while preserving the rule that OrbitFabric Core owns mission semantics.
-
-## Scope
-
-- Mission Dashboard visual hierarchy consolidation;
-- cockpit card copy cleanup;
-- explicit provenance for cockpit data;
-- clearer unavailable and not reported states;
-- clearer distinction among source model, Core-derived report, generated output and UI state;
-- recent validation result presentation;
-- recent scenario run index presentation;
-- generated artifact inventory presentation;
-- coverage summary presentation only where Core reports it;
-- no new Core semantics.
-
-## Data Allowed
-
-v0.10.0 may use only:
-
-- structural workspace inspection already returned by Studio backend;
-- Core-derived reports already parsed by Studio;
-- generated artifact inventory already returned by Studio backend;
-- local UI state required to display the selected workspace or selected surface;
-- explicit `unavailable`, `not reported`, `reserved` or `diagnostic` states.
-
-## Explicit Non-goals
-
-- no Mission Model editing;
-- no generated artifact editing;
-- no generated artifact mutation;
-- no visual authoring;
-- no graph UI;
-- no React Flow adoption;
-- no plugin execution;
-- no plugin marketplace;
-- no live telemetry;
-- no telemetry archive behavior;
-- no command uplink behavior;
-- no mission control behavior;
-- no operational ground behavior;
-- no private YAML semantic parsing;
-- no private coverage calculation;
-- no private mission health calculation;
-- no private readiness calculation;
-- no private model completeness calculation.
-
-## Recommended PR Sequence
-
-1. Documentation rebaseline after v0.9.0 closure.
-2. v0.10.0 planning note.
-3. Cockpit vocabulary cleanup.
-4. Cockpit provenance and unavailable-state clarification.
-5. KPI card copy normalization.
-6. Mechanical Mission Cockpit extraction if needed.
-7. v0.10.0 release closure.
-
-## Exit Criteria
-
-v0.10.0 is complete when:
-
-1. README, CHANGELOG and ROADMAP identify `v0.10.0 - Mission Cockpit Consolidation` as the current released baseline and `v0.11.0 - Domain Surfaces & Entity Detail System` as the active planning milestone.
-2. The Mission Cockpit no longer contains readiness, health or completeness vocabulary except as explicit non-goals or unsupported states.
-3. Cockpit cards clearly distinguish Core-derived reports, generated artifacts, structural workspace inspection and UI state.
-4. Missing Core data is shown as `unavailable`, `not reported`, `reserved` or `diagnostic`.
-5. Studio does not compute private mission health, operational readiness, model completeness or coverage semantics.
-6. No graph, React Flow, authoring, plugin execution, command uplink, live telemetry or generated artifact mutation is introduced.
-7. `npm run build` and `cargo check --manifest-path src-tauri/Cargo.toml` are run locally before release closure.
-
----
-
-# v0.11.0 - Domain Surfaces & Entity Detail System
-
-Status: Active planning
-
-Purpose: Introduce real semantic domain surfaces and consistent entity list/detail patterns using Core-derived or generated data only.
-
----
-
-# v0.12.0 - Mission Data Flow Workbench Foundation
-
-Status: Planned
-
-Purpose: Introduce the foundational graph/data-flow workspace only from Core-derived or report-derived relationship data.
-
-Non-goals: no invented graph semantics, no arbitrary graph editing, no authoring, no plugin execution.
-
----
-
-# v0.13.0 - Evidence-integrated Workbench
-
-Status: Planned
-
-Purpose: Integrate scenario evidence, validation and timeline into the workbench.
-
-Non-goals: no private scenario runner, no log-derived evidence, no dynamic spacecraft simulator, no live telemetry.
-
----
-
-# v0.14.0 - Artifact Traceability Integration
-
-Status: Planned
-
-Purpose: Connect generated artifacts, runtime outputs and ground artifacts into mission flow traceability where Core provides safe references.
-
-Non-goals: no generated artifact mutation, no runtime execution, no ground segment behavior, no command uplink, no live decoder.
-
----
-
-# v0.15.0 - Plugin-aware Studio Surface
-
-Status: Deferred
-
-Purpose: Introduce plugin-awareness only after the shell, navigation, Inspector, cockpit and workbench foundations are stable.
-
-Non-goals until v0.15.0:
-
-- no plugin execution;
-- no plugin marketplace;
-- no plugin-authored mission semantics inside Studio.
