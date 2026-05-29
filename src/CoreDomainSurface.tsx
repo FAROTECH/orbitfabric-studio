@@ -136,23 +136,24 @@ function createCoreDomainSnapshot(
   entityIndex: CoreEntityIndex | null,
   definition: DomainSurfaceDefinition,
 ): DomainSurfaceSnapshot {
+  const coreDomainIds = resolveCoreDomainIds(definition);
   const sourceFile = definition.expectedSourceFile
     ? workspace.source_model_files.find(
         (entry) => entry.name === definition.expectedSourceFile,
       ) ?? null
     : null;
 
-  const modelSummaryDomain = definition.coreDomainId
-    ? modelSummary?.domains.find((domain) => domain.id === definition.coreDomainId) ?? null
+  const modelSummaryDomain = coreDomainIds.length > 0
+    ? modelSummary?.domains.find((domain) => coreDomainIds.includes(domain.id)) ?? null
     : null;
 
-  const entityIndexDomain = definition.coreDomainId
-    ? entityIndex?.domains.find((domain) => domain.id === definition.coreDomainId) ?? null
+  const entityIndexDomain = coreDomainIds.length > 0
+    ? entityIndex?.domains.find((domain) => coreDomainIds.includes(domain.id)) ?? null
     : null;
 
-  const entities = definition.coreDomainId
+  const entities = coreDomainIds.length > 0
     ? entityIndex?.entities
-        .filter((entity) => entity.domain === definition.coreDomainId)
+        .filter((entity) => coreDomainIds.includes(entity.domain))
         .map(toDomainEntitySummary) ?? []
     : [];
 
@@ -178,6 +179,14 @@ function createCoreDomainSnapshot(
     entityCount: entities.length,
     entities,
   };
+}
+
+function resolveCoreDomainIds(definition: DomainSurfaceDefinition): readonly string[] {
+  if (definition.coreDomainIds && definition.coreDomainIds.length > 0) {
+    return definition.coreDomainIds;
+  }
+
+  return definition.coreDomainId ? [definition.coreDomainId] : [];
 }
 
 function toDomainEntitySummary(entity: CoreEntityIndexEntity): DomainEntitySummary {
