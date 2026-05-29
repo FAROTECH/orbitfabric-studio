@@ -36,6 +36,7 @@ export interface DomainSurfaceDefinition {
   id: TargetDomainId;
   label: string;
   coreDomainId: string | null;
+  coreDomainIds?: readonly string[];
   expectedSourceFile: string | null;
   lifecycleStatus: DomainSurfaceLifecycleStatus;
   dataSources: readonly DomainSurfaceDataSource[];
