@@ -82,11 +82,12 @@ export function MissionDataFlowWorkbenchSurface({
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="VALIDATION + COVERAGE" />
+          <StatusBadge label="REFERENCE B POLISH" />
         </div>
       </div>
 
       <MissionDataFlowWorkbenchTabs />
+      <MissionDataFlowWorkbenchEvidenceSummary snapshot={snapshot} />
 
       <div
         className="cockpit-work-grid mission-data-flow-workbench-grid"
@@ -161,6 +162,51 @@ function MissionDataFlowWorkbenchTabs() {
   );
 }
 
+function MissionDataFlowWorkbenchEvidenceSummary({
+  snapshot,
+}: {
+  snapshot: MissionDataFlowWorkbenchSnapshot;
+}) {
+  return (
+    <section
+      className="entry-section muted-section"
+      aria-label="Mission Data Flow Workbench evidence summary"
+    >
+      <div className="entry-main">
+        <div>
+          <span className="cockpit-eyebrow">Evidence posture</span>
+          <h3>Reported Workbench inputs</h3>
+          <p>
+            Compact Reference B rail for the current Workbench state. Counts come
+            directly from the Core-derived snapshot.
+          </p>
+        </div>
+        <DashboardIcon kind="evidence" />
+      </div>
+
+      <div className="summary-grid">
+        <WorkbenchCount
+          label="Relationship records"
+          value={snapshot.counts.relationshipRecords}
+        />
+        <WorkbenchCount
+          label="Scenario evidence"
+          value={snapshot.counts.scenarioDataFlowEvidenceRecords}
+        />
+        <WorkbenchCount
+          label="Validation evidence"
+          value={snapshot.counts.validationEvidenceRecords}
+        />
+        <WorkbenchCount label="Coverage records" value={snapshot.counts.coverageScopes} />
+        <div className="summary-item">
+          <span>Boundary</span>
+          <strong>{snapshot.boundary.readOnly ? "read-only" : "unavailable"}</strong>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function MissionDataFlowWorkbenchToolbar({
   snapshot,
 }: {
@@ -172,9 +218,8 @@ function MissionDataFlowWorkbenchToolbar({
         <span className="cockpit-eyebrow">Graph View</span>
         <h3>Reported flow foundation</h3>
         <p>
-          Layout: left to right. Filters: Core-reported records only. Selectable
-          nodes, edges and evidence records update the local read-only Workbench
-          Inspector.
+          Select reported nodes, edges and evidence records to inspect their Core
+          provenance. The canvas remains a read-only visual foundation.
         </p>
       </div>
       <div className="badge-row">
