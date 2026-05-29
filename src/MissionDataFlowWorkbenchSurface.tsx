@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { DashboardIcon } from "./DashboardIcon";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import type {
@@ -14,6 +16,7 @@ interface WorkbenchCanvasNode {
   kind: string;
   provenance: string;
   detail: string;
+  raw: unknown;
 }
 
 interface WorkbenchCanvasEdge {
@@ -23,6 +26,18 @@ interface WorkbenchCanvasEdge {
   toLabel: string;
   relationshipType: string;
   detail: string;
+  raw: unknown;
+}
+
+interface WorkbenchInspectorSelection {
+  id: string;
+  label: string;
+  kind: string;
+  evidenceKind: string;
+  state: string;
+  provenance: string;
+  detail: string;
+  raw: unknown;
 }
 
 export function MissionDataFlowWorkbenchSurface({
@@ -31,9 +46,14 @@ export function MissionDataFlowWorkbenchSurface({
   snapshot: MissionDataFlowWorkbenchSnapshot;
 }) {
   const primaryRecord = findPrimaryInspectorRecord(snapshot);
+  const [selectedInspectorItem, setSelectedInspectorItem] =
+    useState<WorkbenchInspectorSelection | null>(null);
+  const inspectorSelection =
+    selectedInspectorItem ?? toInspectorSelectionFromRecord(primaryRecord);
   const scenarioLane = snapshot.lanes.find(
     (lane) => lane.id === "scenario-data-flow-evidence",
   );
+  const validationLane = snapshot.lanes.find((lane) => lane.id === "validation");
   const coverageLane = snapshot.lanes.find((lane) => lane.id === "coverage");
   const relationshipLane = snapshot.lanes.find(
     (lane) => lane.id === "relationship-manifest",
@@ -47,18 +67,19 @@ export function MissionDataFlowWorkbenchSurface({
     >
       <div className="file-viewer-header">
         <div>
-          <span className="cockpit-eyebrow">v0.12.0 foundation</span>
+          <span className="cockpit-eyebrow">v0.13.0 evidence integration</span>
           <h3>Mission Data Flow Workbench</h3>
           <p>
             Read-only workbench surface for Core-derived mission data-flow evidence,
-            relationships, coverage and generated artifact context. The visual
-            grammar follows Reference B without introducing private graph semantics.
+            relationships, validation, coverage and generated artifact context. The
+            visual grammar follows Reference B without introducing private graph
+            semantics.
           </p>
         </div>
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="REFERENCE B LAYOUT" />
+          <StatusBadge label="SELECTION FOUNDATION" />
         </div>
       </div>
 
@@ -73,20 +94,32 @@ export function MissionDataFlowWorkbenchSurface({
           aria-label="Read-only graph view foundation"
         >
           <MissionDataFlowWorkbenchToolbar snapshot={snapshot} />
-          <MissionDataFlowWorkbenchCanvas snapshot={snapshot} />
+          <MissionDataFlowWorkbenchCanvas
+            snapshot={snapshot}
+            onSelectInspectorItem={setSelectedInspectorItem}
+          />
         </section>
 
-        <MissionDataFlowWorkbenchInspector record={primaryRecord} />
+        <MissionDataFlowWorkbenchInspector selection={inspectorSelection} />
       </div>
 
       <div
         className="cockpit-work-grid mission-data-flow-workbench-lower-grid"
         aria-label="Mission Data Flow Workbench lower evidence panels"
       >
-        <MissionDataFlowWorkbenchScenarioPanel lane={scenarioLane} />
+        <MissionDataFlowWorkbenchScenarioPanel
+          lane={scenarioLane}
+          onSelectRecord={(record) =>
+            setSelectedInspectorItem(toInspectorSelectionFromRecord(record))
+          }
+        />
         <MissionDataFlowWorkbenchValidationPanel
+          validationLane={validationLane}
           coverageLane={coverageLane}
           relationshipLane={relationshipLane}
+          onSelectRecord={(record) =>
+            setSelectedInspectorItem(toInspectorSelectionFromRecord(record))
+          }
         />
       </div>
 
@@ -136,13 +169,15 @@ function MissionDataFlowWorkbenchToolbar({
         <span className="cockpit-eyebrow">Graph View</span>
         <h3>Reported flow foundation</h3>
         <p>
-          Layout: left to right. Filters: Core-reported records only. The canvas
-          shows reported nodes and edges, not an editable graph.
+          Layout: left to right. Filters: Core-reported records only. Selectable
+          nodes, edges and evidence records update the local read-only Workbench
+          Inspector.
         </p>
       </div>
       <div className="badge-row">
         <StatusBadge label={`${snapshot.counts.relationshipRecords} RELATIONS`} />
         <StatusBadge label={`${snapshot.counts.scenarioDataFlowEvidenceRecords} EVIDENCE`} />
+        <StatusBadge label={`${snapshot.counts.validationEvidenceRecords} VALIDATION`} />
       </div>
     </div>
   );
@@ -150,8 +185,10 @@ function MissionDataFlowWorkbenchToolbar({
 
 function MissionDataFlowWorkbenchCanvas({
   snapshot,
+  onSelectInspectorItem,
 }: {
   snapshot: MissionDataFlowWorkbenchSnapshot;
+  onSelectInspectorItem: (selection: WorkbenchInspectorSelection) => void;
 }) {
   const canvasNodes = selectCanvasNodes(snapshot);
   const canvasEdges = selectCanvasEdges(snapshot);
@@ -172,9 +209,11 @@ function MissionDataFlowWorkbenchCanvas({
     <div aria-label="Read-only flow canvas preview">
       <div className="cockpit-contract-topology">
         {canvasNodes.map((node, index) => (
-          <div
+          <button
             className="cockpit-contract-node cockpit-contract-node-detected"
             key={node.id}
+            type="button"
+            onClick={() => onSelectInspectorItem(toInspectorSelectionFromNode(node))}
           >
             <span className="cockpit-contract-node-index">
               {index + 1 < 10 ? `0${index + 1}` : index + 1}
@@ -184,7 +223,7 @@ function MissionDataFlowWorkbenchCanvas({
               <span>{node.kind}</span>
             </div>
             <small>{node.provenance}</small>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -192,12 +231,18 @@ function MissionDataFlowWorkbenchCanvas({
         <div className="cockpit-compact-list" aria-label="Core-reported canvas edges">
           <h4>Core-reported edges</h4>
           {canvasEdges.map((edge) => (
-            <div className="cockpit-row" key={edge.id} title={edge.detail}>
+            <button
+              className="cockpit-row"
+              key={edge.id}
+              title={edge.detail}
+              type="button"
+              onClick={() => onSelectInspectorItem(toInspectorSelectionFromEdge(edge))}
+            >
               <span>
                 {edge.fromLabel} -&gt; {edge.toLabel}
               </span>
               <strong>{edge.relationshipType}</strong>
-            </div>
+            </button>
           ))}
         </div>
       ) : (
@@ -214,49 +259,56 @@ function MissionDataFlowWorkbenchCanvas({
 }
 
 function MissionDataFlowWorkbenchInspector({
-  record,
+  selection,
 }: {
-  record: MissionDataFlowWorkbenchRecord | null;
+  selection: WorkbenchInspectorSelection | null;
 }) {
   return (
-    <aside className="cockpit-panel" aria-label="Workbench Inspector placeholder">
+    <aside className="cockpit-panel" aria-label="Workbench Inspector">
       <div className="entry-main">
         <div>
           <span className="cockpit-eyebrow">Inspector</span>
-          <h3>{record ? "Selected reported record" : "No selection"}</h3>
+          <h3>{selection ? "Selected reported evidence" : "No selection"}</h3>
         </div>
         <DashboardIcon kind="evidence" />
       </div>
 
-      {record ? (
+      {selection ? (
         <div className="cockpit-compact-list">
           <div className="cockpit-row">
             <span>ID</span>
-            <strong>{record.id}</strong>
+            <strong>{selection.id}</strong>
           </div>
           <div className="cockpit-row">
             <span>Kind</span>
-            <strong>{record.kind}</strong>
+            <strong>{selection.kind}</strong>
+          </div>
+          <div className="cockpit-row">
+            <span>Evidence</span>
+            <strong>{selection.evidenceKind}</strong>
           </div>
           <div className="cockpit-row">
             <span>State</span>
-            <strong>{record.state}</strong>
+            <strong>{selection.state}</strong>
           </div>
           <div className="cockpit-row">
             <span>Provenance</span>
-            <strong>{record.provenance}</strong>
+            <strong>{selection.provenance}</strong>
           </div>
           <div className="cockpit-empty-module cockpit-empty-module-dormant">
-            <strong>Read-only preview</strong>
-            <span>{record.detail}</span>
+            <strong>Read-only detail</strong>
+            <span>{selection.detail}</span>
           </div>
+          <pre className="raw-output-block inspector-raw-block">
+            {formatWorkbenchRawValue(selection.raw)}
+          </pre>
         </div>
       ) : (
         <div className="cockpit-empty-module cockpit-empty-module-dormant">
-          <strong>Inspector binding reserved</strong>
+          <strong>No reported evidence selected</strong>
           <span>
-            Dedicated record selection and Inspector synchronization are reserved
-            for a later Workbench slice.
+            Select a Core-reported node, edge or evidence record to inspect it. No
+            editing or private inference is performed.
           </span>
         </div>
       )}
@@ -266,8 +318,10 @@ function MissionDataFlowWorkbenchInspector({
 
 function MissionDataFlowWorkbenchScenarioPanel({
   lane,
+  onSelectRecord,
 }: {
   lane: MissionDataFlowWorkbenchLane | undefined;
+  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
 }) {
   const records = lane?.records ?? [];
 
@@ -284,7 +338,11 @@ function MissionDataFlowWorkbenchScenarioPanel({
       {records.length > 0 ? (
         <ul className="entry-list">
           {records.slice(0, 6).map((record) => (
-            <MissionDataFlowWorkbenchRecordItem record={record} key={record.id} />
+            <MissionDataFlowWorkbenchRecordItem
+              record={record}
+              key={record.id}
+              onSelectRecord={onSelectRecord}
+            />
           ))}
         </ul>
       ) : (
@@ -298,38 +356,60 @@ function MissionDataFlowWorkbenchScenarioPanel({
 }
 
 function MissionDataFlowWorkbenchValidationPanel({
+  validationLane,
   coverageLane,
   relationshipLane,
+  onSelectRecord,
 }: {
+  validationLane: MissionDataFlowWorkbenchLane | undefined;
   coverageLane: MissionDataFlowWorkbenchLane | undefined;
   relationshipLane: MissionDataFlowWorkbenchLane | undefined;
+  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
 }) {
+  const validationRecords = validationLane?.records ?? [];
   const coverageRecords = coverageLane?.records ?? [];
   const relationshipRecords = relationshipLane?.records ?? [];
+  const displayedRecords = [
+    ...validationRecords,
+    ...coverageRecords,
+    ...relationshipRecords,
+  ].slice(0, 7);
 
   return (
     <article className="cockpit-panel" aria-label="Validation results foundation">
       <div className="entry-main">
         <div>
           <span className="cockpit-eyebrow">Lint / Validation Results</span>
-          <h3>Reported coverage and relationships</h3>
+          <h3>Reported validation, coverage and relationships</h3>
         </div>
         <DashboardIcon kind="validation" />
       </div>
 
       <div className="summary-grid">
+        <WorkbenchCount label="Validation records" value={validationRecords.length} />
         <WorkbenchCount label="Coverage records" value={coverageRecords.length} />
         <WorkbenchCount label="Relationship records" value={relationshipRecords.length} />
       </div>
 
-      <div className="cockpit-compact-list">
-        {[...coverageRecords, ...relationshipRecords].slice(0, 5).map((record) => (
-          <div className="cockpit-row" key={record.id}>
-            <span>{record.label}</span>
-            <strong>{record.state}</strong>
-          </div>
-        ))}
-      </div>
+      {displayedRecords.length > 0 ? (
+        <ul className="entry-list">
+          {displayedRecords.map((record) => (
+            <MissionDataFlowWorkbenchRecordItem
+              record={record}
+              key={record.id}
+              onSelectRecord={onSelectRecord}
+            />
+          ))}
+        </ul>
+      ) : (
+        <div className="cockpit-empty-module cockpit-empty-module-dormant">
+          <strong>No validation or coverage evidence</strong>
+          <span>
+            Run or load Core lint, dashboard, relationship and coverage reports to
+            populate this read-only panel.
+          </span>
+        </div>
+      )}
     </article>
   );
 }
@@ -375,19 +455,28 @@ function WorkbenchCount({ label, value }: { label: string; value: number }) {
 
 function MissionDataFlowWorkbenchRecordItem({
   record,
+  onSelectRecord,
 }: {
   record: MissionDataFlowWorkbenchRecord;
+  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
 }) {
   return (
     <li>
       <div className="entry-main">
-        <strong>{record.label}</strong>
+        <button
+          className="entry-button"
+          type="button"
+          onClick={() => onSelectRecord(record)}
+        >
+          {record.label}
+        </button>
         <div className="badge-row">
           <StatusBadge label={record.state.toUpperCase()} />
         </div>
       </div>
       <div className="command-meta">
         <span>kind: {record.kind}</span>
+        <span>evidence: {record.evidenceKind}</span>
         <span>provenance: {record.provenance}</span>
         <span>{record.detail}</span>
       </div>
@@ -413,6 +502,12 @@ function selectCanvasNodes(
         kind: relationship.from.domain,
         provenance: "core-relationship-manifest",
         detail: `Relationship endpoint from ${relationship.relationship_id}`,
+        raw: {
+          endpoint: relationship.from,
+          relationship_id: relationship.relationship_id,
+          relationship_type: relationship.relationship_type,
+          direction: "from",
+        },
       });
       nodesById.set(toId, {
         id: toId,
@@ -420,6 +515,12 @@ function selectCanvasNodes(
         kind: relationship.to.domain,
         provenance: "core-relationship-manifest",
         detail: `Relationship endpoint from ${relationship.relationship_id}`,
+        raw: {
+          endpoint: relationship.to,
+          relationship_id: relationship.relationship_id,
+          relationship_type: relationship.relationship_type,
+          direction: "to",
+        },
       });
     }
 
@@ -432,6 +533,7 @@ function selectCanvasNodes(
     kind: record.kind,
     provenance: record.provenance,
     detail: record.detail,
+    raw: record.raw,
   }));
 }
 
@@ -447,6 +549,7 @@ function selectCanvasEdges(
       toLabel: `${relationship.to.domain}:${relationship.to.id}`,
       relationshipType: relationship.relationship_type,
       detail: `Core-reported relationship ${relationship.relationship_id}`,
+      raw: relationship,
     }));
 }
 
@@ -486,6 +589,7 @@ function findPrimaryInspectorRecord(
     recordsForLane(snapshot, "relationship-manifest").find(
       (record) => record.kind === "relationship-record",
     ) ??
+    recordsForLane(snapshot, "validation")[0] ??
     recordsForLane(snapshot, "scenario-data-flow-evidence")[0] ??
     recordsForLane(snapshot, "mission-domains")[0] ??
     null
@@ -497,6 +601,63 @@ function recordsForLane(
   laneId: MissionDataFlowWorkbenchLane["id"],
 ): MissionDataFlowWorkbenchRecord[] {
   return snapshot.lanes.find((lane) => lane.id === laneId)?.records ?? [];
+}
+
+function toInspectorSelectionFromRecord(
+  record: MissionDataFlowWorkbenchRecord | null,
+): WorkbenchInspectorSelection | null {
+  if (!record) {
+    return null;
+  }
+
+  return {
+    id: record.id,
+    label: record.label,
+    kind: record.kind,
+    evidenceKind: record.evidenceKind,
+    state: record.state,
+    provenance: record.provenance,
+    detail: record.detail,
+    raw: record.raw,
+  };
+}
+
+function toInspectorSelectionFromNode(
+  node: WorkbenchCanvasNode,
+): WorkbenchInspectorSelection {
+  return {
+    id: `canvas-node:${node.id}`,
+    label: node.label,
+    kind: `canvas-node:${node.kind}`,
+    evidenceKind: "relationship-evidence",
+    state: "reported",
+    provenance: node.provenance,
+    detail: node.detail,
+    raw: node.raw,
+  };
+}
+
+function toInspectorSelectionFromEdge(
+  edge: WorkbenchCanvasEdge,
+): WorkbenchInspectorSelection {
+  return {
+    id: `canvas-edge:${edge.id}`,
+    label: edge.label,
+    kind: "canvas-edge:relationship-record",
+    evidenceKind: "relationship-evidence",
+    state: "reported",
+    provenance: "core-relationship-manifest",
+    detail: `${edge.fromLabel} -> ${edge.toLabel}, ${edge.relationshipType}`,
+    raw: edge.raw,
+  };
+}
+
+function formatWorkbenchRawValue(value: unknown): string {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 function isCoreRelationshipRecord(value: unknown): value is CoreRelationshipRecord {
