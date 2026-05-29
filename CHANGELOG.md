@@ -4,15 +4,97 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.11.0 - Domain Surfaces & Entity Detail System`.
+OrbitFabric Studio is currently at `v0.12.0 - Mission Data Flow Workbench Foundation`.
 
-The active planning baseline is `v0.12.0 - Mission Data Flow Workbench Foundation`.
+The active planning baseline is `v0.13.0 - Evidence-integrated Workbench`.
 
 ---
 
 ## Unreleased
 
 No changes yet.
+
+---
+
+## v0.12.0 - Mission Data Flow Workbench Foundation
+
+Released milestone.
+
+This milestone introduces the first dedicated read-only, Core-derived Mission Data Flow Workbench foundation and moves Studio closer to the Reference B UI north star.
+
+v0.12.0 remains downstream from OrbitFabric Core.
+
+Studio does not add mission semantics, infer private data-flow links, introduce graph editing or mutate generated artifacts.
+
+### Added
+
+- Added Mission Data Flow Workbench data model foundation.
+- Added Workbench source summaries, lanes, records, counts and explicit boundary metadata.
+- Added isolated read-only Mission Data Flow Workbench surface shell.
+- Added Reference B-oriented Workbench layout.
+- Added Workbench tab strip for Graph View, YAML View, Scenario Runner and Data Flow Evidence.
+- Added central read-only canvas-like Graph View foundation.
+- Added right-side Workbench Inspector placeholder.
+- Added lower Workbench panels for Scenario Timeline and Lint / Validation Results.
+- Added Core-derived canvas node and edge rendering from `relationship_manifest.json` records.
+- Added dedicated Mission Data Flow Workbench route frame.
+- Wired the dedicated Workbench surface into the Studio shell.
+- Added Data Flow Workbench sidebar entry.
+- Added Inspect Data Flow shell command bar action.
+- Added Workbench source expansion for Core model summary, Core entity index, Core dashboard summary, Core coverage summary and Core simulation report data-flow evidence.
+- Added relationship manifest consumption for Workbench relationship lanes.
+- Added App-level relationship manifest persistence for the dedicated Workbench surface.
+- Added shell status bar handling for the dedicated Workbench surface.
+- Added v0.12.0 planning, source expansion, validation, persistence, dedicated surface, release notes and release checklist documentation.
+
+### Changed
+
+- Mission Cockpit now exposes the Workbench foundation and the shell also exposes a dedicated Workbench surface.
+- Workbench rendering now follows Reference B visual grammar more closely while remaining read-only and Core-derived.
+- Relationship records and edges shown in the Workbench are limited to Core-reported relationship manifest records.
+- Scenario data-flow evidence shown in the Workbench is limited to Core simulation report `data_flow_evidence` records.
+- Coverage records shown in the Workbench are limited to Core coverage summary records.
+- Updated Studio, Tauri and Cargo metadata to `0.12.0`.
+
+### Release notes
+
+```text
+docs/releases/v0.12.0-release-notes.md
+```
+
+### Checklist
+
+```text
+V0_12_0_RELEASE_CHECKLIST.md
+```
+
+### Not Included
+
+- No React Flow adoption.
+- No graph library adoption.
+- No graph editing.
+- No drag/drop graph behavior.
+- No layout engine semantics.
+- No Mission Model authoring.
+- No generated artifact mutation.
+- No plugin execution.
+- No plugin marketplace.
+- No live telemetry.
+- No telemetry archive behavior.
+- No command uplink behavior.
+- No mission control behavior.
+- No operational ground behavior.
+- No private YAML semantic parsing.
+- No private relationship inference.
+- No private data-flow inference.
+- No private coverage calculation.
+- No private mission health calculation.
+- No private readiness calculation.
+- No private model completeness calculation.
+- No command authorization.
+- No command scheduling.
+- No command execution.
+- No Autonomy promotion.
 
 ---
 
@@ -31,6 +113,8 @@ Runtime UI triage hotfix for v0.11.0.
 
 - No v0.12.0 functionality is introduced in this release.
 
+---
+
 ## v0.11.0 - Domain Surfaces & Entity Detail System
 
 Released milestone.
@@ -46,19 +130,7 @@ Studio does not add mission semantics. It renders Core-reported model summary an
 - Added reusable CoreDomainSurface pattern.
 - Added Core domain surface factory.
 - Added typed runtime registry for model-inventory domain surfaces.
-- Added dedicated read-only domain surfaces for:
-  - Spacecraft;
-  - Subsystems;
-  - Modes;
-  - Telemetry;
-  - Commands;
-  - Events;
-  - Faults;
-  - Packets;
-  - Payloads;
-  - Data Products;
-  - Contacts & Downlink;
-  - Commandability.
+- Added dedicated read-only domain surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability.
 - Added consistent Core entity list/detail inspection.
 - Added contextual Inspector binding for selected Core entities.
 - Added v0.11.0 release notes.
@@ -194,28 +266,8 @@ Studio does not add mission semantics. It reorganizes existing read-only Studio 
 ### Added
 
 - Added typed navigation model for Studio shell surfaces.
-- Added explicit navigation item states:
-  - `available`;
-  - `unavailable`;
-  - `reserved`;
-  - `diagnostic`.
-- Added target mission-domain navigation entries:
-  - Mission;
-  - Spacecraft;
-  - Subsystems;
-  - Modes;
-  - Telemetry;
-  - Commands;
-  - Events;
-  - Faults;
-  - Packets;
-  - Payloads;
-  - Data Products;
-  - Contacts & Downlink;
-  - Commandability;
-  - Autonomy;
-  - Scenarios;
-  - Generated Artifacts.
+- Added explicit navigation item states: `available`, `unavailable`, `reserved` and `diagnostic`.
+- Added target mission-domain navigation entries for Mission, Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink, Commandability, Autonomy, Scenarios and Generated Artifacts.
 - Added explicit legacy surface mapping.
 - Added semantic sidebar skeleton and polish.
 - Added persistent Inspector behavior across the Mission surface.
@@ -295,12 +347,7 @@ Studio does not become a ground segment, mission control interface, command upli
 - Added dedicated Ground Integration Artifact Viewer surface.
 - Converted Ground from reserved placeholder to implemented read-only surface.
 - Added generated ground artifact filtering based on `artifact_class === "ground"`.
-- Added conservative ground artifact family grouping:
-  - manifest;
-  - dictionary-json;
-  - dictionary-csv;
-  - documentation;
-  - unknown-ground-artifact.
+- Added conservative ground artifact family grouping for manifest, dictionary-json, dictionary-csv, documentation and unknown-ground-artifact.
 - Added known/unknown status display for generated ground artifacts.
 - Added preview eligibility display for generated ground artifacts.
 - Added read-only preview for previewable generated ground artifacts.
