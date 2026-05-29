@@ -13,18 +13,18 @@ Studio is where mission semantics become inspectable.
 ## Status
 
 ```text
-Current implementation baseline: v0.11.1 - Runtime UI triage hotfix
-Current released milestone: v0.11.0 - Domain Surfaces & Entity Detail System
-Active planning baseline: v0.12.0 - Mission Data Flow Workbench Foundation
+Current implementation baseline: v0.12.0 - Mission Data Flow Workbench Foundation
+Current released milestone: v0.12.0 - Mission Data Flow Workbench Foundation
+Next planning baseline: v0.13.0 - Evidence-integrated Workbench
 ```
 
-The current implementation baseline is `v0.11.1`.
+The current implementation baseline is `v0.12.0`.
 
-`v0.11.1` is a runtime UI triage hotfix over the released `v0.11.0 - Domain Surfaces & Entity Detail System` milestone. It does not introduce v0.12.0 functionality.
+`v0.12.0` introduces the first dedicated Mission Data Flow Workbench foundation in the Studio shell.
 
-The next implementation milestone is `v0.12.0 - Mission Data Flow Workbench Foundation`.
+The Workbench is read-only, Core-derived and aligned with Reference B in the Studio UI North Star document. It provides a dedicated surface, Reference B-oriented layout, reported source summaries, lane records, a canvas-like read-only Graph View foundation, Core-derived relationship edges, scenario data-flow evidence panels, validation/coverage context and explicit boundary language.
 
-The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
+The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
 Planning references:
 
@@ -39,13 +39,15 @@ Release references:
 ```text
 docs/releases/v0.11.0-release-notes.md
 docs/releases/v0.11.1-release-notes.md
+docs/releases/v0.12.0-release-notes.md
+V0_12_0_RELEASE_CHECKLIST.md
 ```
 
 ---
 
 ## Current Implementation State
 
-v0.11.1 preserves the v0.11.0 local-first Tauri 2 and React Mission Cockpit workbench with dedicated read-only Core-derived mission-domain surfaces.
+v0.12.0 preserves the local-first Tauri 2 and React Mission Cockpit workbench and adds the first dedicated Mission Data Flow Workbench foundation.
 
 Implemented areas include:
 
@@ -70,7 +72,13 @@ Implemented areas include:
 - dedicated Core-derived domain surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
 - consistent Core entity list/detail inspection through the contextual Inspector;
 - Autonomy preserved as a reserved domain;
-- v0.11.1 runtime UI triage fixes for navigation scroll reset, source file action copy, reserved Autonomy routing and Scenario recent-runs empty-state copy.
+- dedicated Mission Data Flow Workbench surface;
+- Workbench Reference B layout foundation;
+- Workbench Graph View tab foundation;
+- Workbench canvas-like read-only preview;
+- Core-derived relationship edge rendering from `relationship_manifest.json` records;
+- Workbench scenario data-flow evidence and validation/coverage panels;
+- App-level relationship manifest persistence for the dedicated Workbench surface.
 
 Studio remains downstream from OrbitFabric Core.
 
@@ -80,12 +88,13 @@ OrbitFabric Core remains authoritative for validation, scenario evidence, genera
 
 ## Current UI Direction
 
-The v0.11.1 UI keeps the Mission Cockpit as the entry point and preserves dedicated Core-derived domain surfaces for implemented mission-domain navigation items.
+The v0.12.0 UI keeps the Mission Cockpit as the entry point and adds a dedicated Mission Data Flow Workbench surface.
 
 The primary sidebar follows the accepted target domain grammar:
 
 ```text
 Mission
+Data Flow Workbench
 Spacecraft
 Subsystems
 Modes
@@ -109,39 +118,11 @@ Diagnostic and developer-oriented surfaces remain accessible, but they do not de
 
 ---
 
-## v0.12.0 Direction
+## v0.13.0 Direction
 
-v0.12.0 is a Mission Data Flow Workbench Foundation milestone.
+v0.13.0 is the next planning baseline: Evidence-integrated Workbench.
 
-It must introduce the first data-flow workbench foundation using Core-derived or generated data only.
-
-The milestone is guided by Reference B in:
-
-```text
-docs/roadmap/studio-ui-north-star-reference.md
-```
-
-The v0.12.0 planning boundary is defined in:
-
-```text
-docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
-```
-
-v0.12.0 must not introduce:
-
-- new OrbitFabric Core semantics;
-- Mission Model editing;
-- generated artifact mutation;
-- graph UI;
-- React Flow;
-- authoring;
-- plugin behavior;
-- operational ground behavior;
-- live telemetry behavior;
-- command uplink behavior;
-- private YAML semantic parsing;
-- private relationship inference;
-- private data-flow inference.
+It should build on the dedicated v0.12.0 Workbench surface and deepen scenario, evidence, validation and Inspector integration without introducing authoring, plugin behavior, live telemetry, command uplink, private relationship inference or private data-flow inference.
 
 ---
 
