@@ -15,18 +15,16 @@ Studio is downstream.
 ## Current Baseline
 
 ```text
-Current implementation baseline: v0.11.1 - Runtime UI triage hotfix
-Current released milestone: v0.11.0 - Domain Surfaces & Entity Detail System
-Active planning baseline: v0.12.0 - Mission Data Flow Workbench Foundation
+Current implementation baseline: v0.12.0 - Mission Data Flow Workbench Foundation
+Current released milestone: v0.12.0 - Mission Data Flow Workbench Foundation
+Next planning baseline: v0.13.0 - Evidence-integrated Workbench
 ```
 
-v0.11.1 is the current implementation baseline.
+v0.12.0 is the current implementation baseline.
 
-v0.11.1 is a runtime UI triage hotfix over the released v0.11.0 milestone. It does not introduce v0.12.0 functionality.
+v0.12.0 introduces the first dedicated read-only, Core-derived Mission Data Flow Workbench foundation aligned with Reference B in the Studio UI North Star document.
 
-v0.12.0 is the next implementation milestone.
-
-The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces and Mission Data Flow Workbench foundations are stable.
+The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
 Reference planning documents:
 
@@ -34,24 +32,22 @@ Reference planning documents:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 docs/roadmap/studio-ui-north-star-reference.md
 docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
+docs/roadmap/studio-v0.12.0-workbench-source-expansion-note.md
+docs/roadmap/studio-v0.12.0-workbench-validation-checklist.md
+docs/roadmap/studio-v0.12.0-relationship-manifest-persistence-note.md
+docs/roadmap/studio-v0.12.0-dedicated-workbench-surface-note.md
 ```
 
-v0.11.0 release notes:
+Release notes:
 
 ```text
-docs/releases/v0.11.0-release-notes.md
+docs/releases/v0.12.0-release-notes.md
 ```
 
-v0.11.1 release notes:
+Release checklist:
 
 ```text
-docs/releases/v0.11.1-release-notes.md
-```
-
-v0.11.0 release checklist:
-
-```text
-V0_11_0_RELEASE_CHECKLIST.md
+V0_12_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -168,18 +164,7 @@ Status: Completed
 
 Transformed Studio from a surface-oriented workbench into a mission-domain-oriented shell.
 
-v0.9.0 introduced:
-
-- typed navigation model;
-- semantic mission-domain sidebar;
-- explicit legacy surface mapping;
-- `available`, `unavailable`, `reserved` and `diagnostic` shell states;
-- persistent Inspector across the Mission surface;
-- model-backed shell command bar;
-- global shell status bar;
-- copy cleanup to avoid readiness, health or completeness semantics invented in Studio;
-- release notes and checklist;
-- metadata alignment to `0.9.0`.
+v0.9.0 introduced typed navigation, semantic mission-domain sidebar, explicit legacy surface mapping, shell states, persistent Inspector behavior, model-backed shell command bar, global shell status bar and metadata alignment to `0.9.0`.
 
 v0.9.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private mission health calculation, private readiness calculation or private model completeness calculation.
 
@@ -201,17 +186,7 @@ Status: Completed
 
 Consolidated the Mission Dashboard into a clearer Mission Cockpit without adding new OrbitFabric Core semantics.
 
-v0.10.0 introduced:
-
-- Mission Cockpit visual hierarchy consolidation;
-- reported evidence lanes;
-- clearer cockpit provenance vocabulary;
-- no-Inspector Mission dashboard layout;
-- stabilized sidebar, main surface, Inspector and shell status bar placement;
-- active navigation tracking by mission-domain item;
-- CSS consolidation after visual polish;
-- release notes and checklist;
-- metadata alignment to `0.10.0`.
+v0.10.0 introduced Mission Cockpit visual hierarchy consolidation, reported evidence lanes, cockpit provenance vocabulary, shell layout stabilization, active navigation tracking by mission-domain item and metadata alignment to `0.10.0`.
 
 v0.10.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private mission health calculation, private readiness calculation or private model completeness calculation.
 
@@ -233,17 +208,7 @@ Status: Completed
 
 Introduced dedicated read-only Core-derived mission-domain surfaces and consistent entity list/detail inspection.
 
-v0.11.0 introduced:
-
-- reusable CoreDomainSurface pattern;
-- domain surface runtime registry;
-- Core domain surface factory;
-- dedicated surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
-- contextual Inspector binding for selected Core entities;
-- conservative handling for Data Products, Contacts & Downlink and Commandability;
-- Autonomy retained as reserved;
-- release notes and checklist;
-- metadata alignment to `0.11.0`.
+v0.11.0 introduced reusable CoreDomainSurface, Core domain surface factory, model-inventory domain registry, dedicated mission-domain surfaces, contextual Inspector binding for selected Core entities and metadata alignment to `0.11.0`.
 
 v0.11.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private YAML semantic parsing, private relationship inference, private mission health calculation, private readiness calculation or private model completeness calculation.
 
@@ -263,14 +228,9 @@ V0_11_0_RELEASE_CHECKLIST.md
 
 Status: Completed
 
-Prepared the real implementation baseline for v0.12.0 by fixing runtime UI issues after v0.11.0 without introducing Mission Data Flow Workbench functionality.
+Prepared the implementation baseline for v0.12.0 by fixing runtime UI issues after v0.11.0 without introducing Mission Data Flow Workbench functionality.
 
-v0.11.1 fixed:
-
-- main content scroll reset when navigating between Studio surfaces;
-- source file inspection copy across domain surfaces;
-- explicit reserved Autonomy surface routing;
-- Scenario / Recent runs empty-state copy when the scenario run index exists but contains no runs.
+v0.11.1 fixed main content scroll reset, source file inspection copy, explicit reserved Autonomy routing and Scenario / Recent runs empty-state copy.
 
 v0.11.1 does not introduce Mission Data Flow Workbench, React Flow, graph UI, authoring, plugin behavior, command uplink, live telemetry, Autonomy implementation or generated artifact semantic mutation.
 
@@ -280,44 +240,58 @@ Release notes:
 docs/releases/v0.11.1-release-notes.md
 ```
 
+### v0.12.0 - Mission Data Flow Workbench Foundation
+
+Status: Completed
+
+Introduced the first dedicated read-only, Core-derived Mission Data Flow Workbench foundation aligned with Reference B.
+
+v0.12.0 introduced:
+
+- Mission Data Flow Workbench data model foundation;
+- Workbench source summaries, lanes, records, counts and boundary metadata;
+- Reference B-oriented Workbench layout;
+- Graph View, YAML View, Scenario Runner and Data Flow Evidence tab strip;
+- central read-only canvas-like Graph View foundation;
+- right-side Workbench Inspector placeholder;
+- lower Scenario Timeline and Lint / Validation Results panels;
+- Core-derived relationship edge rendering from `relationship_manifest.json` records;
+- dedicated Mission Data Flow Workbench route frame;
+- shell wiring for the dedicated Workbench surface;
+- Data Flow Workbench sidebar entry;
+- Inspect Data Flow command bar action;
+- App-level relationship manifest persistence for the Workbench surface;
+- shell status bar support for the Workbench surface;
+- release notes and checklist;
+- metadata alignment to `0.12.0`.
+
+v0.12.0 does not introduce React Flow, graph library adoption, graph editing, drag/drop behavior, layout engine semantics, Mission Model authoring, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private relationship inference, private data-flow inference, mission health calculation, readiness calculation, completeness calculation or Autonomy implementation.
+
+Release notes:
+
+```text
+docs/releases/v0.12.0-release-notes.md
+```
+
+Release checklist:
+
+```text
+V0_12_0_RELEASE_CHECKLIST.md
+```
+
 ---
 
 ## Active Planning Baseline
 
-### v0.12.0 - Mission Data Flow Workbench Foundation
+### v0.13.0 - Evidence-integrated Workbench
 
-Status: Active planning
+Status: Planned
 
-v0.12.0 must introduce the first read-only, Core-derived Mission Data Flow Workbench foundation.
+v0.13.0 should deepen the dedicated Mission Data Flow Workbench by integrating scenario evidence, validation outputs, coverage state and Inspector behavior more directly into the Workbench surface.
 
-It must be guided by Reference B in:
+v0.13.0 must preserve the Core-derived boundary established through v0.12.0.
 
-```text
-docs/roadmap/studio-ui-north-star-reference.md
-```
-
-The implementation boundary is defined in:
-
-```text
-docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
-```
-
-v0.12.0 must build on v0.11.1 and preserve the existing Mission Cockpit, domain surfaces, Inspector, generated artifact and ground artifact inspection boundaries.
-
-Allowed source categories:
-
-- Core model summary;
-- Core entity index;
-- Core relationship manifest;
-- Core dashboard summary;
-- Core scenario run index;
-- Core coverage summary;
-- Core simulation report;
-- reported simulation data-flow evidence;
-- generated artifact inventory;
-- explicit unavailable, not reported, reserved or diagnostic states.
-
-v0.12.0 must not introduce React Flow, full graph UI, visual authoring, Mission Model editing, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private relationship inference, private data-flow inference, health calculation, readiness calculation or completeness calculation.
+It must not introduce Mission Model authoring, generated artifact mutation, command uplink, live telemetry, plugin behavior, private relationship inference, private data-flow inference or operational ground behavior.
 
 ---
 
