@@ -573,7 +573,6 @@ function App() {
       : coreReportSnapshots.simulationReport
         ? "latest Core simulation report snapshot"
         : null;
-  
   const coreModelSummary = parseCoreModelSummary(coreReportContent);
   const coreEntityIndex = parseCoreEntityIndex(coreReportContent);
   const coreRelationshipManifest = parseCoreRelationshipManifest(coreReportContent);
@@ -597,7 +596,6 @@ function App() {
     coverageSummary,
     generatedArtifactInventory: null,
   });
-  
   const hasCoreModelSummary = Boolean(modelSummary);
   const hasCoreEntityIndex = Boolean(entityIndex);
   const hasCoreRelationshipManifest = Boolean(relationshipManifest);
