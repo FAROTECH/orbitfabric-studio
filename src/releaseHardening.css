@@ -1,3 +1,35 @@
+.hero-panel .release {
+  font-size: 0;
+}
+
+.hero-panel .release::after {
+  content: "v0.13.0 Evidence-integrated Workbench";
+  font-size: 1rem;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p,
+.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header p {
+  font-size: 0;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p::after,
+.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header p::after {
+  content: "Read-only diagnostic surface for controlled Core-derived report refresh and generated artifact inspection. Studio does not modify Mission Model source files.";
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge,
+.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header .status-badge {
+  font-size: 0;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge::after,
+.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header .status-badge::after {
+  content: "DIAGNOSTIC SURFACE";
+  font-size: 0.72rem;
+}
+
 .mission-data-flow-workbench nav[aria-label="Workbench views"] .badge-row {
   align-items: center;
 }
