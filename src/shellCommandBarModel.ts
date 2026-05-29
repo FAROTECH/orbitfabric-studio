@@ -2,6 +2,7 @@ import type { ActiveSurface, NavigationItemStatus } from "./navigationModel";
 
 export type ShellCommandBarActionId =
   | "validate-mission"
+  | "inspect-data-flow"
   | "inspect-scenarios"
   | "inspect-artifacts"
   | "inspect-model";
@@ -26,6 +27,16 @@ export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
     requiredWorkspaceState: "mission",
     description:
       "Open the controlled Core command surface for fixed validation and export actions.",
+  },
+  {
+    id: "inspect-data-flow",
+    label: "Inspect Data Flow",
+    shortLabel: "Data Flow",
+    targetSurface: "mission-data-flow-workbench",
+    status: "available",
+    requiredWorkspaceState: "workspace",
+    description:
+      "Open the read-only Mission Data Flow Workbench. Studio renders Core-reported relationships and evidence without private inference.",
   },
   {
     id: "inspect-scenarios",

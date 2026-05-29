@@ -75,6 +75,8 @@ function formatActiveSurface(activeSurface: ActiveSurface): string {
       return "Contracts";
     case "relationships":
       return "Relationships";
+    case "mission-data-flow-workbench":
+      return "Data Flow Workbench";
     case "generated-artifacts":
       return "Generated artifacts";
     case "reports-logs":

@@ -1,5 +1,6 @@
 export type ActiveSurface =
   | "mission-dashboard"
+  | "mission-data-flow-workbench"
   | "model-inventory"
   | "core-commands"
   | "contracts"
@@ -44,6 +45,7 @@ export interface ShellSurfaceItem {
 
 export type TargetDomainId =
   | "mission"
+  | "data-flow-workbench"
   | "spacecraft"
   | "subsystems"
   | "modes"
@@ -79,6 +81,15 @@ export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] 
     targetId: "studio-dashboard",
     icon: "mission",
     caption: "Cockpit entry point",
+  },
+  {
+    id: "data-flow-workbench",
+    label: "Data Flow Workbench",
+    status: "available",
+    destinationSurface: "mission-data-flow-workbench",
+    targetId: "studio-data-flow-workbench",
+    icon: "relationships",
+    caption: "Mission data-flow surface",
   },
   {
     id: "spacecraft",

@@ -14,6 +14,7 @@ import {
 } from "./GeneratedArtifactExplorer";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { MissionCockpit } from "./MissionCockpit";
+import { MissionDataFlowWorkbenchRoute } from "./MissionDataFlowWorkbenchRoute";
 import { SpacecraftDomainSurface } from "./SpacecraftDomainSurface";
 import { SubsystemsDomainSurface } from "./SubsystemsDomainSurface";
 import { ModesDomainSurface } from "./ModesDomainSurface";
@@ -38,6 +39,7 @@ import {
   type TargetDomainId,
 } from "./navigationModel";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
+import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
 
 import {
   parseCoreCoverageSummary,
@@ -101,6 +103,7 @@ interface CoreReportSnapshots {
   lintReport: CoreLintReport | null;
   modelSummary: CoreModelSummary | null;
   entityIndex: CoreEntityIndex | null;
+  relationshipManifest: CoreRelationshipManifest | null;
   dashboardSummary: CoreDashboardSummary | null;
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
@@ -151,6 +154,7 @@ const modelInventoryDomainSurfaceComponents: Partial<
 
 const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
   "mission-dashboard": "mission",
+  "mission-data-flow-workbench": "data-flow-workbench",
   "model-inventory": "spacecraft",
   "core-commands": "mission",
   contracts: "spacecraft",
@@ -167,6 +171,7 @@ function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
     lintReport: null,
     modelSummary: null,
     entityIndex: null,
+    relationshipManifest: null,
     dashboardSummary: null,
     scenarioRunIndex: null,
     coverageSummary: null,
@@ -521,6 +526,7 @@ function App() {
     const lintReport = parseCoreLintReport(reportContent);
     const modelSummary = parseCoreModelSummary(reportContent);
     const entityIndex = parseCoreEntityIndex(reportContent);
+    const relationshipManifest = parseCoreRelationshipManifest(reportContent);
     const dashboardSummary = parseCoreDashboardSummary(reportContent);
     const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
     const coverageSummary = parseCoreCoverageSummary(reportContent);
@@ -530,6 +536,7 @@ function App() {
       !lintReport &&
       !modelSummary &&
       !entityIndex &&
+      !relationshipManifest &&
       !dashboardSummary &&
       !scenarioRunIndex &&
       !coverageSummary &&
@@ -542,6 +549,7 @@ function App() {
       lintReport: lintReport ?? current.lintReport,
       modelSummary: modelSummary ?? current.modelSummary,
       entityIndex: entityIndex ?? current.entityIndex,
+      relationshipManifest: relationshipManifest ?? current.relationshipManifest,
       dashboardSummary: dashboardSummary ?? current.dashboardSummary,
       scenarioRunIndex: scenarioRunIndex ?? current.scenarioRunIndex,
       coverageSummary: coverageSummary ?? current.coverageSummary,
@@ -567,16 +575,31 @@ function App() {
         : null;
   const coreModelSummary = parseCoreModelSummary(coreReportContent);
   const coreEntityIndex = parseCoreEntityIndex(coreReportContent);
+  const coreRelationshipManifest = parseCoreRelationshipManifest(coreReportContent);
+  const coreDashboardSummary = parseCoreDashboardSummary(coreReportContent);
+  const coreCoverageSummary = parseCoreCoverageSummary(coreReportContent);
   const modelSummary = coreModelSummary ?? coreReportSnapshots.modelSummary;
   const entityIndex = coreEntityIndex ?? coreReportSnapshots.entityIndex;
+  const relationshipManifest =
+    coreRelationshipManifest ?? coreReportSnapshots.relationshipManifest;
+  const dashboardSummary = coreDashboardSummary ?? coreReportSnapshots.dashboardSummary;
+  const coverageSummary = coreCoverageSummary ?? coreReportSnapshots.coverageSummary;
+  const missionDataFlowWorkbenchSnapshot = createMissionDataFlowWorkbenchSnapshot({
+    modelSummary,
+    entityIndex,
+    relationshipManifest,
+    dashboardSummary,
+    simulationReport,
+    coverageSummary,
+    generatedArtifactInventory: null,
+  });
   const hasCoreModelSummary = Boolean(modelSummary);
   const hasCoreEntityIndex = Boolean(entityIndex);
-  const hasCoreRelationshipManifest = Boolean(
-    parseCoreRelationshipManifest(coreReportContent),
-  );
+  const hasCoreRelationshipManifest = Boolean(relationshipManifest);
 
   const surfaceAvailability: Record<ActiveSurface, boolean> = {
     "mission-dashboard": true,
+    "mission-data-flow-workbench": Boolean(workspace),
     "model-inventory": Boolean(workspace && workspace.source_model_files.length > 0),
     "core-commands": Boolean(workspace?.mission_dir),
     contracts: hasCoreModelSummary || hasCoreEntityIndex,
@@ -690,6 +713,14 @@ function App() {
           coreReportSnapshots={coreReportSnapshots}
           generatedArtifactSummary={generatedArtifactSummary}
           onActiveSurfaceChange={handleActiveSurfaceChange}
+        />
+      );
+    }
+
+    if (activeSurface === "mission-data-flow-workbench") {
+      return (
+        <MissionDataFlowWorkbenchRoute
+          snapshot={missionDataFlowWorkbenchSnapshot}
         />
       );
     }
