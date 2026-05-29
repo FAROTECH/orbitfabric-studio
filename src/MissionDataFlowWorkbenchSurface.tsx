@@ -6,6 +6,24 @@ import type {
   MissionDataFlowWorkbenchSnapshot,
   MissionDataFlowWorkbenchSourceSummary,
 } from "./missionDataFlowWorkbenchModel";
+import type { CoreRelationshipRecord } from "./types/workspace";
+
+interface WorkbenchCanvasNode {
+  id: string;
+  label: string;
+  kind: string;
+  provenance: string;
+  detail: string;
+}
+
+interface WorkbenchCanvasEdge {
+  id: string;
+  label: string;
+  fromLabel: string;
+  toLabel: string;
+  relationshipType: string;
+  detail: string;
+}
 
 export function MissionDataFlowWorkbenchSurface({
   snapshot,
@@ -119,7 +137,7 @@ function MissionDataFlowWorkbenchToolbar({
         <h3>Reported flow foundation</h3>
         <p>
           Layout: left to right. Filters: Core-reported records only. The canvas
-          shows a structured preview, not an editable graph.
+          shows reported nodes and edges, not an editable graph.
         </p>
       </div>
       <div className="badge-row">
@@ -135,9 +153,10 @@ function MissionDataFlowWorkbenchCanvas({
 }: {
   snapshot: MissionDataFlowWorkbenchSnapshot;
 }) {
-  const canvasRecords = selectCanvasRecords(snapshot);
+  const canvasNodes = selectCanvasNodes(snapshot);
+  const canvasEdges = selectCanvasEdges(snapshot);
 
-  if (canvasRecords.length === 0) {
+  if (canvasNodes.length === 0) {
     return (
       <div className="cockpit-empty-module cockpit-empty-module-dormant">
         <strong>No Core-reported flow records</strong>
@@ -150,22 +169,46 @@ function MissionDataFlowWorkbenchCanvas({
   }
 
   return (
-    <div className="cockpit-contract-topology" aria-label="Read-only flow canvas preview">
-      {canvasRecords.map((record, index) => (
-        <div
-          className="cockpit-contract-node cockpit-contract-node-detected"
-          key={record.id}
-        >
-          <span className="cockpit-contract-node-index">
-            {index + 1 < 10 ? `0${index + 1}` : index + 1}
-          </span>
-          <div>
-            <strong>{record.label}</strong>
-            <span>{record.kind}</span>
+    <div aria-label="Read-only flow canvas preview">
+      <div className="cockpit-contract-topology">
+        {canvasNodes.map((node, index) => (
+          <div
+            className="cockpit-contract-node cockpit-contract-node-detected"
+            key={node.id}
+          >
+            <span className="cockpit-contract-node-index">
+              {index + 1 < 10 ? `0${index + 1}` : index + 1}
+            </span>
+            <div>
+              <strong>{node.label}</strong>
+              <span>{node.kind}</span>
+            </div>
+            <small>{node.provenance}</small>
           </div>
-          <small>{record.provenance}</small>
+        ))}
+      </div>
+
+      {canvasEdges.length > 0 ? (
+        <div className="cockpit-compact-list" aria-label="Core-reported canvas edges">
+          <h4>Core-reported edges</h4>
+          {canvasEdges.map((edge) => (
+            <div className="cockpit-row" key={edge.id} title={edge.detail}>
+              <span>
+                {edge.fromLabel} -&gt; {edge.toLabel}
+              </span>
+              <strong>{edge.relationshipType}</strong>
+            </div>
+          ))}
         </div>
-      ))}
+      ) : (
+        <div className="cockpit-empty-module cockpit-empty-module-dormant">
+          <strong>No Core-reported edges</strong>
+          <span>
+            The canvas is showing reported records only. Relationship edges appear
+            only when Core reports relationship manifest records.
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -352,7 +395,71 @@ function MissionDataFlowWorkbenchRecordItem({
   );
 }
 
-function selectCanvasRecords(
+function selectCanvasNodes(
+  snapshot: MissionDataFlowWorkbenchSnapshot,
+): WorkbenchCanvasNode[] {
+  const edgeRecords = selectRelationshipRecords(snapshot);
+
+  if (edgeRecords.length > 0) {
+    const nodesById = new Map<string, WorkbenchCanvasNode>();
+
+    for (const relationship of edgeRecords.slice(0, 8)) {
+      const fromId = `${relationship.from.domain}:${relationship.from.id}`;
+      const toId = `${relationship.to.domain}:${relationship.to.id}`;
+
+      nodesById.set(fromId, {
+        id: fromId,
+        label: relationship.from.id,
+        kind: relationship.from.domain,
+        provenance: "core-relationship-manifest",
+        detail: `Relationship endpoint from ${relationship.relationship_id}`,
+      });
+      nodesById.set(toId, {
+        id: toId,
+        label: relationship.to.id,
+        kind: relationship.to.domain,
+        provenance: "core-relationship-manifest",
+        detail: `Relationship endpoint from ${relationship.relationship_id}`,
+      });
+    }
+
+    return Array.from(nodesById.values()).slice(0, 8);
+  }
+
+  return selectFallbackCanvasRecords(snapshot).map((record) => ({
+    id: record.id,
+    label: record.label,
+    kind: record.kind,
+    provenance: record.provenance,
+    detail: record.detail,
+  }));
+}
+
+function selectCanvasEdges(
+  snapshot: MissionDataFlowWorkbenchSnapshot,
+): WorkbenchCanvasEdge[] {
+  return selectRelationshipRecords(snapshot)
+    .slice(0, 8)
+    .map((relationship) => ({
+      id: relationship.relationship_id,
+      label: relationship.relationship_id,
+      fromLabel: `${relationship.from.domain}:${relationship.from.id}`,
+      toLabel: `${relationship.to.domain}:${relationship.to.id}`,
+      relationshipType: relationship.relationship_type,
+      detail: `Core-reported relationship ${relationship.relationship_id}`,
+    }));
+}
+
+function selectRelationshipRecords(
+  snapshot: MissionDataFlowWorkbenchSnapshot,
+): CoreRelationshipRecord[] {
+  return recordsForLane(snapshot, "relationship-manifest")
+    .filter((record) => record.kind === "relationship-record")
+    .map((record) => record.raw)
+    .filter(isCoreRelationshipRecord);
+}
+
+function selectFallbackCanvasRecords(
   snapshot: MissionDataFlowWorkbenchSnapshot,
 ): MissionDataFlowWorkbenchRecord[] {
   const relationshipRecords = recordsForLane(snapshot, "relationship-manifest").filter(
@@ -390,4 +497,23 @@ function recordsForLane(
   laneId: MissionDataFlowWorkbenchLane["id"],
 ): MissionDataFlowWorkbenchRecord[] {
   return snapshot.lanes.find((lane) => lane.id === laneId)?.records ?? [];
+}
+
+function isCoreRelationshipRecord(value: unknown): value is CoreRelationshipRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<CoreRelationshipRecord>;
+
+  return Boolean(
+    typeof candidate.relationship_id === "string" &&
+      typeof candidate.relationship_type === "string" &&
+      candidate.from &&
+      typeof candidate.from.domain === "string" &&
+      typeof candidate.from.id === "string" &&
+      candidate.to &&
+      typeof candidate.to.domain === "string" &&
+      typeof candidate.to.id === "string",
+  );
 }
