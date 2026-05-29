@@ -577,18 +577,21 @@ function App() {
   const coreEntityIndex = parseCoreEntityIndex(coreReportContent);
   const coreRelationshipManifest = parseCoreRelationshipManifest(coreReportContent);
   const coreDashboardSummary = parseCoreDashboardSummary(coreReportContent);
+  const coreLintReport = parseCoreLintReport(coreReportContent);
   const coreCoverageSummary = parseCoreCoverageSummary(coreReportContent);
   const modelSummary = coreModelSummary ?? coreReportSnapshots.modelSummary;
   const entityIndex = coreEntityIndex ?? coreReportSnapshots.entityIndex;
   const relationshipManifest =
     coreRelationshipManifest ?? coreReportSnapshots.relationshipManifest;
   const dashboardSummary = coreDashboardSummary ?? coreReportSnapshots.dashboardSummary;
+  const lintReport = coreLintReport ?? coreReportSnapshots.lintReport;
   const coverageSummary = coreCoverageSummary ?? coreReportSnapshots.coverageSummary;
   const missionDataFlowWorkbenchSnapshot = createMissionDataFlowWorkbenchSnapshot({
     modelSummary,
     entityIndex,
     relationshipManifest,
     dashboardSummary,
+    lintReport,
     simulationReport,
     coverageSummary,
     generatedArtifactInventory: null,
