@@ -5,6 +5,13 @@ const contactsDownlinkDomainDefinition: DomainSurfaceDefinition = {
   id: "contacts-downlink",
   label: "Contacts & Downlink",
   coreDomainId: "contacts",
+  coreDomainIds: [
+    "contacts",
+    "contact_profiles",
+    "link_profiles",
+    "contact_windows",
+    "downlink_flows",
+  ],
   expectedSourceFile: "contacts.yaml",
   lifecycleStatus: "conservative",
   dataSources: [
@@ -18,7 +25,10 @@ const contactsDownlinkDomainDefinition: DomainSurfaceDefinition = {
 
 export const ContactsDownlinkDomainSurface = createCoreDomainSurface({
   definition: contactsDownlinkDomainDefinition,
-  description: "Read-only Contacts & Downlink domain surface backed by structural workspace inspection and Core-reported entity records.",
-  boundary: "This surface shows contact contract records only as reported by Core. It does not perform ground operations or scheduling behavior.",
-  emptySelectionDetail: "Select a Core-reported contact entity to inspect its read-only detail.",
+  description:
+    "Read-only conservative Contacts & Downlink surface backed by structural workspace inspection and Core-reported contact, link, window and downlink records when those domains are present.",
+  boundary:
+    "This surface aggregates only Core-reported contact/downlink domains. It does not schedule contacts, perform ground operations or infer link availability.",
+  emptySelectionDetail:
+    "Select a Core-reported contact, link, contact-window or downlink-flow entity to inspect its read-only detail. If Core has not reported those domains, the surface remains conservative.",
 });
