@@ -1,0 +1,37 @@
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .badge-row {
+  align-items: center;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip {
+  cursor: default;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip[aria-current="page"] {
+  border-color: rgba(103, 232, 249, 0.72);
+  color: #e0f2fe;
+  background: rgba(14, 165, 233, 0.18);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.18) inset;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]) {
+  opacity: 0.72;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]):nth-child(2)::after,
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]):nth-child(3)::after {
+  content: " RESERVED";
+  margin-left: 0.35rem;
+  color: #fbbf24;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]):nth-child(4)::after {
+  content: " REPORTED";
+  margin-left: 0.35rem;
+  color: #67e8f9;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
