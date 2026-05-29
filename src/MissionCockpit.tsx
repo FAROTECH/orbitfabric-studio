@@ -87,6 +87,7 @@ export function MissionCockpit({
     entityIndex,
     relationshipManifest,
     dashboardSummary,
+    lintReport,
     simulationReport,
     coverageSummary,
     generatedArtifactInventory: null,
