@@ -82,7 +82,7 @@ export function MissionDataFlowWorkbenchSurface({
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="SCENARIO EVIDENCE" />
+          <StatusBadge label="VALIDATION + COVERAGE" />
         </div>
       </div>
 
@@ -422,18 +422,13 @@ function MissionDataFlowWorkbenchValidationPanel({
   const validationRecords = validationLane?.records ?? [];
   const coverageRecords = coverageLane?.records ?? [];
   const relationshipRecords = relationshipLane?.records ?? [];
-  const displayedRecords = [
-    ...validationRecords,
-    ...coverageRecords,
-    ...relationshipRecords,
-  ].slice(0, 7);
 
   return (
-    <article className="cockpit-panel" aria-label="Validation results foundation">
+    <article className="cockpit-panel" aria-label="Validation and coverage evidence">
       <div className="entry-main">
         <div>
           <span className="cockpit-eyebrow">Lint / Validation Results</span>
-          <h3>Reported validation, coverage and relationships</h3>
+          <h3>Core-reported validation and coverage</h3>
         </div>
         <DashboardIcon kind="validation" />
       </div>
@@ -444,26 +439,89 @@ function MissionDataFlowWorkbenchValidationPanel({
         <WorkbenchCount label="Relationship records" value={relationshipRecords.length} />
       </div>
 
+      <WorkbenchEvidenceRecordGroup
+        title="Validation evidence"
+        emptyLabel="No validation evidence"
+        emptyDetail="Run or load Core lint or dashboard reports to populate validation evidence."
+        records={validationRecords}
+        maxRecords={4}
+        onSelectRecord={onSelectRecord}
+      />
+      <WorkbenchEvidenceRecordGroup
+        title="Coverage evidence"
+        emptyLabel="No coverage evidence"
+        emptyDetail="Run or load Core coverage-summary to populate coverage evidence."
+        records={coverageRecords}
+        maxRecords={5}
+        onSelectRecord={onSelectRecord}
+      />
+      <WorkbenchEvidenceRecordGroup
+        title="Relationship evidence"
+        emptyLabel="No relationship evidence"
+        emptyDetail="Run or load Core relationship-manifest to populate relationship evidence."
+        records={relationshipRecords.filter((record) => record.kind === "relationship-record")}
+        maxRecords={3}
+        onSelectRecord={onSelectRecord}
+      />
+    </article>
+  );
+}
+
+function WorkbenchEvidenceRecordGroup({
+  title,
+  emptyLabel,
+  emptyDetail,
+  records,
+  maxRecords,
+  onSelectRecord,
+}: {
+  title: string;
+  emptyLabel: string;
+  emptyDetail: string;
+  records: MissionDataFlowWorkbenchRecord[];
+  maxRecords: number;
+  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
+}) {
+  const displayedRecords = records.slice(0, maxRecords);
+
+  return (
+    <section className="cockpit-compact-list" aria-label={title}>
+      <h4>{title}</h4>
       {displayedRecords.length > 0 ? (
-        <ul className="entry-list">
-          {displayedRecords.map((record) => (
-            <MissionDataFlowWorkbenchRecordItem
-              record={record}
-              key={record.id}
-              onSelectRecord={onSelectRecord}
-            />
-          ))}
-        </ul>
+        displayedRecords.map((record) => (
+          <MissionDataFlowWorkbenchRecordRow
+            key={record.id}
+            record={record}
+            onSelectRecord={onSelectRecord}
+          />
+        ))
       ) : (
         <div className="cockpit-empty-module cockpit-empty-module-dormant">
-          <strong>No validation or coverage evidence</strong>
-          <span>
-            Run or load Core lint, dashboard, relationship and coverage reports to
-            populate this read-only panel.
-          </span>
+          <strong>{emptyLabel}</strong>
+          <span>{emptyDetail}</span>
         </div>
       )}
-    </article>
+    </section>
+  );
+}
+
+function MissionDataFlowWorkbenchRecordRow({
+  record,
+  onSelectRecord,
+}: {
+  record: MissionDataFlowWorkbenchRecord;
+  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
+}) {
+  return (
+    <button
+      className="cockpit-row"
+      type="button"
+      title={record.detail}
+      onClick={() => onSelectRecord(record)}
+    >
+      <span>{record.label}</span>
+      <strong>{record.kind}</strong>
+    </button>
   );
 }
 
@@ -503,37 +561,6 @@ function WorkbenchCount({ label, value }: { label: string; value: number }) {
       <span>{label}</span>
       <strong>{String(value)}</strong>
     </div>
-  );
-}
-
-function MissionDataFlowWorkbenchRecordItem({
-  record,
-  onSelectRecord,
-}: {
-  record: MissionDataFlowWorkbenchRecord;
-  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
-}) {
-  return (
-    <li>
-      <div className="entry-main">
-        <button
-          className="entry-button"
-          type="button"
-          onClick={() => onSelectRecord(record)}
-        >
-          {record.label}
-        </button>
-        <div className="badge-row">
-          <StatusBadge label={record.state.toUpperCase()} />
-        </div>
-      </div>
-      <div className="command-meta">
-        <span>kind: {record.kind}</span>
-        <span>evidence: {record.evidenceKind}</span>
-        <span>provenance: {record.provenance}</span>
-        <span>{record.detail}</span>
-      </div>
-    </li>
   );
 }
 
