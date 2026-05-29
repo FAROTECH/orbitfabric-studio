@@ -15,14 +15,14 @@ Studio is downstream.
 ## Current Baseline
 
 ```text
-Current implementation baseline: v0.12.0 - Mission Data Flow Workbench Foundation
-Current released milestone: v0.12.0 - Mission Data Flow Workbench Foundation
-Next planning baseline: v0.13.0 - Evidence-integrated Workbench
+Current implementation baseline: v0.13.0 - Evidence-integrated Workbench
+Current released milestone: v0.13.0 - Evidence-integrated Workbench
+Next planning baseline: v0.14.0 - Artifact Traceability Integration
 ```
 
-v0.12.0 is the current implementation baseline.
+v0.13.0 is the current implementation baseline.
 
-v0.12.0 introduces the first dedicated read-only, Core-derived Mission Data Flow Workbench foundation aligned with Reference B in the Studio UI North Star document.
+v0.13.0 deepens the dedicated read-only, Core-derived Mission Data Flow Workbench and moves it closer to Reference B in the Studio UI North Star document.
 
 The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
@@ -31,23 +31,19 @@ Reference planning documents:
 ```text
 docs/roadmap/studio-target-ui-convergence-strategy.md
 docs/roadmap/studio-ui-north-star-reference.md
-docs/roadmap/studio-v0.12.0-mission-data-flow-workbench-foundation-plan.md
-docs/roadmap/studio-v0.12.0-workbench-source-expansion-note.md
-docs/roadmap/studio-v0.12.0-workbench-validation-checklist.md
-docs/roadmap/studio-v0.12.0-relationship-manifest-persistence-note.md
-docs/roadmap/studio-v0.12.0-dedicated-workbench-surface-note.md
+docs/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
 ```
 
 Release notes:
 
 ```text
-docs/releases/v0.12.0-release-notes.md
+docs/releases/v0.13.0-release-notes.md
 ```
 
 Release checklist:
 
 ```text
-V0_12_0_RELEASE_CHECKLIST.md
+V0_13_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -279,17 +275,56 @@ Release checklist:
 V0_12_0_RELEASE_CHECKLIST.md
 ```
 
+### v0.13.0 - Evidence-integrated Workbench
+
+Status: Completed
+
+Deepened the dedicated read-only, Core-derived Mission Data Flow Workbench by integrating relationship, scenario, validation and coverage evidence more directly into the Workbench surface.
+
+v0.13.0 introduced:
+
+- v0.13.0 Evidence-integrated Workbench planning and boundary documentation;
+- explicit Workbench evidence kinds for relationship, scenario, validation, coverage and artifact evidence;
+- a dedicated validation evidence lane in the Workbench model;
+- validation evidence records from `CoreLintReport`;
+- fallback validation summary records from `CoreDashboardSummary.validation`;
+- richer coverage evidence records for scenario runs, entity coverage, expectation coverage, relationship coverage and unsupported scopes;
+- record-level evidence kind provenance metadata;
+- read-only local Workbench selection for Core-reported nodes, edges and evidence records;
+- Workbench Inspector updates from selected Core-derived items;
+- raw Core-reported payload preview in the Workbench Inspector;
+- Scenario Timeline rendering of Core-reported `data_flow_evidence` fields;
+- Validation, Coverage and Relationship evidence grouping in the Lint / Validation Results panel;
+- compact Workbench evidence posture rail;
+- Reference B-oriented Workbench visual polish;
+- Workbench lint report wiring through both Mission Cockpit and the dedicated Workbench route;
+- metadata alignment to `0.13.0`.
+
+v0.13.0 does not introduce React Flow, graph library adoption, graph editing, drag/drop behavior, layout engine semantics, Mission Model authoring, YAML editor behavior, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private scenario YAML interpretation, private log-derived evidence, private relationship inference, private data-flow inference, private coverage calculation, private mission health calculation, private readiness calculation, private model completeness calculation, command authorization, command scheduling, command execution or Autonomy implementation.
+
+Release notes:
+
+```text
+docs/releases/v0.13.0-release-notes.md
+```
+
+Release checklist:
+
+```text
+V0_13_0_RELEASE_CHECKLIST.md
+```
+
 ---
 
 ## Active Planning Baseline
 
-### v0.13.0 - Evidence-integrated Workbench
+### v0.14.0 - Artifact Traceability Integration
 
 Status: Planned
 
-v0.13.0 should deepen the dedicated Mission Data Flow Workbench by integrating scenario evidence, validation outputs, coverage state and Inspector behavior more directly into the Workbench surface.
+v0.14.0 should build on the evidence-integrated Mission Data Flow Workbench by making generated artifact traceability more explicit across Core-reported entities, evidence records and generated outputs.
 
-v0.13.0 must preserve the Core-derived boundary established through v0.12.0.
+v0.14.0 must preserve the Core-derived boundary established through previous milestones.
 
 It must not introduce Mission Model authoring, generated artifact mutation, command uplink, live telemetry, plugin behavior, private relationship inference, private data-flow inference or operational ground behavior.
 

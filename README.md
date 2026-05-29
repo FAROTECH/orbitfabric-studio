@@ -22,7 +22,7 @@ The current implementation baseline is `v0.13.0`.
 
 `v0.13.0` deepens the dedicated Mission Data Flow Workbench introduced in v0.12.0 by integrating Core-reported relationship, scenario, validation and coverage evidence more directly into the Workbench surface.
 
-The Workbench remains read-only, Core-derived and aligned with Reference B in the Studio UI North Star document. It now provides a more evidence-integrated surface with explicit evidence kinds, validation evidence from Core lint reports, scenario data-flow evidence presentation, coverage evidence grouping, selectable Core-reported nodes and records, a local Workbench Inspector with raw payload preview and a compact evidence posture rail.
+The Workbench remains read-only, Core-derived and aligned with Reference B in the Studio UI North Star document. It now provides explicit evidence kinds, validation evidence from Core lint reports, scenario data-flow evidence presentation, coverage evidence grouping, selectable Core-reported nodes and records, a local Workbench Inspector with raw payload preview and a compact evidence posture rail.
 
 The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
