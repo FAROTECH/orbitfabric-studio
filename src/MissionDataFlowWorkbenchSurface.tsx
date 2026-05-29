@@ -8,7 +8,10 @@ import type {
   MissionDataFlowWorkbenchSnapshot,
   MissionDataFlowWorkbenchSourceSummary,
 } from "./missionDataFlowWorkbenchModel";
-import type { CoreRelationshipRecord } from "./types/workspace";
+import type {
+  CoreRelationshipRecord,
+  CoreSimulationDataFlowEvidenceRecord,
+} from "./types/workspace";
 
 interface WorkbenchCanvasNode {
   id: string;
@@ -79,7 +82,7 @@ export function MissionDataFlowWorkbenchSurface({
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="SELECTION FOUNDATION" />
+          <StatusBadge label="SCENARIO EVIDENCE" />
         </div>
       </div>
 
@@ -330,21 +333,21 @@ function MissionDataFlowWorkbenchScenarioPanel({
       <div className="entry-main">
         <div>
           <span className="cockpit-eyebrow">Scenario Timeline</span>
-          <h3>Data-flow evidence</h3>
+          <h3>Core-reported data-flow evidence</h3>
         </div>
         <StatusBadge label={lane?.state.toUpperCase() ?? "NOT-REPORTED"} />
       </div>
 
       {records.length > 0 ? (
-        <ul className="entry-list">
+        <div className="cockpit-compact-list">
           {records.slice(0, 6).map((record) => (
-            <MissionDataFlowWorkbenchRecordItem
-              record={record}
+            <MissionDataFlowWorkbenchScenarioEvidenceItem
               key={record.id}
+              record={record}
               onSelectRecord={onSelectRecord}
             />
           ))}
-        </ul>
+        </div>
       ) : (
         <div className="cockpit-empty-module cockpit-empty-module-dormant">
           <strong>No scenario data-flow evidence</strong>
@@ -352,6 +355,56 @@ function MissionDataFlowWorkbenchScenarioPanel({
         </div>
       )}
     </article>
+  );
+}
+
+function MissionDataFlowWorkbenchScenarioEvidenceItem({
+  record,
+  onSelectRecord,
+}: {
+  record: MissionDataFlowWorkbenchRecord;
+  onSelectRecord: (record: MissionDataFlowWorkbenchRecord) => void;
+}) {
+  const evidence = isCoreSimulationDataFlowEvidenceRecord(record.raw)
+    ? record.raw
+    : null;
+
+  return (
+    <section className="cockpit-empty-module cockpit-empty-module-dormant">
+      <div className="entry-main">
+        <button
+          className="entry-button"
+          type="button"
+          onClick={() => onSelectRecord(record)}
+        >
+          {record.label}
+        </button>
+        <StatusBadge label={record.state.toUpperCase()} />
+      </div>
+
+      {evidence ? (
+        <div className="command-meta">
+          <span>t={String(evidence.t)}</span>
+          <span>producer: {evidence.producer ?? "not reported"}</span>
+          <span>producer type: {evidence.producer_type ?? "not reported"}</span>
+          <span>command: {evidence.triggered_by_command ?? "not reported"}</span>
+          <span>
+            flows: {formatStringList(evidence.eligible_downlink_flows, "not reported")}
+          </span>
+          <span>
+            contacts: {formatStringList(evidence.contact_windows, "not reported")}
+          </span>
+          <span>storage: {formatOptionalJson(evidence.storage_intent)}</span>
+          <span>downlink: {formatOptionalJson(evidence.downlink_intent)}</span>
+        </div>
+      ) : (
+        <div className="command-meta">
+          <span>kind: {record.kind}</span>
+          <span>provenance: {record.provenance}</span>
+          <span>{record.detail}</span>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -660,6 +713,22 @@ function formatWorkbenchRawValue(value: unknown): string {
   }
 }
 
+function formatOptionalJson(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "not reported";
+  }
+
+  return formatWorkbenchRawValue(value);
+}
+
+function formatStringList(values: string[] | undefined, fallback: string): string {
+  if (!values || values.length === 0) {
+    return fallback;
+  }
+
+  return values.join(", ");
+}
+
 function isCoreRelationshipRecord(value: unknown): value is CoreRelationshipRecord {
   if (!value || typeof value !== "object") {
     return false;
@@ -677,4 +746,16 @@ function isCoreRelationshipRecord(value: unknown): value is CoreRelationshipReco
       typeof candidate.to.domain === "string" &&
       typeof candidate.to.id === "string",
   );
+}
+
+function isCoreSimulationDataFlowEvidenceRecord(
+  value: unknown,
+): value is CoreSimulationDataFlowEvidenceRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<CoreSimulationDataFlowEvidenceRecord>;
+
+  return typeof candidate.t === "number";
 }
