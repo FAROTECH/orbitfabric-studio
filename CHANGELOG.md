@@ -4,15 +4,96 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.12.0 - Mission Data Flow Workbench Foundation`.
+OrbitFabric Studio is currently at `v0.13.0 - Evidence-integrated Workbench`.
 
-The active planning baseline is `v0.13.0 - Evidence-integrated Workbench`.
+The active planning baseline is `v0.14.0 - Artifact Traceability Integration`.
 
 ---
 
 ## Unreleased
 
 No changes yet.
+
+---
+
+## v0.13.0 - Evidence-integrated Workbench
+
+Released milestone.
+
+This milestone deepens the dedicated Mission Data Flow Workbench by integrating Core-reported relationship, scenario, validation and coverage evidence more directly into the Workbench surface.
+
+v0.13.0 remains downstream from OrbitFabric Core.
+
+Studio does not add mission semantics, infer private data-flow links, introduce graph editing, parse scenario YAML as evidence, read logs as evidence or mutate generated artifacts.
+
+### Added
+
+- Added v0.13.0 Evidence-integrated Workbench planning and boundary documentation.
+- Added explicit Workbench evidence kinds for relationship, scenario, validation, coverage and artifact evidence.
+- Added a dedicated validation evidence lane in the Workbench model.
+- Added validation records from `CoreLintReport`.
+- Added fallback validation summary records from `CoreDashboardSummary.validation`.
+- Added richer coverage evidence records for scenario runs, entity coverage, expectation coverage, relationship coverage and unsupported scopes.
+- Added record-level evidence kind provenance metadata.
+- Added read-only local Workbench selection for Core-reported canvas nodes, canvas edges, scenario evidence records, validation records, coverage records and relationship records.
+- Added Workbench Inspector updates from selected Core-derived items.
+- Added raw Core-reported payload preview in the Workbench Inspector.
+- Added Scenario Timeline rendering of Core-reported `data_flow_evidence` fields.
+- Added grouped Validation, Coverage and Relationship evidence sections in the Lint / Validation Results panel.
+- Added compact Workbench evidence posture rail aligned with Reference B.
+- Added Workbench lint report wiring through both Mission Cockpit and the dedicated Workbench route.
+- Added v0.13.0 release notes and release checklist.
+
+### Changed
+
+- Mission Data Flow Workbench now presents evidence as explicit relationship, scenario, validation, coverage and artifact categories.
+- Scenario Timeline now shows Core-reported data-flow evidence fields such as simulation time, producer, producer type, triggering command, eligible downlink flows, contact windows, storage intent and downlink intent when available.
+- Lint / Validation Results now separates validation evidence, coverage evidence and relationship evidence.
+- Workbench visual hierarchy is closer to the Reference B north-star surface while remaining read-only and Core-derived.
+- Workbench metadata, Tauri metadata and Cargo metadata are aligned to `0.13.0`.
+
+### Release notes
+
+```text
+docs/releases/v0.13.0-release-notes.md
+```
+
+### Checklist
+
+```text
+V0_13_0_RELEASE_CHECKLIST.md
+```
+
+### Not Included
+
+- No React Flow adoption.
+- No graph library adoption.
+- No graph editing.
+- No drag/drop graph behavior.
+- No layout engine semantics.
+- No Mission Model authoring.
+- No YAML editor behavior.
+- No generated artifact mutation.
+- No plugin execution.
+- No plugin marketplace.
+- No live telemetry.
+- No telemetry archive behavior.
+- No command uplink behavior.
+- No mission control behavior.
+- No operational ground behavior.
+- No private YAML semantic parsing.
+- No private scenario YAML interpretation.
+- No private log-derived evidence.
+- No private relationship inference.
+- No private data-flow inference.
+- No private coverage calculation.
+- No private mission health calculation.
+- No private readiness calculation.
+- No private model completeness calculation.
+- No command authorization.
+- No command scheduling.
+- No command execution.
+- No Autonomy promotion.
 
 ---
 
