@@ -14,15 +14,20 @@ Studio is where mission semantics become inspectable.
 
 ```text
 Current implementation baseline: v0.13.0 - Evidence-integrated Workbench
-Current released milestone: v0.13.0 - Evidence-integrated Workbench
+Current tagged technical milestone: v0.13.0 - Evidence-integrated Workbench
 Next planning baseline: v0.14.0 - Artifact Traceability Integration
+GitHub Release publication: deferred
 ```
 
 The current implementation baseline is `v0.13.0`.
 
 `v0.13.0` deepens the dedicated Mission Data Flow Workbench introduced in v0.12.0 by integrating Core-reported relationship, scenario, validation and coverage evidence more directly into the Workbench surface.
 
+The v0.13.0 tag is a technical milestone tag. The GitHub Release publication is intentionally deferred until the documentation, roadmap and communication package are reviewed together.
+
 The Workbench remains read-only, Core-derived and aligned with Reference B in the Studio UI North Star document. It now provides explicit evidence kinds, validation evidence from Core lint reports, scenario data-flow evidence presentation, coverage evidence grouping, selectable Core-reported nodes and records, a local Workbench Inspector with raw payload preview and a compact evidence posture rail.
+
+The release hardening pass also stabilizes the Mission Cockpit, promotes Generated Artifacts into a dedicated read-only surface, keeps Core Commands as a diagnostic surface, improves conservative Contacts & Downlink aggregation, improves conservative Commandability aggregation and keeps Autonomy explicitly reserved.
 
 The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
@@ -58,11 +63,12 @@ Implemented areas include:
 - fixed OrbitFabric Core command wrappers;
 - Core-derived validation, model summary, entity index, relationship, dashboard, scenario, coverage and simulation report rendering;
 - Scenario Evidence Explorer;
-- Generated Artifact Explorer;
+- dedicated Generated Artifacts surface;
+- compact Generated Artifact Explorer;
 - Ground Integration Artifact Viewer;
 - semantic mission-domain sidebar;
 - typed navigation model;
-- explicit legacy surface mapping;
+- explicit legacy surface mapping for non-primary diagnostic areas;
 - `available`, `unavailable`, `reserved` and `diagnostic` shell states;
 - persistent contextual Inspector;
 - model-backed shell command bar;
@@ -72,6 +78,8 @@ Implemented areas include:
 - provenance, status and severity badge system;
 - explicit read-only and Core-derived boundaries;
 - dedicated Core-derived domain surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
+- conservative multi-domain aggregation for Contacts & Downlink;
+- conservative multi-domain aggregation for Commandability;
 - consistent Core entity list/detail inspection through the contextual Inspector;
 - Autonomy preserved as a reserved domain;
 - dedicated Mission Data Flow Workbench surface;
@@ -157,7 +165,7 @@ If Core does not report a value, Studio must display `unavailable`, `not reporte
 
 ## Local Checks
 
-Recommended checks before release closure:
+Recommended checks before release publication or next development baseline closure:
 
 ```bash
 npm install --package-lock-only
