@@ -9,13 +9,13 @@ Status: in progress.
 - [x] v0.14.0 planning and boundary documentation is present.
 - [x] Generated artifact traceability is represented through read-only Workbench evidence.
 - [x] Workbench traceability uses only Core-reported or generated artifact inventory data.
-- [ ] Selected Workbench records expose Inspector traceability blocks.
+- [x] Selected Workbench records expose Inspector traceability blocks.
 - [ ] Runtime skeleton links are shown only when generated artifact inventory reports them.
 - [ ] Ground artifact links are shown only when generated artifact inventory reports them.
 - [x] Scenario evidence links are shown only from Core simulation report data.
 - [x] Validation evidence links are shown only from Core lint or dashboard validation data.
 - [x] Coverage evidence links are shown only from Core coverage summary data.
-- [ ] Missing traceability is shown as `not reported`, `unavailable`, `reserved` or `diagnostic`.
+- [x] Missing traceability is shown as `not reported`, `unavailable`, `reserved` or `diagnostic`.
 - [ ] Mission Cockpit remains compact and does not invent scores.
 - [x] Mission Data Flow Workbench remains read-only and Core-derived.
 - [x] Generated Artifacts remains a read-only surface.
@@ -45,7 +45,7 @@ Status: in progress.
 
 ## React Flow confirmation
 
-- [x] React Flow remains deferred for the traceability model foundation PR.
+- [x] React Flow remains deferred for the Inspector traceability blocks PR.
 - [x] No graph library is introduced before the traceability model and Inspector blocks are stable.
 - [x] Any future graph-library adoption is handled in a separate, read-only, rollbackable PR.
 

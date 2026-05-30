@@ -3,6 +3,8 @@ import { useState } from "react";
 import { DashboardIcon } from "./DashboardIcon";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import type {
+  MissionDataFlowTraceabilityLink,
+  MissionDataFlowTraceabilitySummary,
   MissionDataFlowWorkbenchLane,
   MissionDataFlowWorkbenchRecord,
   MissionDataFlowWorkbenchSnapshot,
@@ -43,6 +45,16 @@ interface WorkbenchInspectorSelection {
   raw: unknown;
 }
 
+interface WorkbenchCanvasEndpointRaw {
+  endpoint: {
+    domain: string;
+    id: string;
+  };
+  relationship_id: string;
+  relationship_type: string;
+  direction: string;
+}
+
 export function MissionDataFlowWorkbenchSurface({
   snapshot,
 }: {
@@ -70,19 +82,19 @@ export function MissionDataFlowWorkbenchSurface({
     >
       <div className="file-viewer-header">
         <div>
-          <span className="cockpit-eyebrow">v0.13.0 evidence integration</span>
+          <span className="cockpit-eyebrow">v0.14.0 traceability integration</span>
           <h3>Mission Data Flow Workbench</h3>
           <p>
             Read-only workbench surface for Core-derived mission data-flow evidence,
-            relationships, validation, coverage and generated artifact context. The
-            visual grammar follows Reference B without introducing private graph
-            semantics.
+            relationships, validation, coverage, generated artifact context and
+            reported traceability links. The visual grammar follows Reference B
+            without introducing private graph semantics.
           </p>
         </div>
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="REFERENCE B POLISH" />
+          <StatusBadge label="TRACEABILITY" />
         </div>
       </div>
 
@@ -104,7 +116,10 @@ export function MissionDataFlowWorkbenchSurface({
           />
         </section>
 
-        <MissionDataFlowWorkbenchInspector selection={inspectorSelection} />
+        <MissionDataFlowWorkbenchInspector
+          selection={inspectorSelection}
+          traceability={snapshot.traceability}
+        />
       </div>
 
       <div
@@ -198,6 +213,7 @@ function MissionDataFlowWorkbenchEvidenceSummary({
           value={snapshot.counts.validationEvidenceRecords}
         />
         <WorkbenchCount label="Coverage records" value={snapshot.counts.coverageScopes} />
+        <WorkbenchCount label="Traceability links" value={snapshot.counts.traceabilityLinks} />
         <div className="summary-item">
           <span>Boundary</span>
           <strong>{snapshot.boundary.readOnly ? "read-only" : "unavailable"}</strong>
@@ -219,13 +235,13 @@ function MissionDataFlowWorkbenchToolbar({
         <h3>Reported flow foundation</h3>
         <p>
           Select reported nodes, edges and evidence records to inspect their Core
-          provenance. The canvas remains a read-only visual foundation.
+          provenance and related traceability. The canvas remains read-only.
         </p>
       </div>
       <div className="badge-row">
         <StatusBadge label={`${snapshot.counts.relationshipRecords} RELATIONS`} />
         <StatusBadge label={`${snapshot.counts.scenarioDataFlowEvidenceRecords} EVIDENCE`} />
-        <StatusBadge label={`${snapshot.counts.validationEvidenceRecords} VALIDATION`} />
+        <StatusBadge label={`${snapshot.counts.traceabilityLinks} TRACE LINKS`} />
       </div>
     </div>
   );
@@ -308,9 +324,15 @@ function MissionDataFlowWorkbenchCanvas({
 
 function MissionDataFlowWorkbenchInspector({
   selection,
+  traceability,
 }: {
   selection: WorkbenchInspectorSelection | null;
+  traceability: MissionDataFlowTraceabilitySummary;
 }) {
+  const relatedTraceabilityLinks = selection
+    ? selectTraceabilityLinksForSelection(traceability, selection)
+    : [];
+
   return (
     <aside className="cockpit-panel" aria-label="Workbench Inspector">
       <div className="entry-main">
@@ -347,6 +369,7 @@ function MissionDataFlowWorkbenchInspector({
             <strong>Read-only detail</strong>
             <span>{selection.detail}</span>
           </div>
+          <WorkbenchInspectorTraceabilitySection links={relatedTraceabilityLinks} />
           <pre className="raw-output-block inspector-raw-block">
             {formatWorkbenchRawValue(selection.raw)}
           </pre>
@@ -361,6 +384,71 @@ function MissionDataFlowWorkbenchInspector({
         </div>
       )}
     </aside>
+  );
+}
+
+function WorkbenchInspectorTraceabilitySection({
+  links,
+}: {
+  links: MissionDataFlowTraceabilityLink[];
+}) {
+  const displayedLinks = links.slice(0, 6);
+
+  return (
+    <section className="cockpit-compact-list" aria-label="Inspector traceability blocks">
+      <h4>Traceability</h4>
+      {displayedLinks.length > 0 ? (
+        <>
+          <div className="summary-grid">
+            <WorkbenchCount label="Related links" value={links.length} />
+            <WorkbenchCount
+              label="Unavailable"
+              value={links.filter((link) => link.state === "unavailable").length}
+            />
+          </div>
+          {displayedLinks.map((link) => (
+            <article
+              className="cockpit-empty-module cockpit-empty-module-dormant"
+              key={link.id}
+            >
+              <div className="entry-main">
+                <div>
+                  <strong>{link.label}</strong>
+                  <span>{link.kind}</span>
+                </div>
+                <StatusBadge label={link.state.toUpperCase()} />
+              </div>
+              <div className="command-meta">
+                <span>
+                  {link.from.label} -&gt; {link.to.label}
+                </span>
+                <span>evidence: {link.evidenceKind}</span>
+                <span>provenance: {link.provenance}</span>
+                <span>{link.detail}</span>
+              </div>
+            </article>
+          ))}
+          {links.length > displayedLinks.length ? (
+            <div className="cockpit-empty-module cockpit-empty-module-dormant">
+              <strong>{links.length - displayedLinks.length} additional links hidden</strong>
+              <span>
+                The Inspector keeps the traceability block compact. The underlying
+                Workbench snapshot still carries the full read-only link set.
+              </span>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <div className="cockpit-empty-module cockpit-empty-module-dormant">
+          <strong>No reported traceability links</strong>
+          <span>
+            No Core-reported relationship, scenario, validation, coverage or generated
+            artifact link references this selected record. Studio does not infer
+            missing traceability.
+          </span>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -777,6 +865,109 @@ function toInspectorSelectionFromEdge(
   };
 }
 
+function selectTraceabilityLinksForSelection(
+  traceability: MissionDataFlowTraceabilitySummary,
+  selection: WorkbenchInspectorSelection,
+): MissionDataFlowTraceabilityLink[] {
+  const keys = createSelectionTraceabilityKeys(selection);
+
+  return traceability.groups
+    .flatMap((group) => group.links)
+    .filter((link) => traceabilityLinkMatchesSelection(link, keys));
+}
+
+function createSelectionTraceabilityKeys(
+  selection: WorkbenchInspectorSelection): Set<string> {
+  const keys = new Set<string>();
+
+  addTraceabilityKey(keys, selection.id);
+  addPrefixedTraceabilityKeys(keys, selection.id);
+
+  if (isCoreRelationshipRecord(selection.raw)) {
+    addRelationshipTraceabilityKeys(keys, selection.raw.relationship_id);
+    addEndpointTraceabilityKeys(keys, selection.raw.from.domain, selection.raw.from.id);
+    addEndpointTraceabilityKeys(keys, selection.raw.to.domain, selection.raw.to.id);
+  }
+
+  if (isWorkbenchCanvasEndpointRaw(selection.raw)) {
+    addRelationshipTraceabilityKeys(keys, selection.raw.relationship_id);
+    addEndpointTraceabilityKeys(
+      keys,
+      selection.raw.endpoint.domain,
+      selection.raw.endpoint.id,
+    );
+  }
+
+  return keys;
+}
+
+function addPrefixedTraceabilityKeys(keys: Set<string>, value: string) {
+  const knownPrefixes = [
+    "relationship:",
+    "scenario-data-flow:",
+    "validation:",
+    "coverage:",
+    "generated-artifact:",
+  ];
+
+  for (const prefix of knownPrefixes) {
+    if (value.startsWith(prefix)) {
+      addTraceabilityKey(keys, `traceability:${value}`);
+    }
+  }
+
+  if (value.startsWith("canvas-edge:")) {
+    const relationshipId = value.replace("canvas-edge:", "");
+    addRelationshipTraceabilityKeys(keys, relationshipId);
+  }
+
+  if (value.startsWith("canvas-node:")) {
+    const endpointId = value.replace("canvas-node:", "");
+    addTraceabilityKey(keys, endpointId);
+  }
+}
+
+function addRelationshipTraceabilityKeys(keys: Set<string>, relationshipId: string) {
+  addTraceabilityKey(keys, relationshipId);
+  addTraceabilityKey(keys, `relationship:${relationshipId}`);
+  addTraceabilityKey(keys, `traceability:relationship:${relationshipId}`);
+}
+
+function addEndpointTraceabilityKeys(keys: Set<string>, domain: string, id: string) {
+  addTraceabilityKey(keys, id);
+  addTraceabilityKey(keys, `${domain}:${id}`);
+}
+
+function addTraceabilityKey(keys: Set<string>, value: string | null | undefined) {
+  if (value && value.trim().length > 0) {
+    keys.add(value);
+  }
+}
+
+function traceabilityLinkMatchesSelection(
+  link: MissionDataFlowTraceabilityLink,
+  keys: Set<string>,
+): boolean {
+  return (
+    keys.has(link.id) ||
+    keys.has(link.label) ||
+    endpointMatchesSelection(link.from, keys) ||
+    endpointMatchesSelection(link.to, keys)
+  );
+}
+
+function endpointMatchesSelection(
+  endpoint: MissionDataFlowTraceabilityLink["from"],
+  keys: Set<string>,
+): boolean {
+  return (
+    keys.has(endpoint.label) ||
+    Boolean(endpoint.id && keys.has(endpoint.id)) ||
+    Boolean(endpoint.recordId && keys.has(endpoint.recordId)) ||
+    Boolean(endpoint.domain && endpoint.id && keys.has(`${endpoint.domain}:${endpoint.id}`))
+  );
+}
+
 function formatWorkbenchRawValue(value: unknown): string {
   try {
     return JSON.stringify(value, null, 2);
@@ -817,6 +1008,23 @@ function isCoreRelationshipRecord(value: unknown): value is CoreRelationshipReco
       candidate.to &&
       typeof candidate.to.domain === "string" &&
       typeof candidate.to.id === "string",
+  );
+}
+
+function isWorkbenchCanvasEndpointRaw(value: unknown): value is WorkbenchCanvasEndpointRaw {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<WorkbenchCanvasEndpointRaw>;
+
+  return Boolean(
+    candidate.endpoint &&
+      typeof candidate.endpoint.domain === "string" &&
+      typeof candidate.endpoint.id === "string" &&
+      typeof candidate.relationship_id === "string" &&
+      typeof candidate.relationship_type === "string" &&
+      typeof candidate.direction === "string",
   );
 }
 
