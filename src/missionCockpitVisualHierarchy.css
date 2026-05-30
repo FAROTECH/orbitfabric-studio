@@ -710,3 +710,171 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* v0.15.0 Recent Validation Results panel.
+   Visual-only refinement. Findings remain Core-reported only. */
+
+.cockpit-validation-results-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.cockpit-validation-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.cockpit-validation-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cockpit-validation-summary-card {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.cockpit-validation-summary-card span,
+.cockpit-validation-summary-card small {
+  color: #94a3b8;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cockpit-validation-summary-card strong {
+  color: #f8fafc;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.cockpit-validation-summary-core-reported,
+.cockpit-validation-summary-nominal,
+.cockpit-validation-summary-reported {
+  border-color: rgba(103, 232, 249, 0.2);
+}
+
+.cockpit-validation-summary-attention {
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.cockpit-validation-summary-unavailable,
+.cockpit-validation-summary-not-reported {
+  border-color: rgba(148, 163, 184, 0.14);
+  opacity: 0.86;
+}
+
+.cockpit-validation-source-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: rgba(8, 145, 178, 0.08);
+}
+
+.cockpit-validation-source-line span {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cockpit-validation-source-line strong {
+  min-width: 0;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.cockpit-validation-findings-table {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.cockpit-validation-finding-row {
+  display: grid;
+  grid-template-columns:
+    minmax(80px, 0.65fr)
+    minmax(90px, 0.75fr)
+    minmax(110px, 0.9fr)
+    minmax(110px, 0.9fr)
+    minmax(180px, 1.8fr);
+  gap: 8px;
+  align-items: start;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.cockpit-validation-finding-head {
+  border-color: rgba(103, 232, 249, 0.14);
+  background: rgba(8, 145, 178, 0.1);
+}
+
+.cockpit-validation-finding-row span {
+  min-width: 0;
+  color: #cbd5e1;
+  font-size: 0.74rem;
+  overflow-wrap: anywhere;
+}
+
+.cockpit-validation-finding-row strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.cockpit-validation-finding-row small {
+  display: block;
+  margin-top: 4px;
+  color: #67e8f9;
+  font-size: 0.66rem;
+  line-height: 1.3;
+}
+
+.cockpit-validation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 1300px) {
+  .cockpit-validation-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cockpit-validation-finding-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .cockpit-validation-summary-strip,
+  .cockpit-validation-finding-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-validation-source-line {
+    display: grid;
+  }
+
+  .cockpit-validation-source-line strong {
+    text-align: left;
+  }
+}
