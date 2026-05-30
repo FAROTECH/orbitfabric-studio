@@ -30,13 +30,13 @@ export function MissionDataFlowWorkbenchRoute({
     >
       <div className="file-viewer-header">
         <div>
-          <span className="cockpit-eyebrow">Dedicated surface</span>
+          <span className="cockpit-eyebrow">Dedicated traceability workbench</span>
           <h2>Mission Data Flow Workbench</h2>
           <p>
-            Standalone read-only Workbench surface for v0.14.0 artifact
-            traceability integration. It renders a Core-derived snapshot and links
-            generated artifact inventory when that inventory has been reported by
-            the dedicated Generated Artifacts surface.
+            Read-only engineering surface for reported relationships, scenario
+            data-flow evidence, validation evidence, coverage evidence and generated
+            artifact traceability. Studio renders the reported contract posture; it
+            does not author the Mission Model or infer missing links.
           </p>
         </div>
         <div className="badge-row">
@@ -45,6 +45,46 @@ export function MissionDataFlowWorkbenchRoute({
           <StatusBadge label="TRACEABILITY" />
         </div>
       </div>
+
+      <section className="entry-section muted-section" aria-label="Traceability posture">
+        <div className="entry-main">
+          <div>
+            <span className="cockpit-eyebrow">Traceability posture</span>
+            <h3>Reported evidence rails</h3>
+            <p>
+              Compact route-level summary for the Workbench before entering the
+              canvas. Counts are copied from the linked read-only snapshot.
+            </p>
+          </div>
+          <StatusBadge label={`${linkedSnapshot.traceability.counts.links} LINKS`} />
+        </div>
+        <div className="summary-grid">
+          <div className="summary-item">
+            <span>Relationship records</span>
+            <strong>{linkedSnapshot.counts.relationshipRecords}</strong>
+          </div>
+          <div className="summary-item">
+            <span>Scenario evidence</span>
+            <strong>{linkedSnapshot.counts.scenarioDataFlowEvidenceRecords}</strong>
+          </div>
+          <div className="summary-item">
+            <span>Generated artifacts</span>
+            <strong>{linkedSnapshot.counts.generatedArtifacts}</strong>
+          </div>
+          <div className="summary-item">
+            <span>Reported links</span>
+            <strong>{linkedSnapshot.traceability.counts.reportedLinks}</strong>
+          </div>
+          <div className="summary-item">
+            <span>Unavailable links</span>
+            <strong>{linkedSnapshot.traceability.counts.unavailableLinks}</strong>
+          </div>
+          <div className="summary-item">
+            <span>Inference</span>
+            <strong>{linkedSnapshot.boundary.inference}</strong>
+          </div>
+        </div>
+      </section>
 
       {artifactInventorySnapshot.inventory ? (
         <section className="entry-section muted-section" aria-label="Generated artifact linkage">
