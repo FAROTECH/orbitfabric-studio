@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DashboardIcon } from "./DashboardIcon";
-import { MissionCockpitKpiCard } from "./MissionCockpitKpiCard";
+import {
+  MissionCockpitKpiCard,
+  type MissionCockpitKpiCardIconKind,
+  type MissionCockpitKpiCardVariant,
+} from "./MissionCockpitKpiCard";
 import { MissionCockpitEvidenceLanes } from "./MissionCockpitEvidenceLanes";
 import { MissionCockpitPanelHeader } from "./MissionCockpitPanelHeader";
 import { MissionDataFlowWorkbenchSurface } from "./MissionDataFlowWorkbenchSurface";
@@ -24,12 +28,102 @@ import type {
   WorkspaceInspection,
 } from "./types/workspace";
 import {
+  createMissionCockpitPostureModel,
   dashboardTopCoverageRecords,
   dashboardTopEntries,
-  formatDashboardStatusLabel,
   type CoreReportSnapshots,
+  type MissionCockpitMetricKind,
+  type MissionCockpitMetricState,
 } from "./missionCockpitModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+
+
+interface MissionCockpitKpiPresentation {
+  variant: MissionCockpitKpiCardVariant;
+  iconKind: MissionCockpitKpiCardIconKind;
+  action: {
+    label: string;
+    surface: ActiveSurface;
+    disabled: boolean;
+  } | null;
+}
+
+function formatCockpitMetricStateLabel(state: MissionCockpitMetricState): string {
+  if (state === "core-reported") {
+    return "CORE REPORTED";
+  }
+
+  if (state === "not-reported") {
+    return "NOT REPORTED";
+  }
+
+  return "UNAVAILABLE";
+}
+
+function getMissionCockpitKpiPresentation(
+  kind: MissionCockpitMetricKind,
+  hasWorkspace: boolean,
+): MissionCockpitKpiPresentation {
+  switch (kind) {
+    case "mission-health":
+      return {
+        variant: "health",
+        iconKind: "shield",
+        action: null,
+      };
+
+    case "model-completeness":
+      return {
+        variant: "completeness",
+        iconKind: "model",
+        action: null,
+      };
+
+    case "lint-status":
+      return {
+        variant: "lint",
+        iconKind: "validation",
+        action: {
+          label: "Reports",
+          surface: "reports-logs",
+          disabled: !hasWorkspace,
+        },
+      };
+
+    case "scenario-coverage":
+      return {
+        variant: "scenario",
+        iconKind: "scenario",
+        action: {
+          label: "Scenarios",
+          surface: "scenario-evidence",
+          disabled: !hasWorkspace,
+        },
+      };
+
+    case "data-product-coverage":
+      return {
+        variant: "data-products",
+        iconKind: "artifacts",
+        action: {
+          label: "Data products",
+          surface: "model-inventory",
+          disabled: !hasWorkspace,
+        },
+      };
+
+    case "commandability-coverage":
+      return {
+        variant: "commandability",
+        iconKind: "core",
+        action: {
+          label: "Commands",
+          surface: "model-inventory",
+          disabled: !hasWorkspace,
+        },
+      };
+  }
+}
 
 export function MissionCockpit({
   workspace,
@@ -82,6 +176,19 @@ export function MissionCockpit({
   const simulationReport =
     parseCoreSimulationReport(currentReportContent) ??
     coreReportSnapshots.simulationReport;
+  const effectiveCoreReportSnapshots: CoreReportSnapshots = {
+    lintReport,
+    modelSummary,
+    entityIndex,
+    dashboardSummary,
+    scenarioRunIndex,
+    coverageSummary,
+    simulationReport,
+  };
+  const missionCockpitPosture = createMissionCockpitPostureModel({
+    workspace,
+    snapshots: effectiveCoreReportSnapshots,
+  });
   const missionDataFlowWorkbenchSnapshot = createMissionDataFlowWorkbenchSnapshot({
     modelSummary,
     entityIndex,
@@ -246,110 +353,49 @@ export function MissionCockpit({
         </div>
       </div>
 
-      <div className="cockpit-kpi-grid" aria-label="Mission cockpit status cards">
-        <MissionCockpitKpiCard
-          variant="validation"
-          iconKind="validation"
-          isReported={Boolean(validationResult)}
-          title="Validation"
-          value={validationResult ?? "Unavailable"}
-          detail={
-            validationErrors === null &&
-            validationWarnings === null &&
-            validationInfo === null
-              ? "Run validation to populate status"
-              : `Errors ${validationErrors ?? 0} · Warnings ${
-                  validationWarnings ?? 0
-                } · Info ${validationInfo ?? 0}`
-          }
-          status={<StatusBadge label={formatDashboardStatusLabel(validationResult)} />}
-        />
+      <div
+        className="cockpit-kpi-grid cockpit-kpi-grid-north-star"
+        aria-label="Mission cockpit north-star status cards"
+      >
+        {missionCockpitPosture.metrics.map((metric) => {
+          const presentation = getMissionCockpitKpiPresentation(
+            metric.kind,
+            Boolean(workspace),
+          );
+          const kpiAction = presentation.action;
 
-        <MissionCockpitKpiCard
-          variant="model"
-          iconKind="model"
-          isReported={Boolean(workspace)}
-          title={dashboardSummary ? "Core entity inventory" : "Workspace source files"}
-          value={
-            dashboardSummary
-              ? `${dashboardSummary.entity_inventory.total_entities} entities`
-              : workspace
-                ? `${workspace.source_model_files.length} files`
-                : "Unavailable"
-          }
-          detail={
-            dashboardSummary
-              ? `${dashboardSummary.relationship_inventory.total_relationships} relationships`
-              : workspace ? "Structural workspace detection" : "Core dashboard summary not loaded"
-          }
-          action={{
-            label: "Detail",
-            onClick: () => onActiveSurfaceChange("model-inventory"),
-            disabled: !workspace,
-          }}
-        />
-
-        <MissionCockpitKpiCard
-          variant="scenario"
-          iconKind="scenario"
-          isReported={Boolean(scenarioRunIndex)}
-          title="Scenario run index"
-          value={
-            scenarioRunIndex
-              ? `${scenarioRunIndex.summary.total} indexed`
-              : "Unavailable"
-          }
-          detail={
-            scenarioRunIndex
-              ? `${scenarioRunIndex.summary.passed} passed, ${scenarioRunIndex.summary.failed} failed`
-              : "Run Core scenario-run-index"
-          }
-          action={{
-            label: "Evidence",
-            onClick: () => onActiveSurfaceChange("scenario-evidence"),
-            disabled: !workspace,
-          }}
-        />
-
-        <MissionCockpitKpiCard
-          variant="coverage"
-          iconKind="coverage"
-          isReported={Boolean(coverageSummary)}
-          title="Coverage summary"
-          value={coverageSummary ? "Reported" : "Not reported"}
-          detail={
-            coverageSummary
-              ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total} expectations`
-              : "Run Core coverage-summary"
-          }
-          action={{
-            label: "Report",
-            onClick: () => onActiveSurfaceChange("reports-logs"),
-            disabled: !workspace,
-          }}
-        />
-
-        <MissionCockpitKpiCard
-          variant="artifacts"
-          iconKind="artifacts"
-          isReported={Boolean(generatedArtifactSummary)}
-          title="Generated artifact inventory"
-          value={
-            generatedArtifactSummary
-              ? `${generatedArtifactSummary.totalArtifacts} files`
-              : "Unavailable"
-          }
-          detail={
-            generatedArtifactSummary
-              ? `${generatedArtifactSummary.previewableArtifacts} previewable`
-              : "Inspect generated artifacts to load inventory"
-          }
-          action={{
-            label: "Open",
-            onClick: () => onActiveSurfaceChange("generated-artifacts"),
-            disabled: !workspace,
-          }}
-        />
+          return (
+            <MissionCockpitKpiCard
+              key={metric.kind}
+              variant={presentation.variant}
+              iconKind={presentation.iconKind}
+              isReported={metric.state === "core-reported"}
+              state={metric.state}
+              title={metric.label}
+              value={metric.value}
+              detail={
+                <>
+                  <span>{metric.detail}</span>
+                  <small className="cockpit-kpi-provenance">
+                    {metric.provenance}
+                  </small>
+                </>
+              }
+              status={
+                <StatusBadge label={formatCockpitMetricStateLabel(metric.state)} />
+              }
+              action={
+                kpiAction
+                  ? {
+                      label: kpiAction.label,
+                      onClick: () => onActiveSurfaceChange(kpiAction.surface),
+                      disabled: kpiAction.disabled,
+                    }
+                  : undefined
+              }
+            />
+          );
+        })}
       </div>
 
       <MissionCockpitEvidenceLanes
