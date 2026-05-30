@@ -1109,3 +1109,162 @@
     text-align: left;
   }
 }
+
+/* v0.15.0 Generated Artifacts cockpit cards.
+   Visual-only refinement. Generated artifacts remain read-only. */
+
+.cockpit-generated-artifacts-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.cockpit-generated-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.cockpit-generated-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.cockpit-generated-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 15px;
+  padding: 11px 12px;
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.cockpit-generated-card span,
+.cockpit-generated-card em {
+  color: #94a3b8;
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cockpit-generated-card strong {
+  color: #f8fafc;
+  font-size: 0.96rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.cockpit-generated-card small {
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.cockpit-generated-card-detected {
+  border-color: rgba(103, 232, 249, 0.2);
+}
+
+.cockpit-generated-card-not-detected {
+  border-color: rgba(148, 163, 184, 0.14);
+  opacity: 0.84;
+}
+
+.cockpit-generated-inventory-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cockpit-generated-inventory-card {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.38);
+}
+
+.cockpit-generated-inventory-card span {
+  color: #94a3b8;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cockpit-generated-inventory-card strong {
+  color: #f8fafc;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.cockpit-generated-inventory-inventory-reported {
+  border-color: rgba(103, 232, 249, 0.18);
+}
+
+.cockpit-generated-inventory-attention {
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.cockpit-generated-inventory-not-loaded {
+  grid-column: 1 / -1;
+  border-color: rgba(148, 163, 184, 0.14);
+  opacity: 0.86;
+}
+
+.cockpit-generated-source-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: rgba(8, 145, 178, 0.08);
+}
+
+.cockpit-generated-source-line span {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cockpit-generated-source-line strong {
+  min-width: 0;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.cockpit-generated-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 1300px) {
+  .cockpit-generated-inventory-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .cockpit-generated-card-grid,
+  .cockpit-generated-inventory-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-generated-source-line {
+    display: grid;
+  }
+
+  .cockpit-generated-source-line strong {
+    text-align: left;
+  }
+}

@@ -316,6 +316,72 @@ export function MissionCockpit({
         ["Warnings", generatedArtifactSummary.warningCount],
       ]
     : [];
+  const generatedLocationNames = new Set(
+    (workspace?.generated_locations ?? []).map((entry) => entry.name.toLowerCase()),
+  );
+  const generatedArtifactCockpitCards = [
+    {
+      label: "Documentation",
+      detail: "Generated Markdown documentation",
+      location: "docs",
+      value: generatedLocationNames.has("docs") ? "detected" : "not detected",
+      state: generatedLocationNames.has("docs") ? "detected" : "not-detected",
+    },
+    {
+      label: "Evidence reports",
+      detail: "Validation, dashboard, scenario and coverage reports",
+      location: "reports",
+      value: generatedLocationNames.has("reports") ? "detected" : "not detected",
+      state: generatedLocationNames.has("reports") ? "detected" : "not-detected",
+    },
+    {
+      label: "Runtime skeleton",
+      detail: "Runtime-facing generated contract outputs",
+      location: "runtime",
+      value: generatedLocationNames.has("runtime") ? "detected" : "not detected",
+      state: generatedLocationNames.has("runtime") ? "detected" : "not-detected",
+    },
+    {
+      label: "Ground artifacts",
+      detail: "Ground-facing generated contract outputs",
+      location: "ground",
+      value: generatedLocationNames.has("ground") ? "detected" : "not detected",
+      state: generatedLocationNames.has("ground") ? "detected" : "not-detected",
+    },
+  ];
+  const generatedArtifactInventoryCards = generatedArtifactSummary
+    ? [
+        {
+          label: "Total",
+          value: String(generatedArtifactSummary.totalArtifacts),
+          state: "inventory-reported",
+        },
+        {
+          label: "Known",
+          value: String(generatedArtifactSummary.knownArtifacts),
+          state: "inventory-reported",
+        },
+        {
+          label: "Previewable",
+          value: String(generatedArtifactSummary.previewableArtifacts),
+          state: "inventory-reported",
+        },
+        {
+          label: "Warnings",
+          value: String(generatedArtifactSummary.warningCount),
+          state:
+            generatedArtifactSummary.warningCount > 0
+              ? "attention"
+              : "inventory-reported",
+        },
+      ]
+    : [
+        {
+          label: "Inventory",
+          value: "not loaded",
+          state: "not-loaded",
+        },
+      ];
   const hasReportsLocation = workspace?.generated_locations.some(
     (entry) => entry.name === "reports",
   );
@@ -918,37 +984,83 @@ export function MissionCockpit({
           </div>
         </article>
 
-        <article className="cockpit-panel cockpit-panel-generated">
+        <article className="cockpit-panel cockpit-panel-generated cockpit-generated-artifacts-panel">
           <MissionCockpitPanelHeader
             eyebrow="Generated"
-            title="Artifact state"
-            trailing={<DashboardIcon kind="artifacts" />}
+            title="Generated artifacts"
+            trailing={
+              <div className="badge-row">
+                <StatusBadge
+                  label={generatedArtifactSummary ? "INVENTORY LOADED" : "NO INVENTORY"}
+                />
+                <StatusBadge
+                  label={workspace?.generated_dir ? "GENERATED DIR" : "NO GENERATED DIR"}
+                />
+              </div>
+            }
           />
 
-          <div className="cockpit-compact-list">
-            {generatedArtifactStatusItems.length > 0 ? (
-              generatedArtifactStatusItems.map(([label, value]) => (
-                <div className="cockpit-row" key={label}>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
+          <div className="cockpit-generated-shell">
+            <div
+              className="cockpit-generated-card-grid"
+              aria-label="Generated artifact class cards"
+            >
+              {generatedArtifactCockpitCards.map((card) => (
+                <div
+                  className={`cockpit-generated-card cockpit-generated-card-${card.state}`}
+                  key={card.label}
+                >
+                  <span>{card.label}</span>
+                  <strong>{card.value}</strong>
+                  <small>{card.detail}</small>
+                  <em>{card.location}</em>
                 </div>
-              ))
-            ) : (
-              <div className="cockpit-empty-module">
-                <strong>No artifact inventory</strong>
-                <span>Open the generated artifact surface to load inventory.</span>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
 
-          <button
-            type="button"
-            className="cockpit-secondary-action"
-            onClick={() => onActiveSurfaceChange("generated-artifacts")}
-            disabled={!workspace}
-          >
-            Open artifact surface
-          </button>
+            <div
+              className="cockpit-generated-inventory-strip"
+              aria-label="Generated artifact inventory summary"
+            >
+              {generatedArtifactInventoryCards.map((item) => (
+                <div
+                  className={`cockpit-generated-inventory-card cockpit-generated-inventory-${item.state}`}
+                  key={item.label}
+                >
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="cockpit-generated-source-line">
+              <span>Inventory source</span>
+              <strong>
+                {generatedArtifactSummary
+                  ? generatedArtifactSummary.generatedDir ?? "generated directory"
+                  : "open Generated Artifacts to inspect inventory"}
+              </strong>
+            </div>
+
+            <div className="cockpit-generated-actions">
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("generated-artifacts")}
+                disabled={!workspace}
+              >
+                Open Generated Artifacts
+              </button>
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("reports-logs")}
+                disabled={!workspace}
+              >
+                Open Reports
+              </button>
+            </div>
+          </div>
         </article>
       </div>
 
