@@ -8,15 +8,19 @@
 }
 
 .workbench-layout-empty {
-  min-height: calc(100vh - 128px);
-  align-items: stretch;
+  min-height: 0;
+  align-items: start;
 }
 
 .workbench-layout-empty > .main-surface {
   display: grid;
   align-content: start;
-  gap: 18px;
+  gap: 16px;
   min-height: 0;
+}
+
+.workbench-layout-empty > .shell-status-bar {
+  display: none;
 }
 
 .workbench-layout-empty .hero-panel,
@@ -25,7 +29,45 @@
 }
 
 .workbench-layout-empty .hero-panel {
-  padding-block: clamp(32px, 6vh, 56px);
+  padding: clamp(28px, 5vh, 44px) clamp(32px, 4vw, 48px);
+}
+
+.workbench-layout-empty .hero-panel h1 {
+  max-width: 1040px;
+  margin-bottom: 10px;
+  font-size: clamp(2.4rem, 4.4vw, 4.25rem);
+  line-height: 0.98;
+}
+
+.workbench-layout-empty .hero-panel .release {
+  margin-bottom: 18px;
+}
+
+.workbench-layout-empty .hero-panel .summary {
+  max-width: 760px;
+  margin-bottom: 14px;
+  font-size: 1rem;
+  line-height: 1.58;
+}
+
+.workbench-layout-empty .hero-badge-row {
+  margin-bottom: 10px;
+}
+
+.workbench-layout-empty .primary-action {
+  margin-top: 4px;
+}
+
+.workbench-layout-empty .inspection-panel {
+  padding: 24px 32px;
+}
+
+.workbench-layout-empty .inspection-panel h2 {
+  margin-bottom: 8px;
+}
+
+.workbench-layout-empty .inspection-panel p {
+  margin-bottom: 0;
 }
 
 .cockpit-dashboard > .mission-data-flow-workbench {
