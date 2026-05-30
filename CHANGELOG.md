@@ -4,15 +4,29 @@ All notable changes to OrbitFabric Studio will be documented in this file.
 
 The format follows a simple release-oriented structure.
 
-OrbitFabric Studio is currently at `v0.13.0 - Evidence-integrated Workbench`.
+OrbitFabric Studio is currently at `v0.14.0 - Artifact Traceability Integration`.
 
-The active planning baseline is `v0.14.0 - Artifact Traceability Integration`.
+The next planning baseline is `v0.15.0 - Mission Cockpit Realization`.
 
-GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a technical milestone tag.
+GitHub Release publication for `v0.14.0` is deferred. The `v0.14.0` milestone is an implementation baseline and technical milestone candidate.
 
 ---
 
 ## Unreleased
+
+No unreleased changes yet.
+
+---
+
+## v0.14.0 - Artifact Traceability Integration
+
+Technical milestone candidate. GitHub Release publication deferred.
+
+This milestone turns the Mission Data Flow Workbench into a stronger read-only traceability surface by connecting Core-reported relationships, validation evidence, scenario data-flow evidence, coverage evidence and generated artifact inventory records into a single Workbench posture.
+
+v0.14.0 remains downstream from OrbitFabric Core.
+
+Studio does not add mission semantics, infer private data-flow links, introduce graph editing, parse scenario YAML as evidence, read logs as evidence, mutate generated artifacts, execute commands, ingest live telemetry or implement Autonomy.
 
 ### Added
 
@@ -26,15 +40,28 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Added Workbench snapshot linkage for generated artifact records and generated output traceability links.
 - Added a route-level Workbench traceability posture panel summarizing reported links, unavailable links, artifact evidence and no-inference boundary before the canvas.
 - Added north-star gap assessment and roadmap recalibration after the v0.14.0 traceability work.
+- Added v0.14.0 release notes.
 
 ### Changed
 
-- Clarified that v0.14.0 should connect generated artifacts, evidence records and Core-reported model entities without introducing authoring, command uplink, live telemetry, plugin behavior, private relationship inference, private data-flow inference or generated artifact mutation.
-- Deferred React Flow and graph-library adoption until the traceability model, Inspector blocks and generated artifact linkage are stable.
+- Clarified that v0.14.0 connects generated artifacts, evidence records and Core-reported model entities without introducing authoring, command uplink, live telemetry, plugin behavior, private relationship inference, private data-flow inference or generated artifact mutation.
+- Deferred React Flow and graph-library adoption until after Mission Cockpit realization and a dedicated read-only graph Workbench decision point.
 - Updated the Workbench header, toolbar and evidence summary to expose reported traceability counts without adding graph semantics.
 - Updated the Generated Artifact Explorer to publish read-only inventory evidence to the Workbench without editing, regenerating or semantically interpreting generated artifacts.
 - Refined the Workbench route copy and visual hierarchy toward the Reference B traceability workbench direction without adding graph semantics or new mission logic.
 - Recalibrated the roadmap so Mission Cockpit realization and read-only graph Workbench maturity precede plugin-aware Studio surfaces.
+
+### Release notes
+
+```text
+docs/releases/v0.14.0-release-notes.md
+```
+
+### Checklist
+
+```text
+V0_14_0_RELEASE_CHECKLIST.md
+```
 
 ---
 
