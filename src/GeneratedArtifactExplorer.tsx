@@ -4,4 +4,4 @@ export {
   type GeneratedArtifactInspectorItem,
   type GeneratedEvidenceArtifactCandidate,
   type GeneratedEvidenceArtifactSummary,
-} from "./GeneratedArtifactExplorerCompact";
+} from "./GeneratedArtifactExplorerCompactV2";
