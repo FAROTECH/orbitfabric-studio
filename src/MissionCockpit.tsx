@@ -245,6 +245,52 @@ export function MissionCockpit({
     ? dashboardTopEntries(dashboardSummary.relationship_inventory.relationship_types, 4)
     : [];
   const displayedIndexedScenarioRuns = scenarioRunIndex?.runs.slice(0, 3) ?? [];
+  const scenarioReportSource = scenarioRunIndex
+    ? "Core scenario run index"
+    : simulationReport
+      ? "Core simulation report"
+      : "not reported";
+  const scenarioSummaryCards = [
+    {
+      label: "Indexed",
+      value: String(scenarioRunIndex?.summary.total ?? 0),
+      state: scenarioRunIndex ? "core-reported" : "unavailable",
+    },
+    {
+      label: "Passed",
+      value: String(scenarioRunIndex?.summary.passed ?? 0),
+      state:
+        scenarioRunIndex && scenarioRunIndex.summary.passed > 0
+          ? "reported"
+          : "not-reported",
+    },
+    {
+      label: "Failed",
+      value: String(scenarioRunIndex?.summary.failed ?? 0),
+      state:
+        scenarioRunIndex && scenarioRunIndex.summary.failed > 0
+          ? "attention"
+          : "nominal",
+    },
+    {
+      label: "Latest sim",
+      value: simulationReport?.result ?? "not reported",
+      state: simulationReport ? simulationReport.result : "not-reported",
+    },
+  ];
+  const latestSimulationSummaryRows = simulationReport
+    ? [
+        ["Scenario", simulationReport.scenario],
+        ["Events", String(simulationReport.summary.events)],
+        ["Commands", String(simulationReport.summary.commands)],
+        ["Mode transitions", String(simulationReport.summary.mode_transitions)],
+        ["Data-flow evidence", String(simulationReport.summary.data_flow_evidence)],
+        [
+          "Failed expectations",
+          String(simulationReport.summary.failed_expectations),
+        ],
+      ]
+    : [];
   const topEntityCoverageRecords = coverageSummary
     ? dashboardTopCoverageRecords(coverageSummary.entity_coverage, 4)
     : [];
@@ -717,47 +763,128 @@ export function MissionCockpit({
           </div>
         </article>
 
-        <article className="cockpit-panel cockpit-panel-scenario">
+        <article className="cockpit-panel cockpit-panel-scenario cockpit-scenario-runs-panel">
           <MissionCockpitPanelHeader
             eyebrow="Scenario"
-            title="Recent runs"
-            trailing={<DashboardIcon kind="evidence" />}
+            title="Recent scenario runs"
+            trailing={
+              <div className="badge-row">
+                <StatusBadge
+                  label={scenarioRunIndex ? "RUN INDEX" : "NO INDEX"}
+                />
+                <StatusBadge
+                  label={simulationReport ? "SIM REPORT" : "NO SIM REPORT"}
+                />
+              </div>
+            }
           />
 
-          <div className="cockpit-compact-list">
-            {displayedIndexedScenarioRuns.length > 0 ? (
-              displayedIndexedScenarioRuns.map((run) => (
-                <div className="cockpit-row" key={`${run.report_path}-${run.scenario}`}>
-                  <span>{run.scenario}</span>
-                  <strong>{run.result}</strong>
+          <div className="cockpit-scenario-shell">
+            <div
+              className="cockpit-scenario-summary-strip"
+              aria-label="Recent scenario run summary"
+            >
+              {scenarioSummaryCards.map((item) => (
+                <div
+                  className={`cockpit-scenario-summary-card cockpit-scenario-summary-${item.state}`}
+                  key={item.label}
+                >
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <small>{item.state}</small>
                 </div>
-              ))
-            ) : scenarioRunIndex ? (
-              <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                <strong>Scenario index reported</strong>
-                <span>No scenario runs indexed yet.</span>
-              </div>
-            ) : (
-              <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                <strong>No scenario index</strong>
-                <span>Run scenario-run-index to populate this module.</span>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
 
-          <div className="cockpit-mini-status">
-            <span>Latest sim</span>
-            <strong>{simulationReport ? simulationReport.result : "not reported"}</strong>
-          </div>
+            <div className="cockpit-scenario-source-line">
+              <span>Source</span>
+              <strong>{scenarioReportSource}</strong>
+            </div>
 
-          <button
-            type="button"
-            className="cockpit-secondary-action"
-            onClick={() => onActiveSurfaceChange("scenario-evidence")}
-            disabled={!workspace}
-          >
-            Open evidence
-          </button>
+            <div
+              className="cockpit-scenario-runs-table"
+              role="table"
+              aria-label="Recent Core scenario runs"
+            >
+              <div className="cockpit-scenario-run-row cockpit-scenario-run-head" role="row">
+                <span role="columnheader">Scenario</span>
+                <span role="columnheader">Mission</span>
+                <span role="columnheader">Result</span>
+                <span role="columnheader">Report</span>
+              </div>
+
+              {displayedIndexedScenarioRuns.length > 0 ? (
+                displayedIndexedScenarioRuns.map((run) => (
+                  <div
+                    className={`cockpit-scenario-run-row cockpit-scenario-run-${run.result}`}
+                    role="row"
+                    key={`${run.report_path}-${run.scenario}`}
+                  >
+                    <span role="cell">
+                      <strong>{run.scenario}</strong>
+                    </span>
+                    <span role="cell">{run.mission}</span>
+                    <span role="cell">
+                      <StatusBadge label={run.result.toUpperCase()} />
+                    </span>
+                    <span role="cell">{run.report_file}</span>
+                  </div>
+                ))
+              ) : scenarioRunIndex ? (
+                <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                  <strong>Scenario index reported</strong>
+                  <span>No scenario runs indexed yet.</span>
+                </div>
+              ) : (
+                <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                  <strong>No scenario index</strong>
+                  <span>Run scenario-run-index to populate this module.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="cockpit-scenario-latest-report">
+              <div className="cockpit-scenario-latest-header">
+                <span>Latest simulation report</span>
+                <strong>{simulationReport ? simulationReport.result : "not reported"}</strong>
+              </div>
+
+              {latestSimulationSummaryRows.length > 0 ? (
+                <div className="cockpit-scenario-latest-grid">
+                  {latestSimulationSummaryRows.map(([label, value]) => (
+                    <div className="cockpit-scenario-latest-cell" key={label}>
+                      <span>{label}</span>
+                      <strong>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                  <strong>No simulation report</strong>
+                  <span>Load or run a Core simulation report to populate latest run details.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="cockpit-scenario-actions">
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("scenario-evidence")}
+                disabled={!workspace}
+              >
+                Open Scenario Evidence
+              </button>
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("mission-data-flow-workbench")}
+                disabled={!workspace}
+              >
+                Inspect Data Flow
+              </button>
+            </div>
+          </div>
         </article>
 
         <article className="cockpit-panel cockpit-panel-coverage">
