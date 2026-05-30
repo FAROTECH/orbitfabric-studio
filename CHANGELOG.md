@@ -25,6 +25,7 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Added a read-only generated artifact inventory bridge so the Generated Artifacts surface can expose artifact evidence to the Mission Data Flow Workbench.
 - Added Workbench snapshot linkage for generated artifact records and generated output traceability links.
 - Added a route-level Workbench traceability posture panel summarizing reported links, unavailable links, artifact evidence and no-inference boundary before the canvas.
+- Added north-star gap assessment and roadmap recalibration after the v0.14.0 traceability work.
 
 ### Changed
 
@@ -33,6 +34,7 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Updated the Workbench header, toolbar and evidence summary to expose reported traceability counts without adding graph semantics.
 - Updated the Generated Artifact Explorer to publish read-only inventory evidence to the Workbench without editing, regenerating or semantically interpreting generated artifacts.
 - Refined the Workbench route copy and visual hierarchy toward the Reference B traceability workbench direction without adding graph semantics or new mission logic.
+- Recalibrated the roadmap so Mission Cockpit realization and read-only graph Workbench maturity precede plugin-aware Studio surfaces.
 
 ---
 
@@ -78,7 +80,6 @@ Studio does not add mission semantics, infer private data-flow links, introduce 
 - Generated Artifacts no longer routes through the legacy workspace surface.
 - Core Commands remains a diagnostic surface for controlled Core-derived report refresh and inspection.
 - Autonomy copy was aligned as explicitly reserved for this baseline.
-- Workbench metadata, Tauri metadata and Cargo metadata are aligned to `0.13.0`.
 
 ### Release notes
 
