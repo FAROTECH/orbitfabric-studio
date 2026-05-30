@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles.css";
 import "./missionCockpitVisualHierarchy.css";
+import "./generatedArtifactExplorer.css";
 import "./releaseHardening.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
