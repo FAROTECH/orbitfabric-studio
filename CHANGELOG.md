@@ -19,6 +19,8 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Added v0.14.0 Artifact Traceability Integration planning and boundary documentation.
 - Added initial v0.14.0 release checklist.
 - Added explicit v0.14.0 PR sequence covering planning, traceability model foundation, Inspector traceability blocks, Generated Artifacts linkage, Workbench layout polish and release hardening.
+- Added a read-only Mission Data Flow Workbench traceability model foundation with traceability groups, links, endpoints and summary counts.
+- Added traceability link generation for Core-reported relationships, scenario data-flow evidence, generated artifact inventory entries, validation evidence and coverage evidence.
 
 ### Changed
 
@@ -82,67 +84,3 @@ docs/releases/v0.13.0-release-notes.md
 ```text
 V0_13_0_RELEASE_CHECKLIST.md
 ```
-
-### Not Included
-
-- No React Flow adoption.
-- No graph library adoption.
-- No graph editing.
-- No drag/drop graph behavior.
-- No layout engine semantics.
-- No Mission Model authoring.
-- No YAML editor behavior.
-- No generated artifact mutation.
-- No plugin execution.
-- No plugin marketplace.
-- No live telemetry.
-- No telemetry archive behavior.
-- No command uplink behavior.
-- No mission control behavior.
-- No operational ground behavior.
-- No private YAML semantic parsing.
-- No private scenario YAML interpretation.
-- No private log-derived evidence.
-- No private relationship inference.
-- No private data-flow inference.
-- No private coverage calculation.
-- No private mission health calculation.
-- No private readiness calculation.
-- No private model completeness calculation.
-- No command authorization.
-- No command scheduling.
-- No command execution.
-- No Autonomy promotion.
-
----
-
-## v0.12.0 - Mission Data Flow Workbench Foundation
-
-Released milestone.
-
-This milestone introduces the first dedicated read-only, Core-derived Mission Data Flow Workbench foundation and moves Studio closer to the Reference B UI north star.
-
-v0.12.0 remains downstream from OrbitFabric Core.
-
-Studio does not add mission semantics, infer private data-flow links, introduce graph editing or mutate generated artifacts.
-
-### Added
-
-- Added Mission Data Flow Workbench data model foundation.
-- Added Workbench source summaries, lanes, records, counts and explicit boundary metadata.
-- Added isolated read-only Mission Data Flow Workbench surface shell.
-- Added Reference B-oriented Workbench layout.
-- Added Workbench tab strip for Graph View, YAML View, Scenario Runner and Data Flow Evidence.
-- Added central read-only canvas-like Graph View foundation.
-- Added right-side Workbench Inspector placeholder.
-- Added lower Workbench panels for Scenario Timeline and Lint / Validation Results.
-- Added Core-derived canvas node and edge rendering from `relationship_manifest.json` records.
-- Added dedicated Mission Data Flow Workbench route frame.
-- Wired the dedicated Workbench surface into the Studio shell.
-- Added Data Flow Workbench sidebar entry.
-- Added Inspect Data Flow shell command bar action.
-- Added Workbench source expansion for Core model summary, Core entity index, Core dashboard summary, Core coverage summary and Core simulation report data-flow evidence.
-- Added relationship manifest consumption for Workbench relationship lanes.
-- Added App-level relationship manifest persistence for the dedicated Workbench surface.
-- Added shell status bar handling for the dedicated Workbench surface.
-- Added v0.12.0 planning, source expansion, validation, persistence, dedicated surface, release notes and release checklist documentation.
