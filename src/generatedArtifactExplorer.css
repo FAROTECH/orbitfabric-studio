@@ -1,0 +1,24 @@
+.generated-artifact-class-overview .summary-grid {
+  align-items: stretch;
+}
+
+.generated-artifact-class-card {
+  cursor: pointer;
+  text-align: left;
+}
+
+.generated-artifact-class-card[aria-current="true"] {
+  border-color: rgba(103, 232, 249, 0.48);
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.generated-artifact-class-card strong,
+.generated-artifact-class-card span {
+  pointer-events: none;
+}
+
+.generated-artifact-compact-list .entry-list {
+  max-height: 440px;
+  overflow: auto;
+  padding-right: 6px;
+}
