@@ -12,6 +12,7 @@ import {
   type GeneratedArtifactInspectorItem,
   type GeneratedEvidenceArtifactSummary,
 } from "./GeneratedArtifactExplorer";
+import { GeneratedArtifactsSurface } from "./GeneratedArtifactsSurface";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { MissionCockpit } from "./MissionCockpit";
 import { MissionDataFlowWorkbenchRoute } from "./MissionDataFlowWorkbenchRoute";
@@ -787,7 +788,15 @@ function App() {
     }
 
     if (activeSurface === "generated-artifacts") {
-      return renderLegacyWorkspaceSurface("Generated Artifacts");
+      return (
+        <GeneratedArtifactsSurface
+          workspace={workspace}
+          refreshToken={generatedArtifactRefreshToken}
+          onDashboardSummaryChange={setGeneratedArtifactSummary}
+          onArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
+          onEvidenceArtifactSummaryChange={setGeneratedEvidenceArtifactSummary}
+        />
+      );
     }
 
     if (activeSurface === "reports-logs") {

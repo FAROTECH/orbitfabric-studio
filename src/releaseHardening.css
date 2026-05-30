@@ -74,30 +74,6 @@
   display: none;
 }
 
-.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header {
-  display: none;
-}
-
-.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel {
-  border: 0;
-  margin-top: 0;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .inspection-header,
-.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .summary-grid,
-.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .warning-box,
-.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .core-panel,
-.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .workspace-layout {
-  display: none;
-}
-
-.active-surface-frame[aria-label="Generated Artifacts"] #studio-artifacts {
-  margin-top: 0;
-}
-
 .active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p {
   font-size: 0;
 }
