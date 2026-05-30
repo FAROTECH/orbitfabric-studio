@@ -208,6 +208,34 @@ export function MissionCockpit({
     lintReport?.summary.warnings ?? dashboardValidation?.warnings ?? null;
   const validationInfo =
     lintReport?.summary.info ?? dashboardValidation?.info ?? null;
+  const validationReportSource = lintReport
+    ? "Core lint report"
+    : dashboardValidation
+      ? "Core dashboard validation summary"
+      : "not reported";
+  const validationSummaryCards = [
+    {
+      label: "Result",
+      value: validationResult ?? "not reported",
+      state: validationResult ? "core-reported" : "unavailable",
+    },
+    {
+      label: "Errors",
+      value: String(validationErrors ?? 0),
+      state: validationErrors && validationErrors > 0 ? "attention" : "nominal",
+    },
+    {
+      label: "Warnings",
+      value: String(validationWarnings ?? 0),
+      state: validationWarnings && validationWarnings > 0 ? "attention" : "nominal",
+    },
+    {
+      label: "Info",
+      value: String(validationInfo ?? 0),
+      state: validationInfo && validationInfo > 0 ? "reported" : "not-reported",
+    },
+  ];
+  const validationFindingRows = lintReport?.findings.slice(0, 5) ?? [];
 
   const dashboardDomains = dashboardSummary?.model_domains.domains ?? [];
   const topEntityDomains = dashboardSummary
@@ -587,49 +615,106 @@ export function MissionCockpit({
           </div>
         </article>
 
-        <article className="cockpit-panel cockpit-panel-validation">
+        <article className="cockpit-panel cockpit-panel-validation cockpit-validation-results-panel">
           <MissionCockpitPanelHeader
             eyebrow="Validation"
-            title="Recent results"
-            trailing={<DashboardIcon kind="validation" />}
+            title="Recent validation results"
+            trailing={
+              <div className="badge-row">
+                <StatusBadge
+                  label={validationResult ? validationResult.toUpperCase() : "UNAVAILABLE"}
+                />
+                <StatusBadge label={lintReport ? "LINT REPORT" : "DASHBOARD FALLBACK"} />
+              </div>
+            }
           />
 
-          <div className="cockpit-compact-list">
-            {validationResult ? (
-              <>
-                <div className="cockpit-row">
-                  <span>Result</span>
-                  <strong>{validationResult}</strong>
+          <div className="cockpit-validation-shell">
+            <div
+              className="cockpit-validation-summary-strip"
+              aria-label="Recent validation summary"
+            >
+              {validationSummaryCards.map((item) => (
+                <div
+                  className={`cockpit-validation-summary-card cockpit-validation-summary-${item.state}`}
+                  key={item.label}
+                >
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <small>{item.state}</small>
                 </div>
-                <div className="cockpit-row">
-                  <span>Errors</span>
-                  <strong>{validationErrors ?? 0}</strong>
-                </div>
-                <div className="cockpit-row">
-                  <span>Warnings</span>
-                  <strong>{validationWarnings ?? 0}</strong>
-                </div>
-                <div className="cockpit-row">
-                  <span>Info</span>
-                  <strong>{validationInfo ?? 0}</strong>
-                </div>
-              </>
-            ) : (
-              <div className="cockpit-empty-module">
-                <strong>No validation report</strong>
-                <span>Run Core validation to populate this module.</span>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
 
-          <button
-            type="button"
-            className="cockpit-secondary-action"
-            onClick={() => onActiveSurfaceChange("core-commands")}
-            disabled={!workspace}
-          >
-            Open Core
-          </button>
+            <div className="cockpit-validation-source-line">
+              <span>Source</span>
+              <strong>{validationReportSource}</strong>
+            </div>
+
+            <div
+              className="cockpit-validation-findings-table"
+              role="table"
+              aria-label="Recent Core validation findings"
+            >
+              <div className="cockpit-validation-finding-row cockpit-validation-finding-head" role="row">
+                <span role="columnheader">Code</span>
+                <span role="columnheader">Domain</span>
+                <span role="columnheader">Object</span>
+                <span role="columnheader">File</span>
+                <span role="columnheader">Message</span>
+              </div>
+
+              {validationFindingRows.length > 0 ? (
+                validationFindingRows.map((finding) => (
+                  <div
+                    className="cockpit-validation-finding-row"
+                    role="row"
+                    key={`${finding.code}-${finding.domain ?? "domain"}-${finding.object_id ?? "object"}-${finding.message}`}
+                  >
+                    <span role="cell">
+                      <strong>{finding.code}</strong>
+                    </span>
+                    <span role="cell">{finding.domain ?? "not reported"}</span>
+                    <span role="cell">{finding.object_id ?? "not reported"}</span>
+                    <span role="cell">{finding.file ?? "not reported"}</span>
+                    <span role="cell">
+                      <strong>{finding.message}</strong>
+                      {finding.suggestion ? <small>{finding.suggestion}</small> : null}
+                    </span>
+                  </div>
+                ))
+              ) : validationResult ? (
+                <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                  <strong>No detailed findings reported</strong>
+                  <span>Core validation status is available, but no finding rows were reported.</span>
+                </div>
+              ) : (
+                <div className="cockpit-empty-module">
+                  <strong>No validation report</strong>
+                  <span>Run Core validation to populate this module.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="cockpit-validation-actions">
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("reports-logs")}
+                disabled={!workspace}
+              >
+                Open Reports
+              </button>
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("core-commands")}
+                disabled={!workspace}
+              >
+                Open Core
+              </button>
+            </div>
+          </div>
         </article>
 
         <article className="cockpit-panel cockpit-panel-scenario">
