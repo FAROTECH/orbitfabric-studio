@@ -20,13 +20,13 @@ export interface ShellCommandBarAction {
 export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "validate-mission",
-    label: "Validate Mission",
-    shortLabel: "Validate",
+    label: "Refresh Core-derived Reports",
+    shortLabel: "Refresh Core",
     targetSurface: "core-commands",
     status: "diagnostic",
     requiredWorkspaceState: "mission",
     description:
-      "Open the controlled Core command surface for fixed validation and export actions.",
+      "Open the controlled Core diagnostic surface for fixed validation and report refresh actions. Studio does not modify Mission Model source files.",
   },
   {
     id: "inspect-data-flow",

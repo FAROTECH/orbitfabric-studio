@@ -1,0 +1,200 @@
+.hero-panel .release {
+  font-size: 0;
+}
+
+.hero-panel .release::after {
+  content: "v0.13.0 Evidence-integrated Workbench";
+  font-size: 1rem;
+}
+
+.workbench-layout-empty {
+  min-height: 0;
+  align-items: start;
+}
+
+.workbench-layout-empty > .main-surface {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 0;
+}
+
+.workbench-layout-empty > .shell-status-bar {
+  display: none;
+}
+
+.workbench-layout-empty .hero-panel,
+.workbench-layout-empty .inspection-panel {
+  min-height: 0;
+}
+
+.workbench-layout-empty .hero-panel {
+  padding: clamp(28px, 5vh, 44px) clamp(32px, 4vw, 48px);
+}
+
+.workbench-layout-empty .hero-panel h1 {
+  max-width: 1040px;
+  margin-bottom: 10px;
+  font-size: clamp(2.4rem, 4.4vw, 4.25rem);
+  line-height: 0.98;
+}
+
+.workbench-layout-empty .hero-panel .release {
+  margin-bottom: 18px;
+}
+
+.workbench-layout-empty .hero-panel .summary {
+  max-width: 760px;
+  margin-bottom: 14px;
+  font-size: 1rem;
+  line-height: 1.58;
+}
+
+.workbench-layout-empty .hero-badge-row {
+  margin-bottom: 10px;
+}
+
+.workbench-layout-empty .primary-action {
+  margin-top: 4px;
+}
+
+.workbench-layout-empty .inspection-panel {
+  padding: 24px 32px;
+}
+
+.workbench-layout-empty .inspection-panel h2 {
+  margin-bottom: 8px;
+}
+
+.workbench-layout-empty .inspection-panel p {
+  margin-bottom: 0;
+}
+
+.cockpit-dashboard > .mission-data-flow-workbench {
+  display: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header {
+  display: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel {
+  border: 0;
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .inspection-header,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .summary-grid,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .warning-box,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .core-panel,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .workspace-layout {
+  display: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] #studio-artifacts {
+  margin-top: 0;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p {
+  font-size: 0;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p::after {
+  content: "Read-only diagnostic surface for controlled Core-derived report refresh and generated artifact inspection. Studio does not modify Mission Model source files.";
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge {
+  font-size: 0;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge::after {
+  content: "DIAGNOSTIC SURFACE";
+  font-size: 0.72rem;
+}
+
+.mission-data-flow-workbench {
+  display: grid;
+  gap: 14px;
+}
+
+.mission-data-flow-workbench > .file-viewer-header {
+  margin-bottom: 0;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] {
+  margin: 0;
+  padding: 14px;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .badge-row {
+  align-items: center;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip {
+  cursor: default;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip[aria-current="page"] {
+  border-color: rgba(103, 232, 249, 0.72);
+  color: #e0f2fe;
+  background: rgba(14, 165, 233, 0.18);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.18) inset;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]) {
+  opacity: 0.72;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]):nth-child(2)::after,
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]):nth-child(3)::after {
+  content: " RESERVED";
+  margin-left: 0.35rem;
+  color: #fbbf24;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.mission-data-flow-workbench nav[aria-label="Workbench views"] .cockpit-command-chip:not([aria-current="page"]):nth-child(4)::after {
+  content: " REPORTED";
+  margin-left: 0.35rem;
+  color: #67e8f9;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.mission-data-flow-workbench-grid,
+.mission-data-flow-workbench-lower-grid {
+  margin-top: 0;
+}
+
+.generated-artifact-class-overview .summary-grid {
+  align-items: stretch;
+}
+
+.generated-artifact-class-card {
+  cursor: pointer;
+  text-align: left;
+}
+
+.generated-artifact-class-card[aria-current="true"] {
+  border-color: rgba(103, 232, 249, 0.48);
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.generated-artifact-class-card strong,
+.generated-artifact-class-card span {
+  pointer-events: none;
+}
+
+.generated-artifact-compact-list .entry-list {
+  max-height: 440px;
+  overflow: auto;
+  padding-right: 6px;
+}

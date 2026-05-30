@@ -13,9 +13,9 @@ const autonomyReservedDomainDefinition: DomainSurfaceDefinition = {
 export const AutonomyReservedSurface = createCoreDomainSurface({
   definition: autonomyReservedDomainDefinition,
   description:
-    "Reserved Autonomy domain surface. This domain is intentionally not implemented in v0.11.x.",
+    "Reserved Autonomy domain surface for v0.13.0. Related Core-reported records may appear in conservative commandability or Workbench evidence surfaces, but Autonomy is not promoted to an implemented Studio domain in this release.",
   boundary:
-    "Autonomy is reserved. This surface does not parse autonomy contracts, does not infer autonomous behavior, does not represent runtime mode logic and does not implement onboard autonomy behavior.",
+    "Autonomy is reserved. This surface does not parse autonomy contracts, infer autonomous behavior, represent runtime mode logic or implement onboard autonomy behavior.",
   emptySelectionDetail:
-    "Autonomy is reserved in this release. No Core-reported autonomy entities are exposed.",
+    "Autonomy is reserved in v0.13.0. No dedicated Core-reported autonomy domain surface is exposed here.",
 });

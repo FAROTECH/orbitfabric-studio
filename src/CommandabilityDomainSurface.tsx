@@ -5,6 +5,13 @@ const commandabilityDomainDefinition: DomainSurfaceDefinition = {
   id: "commandability",
   label: "Commandability",
   coreDomainId: "commandability",
+  coreDomainIds: [
+    "commandability",
+    "command_sources",
+    "commandability_rules",
+    "autonomous_actions",
+    "recovery_intents",
+  ],
   expectedSourceFile: "commandability.yaml",
   lifecycleStatus: "conservative",
   dataSources: ["workspace-inspection", "core-model-summary", "core-entity-index"],
@@ -12,7 +19,10 @@ const commandabilityDomainDefinition: DomainSurfaceDefinition = {
 
 export const CommandabilityDomainSurface = createCoreDomainSurface({
   definition: commandabilityDomainDefinition,
-  description: "Read-only Commandability domain surface backed by structural workspace inspection and Core-reported entity records.",
-  boundary: "This surface shows commandability contract records only as reported by Core. It does not authorize, schedule or execute operational commands.",
-  emptySelectionDetail: "Select a Core-reported commandability entity to inspect its read-only detail.",
+  description:
+    "Read-only conservative Commandability surface backed by structural workspace inspection and Core-reported command source, rule, autonomous-action and recovery-intent records when present.",
+  boundary:
+    "This surface aggregates only Core-reported commandability-related domains. It does not authorize, schedule or execute operational commands.",
+  emptySelectionDetail:
+    "Select a Core-reported commandability, command-source, rule, autonomous-action or recovery-intent entity to inspect its read-only detail. If Core has not reported those domains, the surface remains conservative.",
 });
