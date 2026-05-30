@@ -1,15 +1,26 @@
 import { type ReactNode } from "react";
 
 import { DashboardIcon } from "./DashboardIcon";
+import { type NavigationIconKind } from "./navigationModel";
 
-type MissionCockpitKpiCardVariant =
+export type MissionCockpitKpiCardVariant =
+  | "health"
+  | "completeness"
+  | "lint"
+  | "scenario"
+  | "data-products"
+  | "commandability"
   | "validation"
   | "model"
-  | "scenario"
   | "coverage"
   | "artifacts";
 
-type MissionCockpitKpiCardIconKind = MissionCockpitKpiCardVariant;
+export type MissionCockpitKpiCardIconKind = NavigationIconKind;
+
+export type MissionCockpitKpiCardState =
+  | "core-reported"
+  | "not-reported"
+  | "unavailable";
 
 interface MissionCockpitKpiCardAction {
   label: string;
@@ -24,6 +35,7 @@ interface MissionCockpitKpiCardProps {
   title: ReactNode;
   value: ReactNode;
   detail: ReactNode;
+  state?: MissionCockpitKpiCardState;
   status?: ReactNode;
   action?: MissionCockpitKpiCardAction;
 }
@@ -35,12 +47,15 @@ export function MissionCockpitKpiCard({
   title,
   value,
   detail,
+  state,
   status,
   action,
 }: MissionCockpitKpiCardProps) {
+  const cardState = state ?? (isReported ? "core-reported" : "unavailable");
+
   return (
     <article
-      className={`cockpit-kpi-card cockpit-kpi-card-${variant} ${
+      className={`cockpit-kpi-card cockpit-kpi-card-${variant} cockpit-kpi-state-${cardState} ${
         isReported ? "cockpit-kpi-state-reported" : "cockpit-kpi-state-unavailable"
       }`}
     >
@@ -48,7 +63,7 @@ export function MissionCockpitKpiCard({
       <div>
         <h3>{title}</h3>
         <strong>{value}</strong>
-        <span>{detail}</span>
+        <div className="cockpit-kpi-detail">{detail}</div>
       </div>
       {status ?? null}
       {action ? (
