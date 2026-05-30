@@ -3,6 +3,10 @@ import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import {
+  clearGeneratedArtifactInventory,
+  publishGeneratedArtifactInventory,
+} from "./generatedArtifactInventoryStore";
 import type {
   FileContent,
   GeneratedArtifactClass,
@@ -138,6 +142,7 @@ export function GeneratedArtifactExplorerPanel({
     setError(null);
     setPreviewError(null);
     setSelectedArtifactFile(null);
+    clearGeneratedArtifactInventory(workspacePath);
     onDashboardSummaryChange?.(null);
     onArtifactSelectionChange?.(null);
     onEvidenceArtifactSummaryChange?.(null);
@@ -149,26 +154,37 @@ export function GeneratedArtifactExplorerPanel({
         { workspacePath },
       );
       const classified = classifyGeneratedArtifacts(result.artifacts);
+      const linkedInventory: GeneratedArtifactInventory = {
+        ...result,
+        artifacts: classified,
+        counts: {
+          ...result.counts,
+          known_artifacts: classified.filter((artifact) => artifact.known_status === "known").length,
+          unknown_artifacts: classified.filter((artifact) => artifact.known_status === "unknown").length,
+        },
+      };
       const grouped = groupArtifactsByClass(classified);
       const nextKnown = classified.filter((artifact) => artifact.known_status === "known").length;
       const nextActiveClass =
         artifactClassOrder.find((artifactClass) => grouped[artifactClass].length > 0) ?? "reports";
 
-      setInventory(result);
+      setInventory(linkedInventory);
       setActiveClass(nextActiveClass);
+      publishGeneratedArtifactInventory(workspacePath, linkedInventory);
 
       onDashboardSummaryChange?.({
-        generatedDir: result.generated_dir,
-        totalArtifacts: result.counts.total_artifacts,
+        generatedDir: linkedInventory.generated_dir,
+        totalArtifacts: linkedInventory.counts.total_artifacts,
         knownArtifacts: nextKnown,
         unknownArtifacts: classified.length - nextKnown,
-        previewableArtifacts: result.counts.previewable_artifacts,
-        notPreviewableArtifacts: result.counts.not_previewable_artifacts,
-        warningCount: result.warnings.length,
+        previewableArtifacts: linkedInventory.counts.previewable_artifacts,
+        notPreviewableArtifacts: linkedInventory.counts.not_previewable_artifacts,
+        warningCount: linkedInventory.warnings.length,
       });
       onEvidenceArtifactSummaryChange?.(buildEvidenceSummary(classified));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
+      clearGeneratedArtifactInventory(workspacePath);
       onDashboardSummaryChange?.(null);
       onEvidenceArtifactSummaryChange?.(null);
     } finally {
@@ -232,7 +248,8 @@ export function GeneratedArtifactExplorerPanel({
       {isInspecting ? <p className="empty-text">Inspecting generated artifacts...</p> : null}
       {!inventory && !isInspecting ? (
         <p className="empty-text">
-          Run the generated artifact inspection to populate this compact surface.
+          Run the generated artifact inspection to populate this compact surface and
+          link artifact evidence into the Mission Data Flow Workbench.
         </p>
       ) : null}
 
@@ -246,6 +263,20 @@ export function GeneratedArtifactExplorerPanel({
             <ArtifactSummaryItem label="Previewable" value={String(inventory.counts.previewable_artifacts)} />
             <ArtifactSummaryItem label="Not previewable" value={String(inventory.counts.not_previewable_artifacts)} />
           </div>
+
+          <section className="entry-section muted-section" aria-label="Workbench artifact linkage">
+            <h3>Workbench linkage</h3>
+            <p>
+              This inventory is now available to the Mission Data Flow Workbench as
+              read-only artifact evidence. Studio does not mutate generated files,
+              regenerate artifacts or infer Mission Model semantics from generated output.
+            </p>
+            <div className="badge-row">
+              <ProvenanceBadge label="ARTIFACT EVIDENCE" />
+              <ProvenanceBadge label="READ-ONLY" />
+              <StatusBadge label="WORKBENCH LINKED" />
+            </div>
+          </section>
 
           {inventory.warnings.length > 0 ? (
             <div className="warning-box">
