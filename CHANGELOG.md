@@ -24,6 +24,7 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Added compact Workbench Inspector traceability blocks for selected Core-reported nodes, edges and evidence records.
 - Added a read-only generated artifact inventory bridge so the Generated Artifacts surface can expose artifact evidence to the Mission Data Flow Workbench.
 - Added Workbench snapshot linkage for generated artifact records and generated output traceability links.
+- Added a route-level Workbench traceability posture panel summarizing reported links, unavailable links, artifact evidence and no-inference boundary before the canvas.
 
 ### Changed
 
@@ -31,6 +32,7 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Deferred React Flow and graph-library adoption until the traceability model, Inspector blocks and generated artifact linkage are stable.
 - Updated the Workbench header, toolbar and evidence summary to expose reported traceability counts without adding graph semantics.
 - Updated the Generated Artifact Explorer to publish read-only inventory evidence to the Workbench without editing, regenerating or semantically interpreting generated artifacts.
+- Refined the Workbench route copy and visual hierarchy toward the Reference B traceability workbench direction without adding graph semantics or new mission logic.
 
 ---
 

@@ -18,6 +18,7 @@ Status: in progress.
 - [x] Missing traceability is shown as `not reported`, `unavailable`, `reserved` or `diagnostic`.
 - [ ] Mission Cockpit remains compact and does not invent scores.
 - [x] Mission Data Flow Workbench remains read-only and Core-derived.
+- [x] Mission Data Flow Workbench route exposes a compact traceability posture panel without adding graph semantics.
 - [x] Generated Artifacts remains a read-only surface.
 - [ ] Autonomy remains reserved.
 
@@ -45,7 +46,7 @@ Status: in progress.
 
 ## React Flow confirmation
 
-- [x] React Flow remains deferred for the generated artifact linkage PR.
+- [x] React Flow remains deferred for the Workbench layout polish PR.
 - [x] No graph library is introduced before the traceability model and Inspector blocks are stable.
 - [x] Any future graph-library adoption is handled in a separate, read-only, rollbackable PR.
 
