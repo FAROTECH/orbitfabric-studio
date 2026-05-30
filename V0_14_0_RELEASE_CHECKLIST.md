@@ -2,52 +2,52 @@
 
 Release: `v0.14.0 - Artifact Traceability Integration`
 
-Status: planned.
+Status: in progress.
 
 ## Scope confirmation
 
-- [ ] v0.14.0 planning and boundary documentation is present.
-- [ ] Generated artifact traceability is represented through read-only Workbench evidence.
-- [ ] Workbench traceability uses only Core-reported or generated artifact inventory data.
+- [x] v0.14.0 planning and boundary documentation is present.
+- [x] Generated artifact traceability is represented through read-only Workbench evidence.
+- [x] Workbench traceability uses only Core-reported or generated artifact inventory data.
 - [ ] Selected Workbench records expose Inspector traceability blocks.
 - [ ] Runtime skeleton links are shown only when generated artifact inventory reports them.
 - [ ] Ground artifact links are shown only when generated artifact inventory reports them.
-- [ ] Scenario evidence links are shown only from Core simulation report data.
-- [ ] Validation evidence links are shown only from Core lint or dashboard validation data.
-- [ ] Coverage evidence links are shown only from Core coverage summary data.
+- [x] Scenario evidence links are shown only from Core simulation report data.
+- [x] Validation evidence links are shown only from Core lint or dashboard validation data.
+- [x] Coverage evidence links are shown only from Core coverage summary data.
 - [ ] Missing traceability is shown as `not reported`, `unavailable`, `reserved` or `diagnostic`.
 - [ ] Mission Cockpit remains compact and does not invent scores.
-- [ ] Mission Data Flow Workbench remains read-only and Core-derived.
-- [ ] Generated Artifacts remains a read-only surface.
+- [x] Mission Data Flow Workbench remains read-only and Core-derived.
+- [x] Generated Artifacts remains a read-only surface.
 - [ ] Autonomy remains reserved.
 
 ## Non-goal confirmation
 
-- [ ] No Mission Model authoring.
-- [ ] No YAML editor behavior.
-- [ ] No generated artifact mutation.
-- [ ] No command uplink.
-- [ ] No live telemetry.
-- [ ] No operational ground behavior.
-- [ ] No private YAML semantic parsing.
-- [ ] No private scenario YAML interpretation.
-- [ ] No private log-derived evidence.
-- [ ] No private relationship inference.
-- [ ] No private data-flow inference.
-- [ ] No private coverage calculation.
-- [ ] No mission health calculation.
-- [ ] No readiness calculation.
-- [ ] No completeness calculation.
-- [ ] No Autonomy implementation.
-- [ ] No plugin execution.
-- [ ] No plugin marketplace.
-- [ ] No arbitrary command execution.
+- [x] No Mission Model authoring.
+- [x] No YAML editor behavior.
+- [x] No generated artifact mutation.
+- [x] No command uplink.
+- [x] No live telemetry.
+- [x] No operational ground behavior.
+- [x] No private YAML semantic parsing.
+- [x] No private scenario YAML interpretation.
+- [x] No private log-derived evidence.
+- [x] No private relationship inference.
+- [x] No private data-flow inference.
+- [x] No private coverage calculation.
+- [x] No mission health calculation.
+- [x] No readiness calculation.
+- [x] No completeness calculation.
+- [x] No Autonomy implementation.
+- [x] No plugin execution.
+- [x] No plugin marketplace.
+- [x] No arbitrary command execution.
 
 ## React Flow confirmation
 
-- [ ] React Flow remains deferred for the planning PR.
-- [ ] No graph library is introduced before the traceability model and Inspector blocks are stable.
-- [ ] Any future graph-library adoption is handled in a separate, read-only, rollbackable PR.
+- [x] React Flow remains deferred for the traceability model foundation PR.
+- [x] No graph library is introduced before the traceability model and Inspector blocks are stable.
+- [x] Any future graph-library adoption is handled in a separate, read-only, rollbackable PR.
 
 ## Required validation
 
@@ -70,11 +70,11 @@ Verify all of the following are present and aligned:
 
 - [ ] `README.md`
 - [ ] `ROADMAP.md`
-- [ ] `CHANGELOG.md`
-- [ ] `docs/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md`
+- [x] `CHANGELOG.md`
+- [x] `docs/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md`
 - [ ] `docs/roadmap/studio-ui-north-star-reference.md`
 - [ ] `docs/roadmap/studio-target-ui-convergence-strategy.md`
-- [ ] `V0_14_0_RELEASE_CHECKLIST.md`
+- [x] `V0_14_0_RELEASE_CHECKLIST.md`
 
 ## Manual smoke path
 
