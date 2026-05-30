@@ -283,30 +283,71 @@ export function MissionCockpit({
   const reportedEvidenceCount = reportedEvidenceItems.filter(
     (item) => item.isReported,
   ).length;
-  const cockpitContractMapItems =
+  const entityDomainIndex = new Map(
+    (entityIndex?.domains ?? []).map((domain) => [domain.id, domain]),
+  );
+  const contractOverviewRows =
     dashboardDomains.length > 0
-      ? dashboardDomains.slice(0, 6).map((domain) => ({
-          label: domain.display_name,
-          value: String(domain.count),
-          state: "reported",
-        }))
-      : [
-          {
-            label: "Source files",
-            value: String(workspace?.source_model_files.length ?? 0),
-            state: workspace ? "detected" : "missing",
-          },
-          {
-            label: "Scenarios",
-            value: String(workspace?.scenario_files.length ?? 0),
-            state: workspace ? "detected" : "missing",
-          },
-          {
-            label: "Generated",
-            value: String(workspace?.generated_locations.length ?? 0),
-            state: workspace ? "detected" : "missing",
-          },
-        ];
+      ? dashboardDomains.map((domain) => {
+          const indexedDomain = entityDomainIndex.get(domain.id);
+
+          return {
+            id: domain.id,
+            label: domain.display_name,
+            sourceFile: domain.source_file,
+            required: domain.required ? "required" : "optional",
+            present: domain.present ? "present" : "missing",
+            count: String(domain.count),
+            indexed: indexedDomain
+              ? indexedDomain.indexed
+                ? "indexed"
+                : "not indexed"
+              : "not reported",
+            provenance: "Core dashboard summary",
+          };
+        })
+      : (workspace?.source_model_files ?? []).slice(0, 12).map((entry) => ({
+          id: entry.path,
+          label: entry.name.replace(/\.ya?ml$/i, ""),
+          sourceFile: entry.name,
+          required: "not reported",
+          present: "detected",
+          count: "not reported",
+          indexed: "not reported",
+          provenance: "Workspace structural inspection",
+        }));
+  const contractOverviewSummaryItems = [
+    {
+      label: "Domains",
+      value: dashboardSummary
+        ? String(dashboardSummary.model_domains.domains.length)
+        : String(workspace?.source_model_files.length ?? 0),
+      state: dashboardSummary ? "core-reported" : workspace ? "structural" : "unavailable",
+    },
+    {
+      label: "Entities",
+      value: dashboardSummary
+        ? String(dashboardSummary.entity_inventory.total_entities)
+        : "not reported",
+      state: dashboardSummary ? "core-reported" : "not-reported",
+    },
+    {
+      label: "Relationships",
+      value: dashboardSummary
+        ? String(dashboardSummary.relationship_inventory.total_relationships)
+        : "not reported",
+      state: dashboardSummary ? "core-reported" : "not-reported",
+    },
+    {
+      label: "Missing sources",
+      value: String(workspace?.missing_expected_source_files.length ?? 0),
+      state:
+        workspace && workspace.missing_expected_source_files.length === 0
+          ? "detected"
+          : "attention",
+    },
+  ];
+
 
   return (
     <section
@@ -404,74 +445,144 @@ export function MissionCockpit({
       />
 
       <div className="cockpit-work-grid">
-        <article className="cockpit-panel cockpit-panel-large">
+        <article className="cockpit-panel cockpit-panel-large cockpit-contract-overview-panel">
           <MissionCockpitPanelHeader
             eyebrow="Mission data contract"
             title={
-              dashboardSummary ? "Core-derived contract map" : "Workspace structural map"
+              dashboardSummary
+                ? "Core-derived contract overview"
+                : "Workspace structural overview"
             }
             trailing={
-              <StatusBadge
-                label={dashboardSummary ? "CORE-REPORTED" : "STRUCTURAL"}
-              />
+              <div className="badge-row">
+                <StatusBadge
+                  label={dashboardSummary ? "CORE DASHBOARD" : "STRUCTURAL"}
+                />
+                <StatusBadge label={entityIndex ? "ENTITY INDEX" : "NO INDEX"} />
+              </div>
             }
           />
 
-          <div className="cockpit-contract-topology" aria-label="Mission contract topology map">
-            {cockpitContractMapItems.map((item, index) => (
-              <div
-                className={`cockpit-contract-node ${
-                  item.state === "missing"
-                    ? "cockpit-contract-node-missing"
-                    : "cockpit-contract-node-detected"
-                }`}
-                key={`${item.label}-${index}`}
-              >
-                <span className="cockpit-contract-node-index">
-                  {index + 1 < 10 ? `0${index + 1}` : index + 1}
-                </span>
-                <div>
-                  <strong>{item.value}</strong>
+          <div className="cockpit-contract-overview-shell">
+            <div
+              className="cockpit-contract-summary-strip"
+              aria-label="Mission contract overview summary"
+            >
+              {contractOverviewSummaryItems.map((item) => (
+                <div
+                  className={`cockpit-contract-summary-card cockpit-contract-summary-${item.state}`}
+                  key={item.label}
+                >
                   <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <small>{item.state}</small>
                 </div>
-                <small>{item.state}</small>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="cockpit-two-column">
-            <div className="cockpit-compact-list">
-              <h4>Top entity domains</h4>
-              {topEntityDomains.length > 0 ? (
-                topEntityDomains.map(([domain, count]) => (
-                  <div className="cockpit-row" key={domain}>
-                    <span>{domain}</span>
-                    <strong>{count}</strong>
+            <div
+              className="cockpit-contract-overview-table"
+              role="table"
+              aria-label="Mission data contract domain overview"
+            >
+              <div className="cockpit-contract-overview-row cockpit-contract-overview-head" role="row">
+                <span role="columnheader">Domain</span>
+                <span role="columnheader">Source</span>
+                <span role="columnheader">Required</span>
+                <span role="columnheader">Presence</span>
+                <span role="columnheader">Entities</span>
+                <span role="columnheader">Index</span>
+              </div>
+
+              {contractOverviewRows.length > 0 ? (
+                contractOverviewRows.map((row) => (
+                  <div
+                    className={`cockpit-contract-overview-row cockpit-contract-overview-row-${row.present}`}
+                    role="row"
+                    key={row.id}
+                  >
+                    <span role="cell">
+                      <strong>{row.label}</strong>
+                      <small>{row.provenance}</small>
+                    </span>
+                    <span role="cell">{row.sourceFile}</span>
+                    <span role="cell">{row.required}</span>
+                    <span role="cell">
+                      <StatusBadge label={row.present.toUpperCase()} />
+                    </span>
+                    <span role="cell">{row.count}</span>
+                    <span role="cell">{row.indexed}</span>
                   </div>
                 ))
               ) : (
                 <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>No entity inventory</strong>
-                  <span>Run Core dashboard-summary to populate this lane.</span>
+                  <strong>No contract overview available</strong>
+                  <span>Open a workspace or run Core dashboard-summary.</span>
                 </div>
               )}
             </div>
 
-            <div className="cockpit-compact-list">
-              <h4>Top relationships</h4>
-              {topRelationshipTypes.length > 0 ? (
-                topRelationshipTypes.map(([relationshipType, count]) => (
-                  <div className="cockpit-row" key={relationshipType}>
-                    <span>{relationshipType}</span>
-                    <strong>{count}</strong>
+            <div className="cockpit-contract-side-grid">
+              <div className="cockpit-compact-list">
+                <h4>Top entity domains</h4>
+                {topEntityDomains.length > 0 ? (
+                  topEntityDomains.map(([domain, count]) => (
+                    <div className="cockpit-row" key={domain}>
+                      <span>{domain}</span>
+                      <strong>{count}</strong>
+                    </div>
+                  ))
+                ) : (
+                  <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                    <strong>No entity inventory</strong>
+                    <span>Core dashboard summary required.</span>
                   </div>
-                ))
-              ) : (
-                <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>No relationship inventory</strong>
-                  <span>Run Core dashboard-summary to populate this lane.</span>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="cockpit-compact-list">
+                <h4>Top relationships</h4>
+                {topRelationshipTypes.length > 0 ? (
+                  topRelationshipTypes.map(([relationshipType, count]) => (
+                    <div className="cockpit-row" key={relationshipType}>
+                      <span>{relationshipType}</span>
+                      <strong>{count}</strong>
+                    </div>
+                  ))
+                ) : (
+                  <div className="cockpit-empty-module cockpit-empty-module-dormant">
+                    <strong>No relationship inventory</strong>
+                    <span>Core dashboard summary required.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="cockpit-contract-overview-actions">
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("model-inventory")}
+                disabled={!workspace}
+              >
+                Open Model Inventory
+              </button>
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("contracts")}
+                disabled={!workspace}
+              >
+                Open Contracts
+              </button>
+              <button
+                type="button"
+                className="cockpit-secondary-action"
+                onClick={() => onActiveSurfaceChange("mission-data-flow-workbench")}
+                disabled={!workspace}
+              >
+                Inspect Data Flow
+              </button>
             </div>
           </div>
         </article>
