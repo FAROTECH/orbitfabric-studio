@@ -2,58 +2,65 @@
 
 Release: `v0.13.0 - Evidence-integrated Workbench`
 
+Status: tagged technical milestone. GitHub Release publication is deferred until the documentation, roadmap and communication package are reviewed together.
+
 ## Scope confirmation
 
-- [ ] v0.13.0 planning and boundary documentation is present.
-- [ ] Mission Data Flow Workbench evidence model includes explicit evidence kinds.
-- [ ] Workbench model includes relationship evidence.
-- [ ] Workbench model includes scenario evidence.
-- [ ] Workbench model includes validation evidence.
-- [ ] Workbench model includes coverage evidence.
-- [ ] Workbench model includes artifact evidence.
-- [ ] Workbench validation evidence consumes `CoreLintReport` when available.
-- [ ] Workbench validation evidence falls back to `CoreDashboardSummary.validation` when lint output is not available.
-- [ ] Workbench coverage evidence consumes only `CoreCoverageSummary`.
-- [ ] Workbench scenario evidence consumes only Core simulation report `data_flow_evidence` records.
-- [ ] Workbench selection is read-only.
-- [ ] Workbench canvas nodes are derived from Core-reported relationship endpoints.
-- [ ] Workbench canvas edges are derived from Core-reported relationship records.
-- [ ] Workbench Inspector updates from selected Core-derived records.
-- [ ] Workbench Inspector shows raw Core-reported payload preview.
-- [ ] Scenario Timeline renders Core-reported evidence fields only.
-- [ ] Lint / Validation Results separates validation, coverage and relationship evidence.
-- [ ] Workbench evidence posture rail is present.
-- [ ] Workbench visual hierarchy moves closer to Reference B.
-- [ ] `lintReport` is wired into `createMissionDataFlowWorkbenchSnapshot` from `App.tsx`.
-- [ ] `lintReport` is wired into `createMissionDataFlowWorkbenchSnapshot` from `MissionCockpit.tsx`.
+- [x] v0.13.0 planning and boundary documentation is present.
+- [x] Mission Data Flow Workbench evidence model includes explicit evidence kinds.
+- [x] Workbench model includes relationship evidence.
+- [x] Workbench model includes scenario evidence.
+- [x] Workbench model includes validation evidence.
+- [x] Workbench model includes coverage evidence.
+- [x] Workbench model includes artifact evidence.
+- [x] Workbench validation evidence consumes `CoreLintReport` when available.
+- [x] Workbench validation evidence falls back to `CoreDashboardSummary.validation` when lint output is not available.
+- [x] Workbench coverage evidence consumes only `CoreCoverageSummary`.
+- [x] Workbench scenario evidence consumes only Core simulation report `data_flow_evidence` records.
+- [x] Workbench selection is read-only.
+- [x] Workbench canvas nodes are derived from Core-reported relationship endpoints.
+- [x] Workbench canvas edges are derived from Core-reported relationship records.
+- [x] Workbench Inspector updates from selected Core-derived records.
+- [x] Workbench Inspector shows raw Core-reported payload preview.
+- [x] Scenario Timeline renders Core-reported evidence fields only.
+- [x] Lint / Validation Results separates validation, coverage and relationship evidence.
+- [x] Workbench evidence posture rail is present.
+- [x] Workbench visual hierarchy moves closer to Reference B.
+- [x] `lintReport` is wired into `createMissionDataFlowWorkbenchSnapshot` from `App.tsx`.
+- [x] `lintReport` is wired into `createMissionDataFlowWorkbenchSnapshot` from `MissionCockpit.tsx`.
+- [x] Mission Cockpit is stable after release hardening.
+- [x] Generated Artifacts uses a dedicated read-only surface.
+- [x] Contacts & Downlink uses conservative multi-domain aggregation.
+- [x] Commandability uses conservative multi-domain aggregation.
+- [x] Autonomy remains explicitly reserved.
 
 ## Non-goal confirmation
 
-- [ ] No React Flow adoption.
-- [ ] No graph library adoption.
-- [ ] No graph editing.
-- [ ] No drag/drop graph behavior.
-- [ ] No layout engine semantics.
-- [ ] No Mission Model authoring.
-- [ ] No YAML editor behavior.
-- [ ] No generated artifact mutation.
-- [ ] No plugin behavior.
-- [ ] No live telemetry.
-- [ ] No command uplink.
-- [ ] No operational ground behavior.
-- [ ] No private YAML semantic parsing.
-- [ ] No private scenario YAML interpretation.
-- [ ] No private log-derived evidence.
-- [ ] No private relationship inference.
-- [ ] No private data-flow inference.
-- [ ] No private coverage calculation.
-- [ ] No mission health calculation.
-- [ ] No readiness calculation.
-- [ ] No completeness calculation.
-- [ ] No command authorization.
-- [ ] No command scheduling.
-- [ ] No command execution.
-- [ ] No Autonomy implementation.
+- [x] No React Flow adoption.
+- [x] No graph library adoption.
+- [x] No graph editing.
+- [x] No drag/drop graph behavior.
+- [x] No layout engine semantics.
+- [x] No Mission Model authoring.
+- [x] No YAML editor behavior.
+- [x] No generated artifact mutation.
+- [x] No plugin behavior.
+- [x] No live telemetry.
+- [x] No command uplink.
+- [x] No operational ground behavior.
+- [x] No private YAML semantic parsing.
+- [x] No private scenario YAML interpretation.
+- [x] No private log-derived evidence.
+- [x] No private relationship inference.
+- [x] No private data-flow inference.
+- [x] No private coverage calculation.
+- [x] No mission health calculation.
+- [x] No readiness calculation.
+- [x] No completeness calculation.
+- [x] No command authorization.
+- [x] No command scheduling.
+- [x] No command execution.
+- [x] No Autonomy implementation.
 
 ## Required validation
 
@@ -65,65 +72,51 @@ npm run build
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
-All commands must pass.
+Final interactive validation also used:
+
+```bash
+npm run tauri:dev
+```
+
+Observed final manual QA state:
+
+- [x] Home remains compact and not clipped.
+- [x] Mission Cockpit renders correctly.
+- [x] Mission Data Flow Workbench is stable enough for v0.13.0.
+- [x] Generated Artifacts uses the dedicated compact surface.
+- [x] Core Commands diagnostic surface works.
+- [x] Scenario Evidence works, with scenario file selection updating the Inspector.
+- [x] Contacts & Downlink reports conservative Core-derived entities.
+- [x] Commandability reports conservative Core-derived entities.
+- [x] Autonomy remains reserved.
 
 ## Metadata and version alignment
 
 Verify all of the following are aligned to `0.13.0`:
 
-- [ ] `package.json`
-- [ ] `package-lock.json`
-- [ ] `src-tauri/Cargo.toml`
-- [ ] `src-tauri/Cargo.lock`, if generated by Cargo after the package version change
-- [ ] `src-tauri/tauri.conf.json`
-
-Required local metadata commands:
-
-```bash
-npm install --package-lock-only
-cargo check --manifest-path src-tauri/Cargo.toml
-```
-
-If either command changes a lockfile, commit the generated lockfile change before merging the release closure PR.
+- [x] `package.json`
+- [x] `package-lock.json`
+- [x] `src-tauri/Cargo.toml`
+- [x] `src-tauri/Cargo.lock`, if generated by Cargo after the package version change
+- [x] `src-tauri/tauri.conf.json`
 
 ## Documentation alignment
 
 Verify all of the following are present and aligned:
 
-- [ ] `README.md`
-- [ ] `ROADMAP.md`
-- [ ] `CHANGELOG.md`
-- [ ] `docs/releases/v0.13.0-release-notes.md`
-- [ ] `V0_13_0_RELEASE_CHECKLIST.md`
-- [ ] `docs/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md`
-- [ ] `docs/roadmap/studio-ui-north-star-reference.md`
-- [ ] `docs/roadmap/studio-target-ui-convergence-strategy.md`
-
-## Manual smoke path
-
-- [ ] Open a valid OrbitFabric workspace.
-- [ ] Confirm Mission Cockpit renders.
-- [ ] Confirm Data Flow Workbench appears in the sidebar.
-- [ ] Confirm Inspect Data Flow appears in the command bar.
-- [ ] Open the dedicated Data Flow Workbench surface.
-- [ ] Run or load Core model summary.
-- [ ] Run or load Core entity index.
-- [ ] Run or load Core relationship manifest.
-- [ ] Run or load Core dashboard summary.
-- [ ] Run or load Core lint report.
-- [ ] Run or load Core coverage summary.
-- [ ] Run or load a Core simulation report with data-flow evidence, if available.
-- [ ] Confirm Workbench remains read-only.
-- [ ] Confirm relationship evidence is shown only from Core-reported relationship records.
-- [ ] Confirm scenario evidence is shown only from Core-reported simulation data-flow evidence records.
-- [ ] Confirm validation evidence is shown only from Core-reported lint or dashboard validation records.
-- [ ] Confirm coverage evidence is shown only from Core-reported coverage records.
-- [ ] Confirm Workbench selection updates the local Inspector.
-- [ ] Confirm no private relationship or data-flow inference is shown.
-- [ ] Confirm no YAML parsing or log-derived evidence is presented as evidence.
+- [x] `README.md`
+- [x] `ROADMAP.md`
+- [x] `CHANGELOG.md`
+- [x] `docs/releases/v0.13.0-release-notes.md`
+- [x] `V0_13_0_RELEASE_CHECKLIST.md`
+- [x] `docs/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md`
+- [x] `docs/roadmap/studio-ui-north-star-reference.md`
+- [x] `docs/roadmap/studio-target-ui-convergence-strategy.md`
 
 ## Release closure
 
-- [ ] Release closure PR merged into `main`.
-- [ ] GitHub release/tag created as `v0.13.0`, if desired.
-- [ ] Next planning baseline is `v0.14.0 - Artifact Traceability Integration`.
+- [x] Release closure PR merged into `main`.
+- [x] Technical tag created as `v0.13.0`.
+- [ ] GitHub Release publication completed.
+- [x] GitHub Release publication intentionally deferred.
+- [x] Next planning baseline is `v0.14.0 - Artifact Traceability Integration`.

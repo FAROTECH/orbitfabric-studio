@@ -16,13 +16,18 @@ Studio is downstream.
 
 ```text
 Current implementation baseline: v0.13.0 - Evidence-integrated Workbench
-Current released milestone: v0.13.0 - Evidence-integrated Workbench
+Current tagged technical milestone: v0.13.0 - Evidence-integrated Workbench
 Next planning baseline: v0.14.0 - Artifact Traceability Integration
+GitHub Release publication: deferred
 ```
 
-v0.13.0 is the current implementation baseline.
+v0.13.0 is the current implementation baseline and tagged technical milestone.
 
 v0.13.0 deepens the dedicated read-only, Core-derived Mission Data Flow Workbench and moves it closer to Reference B in the Studio UI North Star document.
+
+The final v0.13.0 hardening pass also stabilizes the Mission Cockpit, promotes Generated Artifacts into a dedicated read-only surface, keeps Core Commands as a diagnostic surface, improves conservative Contacts & Downlink aggregation, improves conservative Commandability aggregation and keeps Autonomy explicitly reserved.
+
+The GitHub Release publication is intentionally deferred until the documentation, roadmap and communication package are reviewed together.
 
 The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
@@ -277,7 +282,7 @@ V0_12_0_RELEASE_CHECKLIST.md
 
 ### v0.13.0 - Evidence-integrated Workbench
 
-Status: Completed
+Status: Completed technical milestone. GitHub Release publication deferred.
 
 Deepened the dedicated read-only, Core-derived Mission Data Flow Workbench by integrating relationship, scenario, validation and coverage evidence more directly into the Workbench surface.
 
@@ -298,6 +303,12 @@ v0.13.0 introduced:
 - compact Workbench evidence posture rail;
 - Reference B-oriented Workbench visual polish;
 - Workbench lint report wiring through both Mission Cockpit and the dedicated Workbench route;
+- release hardening for Home, Mission Cockpit, Data Flow Workbench and Generated Artifacts;
+- dedicated Generated Artifacts surface;
+- compact Generated Artifact Explorer class selection and read-only preview behavior;
+- conservative multi-domain Contacts & Downlink aggregation;
+- conservative multi-domain Commandability aggregation;
+- explicit reserved Autonomy baseline;
 - metadata alignment to `0.13.0`.
 
 v0.13.0 does not introduce React Flow, graph library adoption, graph editing, drag/drop behavior, layout engine semantics, Mission Model authoring, YAML editor behavior, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private scenario YAML interpretation, private log-derived evidence, private relationship inference, private data-flow inference, private coverage calculation, private mission health calculation, private readiness calculation, private model completeness calculation, command authorization, command scheduling, command execution or Autonomy implementation.
