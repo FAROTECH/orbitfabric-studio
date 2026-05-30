@@ -59,6 +59,60 @@ export type MissionDataFlowWorkbenchEvidenceKind =
   | "coverage-evidence"
   | "artifact-evidence";
 
+export type MissionDataFlowTraceabilityGroupId =
+  | "core-relationships"
+  | "scenario-data-flow"
+  | "generated-outputs"
+  | "validation-evidence"
+  | "coverage-evidence";
+
+export type MissionDataFlowTraceabilityLinkKind =
+  | "core-relationship"
+  | "scenario-data-flow"
+  | "generated-artifact"
+  | "validation-evidence"
+  | "coverage-evidence";
+
+export interface MissionDataFlowTraceabilityEndpoint {
+  label: string;
+  domain: string | null;
+  id: string | null;
+  recordId: string | null;
+}
+
+export interface MissionDataFlowTraceabilityLink {
+  id: string;
+  label: string;
+  kind: MissionDataFlowTraceabilityLinkKind;
+  evidenceKind: MissionDataFlowWorkbenchEvidenceKind;
+  provenance: MissionDataFlowWorkbenchProvenance;
+  state: MissionDataFlowWorkbenchSourceState;
+  from: MissionDataFlowTraceabilityEndpoint;
+  to: MissionDataFlowTraceabilityEndpoint;
+  detail: string;
+  raw: unknown;
+}
+
+export interface MissionDataFlowTraceabilityGroup {
+  id: MissionDataFlowTraceabilityGroupId;
+  title: string;
+  evidenceKind: MissionDataFlowWorkbenchEvidenceKind;
+  provenance: MissionDataFlowWorkbenchProvenance;
+  state: MissionDataFlowWorkbenchSourceState;
+  links: MissionDataFlowTraceabilityLink[];
+  emptyDetail: string;
+}
+
+export interface MissionDataFlowTraceabilitySummary {
+  groups: MissionDataFlowTraceabilityGroup[];
+  counts: {
+    groups: number;
+    links: number;
+    reportedLinks: number;
+    unavailableLinks: number;
+  };
+}
+
 export interface MissionDataFlowWorkbenchInput {
   modelSummary: CoreModelSummary | null;
   entityIndex: CoreEntityIndex | null;
@@ -110,6 +164,7 @@ export interface MissionDataFlowWorkbenchSnapshot {
   boundary: MissionDataFlowWorkbenchBoundary;
   sources: MissionDataFlowWorkbenchSourceSummary[];
   lanes: MissionDataFlowWorkbenchLane[];
+  traceability: MissionDataFlowTraceabilitySummary;
   counts: {
     missionDomains: number;
     relationshipTypes: number;
@@ -118,6 +173,7 @@ export interface MissionDataFlowWorkbenchSnapshot {
     validationEvidenceRecords: number;
     coverageScopes: number;
     generatedArtifacts: number;
+    traceabilityLinks: number;
   };
 }
 
@@ -135,6 +191,14 @@ export function createMissionDataFlowWorkbenchSnapshot(
   const generatedArtifactRecords = createGeneratedArtifactRecords(
     input.generatedArtifactInventory,
   );
+  const traceability = createTraceabilitySummary({
+    relationshipManifest: input.relationshipManifest,
+    simulationReport: input.simulationReport,
+    lintReport: input.lintReport ?? null,
+    dashboardSummary: input.dashboardSummary,
+    coverageSummary: input.coverageSummary,
+    generatedArtifactInventory: input.generatedArtifactInventory,
+  });
 
   return {
     boundary: {
@@ -195,6 +259,7 @@ export function createMissionDataFlowWorkbenchSnapshot(
         emptyDetail: "No generated artifact inventory has been loaded yet.",
       }),
     ],
+    traceability,
     counts: {
       missionDomains: missionDomainRecords.length,
       relationshipTypes: input.relationshipManifest?.relationship_types.length ?? 0,
@@ -203,6 +268,7 @@ export function createMissionDataFlowWorkbenchSnapshot(
       validationEvidenceRecords: validationRecords.length,
       coverageScopes: coverageRecords.length,
       generatedArtifacts: generatedArtifactRecords.length,
+      traceabilityLinks: traceability.counts.links,
     },
   };
 }
@@ -578,6 +644,335 @@ function toGeneratedArtifactRecord(
     state: artifact.known_status === "known" ? "reported" : "unavailable",
     detail: `${artifact.artifact_class}, ${artifact.preview_status}`,
     raw: artifact,
+  };
+}
+
+function createTraceabilitySummary(input: {
+  relationshipManifest: CoreRelationshipManifest | null;
+  simulationReport: CoreSimulationReport | null;
+  lintReport: CoreLintReport | null;
+  dashboardSummary: CoreDashboardSummary | null;
+  coverageSummary: CoreCoverageSummary | null;
+  generatedArtifactInventory: GeneratedArtifactInventory | null;
+}): MissionDataFlowTraceabilitySummary {
+  const groups: MissionDataFlowTraceabilityGroup[] = [
+    createTraceabilityGroup({
+      id: "core-relationships",
+      title: "Core-reported relationships",
+      evidenceKind: "relationship-evidence",
+      provenance: "core-relationship-manifest",
+      links: createRelationshipTraceabilityLinks(input.relationshipManifest),
+      emptyDetail: "No Core relationship manifest has been reported yet.",
+    }),
+    createTraceabilityGroup({
+      id: "scenario-data-flow",
+      title: "Scenario data-flow evidence",
+      evidenceKind: "scenario-evidence",
+      provenance: "core-simulation-report",
+      links: createScenarioTraceabilityLinks(input.simulationReport),
+      emptyDetail: "No Core simulation data-flow evidence has been reported yet.",
+    }),
+    createTraceabilityGroup({
+      id: "generated-outputs",
+      title: "Generated output evidence",
+      evidenceKind: "artifact-evidence",
+      provenance: "generated-artifact-inventory",
+      links: createGeneratedArtifactTraceabilityLinks(input.generatedArtifactInventory),
+      emptyDetail: "No generated artifact inventory has been loaded yet.",
+    }),
+    createTraceabilityGroup({
+      id: "validation-evidence",
+      title: "Validation evidence",
+      evidenceKind: "validation-evidence",
+      provenance: input.lintReport ? "core-lint-report" : "core-dashboard-summary",
+      links: createValidationTraceabilityLinks(input.lintReport, input.dashboardSummary),
+      emptyDetail: "No Core lint report or dashboard validation summary has been reported yet.",
+    }),
+    createTraceabilityGroup({
+      id: "coverage-evidence",
+      title: "Coverage evidence",
+      evidenceKind: "coverage-evidence",
+      provenance: "core-coverage-summary",
+      links: createCoverageTraceabilityLinks(input.coverageSummary),
+      emptyDetail: "No Core coverage summary has been reported yet.",
+    }),
+  ];
+  const links = groups.flatMap((group) => group.links);
+
+  return {
+    groups,
+    counts: {
+      groups: groups.length,
+      links: links.length,
+      reportedLinks: links.filter((link) => link.state === "reported").length,
+      unavailableLinks: links.filter((link) => link.state === "unavailable").length,
+    },
+  };
+}
+
+function createTraceabilityGroup({
+  id,
+  title,
+  evidenceKind,
+  provenance,
+  links,
+  emptyDetail,
+}: {
+  id: MissionDataFlowTraceabilityGroupId;
+  title: string;
+  evidenceKind: MissionDataFlowWorkbenchEvidenceKind;
+  provenance: MissionDataFlowWorkbenchProvenance;
+  links: MissionDataFlowTraceabilityLink[];
+  emptyDetail: string;
+}): MissionDataFlowTraceabilityGroup {
+  return {
+    id,
+    title,
+    evidenceKind,
+    provenance,
+    links,
+    state: links.length > 0 ? "reported" : "not-reported",
+    emptyDetail,
+  };
+}
+
+function createRelationshipTraceabilityLinks(
+  manifest: CoreRelationshipManifest | null,
+): MissionDataFlowTraceabilityLink[] {
+  return manifest?.relationships.map((relationship) => ({
+    id: `traceability:relationship:${relationship.relationship_id}`,
+    label: relationship.relationship_id,
+    kind: "core-relationship",
+    evidenceKind: "relationship-evidence",
+    provenance: "core-relationship-manifest",
+    state: "reported",
+    from: endpointFromRelationshipEndpoint(
+      relationship.from,
+      `relationship:${relationship.relationship_id}:from`,
+    ),
+    to: endpointFromRelationshipEndpoint(
+      relationship.to,
+      `relationship:${relationship.relationship_id}:to`,
+    ),
+    detail: `${relationship.relationship_type}: ${relationship.from.domain}:${relationship.from.id} -> ${relationship.to.domain}:${relationship.to.id}`,
+    raw: relationship,
+  })) ?? [];
+}
+
+function createScenarioTraceabilityLinks(
+  simulationReport: CoreSimulationReport | null,
+): MissionDataFlowTraceabilityLink[] {
+  return simulationReport?.data_flow_evidence.map((record, index) => {
+    const dataProductId = record.data_product_id ?? `data-flow-evidence-${index + 1}`;
+    const producer = record.producer ?? "producer not reported";
+
+    return {
+      id: `traceability:scenario-data-flow:${index}`,
+      label: dataProductId,
+      kind: "scenario-data-flow",
+      evidenceKind: "scenario-evidence",
+      provenance: "core-simulation-report",
+      state: "reported",
+      from: {
+        label: producer,
+        domain: record.producer_type ?? null,
+        id: record.producer ?? null,
+        recordId: `scenario-data-flow:${index}:producer`,
+      },
+      to: {
+        label: dataProductId,
+        domain: "data_product",
+        id: record.data_product_id ?? null,
+        recordId: `scenario-data-flow:${index}:data-product`,
+      },
+      detail: `t=${record.t}, producer=${producer}, data product=${dataProductId}`,
+      raw: record,
+    };
+  }) ?? [];
+}
+
+function createGeneratedArtifactTraceabilityLinks(
+  inventory: GeneratedArtifactInventory | null,
+): MissionDataFlowTraceabilityLink[] {
+  return inventory?.artifacts.map((artifact) => ({
+    id: `traceability:generated-artifact:${artifact.relative_path}`,
+    label: artifact.name,
+    kind: "generated-artifact",
+    evidenceKind: "artifact-evidence",
+    provenance: "generated-artifact-inventory",
+    state: artifact.known_status === "known" ? "reported" : "unavailable",
+    from: {
+      label: artifact.artifact_class,
+      domain: "generated_artifact_class",
+      id: artifact.artifact_class,
+      recordId: `generated-artifact-class:${artifact.artifact_class}`,
+    },
+    to: {
+      label: artifact.relative_path,
+      domain: "generated_artifact",
+      id: artifact.relative_path,
+      recordId: `generated-artifact:${artifact.relative_path}`,
+    },
+    detail: `${artifact.artifact_class}, ${artifact.preview_status}, ${artifact.classification_reason}`,
+    raw: artifact,
+  })) ?? [];
+}
+
+function createValidationTraceabilityLinks(
+  lintReport: CoreLintReport | null,
+  dashboardSummary: CoreDashboardSummary | null,
+): MissionDataFlowTraceabilityLink[] {
+  if (lintReport) {
+    return [
+      {
+        id: "traceability:validation:lint-summary",
+        label: `Lint ${lintReport.result}`,
+        kind: "validation-evidence",
+        evidenceKind: "validation-evidence",
+        provenance: "core-lint-report",
+        state: "reported",
+        from: reportEndpoint("core-lint-report", "Core lint report"),
+        to: {
+          label: lintReport.result,
+          domain: "validation_result",
+          id: lintReport.result,
+          recordId: "validation:lint-summary",
+        },
+        detail: `${lintReport.summary.errors} errors, ${lintReport.summary.warnings} warnings, ${lintReport.summary.info} info`,
+        raw: lintReport.summary,
+      },
+      ...lintReport.findings.map((finding, index) => ({
+        id: `traceability:validation:finding:${finding.code}:${finding.object_id ?? "unscoped"}:${index}`,
+        label: `${finding.severity}: ${finding.code}`,
+        kind: "validation-evidence" as const,
+        evidenceKind: "validation-evidence" as const,
+        provenance: "core-lint-report" as const,
+        state: "reported" as const,
+        from: reportEndpoint("core-lint-report", "Core lint report"),
+        to: {
+          label: finding.object_id ?? finding.code,
+          domain: finding.domain,
+          id: finding.object_id,
+          recordId: `validation:finding:${finding.code}:${finding.object_id ?? "unscoped"}:${index}`,
+        },
+        detail: `${finding.domain ?? "domain not reported"}/${finding.object_id ?? "object not reported"}: ${finding.message}`,
+        raw: finding,
+      })),
+    ];
+  }
+
+  if (dashboardSummary) {
+    const validation = dashboardSummary.validation;
+
+    return [
+      {
+        id: "traceability:validation:dashboard-summary",
+        label: `Dashboard validation ${validation.result}`,
+        kind: "validation-evidence",
+        evidenceKind: "validation-evidence",
+        provenance: "core-dashboard-summary",
+        state: "reported",
+        from: reportEndpoint("core-dashboard-summary", "Core dashboard summary"),
+        to: {
+          label: validation.result,
+          domain: "validation_result",
+          id: validation.result,
+          recordId: "validation:dashboard-summary",
+        },
+        detail: `${validation.errors} errors, ${validation.warnings} warnings, ${validation.info} info`,
+        raw: validation,
+      },
+    ];
+  }
+
+  return [];
+}
+
+function createCoverageTraceabilityLinks(
+  coverageSummary: CoreCoverageSummary | null,
+): MissionDataFlowTraceabilityLink[] {
+  if (!coverageSummary) {
+    return [];
+  }
+
+  return [
+    {
+      id: "traceability:coverage:scenario-runs",
+      label: "Scenario runs",
+      kind: "coverage-evidence",
+      evidenceKind: "coverage-evidence",
+      provenance: "core-coverage-summary",
+      state: "reported",
+      from: reportEndpoint("core-coverage-summary", "Core coverage summary"),
+      to: {
+        label: "scenario-runs",
+        domain: "coverage_scope",
+        id: "scenario-runs",
+        recordId: "coverage:scenario-runs",
+      },
+      detail: `${coverageSummary.scenario_runs.passed}/${coverageSummary.scenario_runs.total} passed, ${coverageSummary.scenario_runs.failed} failed`,
+      raw: coverageSummary.scenario_runs,
+    },
+    ...Object.entries(coverageSummary.entity_coverage).map(([domain, coverage]) => ({
+      id: `traceability:coverage:entity:${domain}`,
+      label: domain,
+      kind: "coverage-evidence" as const,
+      evidenceKind: "coverage-evidence" as const,
+      provenance: "core-coverage-summary" as const,
+      state: "reported" as const,
+      from: reportEndpoint("core-coverage-summary", "Core coverage summary"),
+      to: {
+        label: domain,
+        domain: "entity_domain",
+        id: domain,
+        recordId: `coverage:entity:${domain}`,
+      },
+      detail: `${coverage.covered}/${coverage.total} covered`,
+      raw: coverage,
+    })),
+    ...Object.entries(coverageSummary.relationship_coverage.by_type).map(
+      ([relationshipType, coverage]) => ({
+        id: `traceability:coverage:relationship:${relationshipType}`,
+        label: relationshipType,
+        kind: "coverage-evidence" as const,
+        evidenceKind: "coverage-evidence" as const,
+        provenance: "core-coverage-summary" as const,
+        state: "reported" as const,
+        from: reportEndpoint("core-coverage-summary", "Core coverage summary"),
+        to: {
+          label: relationshipType,
+          domain: "relationship_type",
+          id: relationshipType,
+          recordId: `coverage:relationship:${relationshipType}`,
+        },
+        detail: `${coverage.covered}/${coverage.total} covered`,
+        raw: coverage,
+      }),
+    ),
+  ];
+}
+
+function endpointFromRelationshipEndpoint(
+  endpoint: CoreRelationshipRecord["from"],
+  recordId: string,
+): MissionDataFlowTraceabilityEndpoint {
+  return {
+    label: `${endpoint.domain}:${endpoint.id}`,
+    domain: endpoint.domain,
+    id: endpoint.id,
+    recordId,
+  };
+}
+
+function reportEndpoint(
+  id: MissionDataFlowWorkbenchProvenance,
+  label: string,
+): MissionDataFlowTraceabilityEndpoint {
+  return {
+    label,
+    domain: "core_report",
+    id,
+    recordId: id,
   };
 }
 
