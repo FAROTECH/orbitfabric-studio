@@ -74,25 +74,45 @@
   display: none;
 }
 
-.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p,
-.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header p {
+.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header {
+  display: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel {
+  border: 0;
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .inspection-header,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .summary-grid,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .warning-box,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .core-panel,
+.active-surface-frame[aria-label="Generated Artifacts"] > .inspection-panel > .workspace-layout {
+  display: none;
+}
+
+.active-surface-frame[aria-label="Generated Artifacts"] #studio-artifacts {
+  margin-top: 0;
+}
+
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p {
   font-size: 0;
 }
 
-.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p::after,
-.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header p::after {
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header p::after {
   content: "Read-only diagnostic surface for controlled Core-derived report refresh and generated artifact inspection. Studio does not modify Mission Model source files.";
   font-size: 0.95rem;
   line-height: 1.7;
 }
 
-.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge,
-.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header .status-badge {
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge {
   font-size: 0;
 }
 
-.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge::after,
-.active-surface-frame[aria-label="Generated Artifacts"] > .file-viewer-header .status-badge::after {
+.active-surface-frame[aria-label="Core Commands"] > .file-viewer-header .status-badge::after {
   content: "DIAGNOSTIC SURFACE";
   font-size: 0.72rem;
 }
