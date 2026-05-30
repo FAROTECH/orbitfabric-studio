@@ -2,34 +2,30 @@
 
 OrbitFabric Studio is an experimental visual workbench for OrbitFabric Mission Data Contracts.
 
-Studio exists to make the Mission Data Contract easier to inspect, validate, navigate and understand without replacing OrbitFabric Core or redefining mission semantics.
+Studio exists to make Mission Data Contracts inspectable, navigable and understandable without replacing OrbitFabric Core or redefining mission semantics.
 
-The Mission Model remains the source of truth.
-
-OrbitFabric Core remains authoritative for validation, scenario evidence, generated artifacts, contract introspection, entity indexing, relationship semantics and future plugin semantics.
-
-Studio is downstream.
+The Mission Model remains the source of truth. OrbitFabric Core remains authoritative for validation, scenario evidence, generated artifacts, contract introspection, entity indexing, relationship semantics and future plugin semantics. Studio is downstream.
 
 ---
 
 ## Current Baseline
 
 ```text
-Current implementation baseline: v0.13.0 - Evidence-integrated Workbench
-Current tagged technical milestone: v0.13.0 - Evidence-integrated Workbench
-Next planning baseline: v0.14.0 - Artifact Traceability Integration
+Current implementation baseline: v0.14.0 - Artifact Traceability Integration
+Current technical milestone candidate: v0.14.0 - Artifact Traceability Integration
+Active planning baseline: v0.15.0 - Mission Cockpit Realization
 GitHub Release publication: deferred
 ```
 
-v0.13.0 is the current implementation baseline and tagged technical milestone.
+v0.14.0 is the current implementation baseline.
 
-v0.13.0 deepens the dedicated read-only, Core-derived Mission Data Flow Workbench and moves it closer to Reference B in the Studio UI North Star document.
+It closed the Artifact Traceability Integration milestone by connecting generated artifacts, evidence records and Core-reported model entities more explicitly inside the Mission Data Flow Workbench.
 
-The final v0.13.0 hardening pass also stabilizes the Mission Cockpit, promotes Generated Artifacts into a dedicated read-only surface, keeps Core Commands as a diagnostic surface, improves conservative Contacts & Downlink aggregation, improves conservative Commandability aggregation and keeps Autonomy explicitly reserved.
+v0.14.0 is an architectural traceability milestone, not a north-star visual parity release.
 
-The GitHub Release publication is intentionally deferred until the documentation, roadmap and communication package are reviewed together.
+v0.15.0 is the active planning baseline. It must bring the Mission Cockpit closer to the accepted Cockpit north-star while preserving Core-derived semantics and explicit unavailable or not reported metric states.
 
-The previous immediate Plugin-aware Studio Surface direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
+Plugin-awareness remains deferred until the cockpit, graph Workbench and evidence console are mature.
 
 Reference planning documents:
 
@@ -37,18 +33,19 @@ Reference planning documents:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 docs/roadmap/studio-ui-north-star-reference.md
 docs/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
+docs/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md
+docs/roadmap/studio-north-star-gap-assessment-after-v0.14.0.md
+docs/roadmap/studio-v0.15.0-mission-cockpit-realization-plan.md
 ```
 
-Release notes:
+Release references:
 
 ```text
 docs/releases/v0.13.0-release-notes.md
-```
-
-Release checklist:
-
-```text
+docs/releases/v0.14.0-release-notes.md
 V0_13_0_RELEASE_CHECKLIST.md
+V0_14_0_RELEASE_CHECKLIST.md
+V0_15_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -81,282 +78,140 @@ UI state          = local Studio representation
 
 If Core does not report a value, Studio must show `unavailable`, `not reported`, `reserved` or `diagnostic` instead of calculating private meaning.
 
+This rule applies especially to mission health, readiness, model completeness, coverage, traceability completeness, operational status and autonomy status.
+
 ---
 
-## Released Baselines
-
-### v0.0.0 - Studio Charter
-
-Status: Completed
-
-Defined why Studio exists, what it is not, how it relates to OrbitFabric Core, and which architectural and UX principles govern future development.
-
-### v0.1.0 - Read-only Mission Project Viewer
-
-Status: Completed
-
-Introduced local OrbitFabric workspace opening, structural inspection and read-only source preview.
-
-### v0.2.0 - Validation and Diagnostics Workbench
-
-Status: Completed
-
-Introduced Core lint visibility through fixed command execution and Core JSON report rendering.
-
-### v0.3.0 - Contract Navigation Surface
-
-Status: Completed
-
-Introduced Core-derived contract domain and entity navigation through `model_summary.json` and `entity_index.json`.
-
-### v0.4.0 - Relationship Surface
-
-Status: Completed
-
-Introduced read-only relationship inspection through Core-owned `relationship_manifest.json`.
-
-### v0.5.0 - Generated Artifact Explorer
-
-Status: Completed
-
-Introduced conservative, read-only inspection of generated artifacts already present in the selected workspace.
-
-### v0.6.0 - Studio Information Architecture & UX Foundation
-
-Status: Completed
-
-Reorganized previous capabilities into a coherent application shell with workspace header, primary navigation, main surface, contextual Inspector, provenance vocabulary and read-only boundary language.
-
-### v0.7.0 - Scenario Evidence Explorer
-
-Status: Completed
-
-Introduced read-only inspection of scenario evidence produced by OrbitFabric Core through fixed `orbitfabric sim` execution and Core simulation JSON rendering.
-
-### v0.7.1 - Dashboard and Coverage Foundation
-
-Status: Completed
-
-Introduced Core dashboard summary, scenario run index and coverage summary rendering without private coverage calculation or mission health scoring.
-
-### v0.7.2 - Core-derived Dashboard UX Realization
-
-Status: Completed
-
-Moved the dashboard closer to the accepted cockpit direction while preserving the Core-derived boundary.
-
-### v0.8.0 - Ground Integration Artifact Viewer
-
-Status: Completed
-
-Introduced a dedicated read-only Ground Integration Artifact Viewer for generated ground-facing artifacts.
-
-v0.8.0 does not introduce ground segment behavior, mission control behavior, command uplink, live telemetry, telemetry archive behavior, live decoder behavior, generated artifact mutation, graph UI, React Flow, plugin execution or authoring.
-
-Release notes:
+## Completed Baselines
 
 ```text
-docs/releases/v0.8.0-release-notes.md
+v0.0.0  - Studio Charter
+v0.1.0  - Read-only Mission Project Viewer
+v0.2.0  - Validation and Diagnostics Workbench
+v0.3.0  - Contract Navigation Surface
+v0.4.0  - Relationship Surface
+v0.5.0  - Generated Artifact Explorer
+v0.6.0  - Studio Information Architecture & UX Foundation
+v0.7.0  - Scenario Evidence Explorer
+v0.7.1  - Dashboard and Coverage Foundation
+v0.7.2  - Core-derived Dashboard UX Realization
+v0.8.0  - Ground Integration Artifact Viewer
+v0.9.0  - Semantic Navigation & Unified Shell
+v0.10.0 - Mission Cockpit Consolidation
+v0.11.0 - Domain Surfaces & Entity Detail System
+v0.11.1 - Runtime UI triage hotfix
+v0.12.0 - Mission Data Flow Workbench Foundation
+v0.13.0 - Evidence-integrated Workbench
+v0.14.0 - Artifact Traceability Integration
 ```
 
-### v0.9.0 - Semantic Navigation & Unified Shell
+Completed baselines preserve the same boundary: Studio remains read-only by default, Core-derived and non-authoritative for mission semantics.
 
-Status: Completed
+## v0.14.0 Closure Summary
 
-Transformed Studio from a surface-oriented workbench into a mission-domain-oriented shell.
+v0.14.0 turned the Mission Data Flow Workbench into a stronger read-only traceability surface.
 
-v0.9.0 introduced typed navigation, semantic mission-domain sidebar, explicit legacy surface mapping, shell states, persistent Inspector behavior, model-backed shell command bar, global shell status bar and metadata alignment to `0.9.0`.
+It introduced:
 
-v0.9.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private mission health calculation, private readiness calculation or private model completeness calculation.
+- traceability model foundation;
+- traceability groups, links, endpoints and summary counts;
+- traceability link generation for Core-reported relationship, scenario, validation, coverage and generated artifact evidence;
+- compact Workbench Inspector traceability blocks;
+- generated artifact inventory bridge;
+- generated output traceability links;
+- route-level Workbench traceability posture panel;
+- north-star gap assessment and roadmap recalibration;
+- metadata alignment to `0.14.0`.
 
-Release notes:
-
-```text
-docs/releases/v0.9.0-release-notes.md
-```
-
-Release checklist:
-
-```text
-V0_9_0_RELEASE_CHECKLIST.md
-```
-
-### v0.10.0 - Mission Cockpit Consolidation
-
-Status: Completed
-
-Consolidated the Mission Dashboard into a clearer Mission Cockpit without adding new OrbitFabric Core semantics.
-
-v0.10.0 introduced Mission Cockpit visual hierarchy consolidation, reported evidence lanes, cockpit provenance vocabulary, shell layout stabilization, active navigation tracking by mission-domain item and metadata alignment to `0.10.0`.
-
-v0.10.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private mission health calculation, private readiness calculation or private model completeness calculation.
-
-Release notes:
-
-```text
-docs/releases/v0.10.0-release-notes.md
-```
-
-Release checklist:
-
-```text
-V0_10_0_RELEASE_CHECKLIST.md
-```
-
-### v0.11.0 - Domain Surfaces & Entity Detail System
-
-Status: Completed
-
-Introduced dedicated read-only Core-derived mission-domain surfaces and consistent entity list/detail inspection.
-
-v0.11.0 introduced reusable CoreDomainSurface, Core domain surface factory, model-inventory domain registry, dedicated mission-domain surfaces, contextual Inspector binding for selected Core entities and metadata alignment to `0.11.0`.
-
-v0.11.0 does not introduce new OrbitFabric Core semantics, graph UI, React Flow, authoring, plugin behavior, command uplink, live telemetry, generated artifact mutation, operational ground behavior, private YAML semantic parsing, private relationship inference, private mission health calculation, private readiness calculation or private model completeness calculation.
-
-Release notes:
-
-```text
-docs/releases/v0.11.0-release-notes.md
-```
-
-Release checklist:
-
-```text
-V0_11_0_RELEASE_CHECKLIST.md
-```
-
-### v0.11.1 - Runtime UI triage hotfix
-
-Status: Completed
-
-Prepared the implementation baseline for v0.12.0 by fixing runtime UI issues after v0.11.0 without introducing Mission Data Flow Workbench functionality.
-
-v0.11.1 fixed main content scroll reset, source file inspection copy, explicit reserved Autonomy routing and Scenario / Recent runs empty-state copy.
-
-v0.11.1 does not introduce Mission Data Flow Workbench, React Flow, graph UI, authoring, plugin behavior, command uplink, live telemetry, Autonomy implementation or generated artifact semantic mutation.
-
-Release notes:
-
-```text
-docs/releases/v0.11.1-release-notes.md
-```
-
-### v0.12.0 - Mission Data Flow Workbench Foundation
-
-Status: Completed
-
-Introduced the first dedicated read-only, Core-derived Mission Data Flow Workbench foundation aligned with Reference B.
-
-v0.12.0 introduced:
-
-- Mission Data Flow Workbench data model foundation;
-- Workbench source summaries, lanes, records, counts and boundary metadata;
-- Reference B-oriented Workbench layout;
-- Graph View, YAML View, Scenario Runner and Data Flow Evidence tab strip;
-- central read-only canvas-like Graph View foundation;
-- right-side Workbench Inspector placeholder;
-- lower Scenario Timeline and Lint / Validation Results panels;
-- Core-derived relationship edge rendering from `relationship_manifest.json` records;
-- dedicated Mission Data Flow Workbench route frame;
-- shell wiring for the dedicated Workbench surface;
-- Data Flow Workbench sidebar entry;
-- Inspect Data Flow command bar action;
-- App-level relationship manifest persistence for the Workbench surface;
-- shell status bar support for the Workbench surface;
-- release notes and checklist;
-- metadata alignment to `0.12.0`.
-
-v0.12.0 does not introduce React Flow, graph library adoption, graph editing, drag/drop behavior, layout engine semantics, Mission Model authoring, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private relationship inference, private data-flow inference, mission health calculation, readiness calculation, completeness calculation or Autonomy implementation.
-
-Release notes:
-
-```text
-docs/releases/v0.12.0-release-notes.md
-```
-
-Release checklist:
-
-```text
-V0_12_0_RELEASE_CHECKLIST.md
-```
-
-### v0.13.0 - Evidence-integrated Workbench
-
-Status: Completed technical milestone. GitHub Release publication deferred.
-
-Deepened the dedicated read-only, Core-derived Mission Data Flow Workbench by integrating relationship, scenario, validation and coverage evidence more directly into the Workbench surface.
-
-v0.13.0 introduced:
-
-- v0.13.0 Evidence-integrated Workbench planning and boundary documentation;
-- explicit Workbench evidence kinds for relationship, scenario, validation, coverage and artifact evidence;
-- a dedicated validation evidence lane in the Workbench model;
-- validation evidence records from `CoreLintReport`;
-- fallback validation summary records from `CoreDashboardSummary.validation`;
-- richer coverage evidence records for scenario runs, entity coverage, expectation coverage, relationship coverage and unsupported scopes;
-- record-level evidence kind provenance metadata;
-- read-only local Workbench selection for Core-reported nodes, edges and evidence records;
-- Workbench Inspector updates from selected Core-derived items;
-- raw Core-reported payload preview in the Workbench Inspector;
-- Scenario Timeline rendering of Core-reported `data_flow_evidence` fields;
-- Validation, Coverage and Relationship evidence grouping in the Lint / Validation Results panel;
-- compact Workbench evidence posture rail;
-- Reference B-oriented Workbench visual polish;
-- Workbench lint report wiring through both Mission Cockpit and the dedicated Workbench route;
-- release hardening for Home, Mission Cockpit, Data Flow Workbench and Generated Artifacts;
-- dedicated Generated Artifacts surface;
-- compact Generated Artifact Explorer class selection and read-only preview behavior;
-- conservative multi-domain Contacts & Downlink aggregation;
-- conservative multi-domain Commandability aggregation;
-- explicit reserved Autonomy baseline;
-- metadata alignment to `0.13.0`.
-
-v0.13.0 does not introduce React Flow, graph library adoption, graph editing, drag/drop behavior, layout engine semantics, Mission Model authoring, YAML editor behavior, generated artifact mutation, plugin behavior, command uplink, live telemetry, operational ground behavior, private YAML semantic parsing, private scenario YAML interpretation, private log-derived evidence, private relationship inference, private data-flow inference, private coverage calculation, private mission health calculation, private readiness calculation, private model completeness calculation, command authorization, command scheduling, command execution or Autonomy implementation.
-
-Release notes:
-
-```text
-docs/releases/v0.13.0-release-notes.md
-```
-
-Release checklist:
-
-```text
-V0_13_0_RELEASE_CHECKLIST.md
-```
+v0.14.0 did not introduce graph-library adoption, graph editing, authoring, artifact mutation, runtime operations, private inference, private scoring, Autonomy implementation or plugin behavior.
 
 ---
 
 ## Active Planning Baseline
 
-### v0.14.0 - Artifact Traceability Integration
+### v0.15.0 - Mission Cockpit Realization
 
 Status: Planned
 
-v0.14.0 should build on the evidence-integrated Mission Data Flow Workbench by making generated artifact traceability more explicit across Core-reported entities, evidence records and generated outputs.
+Primary objective:
 
-v0.14.0 must preserve the Core-derived boundary established through previous milestones.
+```text
+Bring the Mission Cockpit much closer to the Mission Cockpit north-star while preserving Core-derived semantics.
+```
 
-It must not introduce Mission Model authoring, generated artifact mutation, command uplink, live telemetry, plugin behavior, private relationship inference, private data-flow inference or operational ground behavior.
+Scope:
+
+- top KPI card grid;
+- reported, unavailable and not reported metric states;
+- Mission Data Contract Overview;
+- Recent Validation Results;
+- Recent Scenario Runs;
+- Generated Artifacts cards;
+- links from Cockpit cards to domain surfaces, Workbench, Scenarios and Generated Artifacts;
+- stronger compact dashboard density.
+
+Metric policy:
+
+- Mission Health must be Core-derived or shown as `not reported` / `unavailable`.
+- Model Completeness must be Core-derived or shown as `not reported` / `unavailable`.
+- Lint Status may use Core lint or dashboard validation outputs.
+- Scenario Coverage must be Core-derived and must not be inferred from scenario run counts.
+- Data Product Coverage must be Core-derived and must not be inferred from data product entity counts.
+- Commandability Coverage must be Core-derived and must not be inferred from command counts or domain presence.
+
+Non-goals:
+
+- no React Flow or graph-library adoption;
+- no graph editing;
+- no Mission Model authoring;
+- no generated artifact mutation;
+- no operational behavior;
+- no private health, completeness, readiness or coverage calculation;
+- no private relationship or data-flow inference;
+- no Autonomy implementation;
+- no plugin behavior.
+
+Planned PR sequence:
+
+1. Planning and boundary document.
+2. Cockpit data model refinement.
+3. Top KPI card grid.
+4. Mission Data Contract Overview panel.
+5. Recent Validation Results panel.
+6. Recent Scenario Runs panel.
+7. Generated Artifacts cockpit cards.
+8. Cockpit navigation and linkage polish.
+9. Cockpit visual density polish.
+10. v0.15.0 release hardening.
 
 ---
 
 ## Accepted UI Convergence Direction
 
-The post-v0.9.0 direction remains a mission-domain cockpit and integrated data-flow workbench.
-
-UI north star reference:
-
-`docs/roadmap/studio-ui-north-star-reference.md`
-
-Accepted roadmap direction:
+The accepted direction remains a mission-domain cockpit and integrated data-flow workbench.
 
 ```text
-v0.9.0  - Semantic Navigation & Unified Shell
-v0.10.0 - Mission Cockpit Consolidation
-v0.11.0 - Domain Surfaces & Entity Detail System
-v0.12.0 - Mission Data Flow Workbench Foundation
-v0.13.0 - Evidence-integrated Workbench
-v0.14.0 - Artifact Traceability Integration
-v0.15.0 - Plugin-aware Studio Surface
+v0.15.0 - Mission Cockpit Realization
+v0.16.0 - Read-only Graph Workbench Engine
+v0.17.0 - Workbench Evidence Console
+v0.18.0 - Authoring Readiness Assessment
+v0.19.0 or later - Plugin-aware Studio Surface
 ```
+
+## Future Decision Points
+
+### v0.16.0 - Read-only Graph Workbench Engine
+
+v0.16.0 may evaluate React Flow or an equivalent graph library only under strict read-only, Core-derived constraints.
+
+### v0.17.0 - Workbench Evidence Console
+
+v0.17.0 should strengthen scenario timeline, lint and validation tables, contextual warning blocks, artifact/runtime/ground affordances, traceability path inspection, evidence filters, status grouping and Inspector refinement.
+
+### v0.18.0 - Authoring Readiness Assessment
+
+v0.18.0 is an assessment milestone only. It should decide what can become safely authorable without violating the model-first contract.
+
+### v0.19.0 or later - Plugin-aware Studio Surface
+
+Plugin-awareness remains deferred until the cockpit, graph workbench and evidence console are mature.
