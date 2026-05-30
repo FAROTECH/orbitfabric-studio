@@ -10,8 +10,8 @@ Status: in progress.
 - [x] Generated artifact traceability is represented through read-only Workbench evidence.
 - [x] Workbench traceability uses only Core-reported or generated artifact inventory data.
 - [x] Selected Workbench records expose Inspector traceability blocks.
-- [ ] Runtime skeleton links are shown only when generated artifact inventory reports them.
-- [ ] Ground artifact links are shown only when generated artifact inventory reports them.
+- [x] Runtime skeleton links are shown only when generated artifact inventory reports them.
+- [x] Ground artifact links are shown only when generated artifact inventory reports them.
 - [x] Scenario evidence links are shown only from Core simulation report data.
 - [x] Validation evidence links are shown only from Core lint or dashboard validation data.
 - [x] Coverage evidence links are shown only from Core coverage summary data.
@@ -45,7 +45,7 @@ Status: in progress.
 
 ## React Flow confirmation
 
-- [x] React Flow remains deferred for the Inspector traceability blocks PR.
+- [x] React Flow remains deferred for the generated artifact linkage PR.
 - [x] No graph library is introduced before the traceability model and Inspector blocks are stable.
 - [x] Any future graph-library adoption is handled in a separate, read-only, rollbackable PR.
 

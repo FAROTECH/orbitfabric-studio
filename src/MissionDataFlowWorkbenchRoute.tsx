@@ -1,12 +1,28 @@
+import { useSyncExternalStore } from "react";
+
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { MissionDataFlowWorkbenchSurface } from "./MissionDataFlowWorkbenchSurface";
+import { linkGeneratedArtifactsIntoWorkbenchSnapshot } from "./missionDataFlowWorkbenchArtifactLinkage";
 import type { MissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+import {
+  getGeneratedArtifactInventorySnapshot,
+  subscribeToGeneratedArtifactInventory,
+} from "./generatedArtifactInventoryStore";
 
 export function MissionDataFlowWorkbenchRoute({
   snapshot,
 }: {
   snapshot: MissionDataFlowWorkbenchSnapshot;
 }) {
+  const artifactInventorySnapshot = useSyncExternalStore(
+    subscribeToGeneratedArtifactInventory,
+    getGeneratedArtifactInventorySnapshot,
+  );
+  const linkedSnapshot = linkGeneratedArtifactsIntoWorkbenchSnapshot(
+    snapshot,
+    artifactInventorySnapshot.inventory,
+  );
+
   return (
     <section
       className="active-surface-frame"
@@ -17,20 +33,41 @@ export function MissionDataFlowWorkbenchRoute({
           <span className="cockpit-eyebrow">Dedicated surface</span>
           <h2>Mission Data Flow Workbench</h2>
           <p>
-            Standalone read-only Workbench surface for the v0.13.0
-            Evidence-integrated Workbench release. It renders a Core-derived
-            snapshot and does not introduce authoring, graph editing or private
-            data-flow inference.
+            Standalone read-only Workbench surface for v0.14.0 artifact
+            traceability integration. It renders a Core-derived snapshot and links
+            generated artifact inventory when that inventory has been reported by
+            the dedicated Generated Artifacts surface.
           </p>
         </div>
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="EVIDENCE WORKBENCH" />
+          <StatusBadge label="TRACEABILITY" />
         </div>
       </div>
 
-      <MissionDataFlowWorkbenchSurface snapshot={snapshot} />
+      {artifactInventorySnapshot.inventory ? (
+        <section className="entry-section muted-section" aria-label="Generated artifact linkage">
+          <h3>Generated artifact linkage</h3>
+          <p>
+            The Workbench is consuming the latest read-only generated artifact
+            inventory reported by Studio. Artifact files are not edited,
+            regenerated or interpreted as Mission Model source semantics.
+          </p>
+          <div className="summary-grid">
+            <div className="summary-item">
+              <span>Inventory workspace</span>
+              <strong>{artifactInventorySnapshot.workspacePath ?? "not reported"}</strong>
+            </div>
+            <div className="summary-item">
+              <span>Linked artifacts</span>
+              <strong>{artifactInventorySnapshot.inventory.counts.total_artifacts}</strong>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <MissionDataFlowWorkbenchSurface snapshot={linkedSnapshot} />
     </section>
   );
 }

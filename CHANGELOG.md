@@ -22,12 +22,15 @@ GitHub Release publication for `v0.13.0` is deferred. The `v0.13.0` tag is a tec
 - Added a read-only Mission Data Flow Workbench traceability model foundation with traceability groups, links, endpoints and summary counts.
 - Added traceability link generation for Core-reported relationships, scenario data-flow evidence, generated artifact inventory entries, validation evidence and coverage evidence.
 - Added compact Workbench Inspector traceability blocks for selected Core-reported nodes, edges and evidence records.
+- Added a read-only generated artifact inventory bridge so the Generated Artifacts surface can expose artifact evidence to the Mission Data Flow Workbench.
+- Added Workbench snapshot linkage for generated artifact records and generated output traceability links.
 
 ### Changed
 
 - Clarified that v0.14.0 should connect generated artifacts, evidence records and Core-reported model entities without introducing authoring, command uplink, live telemetry, plugin behavior, private relationship inference, private data-flow inference or generated artifact mutation.
 - Deferred React Flow and graph-library adoption until the traceability model, Inspector blocks and generated artifact linkage are stable.
 - Updated the Workbench header, toolbar and evidence summary to expose reported traceability counts without adding graph semantics.
+- Updated the Generated Artifact Explorer to publish read-only inventory evidence to the Workbench without editing, regenerating or semantically interpreting generated artifacts.
 
 ---
 
