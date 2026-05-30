@@ -487,6 +487,70 @@ export function MissionCockpit({
           : "attention",
     },
   ];
+  const cockpitNavigationCards: {
+    label: string;
+    detail: string;
+    surface: ActiveSurface;
+    status: string;
+    disabled: boolean;
+  }[] = [
+    {
+      label: "Model Inventory",
+      detail: "Inspect Core-derived entity inventory and domain records.",
+      surface: "model-inventory",
+      status: entityIndex ? "entity index" : workspace ? "structural" : "unavailable",
+      disabled: !workspace,
+    },
+    {
+      label: "Contracts",
+      detail: "Open source Mission Data Contract files.",
+      surface: "contracts",
+      status: workspace ? "source model" : "unavailable",
+      disabled: !workspace,
+    },
+    {
+      label: "Validation Reports",
+      detail: "Inspect Core validation, reports and logs.",
+      surface: "reports-logs",
+      status: validationResult ? validationResult : "not reported",
+      disabled: !workspace,
+    },
+    {
+      label: "Scenario Evidence",
+      detail: "Inspect Core scenario runs and simulation evidence.",
+      surface: "scenario-evidence",
+      status: scenarioRunIndex
+        ? `${scenarioRunIndex.summary.total} indexed`
+        : "not reported",
+      disabled: !workspace,
+    },
+    {
+      label: "Data Flow Workbench",
+      detail: "Open read-only relationship and evidence traceability.",
+      surface: "mission-data-flow-workbench",
+      status:
+        missionDataFlowWorkbenchSnapshot.counts.traceabilityLinks > 0
+          ? `${missionDataFlowWorkbenchSnapshot.counts.traceabilityLinks} links`
+          : "not reported",
+      disabled: !workspace,
+    },
+    {
+      label: "Generated Artifacts",
+      detail: "Inspect generated outputs without mutating them.",
+      surface: "generated-artifacts",
+      status: generatedArtifactSummary
+        ? `${generatedArtifactSummary.totalArtifacts} files`
+        : "not loaded",
+      disabled: !workspace,
+    },
+    {
+      label: "Core Commands",
+      detail: "Run fixed Core inspection commands.",
+      surface: "core-commands",
+      status: workspace ? "available" : "unavailable",
+      disabled: !workspace,
+    },
+  ];
 
 
   return (
@@ -583,6 +647,35 @@ export function MissionCockpit({
         reportedEvidenceCount={reportedEvidenceCount}
         reportedEvidenceItems={reportedEvidenceItems}
       />
+
+      <nav
+        className="cockpit-cross-navigation"
+        aria-label="Mission cockpit cross-navigation"
+      >
+        <div className="cockpit-cross-navigation-heading">
+          <div>
+            <span className="cockpit-eyebrow">Navigation</span>
+            <strong>Inspection surfaces</strong>
+          </div>
+          <StatusBadge label="READ-ONLY LINKS" />
+        </div>
+
+        <div className="cockpit-cross-navigation-grid">
+          {cockpitNavigationCards.map((item) => (
+            <button
+              type="button"
+              className="cockpit-cross-navigation-card"
+              key={item.label}
+              onClick={() => onActiveSurfaceChange(item.surface)}
+              disabled={item.disabled}
+            >
+              <span>{item.label}</span>
+              <strong>{item.status}</strong>
+              <small>{item.detail}</small>
+            </button>
+          ))}
+        </div>
+      </nav>
 
       <div className="cockpit-work-grid">
         <article className="cockpit-panel cockpit-panel-large cockpit-contract-overview-panel">
