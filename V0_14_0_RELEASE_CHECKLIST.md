@@ -2,7 +2,7 @@
 
 Release: `v0.14.0 - Artifact Traceability Integration`
 
-Status: in progress.
+Status: release candidate.
 
 ## Scope confirmation
 
@@ -16,38 +16,32 @@ Status: in progress.
 - [x] Validation evidence links are shown only from Core lint or dashboard validation data.
 - [x] Coverage evidence links are shown only from Core coverage summary data.
 - [x] Missing traceability is shown as `not reported`, `unavailable`, `reserved` or `diagnostic`.
-- [ ] Mission Cockpit remains compact and does not invent scores.
+- [x] Mission Cockpit remains compact and does not invent private scores.
 - [x] Mission Data Flow Workbench remains read-only and Core-derived.
 - [x] Mission Data Flow Workbench route exposes a compact traceability posture panel without adding graph semantics.
 - [x] Generated Artifacts remains a read-only surface.
-- [ ] Autonomy remains reserved.
+- [x] Autonomy remains reserved.
+- [x] North-star gap assessment is present and states that v0.14.0 is not visual parity.
 
-## Non-goal confirmation
+## Boundary confirmation
 
 - [x] No Mission Model authoring.
-- [x] No YAML editor behavior.
 - [x] No generated artifact mutation.
-- [x] No command uplink.
-- [x] No live telemetry.
-- [x] No operational ground behavior.
-- [x] No private YAML semantic parsing.
-- [x] No private scenario YAML interpretation.
-- [x] No private log-derived evidence.
+- [x] No artifact regeneration.
 - [x] No private relationship inference.
 - [x] No private data-flow inference.
 - [x] No private coverage calculation.
-- [x] No mission health calculation.
-- [x] No readiness calculation.
-- [x] No completeness calculation.
+- [x] No private mission health calculation.
+- [x] No private readiness calculation.
+- [x] No private completeness calculation.
 - [x] No Autonomy implementation.
-- [x] No plugin execution.
-- [x] No plugin marketplace.
-- [x] No arbitrary command execution.
+- [x] No plugin behavior.
+- [x] No graph library adoption in v0.14.0.
 
 ## React Flow confirmation
 
-- [x] React Flow remains deferred for the Workbench layout polish PR.
-- [x] No graph library is introduced before the traceability model and Inspector blocks are stable.
+- [x] React Flow remains deferred for v0.14.0.
+- [x] No graph library is introduced before Mission Cockpit realization and a dedicated graph Workbench decision point.
 - [x] Any future graph-library adoption is handled in a separate, read-only, rollbackable PR.
 
 ## Required validation
@@ -62,20 +56,26 @@ Before milestone closure, also run:
 
 ```bash
 cargo check --manifest-path src-tauri/Cargo.toml
+```
+
+Recommended smoke validation:
+
+```bash
 npm run tauri:dev
 ```
 
 ## Documentation alignment
 
-Verify all of the following are present and aligned:
-
-- [ ] `README.md`
-- [ ] `ROADMAP.md`
+- [x] `README.md`
 - [x] `CHANGELOG.md`
+- [x] `docs/releases/v0.14.0-release-notes.md`
 - [x] `docs/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md`
-- [ ] `docs/roadmap/studio-ui-north-star-reference.md`
-- [ ] `docs/roadmap/studio-target-ui-convergence-strategy.md`
+- [x] `docs/roadmap/studio-north-star-gap-assessment-after-v0.14.0.md`
+- [x] `docs/roadmap/studio-ui-north-star-reference.md`
+- [x] `docs/roadmap/studio-target-ui-convergence-strategy.md`
 - [x] `V0_14_0_RELEASE_CHECKLIST.md`
+
+`ROADMAP.md` remains a known follow-up candidate if a full roadmap rewrite is preferred. The authoritative recalibration for the next direction is captured in `docs/roadmap/studio-north-star-gap-assessment-after-v0.14.0.md`.
 
 ## Manual smoke path
 
@@ -90,14 +90,14 @@ Verify all of the following are present and aligned:
 - [ ] Run or load Core coverage summary.
 - [ ] Run or load Core simulation report with data-flow evidence, if available.
 - [ ] Inspect generated artifacts.
+- [ ] Confirm generated artifact evidence appears in the Workbench after inspection.
 - [ ] Select Workbench records and confirm Inspector traceability blocks remain read-only.
 - [ ] Confirm unavailable traceability is explicit.
 - [ ] Confirm no private relationship or data-flow inference is shown.
-- [ ] Confirm no YAML parsing or log-derived evidence is presented as evidence.
 
 ## Release closure
 
 - [ ] Release closure PR merged into `main`.
-- [ ] Version metadata aligned to `0.14.0`, if the milestone is tagged.
+- [ ] Optional metadata/tag step decided after merge.
 - [ ] Technical tag created as `v0.14.0`, if desired.
 - [ ] GitHub Release publication decision documented.
