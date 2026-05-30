@@ -15,7 +15,7 @@ Studio is where mission semantics become inspectable.
 ```text
 Current implementation baseline: v0.13.0 - Evidence-integrated Workbench
 Current tagged technical milestone: v0.13.0 - Evidence-integrated Workbench
-Next planning baseline: v0.14.0 - Artifact Traceability Integration
+Active planning baseline: v0.14.0 - Artifact Traceability Integration
 GitHub Release publication: deferred
 ```
 
@@ -29,6 +29,8 @@ The Workbench remains read-only, Core-derived and aligned with Reference B in th
 
 The release hardening pass also stabilizes the Mission Cockpit, promotes Generated Artifacts into a dedicated read-only surface, keeps Core Commands as a diagnostic surface, improves conservative Contacts & Downlink aggregation, improves conservative Commandability aggregation and keeps Autonomy explicitly reserved.
 
+The active v0.14.0 planning baseline is `Artifact Traceability Integration`. It connects generated artifacts, evidence records and Core-reported model entities more explicitly without adding authoring, live telemetry, command uplink, plugin behavior, private relationship inference, private data-flow inference or generated artifact mutation.
+
 The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the shell, semantic navigation, Inspector, Mission Cockpit, domain surfaces, Mission Data Flow Workbench, evidence integration and artifact traceability foundations are stable.
 
 Planning references:
@@ -37,6 +39,7 @@ Planning references:
 docs/roadmap/studio-target-ui-convergence-strategy.md
 docs/roadmap/studio-ui-north-star-reference.md
 docs/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
+docs/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md
 ```
 
 Release references:
@@ -48,6 +51,7 @@ docs/releases/v0.12.0-release-notes.md
 docs/releases/v0.13.0-release-notes.md
 V0_12_0_RELEASE_CHECKLIST.md
 V0_13_0_RELEASE_CHECKLIST.md
+V0_14_0_RELEASE_CHECKLIST.md
 ```
 
 ---
@@ -138,9 +142,23 @@ Diagnostic and developer-oriented surfaces remain accessible, but they do not de
 
 ## v0.14.0 Direction
 
-v0.14.0 is the next planning baseline: Artifact Traceability Integration.
+v0.14.0 is the active planning baseline: Artifact Traceability Integration.
 
 It should build on the evidence-integrated Workbench and connect generated artifacts, evidence records and Core-reported model entities more explicitly, without introducing authoring, plugin behavior, live telemetry, command uplink, private relationship inference, private data-flow inference or generated artifact mutation.
+
+The target traceability paths are:
+
+```text
+Payload -> Data Product -> Storage -> Downlink -> Contact -> Ground Artifact
+```
+
+```text
+Command -> Mode -> Event -> Telemetry -> Scenario
+```
+
+These paths may be shown only when they are Core-reported, generated-artifact-derived or explicitly unavailable. Studio must not infer missing relationships privately.
+
+React Flow and other graph libraries remain deferred for this planning baseline. A graph library may be reconsidered only after the traceability model, Inspector traceability blocks and generated artifact linkage are stable.
 
 ---
 
