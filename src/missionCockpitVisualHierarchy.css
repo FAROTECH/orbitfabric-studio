@@ -3476,3 +3476,55 @@
   font-size: 0.48rem;
 }
 
+
+/* PR 1 definitive pipeline attention layout fix.
+   The attention rail must stay below the Core Output Pipeline, never overlay it. */
+.cockpit-core-output-pipeline {
+  min-height: 118px;
+  max-height: none;
+  height: auto;
+  margin-bottom: 12px;
+  padding: 8px 9px 10px;
+  overflow: visible;
+}
+
+.cockpit-core-output-pipeline .cockpit-panel-title-row {
+  min-height: 18px;
+  margin-bottom: 6px;
+}
+
+.cockpit-pipeline-stage-grid {
+  min-height: 72px;
+  align-items: stretch;
+}
+
+.cockpit-pipeline-stage {
+  min-height: 68px;
+  max-height: none;
+  height: auto;
+  overflow: hidden;
+}
+
+.cockpit-pipeline-lanes {
+  max-height: none;
+  min-height: 22px;
+  overflow: hidden;
+}
+
+.cockpit-attention-strip {
+  position: static;
+  z-index: auto;
+  min-height: 26px;
+  max-height: none;
+  height: auto;
+  margin-top: 0;
+  padding: 5px 8px;
+  overflow: hidden;
+  align-self: start;
+}
+
+.cockpit-instrument-panel {
+  align-content: start;
+  grid-template-rows: auto auto auto auto auto;
+  row-gap: 8px;
+}
