@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { StatusBadge } from "./Badges";
 import { DashboardIcon } from "./DashboardIcon";
-import {
-  MissionCockpitKpiCard,
-  type MissionCockpitKpiCardIconKind,
-  type MissionCockpitKpiCardVariant,
-} from "./MissionCockpitKpiCard";
-import { MissionCockpitEvidenceLanes } from "./MissionCockpitEvidenceLanes";
-import { MissionCockpitPanelHeader } from "./MissionCockpitPanelHeader";
-import { MissionDataFlowWorkbenchSurface } from "./MissionDataFlowWorkbenchSurface";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
-import { type ActiveSurface } from "./navigationModel";
+import {
+  targetDomainNavigationItems,
+  type ActiveSurface,
+  type TargetDomainId,
+} from "./navigationModel";
 import {
   parseCoreCoverageSummary,
   parseCoreDashboardSummary,
@@ -24,105 +20,244 @@ import {
 } from "./coreReports";
 import type {
   CoreCommandResult,
+  CoreCoverageRecord,
   CoreRelationshipManifest,
   WorkspaceInspection,
 } from "./types/workspace";
 import {
   createMissionCockpitPostureModel,
-  dashboardTopCoverageRecords,
-  dashboardTopEntries,
   type CoreReportSnapshots,
   type MissionCockpitMetricKind,
   type MissionCockpitMetricState,
 } from "./missionCockpitModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
 
+type CockpitSignalState = "reported" | "warning" | "critical" | "idle";
 
-interface MissionCockpitKpiPresentation {
-  variant: MissionCockpitKpiCardVariant;
-  iconKind: MissionCockpitKpiCardIconKind;
-  action: {
-    label: string;
-    surface: ActiveSurface;
-    disabled: boolean;
-  } | null;
+type CockpitDomainTileState =
+  | "indexed"
+  | "present"
+  | "missing"
+  | "reserved"
+  | "not-reported";
+
+type ArtifactDockId = "docs" | "reports" | "logs" | "runtime" | "ground" | "unknown";
+
+interface SourceBusItem {
+  id: string;
+  label: string;
+  value: string;
+  state: CockpitSignalState;
+  title: string;
 }
 
-function formatCockpitMetricStateLabel(state: MissionCockpitMetricState): string {
+interface ContractMatrixTile {
+  id: TargetDomainId;
+  label: string;
+  shortLabel: string;
+  icon: Parameters<typeof DashboardIcon>[0]["kind"];
+  value: string;
+  state: CockpitDomainTileState;
+  warning: boolean;
+  surface: ActiveSurface;
+  disabled: boolean;
+  title: string;
+}
+
+interface GaugeModel {
+  label: string;
+  value: string;
+  percent: number | null;
+  title: string;
+}
+
+const domainShortLabels: Partial<Record<TargetDomainId, string>> = {
+  mission: "MSN",
+  "data-flow-workbench": "FLOW",
+  spacecraft: "S/C",
+  subsystems: "SUB",
+  modes: "MODE",
+  telemetry: "TLM",
+  commands: "CMD",
+  events: "EVT",
+  faults: "FLT",
+  packets: "PKT",
+  payloads: "PAY",
+  "data-products": "DATA",
+  "contacts-downlink": "DLNK",
+  commandability: "CMDY",
+  autonomy: "AUTO",
+  scenarios: "SCN",
+  "generated-artifacts": "ART",
+};
+
+const artifactDockItems: readonly {
+  id: ArtifactDockId;
+  label: string;
+  icon: string;
+  locationName: string | null;
+}[] = [
+  { id: "docs", label: "DOCS", icon: "▤", locationName: "docs" },
+  { id: "reports", label: "REPORTS", icon: "▥", locationName: "reports" },
+  { id: "logs", label: "LOGS", icon: "≡", locationName: "logs" },
+  { id: "runtime", label: "RUNTIME", icon: "</>", locationName: "runtime" },
+  { id: "ground", label: "GROUND", icon: "⌁", locationName: "ground" },
+  { id: "unknown", label: "UNKNOWN", icon: "?", locationName: null },
+] as const;
+
+function formatMetricStateLabel(state: MissionCockpitMetricState): string {
   if (state === "core-reported") {
-    return "CORE REPORTED";
+    return "CORE";
   }
 
   if (state === "not-reported") {
-    return "NOT REPORTED";
+    return "N/R";
   }
 
-  return "UNAVAILABLE";
+  return "N/A";
 }
 
-function getMissionCockpitKpiPresentation(
-  kind: MissionCockpitMetricKind,
-  hasWorkspace: boolean,
-): MissionCockpitKpiPresentation {
-  switch (kind) {
-    case "mission-health":
-      return {
-        variant: "health",
-        iconKind: "shield",
-        action: null,
-      };
+function clampPercent(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
 
-    case "model-completeness":
-      return {
-        variant: "completeness",
-        iconKind: "model",
-        action: null,
-      };
-
-    case "lint-status":
-      return {
-        variant: "lint",
-        iconKind: "validation",
-        action: {
-          label: "Reports",
-          surface: "reports-logs",
-          disabled: !hasWorkspace,
-        },
-      };
-
-    case "scenario-coverage":
-      return {
-        variant: "scenario",
-        iconKind: "scenario",
-        action: {
-          label: "Scenarios",
-          surface: "scenario-evidence",
-          disabled: !hasWorkspace,
-        },
-      };
-
-    case "data-product-coverage":
-      return {
-        variant: "data-products",
-        iconKind: "artifacts",
-        action: {
-          label: "Data products",
-          surface: "model-inventory",
-          disabled: !hasWorkspace,
-        },
-      };
-
-    case "commandability-coverage":
-      return {
-        variant: "commandability",
-        iconKind: "core",
-        action: {
-          label: "Commands",
-          surface: "model-inventory",
-          disabled: !hasWorkspace,
-        },
-      };
+function ratioToPercent(value: number | null | undefined): number | null {
+  if (value === null || value === undefined) {
+    return null;
   }
+
+  return clampPercent(value * 100);
+}
+
+function formatPercent(value: number | null): string {
+  return value === null ? "N/R" : `${value}%`;
+}
+
+function formatCompactNumber(value: number | null | undefined): string {
+  return value === null || value === undefined ? "N/R" : String(value);
+}
+
+function signalForAvailability(isAvailable: boolean, isWarning = false): CockpitSignalState {
+  if (isWarning) {
+    return "warning";
+  }
+
+  return isAvailable ? "reported" : "idle";
+}
+
+function selectCoverageRecord(
+  records: Record<string, CoreCoverageRecord> | undefined,
+  candidates: string[],
+): CoreCoverageRecord | null {
+  if (!records) {
+    return null;
+  }
+
+  for (const candidate of candidates) {
+    const record = records[candidate];
+
+    if (record) {
+      return record;
+    }
+  }
+
+  return null;
+}
+
+function aggregateCoverage(
+  records: Record<string, CoreCoverageRecord> | undefined,
+): { total: number; covered: number; uncovered: number; percent: number | null } | null {
+  if (!records) {
+    return null;
+  }
+
+  const values = Object.values(records);
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  const total = values.reduce((sum, record) => sum + record.total, 0);
+  const covered = values.reduce((sum, record) => sum + record.covered, 0);
+  const uncovered = values.reduce((sum, record) => sum + record.uncovered, 0);
+
+  return {
+    total,
+    covered,
+    uncovered,
+    percent: total > 0 ? clampPercent((covered / total) * 100) : null,
+  };
+}
+
+function findStructuralSourceFile(
+  workspace: WorkspaceInspection | null,
+  domainId: TargetDomainId,
+): string | null {
+  if (!workspace) {
+    return null;
+  }
+
+  const candidates = new Set([
+    domainId,
+    domainId.replace(/-/g, "_"),
+    `${domainId}.yaml`,
+    `${domainId.replace(/-/g, "_")}.yaml`,
+  ]);
+
+  if (domainId === "contacts-downlink") {
+    candidates.add("contacts");
+    candidates.add("contacts.yaml");
+    candidates.add("downlink");
+    candidates.add("downlink.yaml");
+  }
+
+  if (domainId === "data-products") {
+    candidates.add("data_products");
+    candidates.add("data_products.yaml");
+  }
+
+  const match = workspace.source_model_files.find((entry) => {
+    const normalized = entry.name.toLowerCase();
+    return [...candidates].some((candidate) => normalized === candidate.toLowerCase());
+  });
+
+  return match?.name ?? null;
+}
+
+function buildScenarioDots(
+  scenarioRunIndex: CoreReportSnapshots["scenarioRunIndex"],
+  coverageSummary: CoreReportSnapshots["coverageSummary"],
+): { state: "passed" | "failed" | "idle"; title: string }[] {
+  if (scenarioRunIndex?.runs.length) {
+    return scenarioRunIndex.runs.slice(0, 24).map((run) => ({
+      state: run.result,
+      title: `${run.scenario}: ${run.result}`,
+    }));
+  }
+
+  const scenarioRuns = coverageSummary?.scenario_runs ?? null;
+
+  if (!scenarioRuns) {
+    return [];
+  }
+
+  const dotCount = Math.min(scenarioRuns.total, 24);
+
+  return Array.from({ length: dotCount }, (_, index) => {
+    if (index < scenarioRuns.failed) {
+      return { state: "failed" as const, title: "failed" };
+    }
+
+    if (index < scenarioRuns.failed + scenarioRuns.passed) {
+      return { state: "passed" as const, title: "passed" };
+    }
+
+    return { state: "idle" as const, title: "not reported" };
+  });
+}
+
+function metricInstrumentClass(kind: MissionCockpitMetricKind): string {
+  return kind.replace(/-/g, "_");
 }
 
 export function MissionCockpit({
@@ -171,11 +306,11 @@ export function MissionCockpit({
     parseCoreScenarioRunIndex(currentReportContent) ??
     coreReportSnapshots.scenarioRunIndex;
   const coverageSummary =
-    parseCoreCoverageSummary(currentReportContent) ??
-    coreReportSnapshots.coverageSummary;
+    parseCoreCoverageSummary(currentReportContent) ?? coreReportSnapshots.coverageSummary;
   const simulationReport =
     parseCoreSimulationReport(currentReportContent) ??
     coreReportSnapshots.simulationReport;
+
   const effectiveCoreReportSnapshots: CoreReportSnapshots = {
     lintReport,
     modelSummary,
@@ -185,11 +320,13 @@ export function MissionCockpit({
     coverageSummary,
     simulationReport,
   };
+
   const missionCockpitPosture = createMissionCockpitPostureModel({
     workspace,
     snapshots: effectiveCoreReportSnapshots,
   });
-  const missionDataFlowWorkbenchSnapshot = createMissionDataFlowWorkbenchSnapshot({
+
+  const missionDataFlowSnapshot = createMissionDataFlowWorkbenchSnapshot({
     modelSummary,
     entityIndex,
     relationshipManifest,
@@ -200,1014 +337,821 @@ export function MissionCockpit({
     generatedArtifactInventory: null,
   });
 
+  const workspaceName = workspace?.selected_path
+    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
+    : "N/R";
   const dashboardValidation = dashboardSummary?.validation ?? null;
   const validationResult = lintReport?.result ?? dashboardValidation?.result ?? null;
   const validationErrors =
     lintReport?.summary.errors ?? dashboardValidation?.errors ?? null;
   const validationWarnings =
     lintReport?.summary.warnings ?? dashboardValidation?.warnings ?? null;
-  const validationInfo =
-    lintReport?.summary.info ?? dashboardValidation?.info ?? null;
-  const validationReportSource = lintReport
-    ? "Core lint report"
-    : dashboardValidation
-      ? "Core dashboard validation summary"
-      : "not reported";
-  const validationSummaryCards = [
-    {
-      label: "Result",
-      value: validationResult ?? "not reported",
-      state: validationResult ? "core-reported" : "unavailable",
-    },
-    {
-      label: "Errors",
-      value: String(validationErrors ?? 0),
-      state: validationErrors && validationErrors > 0 ? "attention" : "nominal",
-    },
-    {
-      label: "Warnings",
-      value: String(validationWarnings ?? 0),
-      state: validationWarnings && validationWarnings > 0 ? "attention" : "nominal",
-    },
-    {
-      label: "Info",
-      value: String(validationInfo ?? 0),
-      state: validationInfo && validationInfo > 0 ? "reported" : "not-reported",
-    },
-  ];
-  const validationFindingRows = lintReport?.findings.slice(0, 5) ?? [];
-
-  const dashboardDomains = dashboardSummary?.model_domains.domains ?? [];
-  const topEntityDomains = dashboardSummary
-    ? dashboardTopEntries(dashboardSummary.entity_inventory.domains, 5)
-    : [];
-  const topRelationshipTypes = dashboardSummary
-    ? dashboardTopEntries(dashboardSummary.relationship_inventory.relationship_types, 4)
-    : [];
-  const displayedIndexedScenarioRuns = scenarioRunIndex?.runs.slice(0, 3) ?? [];
-  const scenarioReportSource = scenarioRunIndex
-    ? "Core scenario run index"
-    : simulationReport
-      ? "Core simulation report"
-      : "not reported";
-  const scenarioSummaryCards = [
-    {
-      label: "Indexed",
-      value: String(scenarioRunIndex?.summary.total ?? 0),
-      state: scenarioRunIndex ? "core-reported" : "unavailable",
-    },
-    {
-      label: "Passed",
-      value: String(scenarioRunIndex?.summary.passed ?? 0),
-      state:
-        scenarioRunIndex && scenarioRunIndex.summary.passed > 0
-          ? "reported"
-          : "not-reported",
-    },
-    {
-      label: "Failed",
-      value: String(scenarioRunIndex?.summary.failed ?? 0),
-      state:
-        scenarioRunIndex && scenarioRunIndex.summary.failed > 0
-          ? "attention"
-          : "nominal",
-    },
-    {
-      label: "Latest sim",
-      value: simulationReport?.result ?? "not reported",
-      state: simulationReport ? simulationReport.result : "not-reported",
-    },
-  ];
-  const latestSimulationSummaryRows = simulationReport
-    ? [
-        ["Scenario", simulationReport.scenario],
-        ["Events", String(simulationReport.summary.events)],
-        ["Commands", String(simulationReport.summary.commands)],
-        ["Mode transitions", String(simulationReport.summary.mode_transitions)],
-        ["Data-flow evidence", String(simulationReport.summary.data_flow_evidence)],
-        [
-          "Failed expectations",
-          String(simulationReport.summary.failed_expectations),
-        ],
-      ]
-    : [];
-  const topEntityCoverageRecords = coverageSummary
-    ? dashboardTopCoverageRecords(coverageSummary.entity_coverage, 4)
-    : [];
-  const topExpectationCoverageTypes = coverageSummary
-    ? dashboardTopEntries(
-        Object.fromEntries(
-          Object.entries(coverageSummary.expectation_coverage.by_type).map(
-            ([expectationType, coverage]) => [expectationType, coverage.total],
-          ),
-        ),
-        3,
-      )
-    : [];
-  const unsupportedCoverageEntityDomains =
-    coverageSummary?.unsupported.entity_domains ?? [];
-  const unsupportedCoverageRelationshipTypes =
-    coverageSummary?.unsupported.relationship_types ?? [];
-  const generatedArtifactStatusItems = generatedArtifactSummary
-    ? [
-        ["Known", generatedArtifactSummary.knownArtifacts],
-        ["Unknown", generatedArtifactSummary.unknownArtifacts],
-        ["Previewable", generatedArtifactSummary.previewableArtifacts],
-        ["Warnings", generatedArtifactSummary.warningCount],
-      ]
-    : [];
+  const validationInfo = lintReport?.summary.info ?? dashboardValidation?.info ?? null;
+  const validationMax = Math.max(validationErrors ?? 0, validationWarnings ?? 0, validationInfo ?? 0, 1);
+  const validationFindings = lintReport?.findings.slice(0, 3) ?? [];
   const generatedLocationNames = new Set(
     (workspace?.generated_locations ?? []).map((entry) => entry.name.toLowerCase()),
   );
-  const generatedArtifactCockpitCards = [
+  const missingSources = workspace?.missing_expected_source_files ?? [];
+  const workspaceWarnings = workspace?.warnings ?? [];
+
+  const sourceBusItems: SourceBusItem[] = [
     {
-      label: "Documentation",
-      detail: "Generated Markdown documentation",
-      location: "docs",
-      value: generatedLocationNames.has("docs") ? "detected" : "not detected",
-      state: generatedLocationNames.has("docs") ? "detected" : "not-detected",
+      id: "workspace",
+      label: "WS",
+      value: workspace ? "1" : "0",
+      state: signalForAvailability(Boolean(workspace)),
+      title: workspace?.selected_path ?? "Workspace not selected",
     },
     {
-      label: "Evidence reports",
-      detail: "Validation, dashboard, scenario and coverage reports",
-      location: "reports",
-      value: generatedLocationNames.has("reports") ? "detected" : "not detected",
-      state: generatedLocationNames.has("reports") ? "detected" : "not-detected",
+      id: "mission",
+      label: "MISSION",
+      value: workspace?.mission_dir ? "1" : "0",
+      state: workspace?.mission_dir ? "reported" : workspace ? "critical" : "idle",
+      title: workspace?.mission_dir ?? "Mission directory not reported",
     },
     {
-      label: "Runtime skeleton",
-      detail: "Runtime-facing generated contract outputs",
-      location: "runtime",
-      value: generatedLocationNames.has("runtime") ? "detected" : "not detected",
-      state: generatedLocationNames.has("runtime") ? "detected" : "not-detected",
+      id: "model",
+      label: "MODEL",
+      value: String(workspace?.source_model_files.length ?? 0),
+      state: workspace?.source_model_files.length ? "reported" : workspace ? "warning" : "idle",
+      title: "Workspace source model files",
     },
     {
-      label: "Ground artifacts",
-      detail: "Ground-facing generated contract outputs",
-      location: "ground",
-      value: generatedLocationNames.has("ground") ? "detected" : "not detected",
-      state: generatedLocationNames.has("ground") ? "detected" : "not-detected",
+      id: "scenarios",
+      label: "SCEN",
+      value: String(workspace?.scenario_files.length ?? 0),
+      state: workspace?.scenario_files.length ? "reported" : workspace ? "warning" : "idle",
+      title: "Workspace scenario files",
+    },
+    {
+      id: "generated",
+      label: "GEN",
+      value: String(workspace?.generated_locations.length ?? 0),
+      state: workspace?.generated_locations.length ? "reported" : workspace ? "warning" : "idle",
+      title: "Workspace generated locations",
+    },
+    {
+      id: "core",
+      label: "CORE",
+      value: coreResult ? (coreResult.success ? "OK" : "ERR") : "N/R",
+      state: coreResult ? (coreResult.success ? "reported" : "critical") : "idle",
+      title: coreResult?.command ?? "Core command result not reported",
+    },
+    {
+      id: "entity",
+      label: "ENTITY",
+      value: formatCompactNumber(entityIndex?.counts.total_entities),
+      state: signalForAvailability(Boolean(entityIndex)),
+      title: "Core entity index",
+    },
+    {
+      id: "relations",
+      label: "REL",
+      value: formatCompactNumber(relationshipManifest?.counts.total_relationships),
+      state: signalForAvailability(Boolean(relationshipManifest)),
+      title: "Core relationship manifest",
+    },
+    {
+      id: "dashboard",
+      label: "DASH",
+      value: dashboardSummary ? "1" : "0",
+      state: signalForAvailability(Boolean(dashboardSummary)),
+      title: "Core dashboard summary",
+    },
+    {
+      id: "lint",
+      label: "LINT",
+      value: validationErrors || validationWarnings ? `${validationErrors ?? 0}/${validationWarnings ?? 0}` : validationResult ? "OK" : "N/R",
+      state:
+        validationErrors && validationErrors > 0
+          ? "critical"
+          : validationWarnings && validationWarnings > 0
+            ? "warning"
+            : validationResult
+              ? "reported"
+              : "idle",
+      title: "Core lint report or dashboard validation",
+    },
+    {
+      id: "sim",
+      label: "SIM",
+      value: simulationReport ? simulationReport.result.toUpperCase() : "N/R",
+      state: simulationReport ? (simulationReport.result === "passed" ? "reported" : "critical") : "idle",
+      title: "Core simulation report",
+    },
+    {
+      id: "coverage",
+      label: "COV",
+      value: coverageSummary ? "1" : "0",
+      state: signalForAvailability(Boolean(coverageSummary)),
+      title: "Core coverage summary",
+    },
+    {
+      id: "artifacts",
+      label: "ART",
+      value: formatCompactNumber(generatedArtifactSummary?.totalArtifacts),
+      state: generatedArtifactSummary
+        ? generatedArtifactSummary.warningCount > 0
+          ? "warning"
+          : "reported"
+        : "idle",
+      title: generatedArtifactSummary?.generatedDir ?? "Generated artifact inventory not loaded",
     },
   ];
-  const generatedArtifactInventoryCards = generatedArtifactSummary
-    ? [
-        {
-          label: "Total",
-          value: String(generatedArtifactSummary.totalArtifacts),
-          state: "inventory-reported",
-        },
-        {
-          label: "Known",
-          value: String(generatedArtifactSummary.knownArtifacts),
-          state: "inventory-reported",
-        },
-        {
-          label: "Previewable",
-          value: String(generatedArtifactSummary.previewableArtifacts),
-          state: "inventory-reported",
-        },
-        {
-          label: "Warnings",
-          value: String(generatedArtifactSummary.warningCount),
-          state:
-            generatedArtifactSummary.warningCount > 0
-              ? "attention"
-              : "inventory-reported",
-        },
-      ]
-    : [
-        {
-          label: "Inventory",
-          value: "not loaded",
-          state: "not-loaded",
-        },
-      ];
-  const hasReportsLocation = workspace?.generated_locations.some(
-    (entry) => entry.name === "reports",
-  );
-  const hasLogsLocation = workspace?.generated_locations.some(
-    (entry) => entry.name === "logs",
-  );
-  const workspaceCockpitName = workspace?.selected_path
-    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
-    : null;
-  const reportedEvidenceItems = [
-    {
-      label: "Contract",
-      value: dashboardSummary ? "Core report" : "structural",
-      isReported: Boolean(dashboardSummary),
-    },
-    {
-      label: "Validation",
-      value: validationResult ?? "not reported",
-      isReported: Boolean(validationResult),
-    },
-    {
-      label: "Scenario",
-      value: scenarioRunIndex ? `${scenarioRunIndex.summary.total} indexed` : "unavailable",
-      isReported: Boolean(scenarioRunIndex),
-    },
-    {
-      label: "Coverage",
-      value: coverageSummary ? "Core report" : "not reported",
-      isReported: Boolean(coverageSummary),
-    },
-    {
-      label: "Artifacts",
-      value: generatedArtifactSummary
-        ? `${generatedArtifactSummary.totalArtifacts} files`
-        : "unavailable",
-      isReported: Boolean(generatedArtifactSummary),
-    },
-  ] as const;
-  const reportedEvidenceCount = reportedEvidenceItems.filter(
-    (item) => item.isReported,
-  ).length;
-  const entityDomainIndex = new Map(
-    (entityIndex?.domains ?? []).map((domain) => [domain.id, domain]),
-  );
-  const contractOverviewRows =
-    dashboardDomains.length > 0
-      ? dashboardDomains.map((domain) => {
-          const indexedDomain = entityDomainIndex.get(domain.id);
 
-          return {
-            id: domain.id,
-            label: domain.display_name,
-            sourceFile: domain.source_file,
-            required: domain.required ? "required" : "optional",
-            present: domain.present ? "present" : "missing",
-            count: String(domain.count),
-            indexed: indexedDomain
-              ? indexedDomain.indexed
-                ? "indexed"
-                : "not indexed"
-              : "not reported",
-            provenance: "Core dashboard summary",
-          };
-        })
-      : (workspace?.source_model_files ?? []).slice(0, 12).map((entry) => ({
-          id: entry.path,
-          label: entry.name.replace(/\.ya?ml$/i, ""),
-          sourceFile: entry.name,
-          required: "not reported",
-          present: "detected",
-          count: "not reported",
-          indexed: "not reported",
-          provenance: "Workspace structural inspection",
-        }));
-  const contractOverviewSummaryItems = [
-    {
-      label: "Domains",
-      value: dashboardSummary
-        ? String(dashboardSummary.model_domains.domains.length)
-        : String(workspace?.source_model_files.length ?? 0),
-      state: dashboardSummary ? "core-reported" : workspace ? "structural" : "unavailable",
-    },
+  const dataProductCoverageRecord = selectCoverageRecord(coverageSummary?.entity_coverage, [
+    "data-products",
+    "data_products",
+    "dataProducts",
+    "data_products.yaml",
+  ]);
+  const commandabilityCoverageRecord = selectCoverageRecord(coverageSummary?.entity_coverage, [
+    "commandability",
+    "commands",
+    "commandability.yaml",
+    "commands.yaml",
+  ]);
+  const scenarioCoveragePercent = coverageSummary?.scenario_runs.total
+    ? clampPercent((coverageSummary.scenario_runs.passed / coverageSummary.scenario_runs.total) * 100)
+    : null;
+  const dataProductCoveragePercent = ratioToPercent(dataProductCoverageRecord?.coverage_ratio);
+  const commandabilityCoveragePercent = ratioToPercent(commandabilityCoverageRecord?.coverage_ratio);
+  const entityCoverageAggregate = aggregateCoverage(coverageSummary?.entity_coverage);
+  const expectationCoveragePercent = ratioToPercent(coverageSummary?.expectation_coverage.pass_ratio);
+  const relationshipCoveragePercent = ratioToPercent(
+    coverageSummary?.relationship_coverage.coverage_ratio,
+  );
+  const scenarioDots = buildScenarioDots(scenarioRunIndex, coverageSummary);
+
+  const coverageGauges: GaugeModel[] = [
     {
       label: "Entities",
-      value: dashboardSummary
-        ? String(dashboardSummary.entity_inventory.total_entities)
-        : "not reported",
-      state: dashboardSummary ? "core-reported" : "not-reported",
+      value: entityCoverageAggregate
+        ? `${entityCoverageAggregate.covered}/${entityCoverageAggregate.total}`
+        : "N/R",
+      percent: entityCoverageAggregate?.percent ?? null,
+      title: "Core coverage_summary.entity_coverage",
     },
     {
       label: "Relationships",
-      value: dashboardSummary
-        ? String(dashboardSummary.relationship_inventory.total_relationships)
-        : "not reported",
-      state: dashboardSummary ? "core-reported" : "not-reported",
+      value: coverageSummary
+        ? `${coverageSummary.relationship_coverage.covered_supported_relationships}/${coverageSummary.relationship_coverage.total_supported_relationships}`
+        : "N/R",
+      percent: relationshipCoveragePercent,
+      title: "Core coverage_summary.relationship_coverage",
     },
     {
-      label: "Missing sources",
-      value: String(workspace?.missing_expected_source_files.length ?? 0),
-      state:
-        workspace && workspace.missing_expected_source_files.length === 0
-          ? "detected"
-          : "attention",
-    },
-  ];
-  const cockpitNavigationCards: {
-    label: string;
-    detail: string;
-    surface: ActiveSurface;
-    status: string;
-    disabled: boolean;
-  }[] = [
-    {
-      label: "Model Inventory",
-      detail: "Inspect Core-derived entity inventory and domain records.",
-      surface: "model-inventory",
-      status: entityIndex ? "entity index" : workspace ? "structural" : "unavailable",
-      disabled: !workspace,
-    },
-    {
-      label: "Contracts",
-      detail: "Open source Mission Data Contract files.",
-      surface: "contracts",
-      status: workspace ? "source model" : "unavailable",
-      disabled: !workspace,
-    },
-    {
-      label: "Validation Reports",
-      detail: "Inspect Core validation, reports and logs.",
-      surface: "reports-logs",
-      status: validationResult ? validationResult : "not reported",
-      disabled: !workspace,
-    },
-    {
-      label: "Scenario Evidence",
-      detail: "Inspect Core scenario runs and simulation evidence.",
-      surface: "scenario-evidence",
-      status: scenarioRunIndex
-        ? `${scenarioRunIndex.summary.total} indexed`
-        : "not reported",
-      disabled: !workspace,
-    },
-    {
-      label: "Data Flow Workbench",
-      detail: "Open read-only relationship and evidence traceability.",
-      surface: "mission-data-flow-workbench",
-      status:
-        missionDataFlowWorkbenchSnapshot.counts.traceabilityLinks > 0
-          ? `${missionDataFlowWorkbenchSnapshot.counts.traceabilityLinks} links`
-          : "not reported",
-      disabled: !workspace,
-    },
-    {
-      label: "Generated Artifacts",
-      detail: "Inspect generated outputs without mutating them.",
-      surface: "generated-artifacts",
-      status: generatedArtifactSummary
-        ? `${generatedArtifactSummary.totalArtifacts} files`
-        : "not loaded",
-      disabled: !workspace,
-    },
-    {
-      label: "Core Commands",
-      detail: "Run fixed Core inspection commands.",
-      surface: "core-commands",
-      status: workspace ? "available" : "unavailable",
-      disabled: !workspace,
+      label: "Expectations",
+      value: coverageSummary
+        ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total}`
+        : "N/R",
+      percent: expectationCoveragePercent,
+      title: "Core coverage_summary.expectation_coverage",
     },
   ];
 
+  const dashboardDomainMap = new Map(
+    (dashboardSummary?.model_domains.domains ?? []).map((domain) => [domain.id, domain]),
+  );
+  const entityDomainMap = new Map(
+    (entityIndex?.domains ?? []).map((domain) => [domain.id, domain]),
+  );
+  const contractMatrixTiles: ContractMatrixTile[] = targetDomainNavigationItems.map((item) => {
+    if (item.id === "mission") {
+      return {
+        id: item.id,
+        label: item.label,
+        shortLabel: domainShortLabels[item.id] ?? item.label,
+        icon: item.icon,
+        value: workspace?.mission_dir ? "1" : "0",
+        state: workspace?.mission_dir ? "present" : "missing",
+        warning: !workspace?.mission_dir,
+        surface: item.destinationSurface,
+        disabled: !workspace,
+        title: workspace?.mission_dir ?? "Mission directory not reported",
+      };
+    }
+
+    if (item.id === "data-flow-workbench") {
+      const links = missionDataFlowSnapshot.counts.traceabilityLinks;
+
+      return {
+        id: item.id,
+        label: item.label,
+        shortLabel: domainShortLabels[item.id] ?? item.label,
+        icon: item.icon,
+        value: String(links),
+        state: links > 0 ? "present" : "not-reported",
+        warning: false,
+        surface: item.destinationSurface,
+        disabled: !workspace,
+        title: "Traceability links from Core reports and generated artifacts",
+      };
+    }
+
+    if (item.id === "scenarios") {
+      const count = scenarioRunIndex?.summary.total ?? workspace?.scenario_files.length ?? null;
+
+      return {
+        id: item.id,
+        label: item.label,
+        shortLabel: domainShortLabels[item.id] ?? item.label,
+        icon: item.icon,
+        value: formatCompactNumber(count),
+        state: count && count > 0 ? "present" : "not-reported",
+        warning: Boolean(scenarioRunIndex && scenarioRunIndex.summary.failed > 0),
+        surface: item.destinationSurface,
+        disabled: !workspace,
+        title: scenarioRunIndex ? "Core scenario run index" : "Workspace scenario files",
+      };
+    }
+
+    if (item.id === "generated-artifacts") {
+      const count = generatedArtifactSummary?.totalArtifacts ?? workspace?.generated_locations.length ?? null;
+
+      return {
+        id: item.id,
+        label: item.label,
+        shortLabel: domainShortLabels[item.id] ?? item.label,
+        icon: item.icon,
+        value: formatCompactNumber(count),
+        state: count && count > 0 ? "present" : "not-reported",
+        warning: Boolean(generatedArtifactSummary && generatedArtifactSummary.warningCount > 0),
+        surface: item.destinationSurface,
+        disabled: !workspace,
+        title: generatedArtifactSummary ? "Generated artifact inventory" : "Workspace generated locations",
+      };
+    }
+
+    const entityDomain = entityDomainMap.get(item.id);
+    const dashboardDomain = dashboardDomainMap.get(item.id);
+    const structuralSource = findStructuralSourceFile(workspace, item.id);
+    const count = entityDomain?.entity_count ?? dashboardDomain?.count ?? null;
+    const state: CockpitDomainTileState =
+      item.status === "reserved"
+        ? "reserved"
+        : entityDomain
+          ? entityDomain.indexed
+            ? "indexed"
+            : "present"
+          : dashboardDomain
+            ? dashboardDomain.present
+              ? "present"
+              : "missing"
+            : structuralSource
+              ? "present"
+              : "not-reported";
+
+    return {
+      id: item.id,
+      label: item.label,
+      shortLabel: domainShortLabels[item.id] ?? item.label,
+      icon: item.icon,
+      value: count === null ? (structuralSource ? "SRC" : item.status === "reserved" ? "RSV" : "N/R") : String(count),
+      state,
+      warning: state === "missing",
+      surface: item.destinationSurface,
+      disabled: !workspace || item.status === "reserved",
+      title: entityDomain
+        ? `Core entity index: ${entityDomain.source_file}`
+        : dashboardDomain
+          ? `Core dashboard summary: ${dashboardDomain.source_file}`
+          : structuralSource ?? item.caption,
+    };
+  });
+
+  const attentionCounters = [
+    { label: "ERR", value: validationErrors ?? 0, state: validationErrors ? "critical" : "reported" },
+    { label: "WARN", value: validationWarnings ?? 0, state: validationWarnings ? "warning" : "reported" },
+    { label: "MISS", value: missingSources.length, state: missingSources.length ? "critical" : "reported" },
+    {
+      label: "SCN FAIL",
+      value: scenarioRunIndex?.summary.failed ?? coverageSummary?.scenario_runs.failed ?? 0,
+      state:
+        (scenarioRunIndex?.summary.failed ?? coverageSummary?.scenario_runs.failed ?? 0) > 0
+          ? "critical"
+          : "reported",
+    },
+    {
+      label: "UNCOV",
+      value:
+        (entityCoverageAggregate?.uncovered ?? 0) +
+        (coverageSummary?.relationship_coverage.uncovered_supported_relationships ?? 0) +
+        (coverageSummary?.expectation_coverage.failed ?? 0),
+      state:
+        (entityCoverageAggregate?.uncovered ?? 0) +
+          (coverageSummary?.relationship_coverage.uncovered_supported_relationships ?? 0) +
+          (coverageSummary?.expectation_coverage.failed ?? 0) >
+        0
+          ? "warning"
+          : "reported",
+    },
+    {
+      label: "ART WARN",
+      value: generatedArtifactSummary?.warningCount ?? 0,
+      state: generatedArtifactSummary?.warningCount ? "warning" : "reported",
+    },
+  ];
+
+  const attentionChips = [
+    ...validationFindings.map((finding) => ({
+      label: `${finding.severity.toUpperCase()} ${finding.code}`,
+      state: finding.severity.toLowerCase() === "error" ? "critical" : "warning",
+      title: finding.message,
+    })),
+    ...missingSources.slice(0, 2).map((source) => ({
+      label: `MISS ${source}`,
+      state: "critical",
+      title: "Missing expected source file",
+    })),
+    ...workspaceWarnings.slice(0, 2).map((warning) => ({
+      label: "WS WARN",
+      state: "warning",
+      title: warning,
+    })),
+    ...((coverageSummary?.unsupported.entity_domains ?? []).length > 0
+      ? [
+          {
+            label: `UNSUP ENT ${coverageSummary?.unsupported.entity_domains.length ?? 0}`,
+            state: "warning",
+            title: coverageSummary?.unsupported.entity_domains.join(", ") ?? "",
+          },
+        ]
+      : []),
+    ...((coverageSummary?.unsupported.relationship_types ?? []).length > 0
+      ? [
+          {
+            label: `UNSUP REL ${coverageSummary?.unsupported.relationship_types.length ?? 0}`,
+            state: "warning",
+            title: coverageSummary?.unsupported.relationship_types.join(", ") ?? "",
+          },
+        ]
+      : []),
+  ].slice(0, 5);
+
+  const coreReportCount = [
+    lintReport,
+    modelSummary,
+    entityIndex,
+    relationshipManifest,
+    dashboardSummary,
+    scenarioRunIndex,
+    coverageSummary,
+    simulationReport,
+  ].filter(Boolean).length;
+
+  const evidenceSignalCount = [
+    validationResult,
+    scenarioRunIndex ?? simulationReport,
+    coverageSummary,
+    generatedArtifactSummary,
+  ].filter(Boolean).length;
+
+  const corePipelineStages: {
+    label: string;
+    value: string;
+    state: CockpitSignalState;
+    lanes: { label: string; value: string; state: CockpitSignalState }[];
+  }[] = [
+    {
+      label: "INPUTS",
+      value: `${formatCompactNumber(workspace?.source_model_files.length)} / ${formatCompactNumber(workspace?.scenario_files.length)}`,
+      state: workspace ? "reported" : "idle",
+      lanes: [
+        {
+          label: "MODEL SRC",
+          value: formatCompactNumber(workspace?.source_model_files.length),
+          state: signalForAvailability(Boolean(workspace?.source_model_files.length)),
+        },
+        {
+          label: "SCEN SRC",
+          value: formatCompactNumber(workspace?.scenario_files.length),
+          state: signalForAvailability(Boolean(workspace?.scenario_files.length)),
+        },
+        {
+          label: "GEN PATHS",
+          value: formatCompactNumber(workspace?.generated_locations.length),
+          state: signalForAvailability(Boolean(workspace?.generated_locations.length)),
+        },
+      ],
+    },
+    {
+      label: "CORE REPORTS",
+      value: `${coreReportCount}/8`,
+      state: coreReportCount > 0 ? "reported" : "idle",
+      lanes: [
+        { label: "LINT", value: lintReport ? "DET" : "N/R", state: signalForAvailability(Boolean(lintReport)) },
+        { label: "MODEL", value: modelSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(modelSummary)) },
+        { label: "ENTITY", value: entityIndex ? "DET" : "N/R", state: signalForAvailability(Boolean(entityIndex)) },
+        { label: "REL", value: relationshipManifest ? "DET" : "N/R", state: signalForAvailability(Boolean(relationshipManifest)) },
+        { label: "DASH", value: dashboardSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(dashboardSummary)) },
+        { label: "COV", value: coverageSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(coverageSummary)) },
+      ],
+    },
+    {
+      label: "EVIDENCE",
+      value: `${evidenceSignalCount}/4`,
+      state: evidenceSignalCount > 0 ? "reported" : "idle",
+      lanes: [
+        { label: "VALID", value: validationResult ? validationResult.toUpperCase() : "N/R", state: signalForAvailability(Boolean(validationResult)) },
+        {
+          label: "SCEN",
+          value: formatCompactNumber(scenarioRunIndex?.summary.total ?? coverageSummary?.scenario_runs.total),
+          state: signalForAvailability(Boolean(scenarioRunIndex ?? simulationReport)),
+        },
+        { label: "COVER", value: coverageSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(coverageSummary)) },
+        { label: "SIM", value: simulationReport ? simulationReport.result.toUpperCase() : "N/R", state: signalForAvailability(Boolean(simulationReport)) },
+      ],
+    },
+    {
+      label: "OUTPUTS",
+      value: formatCompactNumber(generatedArtifactSummary?.totalArtifacts),
+      state: generatedArtifactSummary
+        ? generatedArtifactSummary.warningCount > 0
+          ? "warning"
+          : "reported"
+        : "idle",
+      lanes: [
+        { label: "DOCS", value: generatedLocationNames.has("docs") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("docs")) },
+        { label: "REPORTS", value: generatedLocationNames.has("reports") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("reports")) },
+        { label: "RUNTIME", value: generatedLocationNames.has("runtime") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("runtime")) },
+        { label: "GROUND", value: generatedLocationNames.has("ground") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("ground")) },
+        {
+          label: "UNKNOWN",
+          value: formatCompactNumber(generatedArtifactSummary?.unknownArtifacts),
+          state: generatedArtifactSummary?.unknownArtifacts ? "warning" : "idle",
+        },
+      ],
+    },
+  ];
 
   return (
     <section
       id="studio-dashboard"
-      className="workspace-dashboard cockpit-dashboard"
-      aria-label="Mission cockpit dashboard"
+      className="workspace-dashboard cockpit-dashboard cockpit-instrument-panel"
+      aria-label="Mission cockpit instrument panel"
     >
-      <div className="cockpit-status-strip">
-        <div className="cockpit-status-main">
-          <DashboardIcon kind="mission" />
-          <div>
-            <span className="cockpit-eyebrow">Mission cockpit</span>
-            <h2>OrbitFabric Studio</h2>
-          </div>
+      <div className="cockpit-source-bus" aria-label="Source-of-truth bus">
+        <div className="cockpit-source-bus-title">
+          <span>SOURCE BUS</span>
+          <strong title={workspace?.selected_path ?? undefined}>{workspaceName}</strong>
         </div>
-
-        <div className="cockpit-status-metrics" aria-label="Workspace quick metrics">
-          <div className="cockpit-status-chip">
-            <strong>{workspace?.source_model_files.length ?? 0}</strong>
-            <span>Source files</span>
-          </div>
-          <div className="cockpit-status-chip">
-            <strong>{workspace?.scenario_files.length ?? 0}</strong>
-            <span>Scenarios</span>
-          </div>
-          <div className="cockpit-status-chip">
-            <strong>{workspace?.generated_locations.length ?? 0}</strong>
-            <span>Generated paths</span>
-          </div>
-        </div>
-
-        <div className="cockpit-status-workspace">
-          <div className="badge-row">
-            <ProvenanceBadge label="READ-ONLY" />
-            <ProvenanceBadge label="CORE-DERIVED" />
-            <StatusBadge label={workspace ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
-          </div>
-          <strong title={workspace?.selected_path ?? undefined}>
-            {workspaceCockpitName ?? "No workspace selected"}
-          </strong>
-          <span title={workspace?.selected_path ?? undefined}>
-            {workspace?.selected_path ?? "Open a workspace to inspect it."}
-          </span>
+        <div className="cockpit-source-bus-leds">
+          {sourceBusItems.map((item) => (
+            <div
+              className={`cockpit-source-led cockpit-source-led-${item.state}`}
+              key={item.id}
+              title={item.title}
+            >
+              <span aria-hidden="true" />
+              <strong>{item.label}</strong>
+              <em>{item.value}</em>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div
-        className="cockpit-kpi-grid cockpit-kpi-grid-north-star"
-        aria-label="Mission cockpit north-star status cards"
-      >
+      <div className="cockpit-primary-instrument-cluster" aria-label="Primary instrument cluster">
         {missionCockpitPosture.metrics.map((metric) => {
-          const presentation = getMissionCockpitKpiPresentation(
-            metric.kind,
-            Boolean(workspace),
-          );
-          const kpiAction = presentation.action;
+          const percent =
+            metric.kind === "scenario-coverage"
+              ? scenarioCoveragePercent
+              : metric.kind === "data-product-coverage"
+                ? dataProductCoveragePercent
+                : metric.kind === "commandability-coverage"
+                  ? commandabilityCoveragePercent
+                  : null;
 
           return (
-            <MissionCockpitKpiCard
+            <article
+              className={`cockpit-instrument cockpit-instrument-${metricInstrumentClass(metric.kind)} cockpit-instrument-${metric.state}`}
               key={metric.kind}
-              variant={presentation.variant}
-              iconKind={presentation.iconKind}
-              isReported={metric.state === "core-reported"}
-              state={metric.state}
-              title={metric.label}
-              value={metric.value}
-              detail={
-                <>
-                  <span>{metric.detail}</span>
-                  <small className="cockpit-kpi-provenance">
-                    {metric.provenance}
-                  </small>
-                </>
-              }
-              status={
-                <StatusBadge label={formatCockpitMetricStateLabel(metric.state)} />
-              }
-              action={
-                kpiAction
-                  ? {
-                      label: kpiAction.label,
-                      onClick: () => onActiveSurfaceChange(kpiAction.surface),
-                      disabled: kpiAction.disabled,
-                    }
-                  : undefined
-              }
-            />
+              title={`${metric.provenance} · ${metric.source}`}
+            >
+              <div className="cockpit-instrument-header">
+                <DashboardIcon
+                  kind={
+                    metric.kind === "mission-health"
+                      ? "shield"
+                      : metric.kind === "model-completeness"
+                        ? "model"
+                        : metric.kind === "lint-status"
+                          ? "validation"
+                          : metric.kind === "scenario-coverage"
+                            ? "scenario"
+                            : metric.kind === "data-product-coverage"
+                              ? "artifacts"
+                              : "core"
+                  }
+                />
+                <StatusBadge label={formatMetricStateLabel(metric.state)} />
+              </div>
+              <div className="cockpit-instrument-body">
+                <span>{metric.label}</span>
+                {metric.kind === "lint-status" ? (
+                  <div className="cockpit-severity-stack">
+                    <SeverityBar label="ERR" value={validationErrors ?? 0} max={validationMax} state="critical" />
+                    <SeverityBar label="WARN" value={validationWarnings ?? 0} max={validationMax} state="warning" />
+                    <SeverityBar label="INFO" value={validationInfo ?? 0} max={validationMax} state="reported" />
+                  </div>
+                ) : (
+                  <>
+                    <strong>{metric.value.replace("Not reported", "N/R")}</strong>
+                    <div className="cockpit-ring" aria-hidden="true">
+                      <div className="cockpit-ring-core">{formatPercent(percent)}</div>
+                    </div>
+                    <div className="cockpit-mini-gauge">
+                      <span style={{ width: `${percent ?? 0}%` }} />
+                    </div>
+                  </>
+                )}
+              </div>
+            </article>
           );
         })}
       </div>
 
-      <MissionCockpitEvidenceLanes
-        reportedEvidenceCount={reportedEvidenceCount}
-        reportedEvidenceItems={reportedEvidenceItems}
-      />
-
-      <nav
-        className="cockpit-cross-navigation"
-        aria-label="Mission cockpit cross-navigation"
-      >
-        <div className="cockpit-cross-navigation-heading">
-          <div>
-            <span className="cockpit-eyebrow">Navigation</span>
-            <strong>Inspection surfaces</strong>
+      <div className="cockpit-panel-grid" aria-label="Mission cockpit graphical panels">
+        <section className="cockpit-contract-matrix" aria-label="Mission contract matrix">
+          <div className="cockpit-panel-title-row">
+            <span>CONTRACT MATRIX</span>
+            <StatusBadge label={entityIndex ? "INDEX" : dashboardSummary ? "DASH" : "STRUCT"} />
           </div>
-          <StatusBadge label="READ-ONLY LINKS" />
+          <div className="cockpit-domain-tile-grid">
+            {contractMatrixTiles.map((tile) => (
+              <button
+                type="button"
+                className={`cockpit-domain-tile cockpit-domain-tile-${tile.state}`}
+                key={tile.id}
+                title={tile.title}
+                disabled={tile.disabled}
+                onClick={() => onActiveSurfaceChange(tile.surface)}
+              >
+                <DashboardIcon kind={tile.icon} />
+                <strong>{tile.value}</strong>
+                <span>{tile.shortLabel}</span>
+                <i className={tile.warning ? "cockpit-domain-warning" : ""} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+
+          <div className="cockpit-matrix-legend" aria-label="Contract matrix legend">
+            <span><i className="cockpit-legend-dot cockpit-legend-present" aria-hidden="true" /> SRC structural source</span>
+            <span><i className="cockpit-legend-dot cockpit-legend-indexed" aria-hidden="true" /> IDX Core indexed</span>
+            <span><i className="cockpit-legend-dot cockpit-legend-reserved" aria-hidden="true" /> RSV reserved</span>
+            <span><i className="cockpit-legend-dot cockpit-legend-idle" aria-hidden="true" /> N/R not reported</span>
+          </div>
+        </section>
+
+        <section className="cockpit-evidence-wall" aria-label="Evidence wall">
+          <div className="cockpit-panel-title-row">
+            <span>EVIDENCE WALL</span>
+            <StatusBadge label={validationResult ? validationResult.toUpperCase() : "N/R"} />
+          </div>
+
+          {!validationResult && !scenarioRunIndex && !coverageSummary ? (
+            <div className="cockpit-evidence-empty-band" aria-label="Evidence availability">
+              <span>AWAITING CORE EVIDENCE</span>
+              <strong>Validation, scenarios and coverage not reported.</strong>
+            </div>
+          ) : null}
+
+          <div className="cockpit-evidence-block cockpit-evidence-validation">
+            <div className="cockpit-evidence-heading">VALIDATION</div>
+            <SeverityBar label="ERR" value={validationErrors ?? 0} max={validationMax} state="critical" />
+            <SeverityBar label="WARN" value={validationWarnings ?? 0} max={validationMax} state="warning" />
+            <SeverityBar label="INFO" value={validationInfo ?? 0} max={validationMax} state="reported" />
+            <div className="cockpit-finding-chip-row">
+              {validationFindings.length > 0 ? (
+                validationFindings.map((finding) => (
+                  <span
+                    className={`cockpit-finding-chip cockpit-finding-${finding.severity.toLowerCase()}`}
+                    key={`${finding.code}-${finding.object_id ?? finding.message}`}
+                    title={finding.message}
+                  >
+                    {finding.severity.toUpperCase()} {finding.code}
+                  </span>
+                ))
+              ) : (
+                <span className="cockpit-finding-chip cockpit-finding-idle">N/R</span>
+              )}
+            </div>
+          </div>
+
+          <div className="cockpit-evidence-block cockpit-evidence-scenarios">
+            <div className="cockpit-evidence-heading">SCENARIOS</div>
+            <div className="cockpit-scenario-led-summary">
+              <strong>{formatCompactNumber(scenarioRunIndex?.summary.passed ?? coverageSummary?.scenario_runs.passed)}</strong>
+              <span>PASS</span>
+              <strong>{formatCompactNumber(scenarioRunIndex?.summary.failed ?? coverageSummary?.scenario_runs.failed)}</strong>
+              <span>FAIL</span>
+              <strong>{formatCompactNumber(scenarioRunIndex?.summary.total ?? coverageSummary?.scenario_runs.total)}</strong>
+              <span>TOTAL</span>
+            </div>
+            <div className="cockpit-run-dot-board" aria-label="Scenario run dots">
+              {scenarioDots.length > 0 ? (
+                scenarioDots.map((dot, index) => (
+                  <span
+                    className={`cockpit-run-dot cockpit-run-dot-${dot.state}`}
+                    key={`${dot.title}-${index}`}
+                    title={dot.title}
+                  />
+                ))
+              ) : (
+                <span className="cockpit-run-dot cockpit-run-dot-idle" title="not reported" />
+              )}
+            </div>
+          </div>
+
+          <div className="cockpit-evidence-block cockpit-evidence-coverage">
+            <div className="cockpit-evidence-heading">COVERAGE</div>
+            {coverageGauges.map((gauge) => (
+              <GaugeRow key={gauge.label} gauge={gauge} />
+            ))}
+          </div>
+        </section>
+
+        <section className="cockpit-traceability-radar" aria-label="Traceability radar">
+          <div className="cockpit-panel-title-row">
+            <span>TRACEABILITY</span>
+            <StatusBadge label={`${missionDataFlowSnapshot.counts.traceabilityLinks} LINKS`} />
+          </div>
+          <div className="cockpit-radar-line">
+            <RadarNode label="MODEL" value={missionDataFlowSnapshot.counts.missionDomains} active={missionDataFlowSnapshot.counts.missionDomains > 0} />
+            <RadarNode label="REL" value={missionDataFlowSnapshot.counts.relationshipRecords} active={missionDataFlowSnapshot.counts.relationshipRecords > 0} />
+            <RadarNode label="SCEN" value={missionDataFlowSnapshot.counts.scenarioDataFlowEvidenceRecords} active={missionDataFlowSnapshot.counts.scenarioDataFlowEvidenceRecords > 0} />
+            <RadarNode label="COV" value={missionDataFlowSnapshot.counts.coverageScopes} active={missionDataFlowSnapshot.counts.coverageScopes > 0} />
+            <RadarNode label="ART" value={generatedArtifactSummary?.totalArtifacts ?? 0} active={Boolean(generatedArtifactSummary?.totalArtifacts)} />
+          </div>
+          <div className="cockpit-radar-counters">
+            <span title="Reported traceability links">REP {missionDataFlowSnapshot.traceability.counts.reportedLinks}</span>
+            <span title="Unavailable traceability links">N/R {missionDataFlowSnapshot.traceability.counts.unavailableLinks}</span>
+            <span title="Relationship types">TYPE {missionDataFlowSnapshot.counts.relationshipTypes}</span>
+          </div>
+        </section>
+
+        <section className="cockpit-artifact-dock" aria-label="Artifact dock">
+          <div className="cockpit-panel-title-row">
+            <span>ARTIFACT DOCK</span>
+            <StatusBadge label={generatedArtifactSummary ? "INV" : "N/R"} />
+          </div>
+          <div className="cockpit-artifact-modules">
+            {artifactDockItems.map((item) => {
+              const detected = item.locationName
+                ? generatedLocationNames.has(item.locationName)
+                : Boolean(generatedArtifactSummary && generatedArtifactSummary.unknownArtifacts > 0);
+              const value =
+                item.id === "unknown"
+                  ? formatCompactNumber(generatedArtifactSummary?.unknownArtifacts)
+                  : detected
+                    ? "DET"
+                    : "N/R";
+              const state =
+                item.id === "unknown" && generatedArtifactSummary?.unknownArtifacts
+                  ? "warning"
+                  : detected
+                    ? "reported"
+                    : "idle";
+
+              return (
+                <div
+                  className={`cockpit-artifact-module cockpit-artifact-module-${state}`}
+                  key={item.id}
+                  title={item.locationName ?? "Generated artifact inventory unknown class"}
+                >
+                  <i>{item.icon}</i>
+                  <span>{item.label}</span>
+                  <strong>{value}</strong>
+                </div>
+              );
+            })}
+          </div>
+          <div className="cockpit-artifact-strip">
+            <span>TOTAL {formatCompactNumber(generatedArtifactSummary?.totalArtifacts)}</span>
+            <span>KNOWN {formatCompactNumber(generatedArtifactSummary?.knownArtifacts)}</span>
+            <span>PREVIEW {formatCompactNumber(generatedArtifactSummary?.previewableArtifacts)}</span>
+            <span>WARN {formatCompactNumber(generatedArtifactSummary?.warningCount)}</span>
+          </div>
+        </section>
+      </div>
+
+      <div className="cockpit-lower-console" aria-label="Core output pipeline and attention rail">
+        <section className="cockpit-core-output-pipeline" aria-label="Core output pipeline">
+        <div className="cockpit-panel-title-row">
+          <span>CORE OUTPUT PIPELINE</span>
+          <StatusBadge label={coreResult ? (coreResult.success ? "CORE OK" : "CORE ERR") : "N/R"} />
         </div>
 
-        <div className="cockpit-cross-navigation-grid">
-          {cockpitNavigationCards.map((item) => (
-            <button
-              type="button"
-              className="cockpit-cross-navigation-card"
-              key={item.label}
-              onClick={() => onActiveSurfaceChange(item.surface)}
-              disabled={item.disabled}
+        <div className="cockpit-pipeline-stage-grid">
+          {corePipelineStages.map((stage) => (
+            <div
+              className={`cockpit-pipeline-stage cockpit-pipeline-stage-${stage.state}`}
+              key={stage.label}
             >
-              <span>{item.label}</span>
-              <strong>{item.status}</strong>
-              <small>{item.detail}</small>
-            </button>
+              <div className="cockpit-pipeline-stage-header">
+                <span>{stage.label}</span>
+                <strong>{stage.value}</strong>
+              </div>
+
+              <div className="cockpit-pipeline-lanes">
+                {stage.lanes.map((lane) => (
+                  <span
+                    className={`cockpit-pipeline-lane cockpit-pipeline-lane-${lane.state}`}
+                    key={`${stage.label}-${lane.label}`}
+                  >
+                    <i aria-hidden="true" />
+                    <em>{lane.label}</em>
+                    <strong>{lane.value}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-      </nav>
+      </section>
 
-      <div className="cockpit-work-grid">
-        <article className="cockpit-panel cockpit-panel-large cockpit-contract-overview-panel">
-          <MissionCockpitPanelHeader
-            eyebrow="Mission data contract"
-            title={
-              dashboardSummary
-                ? "Core-derived contract overview"
-                : "Workspace structural overview"
-            }
-            trailing={
-              <div className="badge-row">
-                <StatusBadge
-                  label={dashboardSummary ? "CORE DASHBOARD" : "STRUCTURAL"}
-                />
-                <StatusBadge label={entityIndex ? "ENTITY INDEX" : "NO INDEX"} />
-              </div>
-            }
-          />
-
-          <div className="cockpit-contract-overview-shell">
-            <div
-              className="cockpit-contract-summary-strip"
-              aria-label="Mission contract overview summary"
+      <section className="cockpit-attention-strip" aria-label="Attention strip">
+        <div className="cockpit-attention-counters">
+          {attentionCounters.map((item) => (
+            <span
+              className={`cockpit-attention-counter cockpit-attention-${item.state}`}
+              key={item.label}
             >
-              {contractOverviewSummaryItems.map((item) => (
-                <div
-                  className={`cockpit-contract-summary-card cockpit-contract-summary-${item.state}`}
-                  key={item.label}
-                >
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <small>{item.state}</small>
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="cockpit-contract-overview-table"
-              role="table"
-              aria-label="Mission data contract domain overview"
-            >
-              <div className="cockpit-contract-overview-row cockpit-contract-overview-head" role="row">
-                <span role="columnheader">Domain</span>
-                <span role="columnheader">Source</span>
-                <span role="columnheader">Required</span>
-                <span role="columnheader">Presence</span>
-                <span role="columnheader">Entities</span>
-                <span role="columnheader">Index</span>
-              </div>
-
-              {contractOverviewRows.length > 0 ? (
-                contractOverviewRows.map((row) => (
-                  <div
-                    className={`cockpit-contract-overview-row cockpit-contract-overview-row-${row.present}`}
-                    role="row"
-                    key={row.id}
-                  >
-                    <span role="cell">
-                      <strong>{row.label}</strong>
-                      <small>{row.provenance}</small>
-                    </span>
-                    <span role="cell">{row.sourceFile}</span>
-                    <span role="cell">{row.required}</span>
-                    <span role="cell">
-                      <StatusBadge label={row.present.toUpperCase()} />
-                    </span>
-                    <span role="cell">{row.count}</span>
-                    <span role="cell">{row.indexed}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>No contract overview available</strong>
-                  <span>Open a workspace or run Core dashboard-summary.</span>
-                </div>
-              )}
-            </div>
-
-            <div className="cockpit-contract-side-grid">
-              <div className="cockpit-compact-list">
-                <h4>Top entity domains</h4>
-                {topEntityDomains.length > 0 ? (
-                  topEntityDomains.map(([domain, count]) => (
-                    <div className="cockpit-row" key={domain}>
-                      <span>{domain}</span>
-                      <strong>{count}</strong>
-                    </div>
-                  ))
-                ) : (
-                  <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                    <strong>No entity inventory</strong>
-                    <span>Core dashboard summary required.</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="cockpit-compact-list">
-                <h4>Top relationships</h4>
-                {topRelationshipTypes.length > 0 ? (
-                  topRelationshipTypes.map(([relationshipType, count]) => (
-                    <div className="cockpit-row" key={relationshipType}>
-                      <span>{relationshipType}</span>
-                      <strong>{count}</strong>
-                    </div>
-                  ))
-                ) : (
-                  <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                    <strong>No relationship inventory</strong>
-                    <span>Core dashboard summary required.</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="cockpit-contract-overview-actions">
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("model-inventory")}
-                disabled={!workspace}
-              >
-                Open Model Inventory
-              </button>
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("contracts")}
-                disabled={!workspace}
-              >
-                Open Contracts
-              </button>
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("mission-data-flow-workbench")}
-                disabled={!workspace}
-              >
-                Inspect Data Flow
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="cockpit-panel cockpit-panel-validation cockpit-validation-results-panel">
-          <MissionCockpitPanelHeader
-            eyebrow="Validation"
-            title="Recent validation results"
-            trailing={
-              <div className="badge-row">
-                <StatusBadge
-                  label={validationResult ? validationResult.toUpperCase() : "UNAVAILABLE"}
-                />
-                <StatusBadge label={lintReport ? "LINT REPORT" : "DASHBOARD FALLBACK"} />
-              </div>
-            }
-          />
-
-          <div className="cockpit-validation-shell">
-            <div
-              className="cockpit-validation-summary-strip"
-              aria-label="Recent validation summary"
-            >
-              {validationSummaryCards.map((item) => (
-                <div
-                  className={`cockpit-validation-summary-card cockpit-validation-summary-${item.state}`}
-                  key={item.label}
-                >
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <small>{item.state}</small>
-                </div>
-              ))}
-            </div>
-
-            <div className="cockpit-validation-source-line">
-              <span>Source</span>
-              <strong>{validationReportSource}</strong>
-            </div>
-
-            <div
-              className="cockpit-validation-findings-table"
-              role="table"
-              aria-label="Recent Core validation findings"
-            >
-              <div className="cockpit-validation-finding-row cockpit-validation-finding-head" role="row">
-                <span role="columnheader">Code</span>
-                <span role="columnheader">Domain</span>
-                <span role="columnheader">Object</span>
-                <span role="columnheader">File</span>
-                <span role="columnheader">Message</span>
-              </div>
-
-              {validationFindingRows.length > 0 ? (
-                validationFindingRows.map((finding) => (
-                  <div
-                    className="cockpit-validation-finding-row"
-                    role="row"
-                    key={`${finding.code}-${finding.domain ?? "domain"}-${finding.object_id ?? "object"}-${finding.message}`}
-                  >
-                    <span role="cell">
-                      <strong>{finding.code}</strong>
-                    </span>
-                    <span role="cell">{finding.domain ?? "not reported"}</span>
-                    <span role="cell">{finding.object_id ?? "not reported"}</span>
-                    <span role="cell">{finding.file ?? "not reported"}</span>
-                    <span role="cell">
-                      <strong>{finding.message}</strong>
-                      {finding.suggestion ? <small>{finding.suggestion}</small> : null}
-                    </span>
-                  </div>
-                ))
-              ) : validationResult ? (
-                <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>No detailed findings reported</strong>
-                  <span>Core validation status is available, but no finding rows were reported.</span>
-                </div>
-              ) : (
-                <div className="cockpit-empty-module">
-                  <strong>No validation report</strong>
-                  <span>Run Core validation to populate this module.</span>
-                </div>
-              )}
-            </div>
-
-            <div className="cockpit-validation-actions">
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("reports-logs")}
-                disabled={!workspace}
-              >
-                Open Reports
-              </button>
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("core-commands")}
-                disabled={!workspace}
-              >
-                Open Core
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="cockpit-panel cockpit-panel-scenario cockpit-scenario-runs-panel">
-          <MissionCockpitPanelHeader
-            eyebrow="Scenario"
-            title="Recent scenario runs"
-            trailing={
-              <div className="badge-row">
-                <StatusBadge
-                  label={scenarioRunIndex ? "RUN INDEX" : "NO INDEX"}
-                />
-                <StatusBadge
-                  label={simulationReport ? "SIM REPORT" : "NO SIM REPORT"}
-                />
-              </div>
-            }
-          />
-
-          <div className="cockpit-scenario-shell">
-            <div
-              className="cockpit-scenario-summary-strip"
-              aria-label="Recent scenario run summary"
-            >
-              {scenarioSummaryCards.map((item) => (
-                <div
-                  className={`cockpit-scenario-summary-card cockpit-scenario-summary-${item.state}`}
-                  key={item.label}
-                >
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <small>{item.state}</small>
-                </div>
-              ))}
-            </div>
-
-            <div className="cockpit-scenario-source-line">
-              <span>Source</span>
-              <strong>{scenarioReportSource}</strong>
-            </div>
-
-            <div
-              className="cockpit-scenario-runs-table"
-              role="table"
-              aria-label="Recent Core scenario runs"
-            >
-              <div className="cockpit-scenario-run-row cockpit-scenario-run-head" role="row">
-                <span role="columnheader">Scenario</span>
-                <span role="columnheader">Mission</span>
-                <span role="columnheader">Result</span>
-                <span role="columnheader">Report</span>
-              </div>
-
-              {displayedIndexedScenarioRuns.length > 0 ? (
-                displayedIndexedScenarioRuns.map((run) => (
-                  <div
-                    className={`cockpit-scenario-run-row cockpit-scenario-run-${run.result}`}
-                    role="row"
-                    key={`${run.report_path}-${run.scenario}`}
-                  >
-                    <span role="cell">
-                      <strong>{run.scenario}</strong>
-                    </span>
-                    <span role="cell">{run.mission}</span>
-                    <span role="cell">
-                      <StatusBadge label={run.result.toUpperCase()} />
-                    </span>
-                    <span role="cell">{run.report_file}</span>
-                  </div>
-                ))
-              ) : scenarioRunIndex ? (
-                <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>Scenario index reported</strong>
-                  <span>No scenario runs indexed yet.</span>
-                </div>
-              ) : (
-                <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>No scenario index</strong>
-                  <span>Run scenario-run-index to populate this module.</span>
-                </div>
-              )}
-            </div>
-
-            <div className="cockpit-scenario-latest-report">
-              <div className="cockpit-scenario-latest-header">
-                <span>Latest simulation report</span>
-                <strong>{simulationReport ? simulationReport.result : "not reported"}</strong>
-              </div>
-
-              {latestSimulationSummaryRows.length > 0 ? (
-                <div className="cockpit-scenario-latest-grid">
-                  {latestSimulationSummaryRows.map(([label, value]) => (
-                    <div className="cockpit-scenario-latest-cell" key={label}>
-                      <span>{label}</span>
-                      <strong>{value}</strong>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="cockpit-empty-module cockpit-empty-module-dormant">
-                  <strong>No simulation report</strong>
-                  <span>Load or run a Core simulation report to populate latest run details.</span>
-                </div>
-              )}
-            </div>
-
-            <div className="cockpit-scenario-actions">
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("scenario-evidence")}
-                disabled={!workspace}
-              >
-                Open Scenario Evidence
-              </button>
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("mission-data-flow-workbench")}
-                disabled={!workspace}
-              >
-                Inspect Data Flow
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="cockpit-panel cockpit-panel-coverage">
-          <MissionCockpitPanelHeader
-            eyebrow="Coverage"
-            title="Reported scopes"
-            trailing={<DashboardIcon kind="coverage" />}
-          />
-
-          <div className="cockpit-compact-list">
-            {topEntityCoverageRecords.length > 0 ? (
-              topEntityCoverageRecords.map(([domain, coverage]) => (
-                <div className="cockpit-row" key={domain}>
-                  <span>{domain}</span>
-                  <strong>
-                    {coverage.covered}/{coverage.total}
-                  </strong>
-                </div>
-              ))
-            ) : (
-              <div className="cockpit-empty-module">
-                <strong>No coverage records</strong>
-                <span>Run Core coverage-summary to populate this module.</span>
-              </div>
-            )}
-          </div>
-
-          <div className="cockpit-mini-status">
-            <span>Expectation types</span>
-            <strong>{topExpectationCoverageTypes.length}</strong>
-          </div>
-        </article>
-
-        <article className="cockpit-panel cockpit-panel-generated cockpit-generated-artifacts-panel">
-          <MissionCockpitPanelHeader
-            eyebrow="Generated"
-            title="Generated artifacts"
-            trailing={
-              <div className="badge-row">
-                <StatusBadge
-                  label={generatedArtifactSummary ? "INVENTORY LOADED" : "NO INVENTORY"}
-                />
-                <StatusBadge
-                  label={workspace?.generated_dir ? "GENERATED DIR" : "NO GENERATED DIR"}
-                />
-              </div>
-            }
-          />
-
-          <div className="cockpit-generated-shell">
-            <div
-              className="cockpit-generated-card-grid"
-              aria-label="Generated artifact class cards"
-            >
-              {generatedArtifactCockpitCards.map((card) => (
-                <div
-                  className={`cockpit-generated-card cockpit-generated-card-${card.state}`}
-                  key={card.label}
-                >
-                  <span>{card.label}</span>
-                  <strong>{card.value}</strong>
-                  <small>{card.detail}</small>
-                  <em>{card.location}</em>
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="cockpit-generated-inventory-strip"
-              aria-label="Generated artifact inventory summary"
-            >
-              {generatedArtifactInventoryCards.map((item) => (
-                <div
-                  className={`cockpit-generated-inventory-card cockpit-generated-inventory-${item.state}`}
-                  key={item.label}
-                >
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </div>
-              ))}
-            </div>
-
-            <div className="cockpit-generated-source-line">
-              <span>Inventory source</span>
-              <strong>
-                {generatedArtifactSummary
-                  ? generatedArtifactSummary.generatedDir ?? "generated directory"
-                  : "open Generated Artifacts to inspect inventory"}
-              </strong>
-            </div>
-
-            <div className="cockpit-generated-actions">
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("generated-artifacts")}
-                disabled={!workspace}
-              >
-                Open Generated Artifacts
-              </button>
-              <button
-                type="button"
-                className="cockpit-secondary-action"
-                onClick={() => onActiveSurfaceChange("reports-logs")}
-                disabled={!workspace}
-              >
-                Open Reports
-              </button>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <MissionDataFlowWorkbenchSurface snapshot={missionDataFlowWorkbenchSnapshot} />
-
-      <div className="cockpit-bottom-rail" aria-label="Mission cockpit status rail">
-        <div className="cockpit-bottom-cell cockpit-bottom-cell-primary">
-          <DashboardIcon kind="shield" />
-          <div>
-            <span className="cockpit-eyebrow">Boundary</span>
-            <strong>Read-only Studio surface</strong>
-          </div>
+              {item.label} <strong>{item.value}</strong>
+            </span>
+          ))}
         </div>
-
-        <div className="cockpit-bottom-guardrails">
-          <span>No editing</span>
-          <span>No uplink</span>
-          <span>No live telemetry</span>
-          <span>No private coverage</span>
+        <div className="cockpit-attention-chips">
+          {attentionChips.length > 0 ? (
+            attentionChips.map((item) => (
+              <span
+                className={`cockpit-attention-chip cockpit-attention-${item.state}`}
+                key={`${item.label}-${item.title}`}
+                title={item.title}
+              >
+                {item.label}
+              </span>
+            ))
+          ) : (
+            <span className="cockpit-attention-chip cockpit-attention-reported">CLEAR</span>
+          )}
         </div>
-
-        <div className="cockpit-bottom-cell">
-          <span>Reports</span>
-          <strong>{hasReportsLocation ? "detected" : "not detected"}</strong>
-        </div>
-
-        <div className="cockpit-bottom-cell">
-          <span>Logs</span>
-          <strong>{hasLogsLocation ? "detected" : "not detected"}</strong>
-        </div>
-
-        <div className="cockpit-bottom-cell cockpit-bottom-cell-wide">
-          <span>Unsupported coverage</span>
-          <strong>
-            Entities: {" "}
-            {unsupportedCoverageEntityDomains.length > 0
-              ? unsupportedCoverageEntityDomains.join(", ")
-              : "none"}{" "}
-            · Relationships: {" "}
-            {unsupportedCoverageRelationshipTypes.length > 0
-              ? unsupportedCoverageRelationshipTypes.join(", ")
-              : "none"}
-          </strong>
-        </div>
-
-        <button
-          type="button"
-          className="cockpit-secondary-action"
-          onClick={() => onActiveSurfaceChange("core-commands")}
-          disabled={!workspace}
-        >
-          Run Core
-        </button>
+      </section>
       </div>
     </section>
+  );
+}
+
+function SeverityBar({
+  label,
+  value,
+  max,
+  state,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  state: CockpitSignalState;
+}) {
+  const width = max > 0 ? clampPercent((value / max) * 100) : 0;
+
+  return (
+    <div className={`cockpit-severity-row cockpit-severity-${state}`}>
+      <span>{label}</span>
+      <div aria-hidden="true">
+        <i style={{ width: `${width}%` }} />
+      </div>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function GaugeRow({ gauge }: { gauge: GaugeModel }) {
+  return (
+    <div className="cockpit-gauge-row" title={gauge.title}>
+      <span>{gauge.label}</span>
+      <div aria-hidden="true">
+        <i style={{ width: `${gauge.percent ?? 0}%` }} />
+      </div>
+      <strong>{gauge.value}</strong>
+    </div>
+  );
+}
+
+function RadarNode({
+  label,
+  value,
+  active,
+}: {
+  label: string;
+  value: number;
+  active: boolean;
+}) {
+  return (
+    <div className={`cockpit-radar-node ${active ? "cockpit-radar-node-active" : ""}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
