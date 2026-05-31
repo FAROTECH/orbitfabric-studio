@@ -673,34 +673,29 @@ function App() {
         <>
           <section
             id="studio-overview"
-            className="hero-panel"
+            className="hero-panel cockpit-empty-panel"
             aria-labelledby="studio-title"
           >
-            <div className="eyebrow">OrbitFabric Studio</div>
-            <h1 id="studio-title">Mission Contract Engineering Workbench</h1>
-            <p className="release">v0.10.0 Mission Cockpit consolidation preview</p>
-            <div className="badge-row hero-badge-row">
-              <ProvenanceBadge label="READ-ONLY" />
-              <ProvenanceBadge label="CORE-DERIVED" />
-              <StatusBadge label="COCKPIT FOUNDATION" />
+            <div className="cockpit-empty-console">
+              <div className="cockpit-empty-mark" aria-hidden="true">OF</div>
+              <div>
+                <h1 id="studio-title">OrbitFabric Studio</h1>
+                <div className="cockpit-empty-led-row" aria-label="Initial cockpit state">
+                  <span>WS 0</span>
+                  <span>MISSION 0</span>
+                  <span>CORE N/R</span>
+                  <span>MODEL N/R</span>
+                </div>
+              </div>
+              <button
+                className="primary-action"
+                type="button"
+                onClick={handleOpenWorkspace}
+                disabled={isOpening}
+              >
+                {isOpening ? "Opening" : "Open workspace"}
+              </button>
             </div>
-            <p className="summary">
-              Inspect mission contract state, Core reports, scenario evidence and
-              generated artifacts from a compact read-only engineering cockpit.
-            </p>
-            <p className="summary">
-              OrbitFabric Core remains authoritative. Studio visualizes reported
-              evidence, provenance and generated artifacts without editing files,
-              inferring semantics or introducing mission-control behavior.
-            </p>
-            <button
-              className="primary-action"
-              type="button"
-              onClick={handleOpenWorkspace}
-              disabled={isOpening}
-            >
-              {isOpening ? "Opening..." : "Open workspace"}
-            </button>
             {error ? <p className="error-text">{error}</p> : null}
           </section>
 
@@ -881,27 +876,23 @@ function WorkspaceHeader({
 
   return (
     <header className="workspace-header cockpit-command-bar" aria-label="Workspace command bar">
-      <div className="cockpit-command-identity">
+      <div className="cockpit-command-identity cockpit-command-identity-compact">
         <div className="cockpit-command-mark">OF</div>
-        <div>
-          <span className="cockpit-eyebrow">OrbitFabric Studio</span>
-          <h2>Mission Contract Engineering Workbench</h2>
-        </div>
+        <strong>OrbitFabric Studio</strong>
       </div>
 
-      <div className="cockpit-command-workspace" title={workspace?.selected_path ?? undefined}>
+      <div className="cockpit-command-workspace cockpit-command-workspace-compact" title={workspace?.selected_path ?? undefined}>
         <span>Workspace</span>
         <strong>{workspaceName}</strong>
-        <small>{workspace?.selected_path ?? "Open a workspace to begin."}</small>
       </div>
 
       <button
         type="button"
-        className="cockpit-workspace-switcher"
+        className="cockpit-workspace-switcher cockpit-workspace-switcher-compact"
         onClick={onOpenWorkspace}
         disabled={isOpening}
       >
-        {isOpening ? "Opening..." : workspace ? "Change workspace" : "Open workspace"}
+        {isOpening ? "Opening" : workspace ? "Switch" : "Open"}
       </button>
 
       <ShellCommandActions
@@ -910,9 +901,12 @@ function WorkspaceHeader({
         onActiveSurfaceChange={onActiveSurfaceChange}
       />
 
-      <div className="workspace-header-status cockpit-command-status">
-        <ProvenanceBadge label="CORE-DERIVED" />
-        <StatusBadge label={workspace?.mission_dir ? "WORKSPACE OPEN" : "UNAVAILABLE"} />
+      <div className="cockpit-command-safety" aria-label="Studio safety boundary">
+        <span title="Read-only Studio surface">🔒 RO</span>
+        <span title="Core-derived reports and generated artifacts">◆ CORE</span>
+        <span title="No command uplink">⊘ UPLINK</span>
+        <span title="No live telemetry">⊘ LIVE</span>
+        <span title="No private health, completeness or coverage calculation">⊘ PRIVATE</span>
       </div>
     </header>
   );

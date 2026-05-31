@@ -1656,3 +1656,685 @@
     min-height: auto;
   }
 }
+/* PR 1 Cockpit Instrument Panel Reset. Visual-only composition. */
+.cockpit-command-bar {
+  min-height: 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 20px;
+  background:
+    linear-gradient(90deg, rgba(2, 6, 23, 0.94), rgba(8, 47, 73, 0.46)),
+    rgba(2, 6, 23, 0.72);
+}
+
+.cockpit-command-identity-compact {
+  min-width: 188px;
+}
+
+.cockpit-command-identity-compact strong {
+  color: #f8fafc;
+  font-size: 0.98rem;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.cockpit-command-workspace-compact {
+  display: grid;
+  gap: 2px;
+  min-width: 210px;
+  max-width: 340px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.cockpit-command-workspace-compact span {
+  color: #64748b;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.cockpit-command-workspace-compact strong {
+  overflow: hidden;
+  color: #dbeafe;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-workspace-switcher-compact {
+  min-width: 76px;
+  border-radius: 999px;
+  padding: 8px 11px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.cockpit-command-safety {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-left: auto;
+}
+
+.cockpit-command-safety span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #bfdbfe;
+  background: rgba(2, 6, 23, 0.46);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cockpit-empty-panel {
+  display: grid;
+  gap: 18px;
+  min-height: 320px;
+  padding: 28px;
+}
+
+.cockpit-empty-console {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.cockpit-empty-mark {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(56, 189, 248, 0.36);
+  border-radius: 24px;
+  color: #67e8f9;
+  background: rgba(8, 145, 178, 0.14);
+  font-weight: 950;
+  letter-spacing: -0.08em;
+}
+
+.cockpit-empty-led-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cockpit-empty-led-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #94a3b8;
+  background: rgba(2, 6, 23, 0.42);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cockpit-empty-led-row span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #475569;
+  box-shadow: 0 0 12px rgba(71, 85, 105, 0.5);
+}
+
+.cockpit-instrument-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.1), transparent 32rem),
+    radial-gradient(circle at 88% 8%, rgba(139, 92, 246, 0.08), transparent 30rem),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.36));
+}
+
+.cockpit-source-bus,
+.cockpit-primary-instrument-cluster,
+.cockpit-contract-matrix,
+.cockpit-evidence-wall,
+.cockpit-traceability-radar,
+.cockpit-artifact-dock,
+.cockpit-attention-strip {
+  border: 1px solid rgba(51, 65, 85, 0.9);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.58));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.cockpit-source-bus {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.2fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+}
+
+.cockpit-source-bus-title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cockpit-source-bus-title span,
+.cockpit-panel-title-row span,
+.cockpit-evidence-heading {
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cockpit-source-bus-title strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-source-bus-leds {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.cockpit-source-led {
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  gap: 6px;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid rgba(71, 85, 105, 0.8);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.cockpit-source-led > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #64748b;
+  box-shadow: 0 0 12px rgba(100, 116, 139, 0.48);
+}
+
+.cockpit-source-led strong,
+.cockpit-source-led em {
+  color: #cbd5e1;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.cockpit-source-led-reported > span,
+.cockpit-domain-tile-indexed i,
+.cockpit-domain-tile-present i,
+.cockpit-artifact-module-reported::before,
+.cockpit-radar-node-active::before,
+.cockpit-run-dot-passed {
+  background: #22c55e;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.66);
+}
+
+.cockpit-source-led-warning > span,
+.cockpit-domain-warning,
+.cockpit-artifact-module-warning::before,
+.cockpit-run-dot-idle {
+  background: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.66);
+}
+
+.cockpit-source-led-critical > span,
+.cockpit-run-dot-failed {
+  background: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.66);
+}
+
+.cockpit-primary-instrument-cluster {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.cockpit-instrument {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  min-height: 158px;
+  border: 1px solid rgba(71, 85, 105, 0.7);
+  border-radius: 16px;
+  padding: 10px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.1), transparent 66%),
+    rgba(2, 6, 23, 0.42);
+}
+
+.cockpit-instrument-core-reported {
+  border-color: rgba(34, 211, 238, 0.32);
+}
+
+.cockpit-instrument-not-reported,
+.cockpit-instrument-unavailable {
+  opacity: 0.86;
+}
+
+.cockpit-instrument-header,
+.cockpit-panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cockpit-instrument-body {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.cockpit-instrument-body > span {
+  color: #94a3b8;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cockpit-instrument-body > strong {
+  color: #f8fafc;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.cockpit-ring {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 6px solid rgba(51, 65, 85, 0.9);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.cockpit-ring-core {
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.cockpit-mini-gauge,
+.cockpit-gauge-row > div,
+.cockpit-severity-row > div {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.82);
+}
+
+.cockpit-mini-gauge {
+  height: 5px;
+}
+
+.cockpit-mini-gauge span,
+.cockpit-gauge-row i,
+.cockpit-severity-row i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #38bdf8;
+}
+
+.cockpit-severity-stack {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+}
+
+.cockpit-severity-row,
+.cockpit-gauge-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 32px;
+  gap: 7px;
+  align-items: center;
+  width: 100%;
+}
+
+.cockpit-severity-row span,
+.cockpit-gauge-row span,
+.cockpit-severity-row strong,
+.cockpit-gauge-row strong {
+  color: #cbd5e1;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.cockpit-severity-row > div,
+.cockpit-gauge-row > div {
+  height: 7px;
+}
+
+.cockpit-severity-critical i,
+.cockpit-attention-critical strong {
+  background: #ef4444;
+}
+
+.cockpit-severity-warning i,
+.cockpit-attention-warning strong {
+  background: #f59e0b;
+}
+
+.cockpit-severity-reported i,
+.cockpit-gauge-row i,
+.cockpit-attention-reported strong {
+  background: #22c55e;
+}
+
+.cockpit-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.2fr) minmax(420px, 1fr);
+  gap: 12px;
+}
+
+.cockpit-contract-matrix,
+.cockpit-evidence-wall,
+.cockpit-traceability-radar,
+.cockpit-artifact-dock {
+  padding: 12px;
+}
+
+.cockpit-domain-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cockpit-domain-tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 7px;
+  align-items: center;
+  min-height: 74px;
+  border: 1px solid rgba(71, 85, 105, 0.82);
+  border-radius: 14px;
+  padding: 9px;
+  color: #e2e8f0;
+  background: rgba(2, 6, 23, 0.46);
+  cursor: pointer;
+}
+
+.cockpit-domain-tile:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.cockpit-domain-tile-indexed,
+.cockpit-domain-tile-present {
+  border-color: rgba(34, 197, 94, 0.32);
+}
+
+.cockpit-domain-tile-missing {
+  border-color: rgba(239, 68, 68, 0.34);
+}
+
+.cockpit-domain-tile-reserved {
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.cockpit-domain-tile strong {
+  justify-self: end;
+  color: #f8fafc;
+  font-size: 1rem;
+}
+
+.cockpit-domain-tile span {
+  grid-column: 1 / -1;
+  color: #94a3b8;
+  font-size: 0.64rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.cockpit-domain-tile i {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #64748b;
+}
+
+.cockpit-evidence-wall {
+  display: grid;
+  gap: 10px;
+}
+
+.cockpit-evidence-block {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(71, 85, 105, 0.72);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.38);
+}
+
+.cockpit-finding-chip-row,
+.cockpit-attention-chips,
+.cockpit-attention-counters,
+.cockpit-artifact-strip,
+.cockpit-radar-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cockpit-finding-chip,
+.cockpit-attention-chip,
+.cockpit-attention-counter,
+.cockpit-artifact-strip span,
+.cockpit-radar-counters span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  border: 1px solid rgba(71, 85, 105, 0.76);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.62);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cockpit-finding-error,
+.cockpit-attention-critical {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+.cockpit-finding-warning,
+.cockpit-attention-warning {
+  border-color: rgba(245, 158, 11, 0.36);
+  color: #fde68a;
+}
+
+.cockpit-scenario-led-summary {
+  display: grid;
+  grid-template-columns: repeat(3, auto 1fr);
+  gap: 5px 6px;
+  align-items: baseline;
+}
+
+.cockpit-scenario-led-summary strong {
+  color: #f8fafc;
+  font-size: 0.98rem;
+}
+
+.cockpit-scenario-led-summary span {
+  color: #94a3b8;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.cockpit-run-dot-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.cockpit-run-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #475569;
+}
+
+.cockpit-traceability-radar,
+.cockpit-artifact-dock {
+  min-height: 164px;
+}
+
+.cockpit-radar-line {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.cockpit-radar-node {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  border: 1px solid rgba(71, 85, 105, 0.76);
+  border-radius: 14px;
+  padding: 12px 8px;
+  background: rgba(2, 6, 23, 0.42);
+}
+
+.cockpit-radar-node::before,
+.cockpit-artifact-module::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #64748b;
+}
+
+.cockpit-radar-node span,
+.cockpit-artifact-module span {
+  color: #94a3b8;
+  font-size: 0.64rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.cockpit-radar-node strong,
+.cockpit-artifact-module strong {
+  color: #f8fafc;
+  font-size: 1rem;
+}
+
+.cockpit-radar-counters,
+.cockpit-artifact-strip {
+  margin-top: 10px;
+}
+
+.cockpit-artifact-modules {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cockpit-artifact-module {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid rgba(71, 85, 105, 0.76);
+  border-radius: 14px;
+  padding: 10px 7px;
+  background: rgba(2, 6, 23, 0.42);
+}
+
+.cockpit-artifact-module i {
+  color: #67e8f9;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.cockpit-attention-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+}
+
+.cockpit-attention-counter strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 18px;
+  margin-left: 5px;
+  border-radius: 999px;
+  color: #020617;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 1280px) {
+  .cockpit-primary-instrument-cluster {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cockpit-panel-grid,
+  .cockpit-source-bus,
+  .cockpit-attention-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-source-bus-leds {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 840px) {
+  .cockpit-primary-instrument-cluster,
+  .cockpit-domain-tile-grid,
+  .cockpit-radar-line,
+  .cockpit-artifact-modules,
+  .cockpit-empty-console {
+    grid-template-columns: 1fr;
+  }
+}
