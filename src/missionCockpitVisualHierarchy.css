@@ -2338,3 +2338,325 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* PR 1 viewport density hardening. Visual-only compression for one-viewport cockpit QA. */
+.workbench-layout-dashboard .main-surface {
+  min-height: 0;
+}
+
+.cockpit-instrument-panel {
+  gap: 8px;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+.cockpit-source-bus {
+  grid-template-columns: minmax(130px, 0.16fr) minmax(0, 1fr);
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 14px;
+}
+
+.cockpit-source-bus-title span,
+.cockpit-panel-title-row span,
+.cockpit-evidence-heading {
+  font-size: 0.58rem;
+  letter-spacing: 0.11em;
+}
+
+.cockpit-source-bus-title strong {
+  font-size: 0.72rem;
+}
+
+.cockpit-source-bus-leds {
+  gap: 5px;
+}
+
+.cockpit-source-led {
+  min-height: 23px;
+  gap: 5px;
+  padding: 4px 7px;
+}
+
+.cockpit-source-led > span {
+  width: 6px;
+  height: 6px;
+}
+
+.cockpit-source-led strong,
+.cockpit-source-led em {
+  font-size: 0.56rem;
+}
+
+.cockpit-primary-instrument-cluster {
+  gap: 7px;
+  padding: 7px;
+  border-radius: 14px;
+}
+
+.cockpit-instrument {
+  min-height: 108px;
+  gap: 5px;
+  padding: 7px 8px;
+  border-radius: 13px;
+}
+
+.cockpit-instrument-header {
+  gap: 5px;
+}
+
+.cockpit-instrument-body {
+  gap: 5px;
+}
+
+.cockpit-instrument-body > span {
+  font-size: 0.56rem;
+  letter-spacing: 0.09em;
+}
+
+.cockpit-instrument-body > strong {
+  font-size: 0.86rem;
+}
+
+.cockpit-ring {
+  width: 40px;
+  height: 40px;
+  border-width: 5px;
+}
+
+.cockpit-ring-core {
+  font-size: 0.56rem;
+}
+
+.cockpit-mini-gauge {
+  height: 4px;
+}
+
+.cockpit-severity-stack {
+  gap: 4px;
+}
+
+.cockpit-severity-row,
+.cockpit-gauge-row {
+  grid-template-columns: 36px minmax(0, 1fr) 26px;
+  gap: 5px;
+}
+
+.cockpit-severity-row span,
+.cockpit-gauge-row span,
+.cockpit-severity-row strong,
+.cockpit-gauge-row strong {
+  font-size: 0.56rem;
+}
+
+.cockpit-severity-row > div,
+.cockpit-gauge-row > div {
+  height: 5px;
+}
+
+.cockpit-panel-grid {
+  grid-template-columns: minmax(520px, 1.1fr) minmax(420px, 0.9fr);
+  gap: 8px;
+}
+
+.cockpit-contract-matrix,
+.cockpit-evidence-wall,
+.cockpit-traceability-radar,
+.cockpit-artifact-dock {
+  padding: 8px;
+  border-radius: 14px;
+}
+
+.cockpit-domain-tile-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.cockpit-domain-tile {
+  min-height: 50px;
+  gap: 3px 6px;
+  padding: 6px;
+  border-radius: 11px;
+}
+
+.cockpit-domain-tile .dashboard-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.cockpit-domain-tile strong {
+  font-size: 0.82rem;
+}
+
+.cockpit-domain-tile span {
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
+}
+
+.cockpit-domain-tile i {
+  right: 6px;
+  bottom: 6px;
+  width: 6px;
+  height: 6px;
+}
+
+.cockpit-evidence-wall {
+  gap: 6px;
+  align-content: start;
+}
+
+.cockpit-evidence-block {
+  gap: 5px;
+  padding: 7px;
+  border-radius: 11px;
+}
+
+.cockpit-finding-chip,
+.cockpit-attention-chip,
+.cockpit-attention-counter,
+.cockpit-artifact-strip span,
+.cockpit-radar-counters span {
+  min-height: 20px;
+  padding: 3px 6px;
+  font-size: 0.54rem;
+}
+
+.cockpit-scenario-led-summary {
+  gap: 3px 5px;
+}
+
+.cockpit-scenario-led-summary strong {
+  font-size: 0.78rem;
+}
+
+.cockpit-scenario-led-summary span {
+  font-size: 0.54rem;
+}
+
+.cockpit-run-dot-board {
+  gap: 4px;
+}
+
+.cockpit-run-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.cockpit-traceability-radar,
+.cockpit-artifact-dock {
+  min-height: 94px;
+}
+
+.cockpit-radar-line {
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.cockpit-radar-node {
+  gap: 4px;
+  padding: 7px 5px;
+  border-radius: 10px;
+}
+
+.cockpit-radar-node::before,
+.cockpit-artifact-module::before {
+  width: 7px;
+  height: 7px;
+}
+
+.cockpit-radar-node span,
+.cockpit-artifact-module span {
+  font-size: 0.54rem;
+}
+
+.cockpit-radar-node strong,
+.cockpit-artifact-module strong {
+  font-size: 0.78rem;
+}
+
+.cockpit-radar-counters,
+.cockpit-artifact-strip {
+  margin-top: 6px;
+}
+
+.cockpit-artifact-modules {
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.cockpit-artifact-module {
+  gap: 3px;
+  padding: 6px 4px;
+  border-radius: 10px;
+}
+
+.cockpit-artifact-module i {
+  font-size: 0.62rem;
+}
+
+.cockpit-attention-strip {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 13px;
+}
+
+.cockpit-attention-counters,
+.cockpit-attention-chips,
+.cockpit-artifact-strip,
+.cockpit-radar-counters {
+  gap: 4px;
+}
+
+.cockpit-attention-counter strong {
+  min-width: 18px;
+  height: 15px;
+  font-size: 0.54rem;
+}
+
+.cockpit-empty-panel {
+  min-height: 0;
+  padding: 18px 22px;
+}
+
+.cockpit-empty-console {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+}
+
+.cockpit-empty-panel h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 3.2vw, 3.1rem);
+}
+
+.cockpit-empty-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+}
+
+.cockpit-empty-led-row {
+  gap: 6px;
+}
+
+.cockpit-empty-led-row span {
+  min-height: 24px;
+  padding: 5px 8px;
+  font-size: 0.62rem;
+}
+
+.cockpit-empty-led-row span::before {
+  width: 6px;
+  height: 6px;
+}
+
+@media (max-width: 1480px) {
+  .cockpit-panel-grid {
+    grid-template-columns: minmax(500px, 1.08fr) minmax(400px, 0.92fr);
+  }
+
+  .cockpit-domain-tile-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

@@ -698,8 +698,6 @@ function App() {
             </div>
             {error ? <p className="error-text">{error}</p> : null}
           </section>
-
-          <EmptyState />
         </>
       );
     }
