@@ -1036,7 +1036,8 @@ export function MissionCockpit({
         </section>
       </div>
 
-      <section className="cockpit-core-output-pipeline" aria-label="Core output pipeline">
+      <div className="cockpit-lower-console" aria-label="Core output pipeline and attention rail">
+        <section className="cockpit-core-output-pipeline" aria-label="Core output pipeline">
         <div className="cockpit-panel-title-row">
           <span>CORE OUTPUT PIPELINE</span>
           <StatusBadge label={coreResult ? (coreResult.success ? "CORE OK" : "CORE ERR") : "N/R"} />
@@ -1097,6 +1098,7 @@ export function MissionCockpit({
           )}
         </div>
       </section>
+      </div>
     </section>
   );
 }
