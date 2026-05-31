@@ -2798,3 +2798,55 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+/* PR 1 final cockpit polish. */
+.cockpit-domain-tile .dashboard-icon {
+  width: 1.72rem;
+  height: 1.72rem;
+  min-width: 1.72rem;
+  min-height: 1.72rem;
+}
+
+.cockpit-domain-tile {
+  align-items: start;
+}
+
+.cockpit-domain-tile strong {
+  line-height: 1;
+}
+
+.cockpit-domain-tile span {
+  margin-top: 1px;
+}
+
+/* Coverage block: prevent label/bar/value overlap */
+.cockpit-evidence-coverage .cockpit-gauge-row {
+  grid-template-columns: 68px minmax(0, 1fr) 42px;
+  gap: 6px;
+}
+
+.cockpit-evidence-coverage .cockpit-gauge-row span,
+.cockpit-evidence-coverage .cockpit-gauge-row strong {
+  white-space: nowrap;
+}
+
+.cockpit-evidence-coverage .cockpit-gauge-row strong {
+  text-align: right;
+}
+
+.cockpit-evidence-coverage .cockpit-gauge-row > div {
+  min-width: 0;
+}
+
+/* Attention strip: push CLEAR to the right cleanly */
+.cockpit-attention-strip {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.cockpit-attention-chips {
+  justify-content: flex-end;
+}
+
+.cockpit-attention-chips:has(> .cockpit-attention-reported:only-child) {
+  justify-content: flex-end;
+}
