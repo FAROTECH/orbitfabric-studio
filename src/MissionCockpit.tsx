@@ -895,6 +895,13 @@ export function MissionCockpit({
               </button>
             ))}
           </div>
+
+          <div className="cockpit-matrix-legend" aria-label="Contract matrix legend">
+            <span><i className="cockpit-legend-dot cockpit-legend-present" aria-hidden="true" /> SRC structural source</span>
+            <span><i className="cockpit-legend-dot cockpit-legend-indexed" aria-hidden="true" /> IDX Core indexed</span>
+            <span><i className="cockpit-legend-dot cockpit-legend-reserved" aria-hidden="true" /> RSV reserved</span>
+            <span><i className="cockpit-legend-dot cockpit-legend-idle" aria-hidden="true" /> N/R not reported</span>
+          </div>
         </section>
 
         <section className="cockpit-evidence-wall" aria-label="Evidence wall">
@@ -902,6 +909,13 @@ export function MissionCockpit({
             <span>EVIDENCE WALL</span>
             <StatusBadge label={validationResult ? validationResult.toUpperCase() : "N/R"} />
           </div>
+
+          {!validationResult && !scenarioRunIndex && !coverageSummary ? (
+            <div className="cockpit-evidence-empty-band" aria-label="Evidence availability">
+              <span>AWAITING CORE EVIDENCE</span>
+              <strong>Validation, scenarios and coverage not reported.</strong>
+            </div>
+          ) : null}
 
           <div className="cockpit-evidence-block cockpit-evidence-validation">
             <div className="cockpit-evidence-heading">VALIDATION</div>
