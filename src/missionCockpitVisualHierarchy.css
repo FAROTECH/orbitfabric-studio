@@ -1656,7 +1656,10 @@
     min-height: auto;
   }
 }
-/* PR 1 Cockpit Instrument Panel Reset. Visual-only composition. */
+
+/* v0.15.0 Mission Cockpit instrument panel composition.
+   Visual-only consolidation. No mission semantics are introduced here. */
+
 .cockpit-command-bar {
   min-height: 58px;
   align-items: center;
@@ -1664,8 +1667,7 @@
   padding: 10px 14px;
   border: 1px solid rgba(56, 189, 248, 0.18);
   border-radius: 20px;
-  background:
-    linear-gradient(90deg, rgba(2, 6, 23, 0.94), rgba(8, 47, 73, 0.46)),
+  background: linear-gradient(90deg, rgba(2, 6, 23, 0.94), rgba(8, 47, 73, 0.46)),
     rgba(2, 6, 23, 0.72);
 }
 
@@ -1742,24 +1744,17 @@
 .cockpit-empty-panel {
   display: grid;
   gap: 18px;
-  min-height: 320px;
-  padding: 28px;
 }
 
 .cockpit-empty-console {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 18px;
   align-items: center;
 }
 
 .cockpit-empty-mark {
   display: grid;
   place-items: center;
-  width: 72px;
-  height: 72px;
   border: 1px solid rgba(56, 189, 248, 0.36);
-  border-radius: 24px;
   color: #67e8f9;
   background: rgba(8, 145, 178, 0.14);
   font-weight: 950;
@@ -1769,7 +1764,6 @@
 .cockpit-empty-led-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
 }
 
 .cockpit-empty-led-row span {
@@ -1778,10 +1772,8 @@
   gap: 7px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 999px;
-  padding: 8px 10px;
   color: #94a3b8;
   background: rgba(2, 6, 23, 0.42);
-  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1789,8 +1781,6 @@
 
 .cockpit-empty-led-row span::before {
   content: "";
-  width: 8px;
-  height: 8px;
   border-radius: 999px;
   background: #475569;
   box-shadow: 0 0 12px rgba(71, 85, 105, 0.5);
@@ -1798,11 +1788,7 @@
 
 .cockpit-instrument-panel {
   display: grid;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.1), transparent 32rem),
+  background: radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.1), transparent 32rem),
     radial-gradient(circle at 88% 8%, rgba(139, 92, 246, 0.08), transparent 30rem),
     linear-gradient(180deg, rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.36));
 }
@@ -1816,17 +1802,13 @@
 .cockpit-attention-strip {
   border: 1px solid rgba(51, 65, 85, 0.9);
   border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.58));
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.58));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .cockpit-source-bus {
   display: grid;
-  grid-template-columns: minmax(190px, 0.2fr) minmax(0, 1fr);
-  gap: 10px;
   align-items: center;
-  padding: 10px;
 }
 
 .cockpit-source-bus-title {
@@ -1839,16 +1821,13 @@
 .cockpit-panel-title-row span,
 .cockpit-evidence-heading {
   color: #cbd5e1;
-  font-size: 0.68rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .cockpit-source-bus-title strong {
   overflow: hidden;
   color: #f8fafc;
-  font-size: 0.8rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1857,24 +1836,18 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 7px;
 }
 
 .cockpit-source-led {
   display: inline-grid;
   grid-template-columns: auto auto auto;
-  gap: 6px;
   align-items: center;
-  min-height: 28px;
   border: 1px solid rgba(71, 85, 105, 0.8);
   border-radius: 999px;
-  padding: 5px 8px;
   background: rgba(2, 6, 23, 0.45);
 }
 
 .cockpit-source-led > span {
-  width: 8px;
-  height: 8px;
   border-radius: 999px;
   background: #64748b;
   box-shadow: 0 0 12px rgba(100, 116, 139, 0.48);
@@ -1883,7 +1856,6 @@
 .cockpit-source-led strong,
 .cockpit-source-led em {
   color: #cbd5e1;
-  font-size: 0.62rem;
   font-style: normal;
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -1916,30 +1888,18 @@
 .cockpit-primary-instrument-cluster {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  padding: 10px;
 }
 
 .cockpit-instrument {
   display: grid;
-  gap: 8px;
   min-width: 0;
-  min-height: 158px;
   border: 1px solid rgba(71, 85, 105, 0.7);
-  border-radius: 16px;
-  padding: 10px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.1), transparent 66%),
+  background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.1), transparent 66%),
     rgba(2, 6, 23, 0.42);
 }
 
 .cockpit-instrument-core-reported {
   border-color: rgba(34, 211, 238, 0.32);
-}
-
-.cockpit-instrument-not-reported,
-.cockpit-instrument-unavailable {
-  opacity: 0.86;
 }
 
 .cockpit-instrument-header,
@@ -1953,29 +1913,23 @@
 .cockpit-instrument-body {
   display: grid;
   justify-items: center;
-  gap: 8px;
   text-align: center;
 }
 
 .cockpit-instrument-body > span {
   color: #94a3b8;
-  font-size: 0.66rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .cockpit-instrument-body > strong {
   color: #f8fafc;
-  font-size: 1.05rem;
   line-height: 1;
 }
 
 .cockpit-ring {
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
   border: 6px solid rgba(51, 65, 85, 0.9);
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
@@ -1983,7 +1937,6 @@
 
 .cockpit-ring-core {
   color: #cbd5e1;
-  font-size: 0.68rem;
   font-weight: 950;
 }
 
@@ -1994,10 +1947,6 @@
   overflow: hidden;
   border-radius: 999px;
   background: rgba(30, 41, 59, 0.82);
-}
-
-.cockpit-mini-gauge {
-  height: 5px;
 }
 
 .cockpit-mini-gauge span,
@@ -2011,15 +1960,12 @@
 
 .cockpit-severity-stack {
   display: grid;
-  gap: 7px;
   width: 100%;
 }
 
 .cockpit-severity-row,
 .cockpit-gauge-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 32px;
-  gap: 7px;
   align-items: center;
   width: 100%;
 }
@@ -2029,13 +1975,7 @@
 .cockpit-severity-row strong,
 .cockpit-gauge-row strong {
   color: #cbd5e1;
-  font-size: 0.64rem;
   font-weight: 900;
-}
-
-.cockpit-severity-row > div,
-.cockpit-gauge-row > div {
-  height: 7px;
 }
 
 .cockpit-severity-critical i,
@@ -2056,34 +1996,16 @@
 
 .cockpit-panel-grid {
   display: grid;
-  grid-template-columns: minmax(420px, 1.2fr) minmax(420px, 1fr);
-  gap: 12px;
-}
-
-.cockpit-contract-matrix,
-.cockpit-evidence-wall,
-.cockpit-traceability-radar,
-.cockpit-artifact-dock {
-  padding: 12px;
 }
 
 .cockpit-domain-tile-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 10px;
 }
 
 .cockpit-domain-tile {
   position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 5px 7px;
-  align-items: center;
-  min-height: 74px;
   border: 1px solid rgba(71, 85, 105, 0.82);
-  border-radius: 14px;
-  padding: 9px;
   color: #e2e8f0;
   background: rgba(2, 6, 23, 0.46);
   cursor: pointer;
@@ -2108,40 +2030,27 @@
 }
 
 .cockpit-domain-tile strong {
-  justify-self: end;
   color: #f8fafc;
-  font-size: 1rem;
 }
 
 .cockpit-domain-tile span {
-  grid-column: 1 / -1;
   color: #94a3b8;
-  font-size: 0.64rem;
   font-weight: 950;
-  letter-spacing: 0.08em;
 }
 
 .cockpit-domain-tile i {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  width: 7px;
-  height: 7px;
   border-radius: 999px;
   background: #64748b;
 }
 
 .cockpit-evidence-wall {
   display: grid;
-  gap: 10px;
 }
 
 .cockpit-evidence-block {
   display: grid;
-  gap: 8px;
   border: 1px solid rgba(71, 85, 105, 0.72);
-  border-radius: 14px;
-  padding: 10px;
   background: rgba(2, 6, 23, 0.38);
 }
 
@@ -2162,13 +2071,10 @@
 .cockpit-radar-counters span {
   display: inline-flex;
   align-items: center;
-  min-height: 25px;
   border: 1px solid rgba(71, 85, 105, 0.76);
   border-radius: 999px;
-  padding: 5px 8px;
   color: #cbd5e1;
   background: rgba(15, 23, 42, 0.62);
-  font-size: 0.64rem;
   font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -2189,63 +2095,45 @@
 .cockpit-scenario-led-summary {
   display: grid;
   grid-template-columns: repeat(3, auto 1fr);
-  gap: 5px 6px;
   align-items: baseline;
 }
 
 .cockpit-scenario-led-summary strong {
   color: #f8fafc;
-  font-size: 0.98rem;
 }
 
 .cockpit-scenario-led-summary span {
   color: #94a3b8;
-  font-size: 0.64rem;
   font-weight: 900;
 }
 
 .cockpit-run-dot-board {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
 }
 
 .cockpit-run-dot {
-  width: 9px;
-  height: 9px;
   border-radius: 999px;
   background: #475569;
-}
-
-.cockpit-traceability-radar,
-.cockpit-artifact-dock {
-  min-height: 164px;
 }
 
 .cockpit-radar-line {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
   align-items: center;
-  margin-top: 12px;
 }
 
 .cockpit-radar-node {
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 6px;
   border: 1px solid rgba(71, 85, 105, 0.76);
-  border-radius: 14px;
-  padding: 12px 8px;
   background: rgba(2, 6, 23, 0.42);
 }
 
 .cockpit-radar-node::before,
 .cockpit-artifact-module::before {
   content: "";
-  width: 9px;
-  height: 9px;
   border-radius: 999px;
   background: #64748b;
 }
@@ -2253,7 +2141,6 @@
 .cockpit-radar-node span,
 .cockpit-artifact-module span {
   color: #94a3b8;
-  font-size: 0.64rem;
   font-weight: 950;
   letter-spacing: 0.08em;
 }
@@ -2261,56 +2148,37 @@
 .cockpit-radar-node strong,
 .cockpit-artifact-module strong {
   color: #f8fafc;
-  font-size: 1rem;
-}
-
-.cockpit-radar-counters,
-.cockpit-artifact-strip {
-  margin-top: 10px;
 }
 
 .cockpit-artifact-modules {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 12px;
 }
 
 .cockpit-artifact-module {
   display: grid;
   justify-items: center;
-  gap: 5px;
   min-width: 0;
   border: 1px solid rgba(71, 85, 105, 0.76);
-  border-radius: 14px;
-  padding: 10px 7px;
   background: rgba(2, 6, 23, 0.42);
 }
 
 .cockpit-artifact-module i {
   color: #67e8f9;
-  font-size: 0.75rem;
   font-style: normal;
   font-weight: 950;
 }
 
 .cockpit-attention-strip {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px;
   align-items: center;
-  padding: 10px;
 }
 
 .cockpit-attention-counter strong {
   display: inline-grid;
   place-items: center;
-  min-width: 22px;
-  height: 18px;
   margin-left: 5px;
   border-radius: 999px;
   color: #020617;
-  font-size: 0.62rem;
 }
 
 @media (max-width: 1280px) {
@@ -2319,8 +2187,8 @@
   }
 
   .cockpit-panel-grid,
-  .cockpit-source-bus,
-  .cockpit-attention-strip {
+    .cockpit-source-bus,
+    .cockpit-attention-strip {
     grid-template-columns: 1fr;
   }
 
@@ -2331,15 +2199,17 @@
 
 @media (max-width: 840px) {
   .cockpit-primary-instrument-cluster,
-  .cockpit-domain-tile-grid,
-  .cockpit-radar-line,
-  .cockpit-artifact-modules,
-  .cockpit-empty-console {
+    .cockpit-domain-tile-grid,
+    .cockpit-radar-line,
+    .cockpit-artifact-modules,
+    .cockpit-empty-console {
     grid-template-columns: 1fr;
   }
 }
 
-/* PR 1 viewport density hardening. Visual-only compression for one-viewport cockpit QA. */
+/* v0.15.0 Mission Cockpit viewport density hardening.
+   Visual-only compression for cockpit QA. */
+
 .workbench-layout-dashboard .main-surface {
   min-height: 0;
 }
@@ -2395,7 +2265,6 @@
 }
 
 .cockpit-instrument {
-  min-height: 108px;
   gap: 5px;
   padding: 7px 8px;
   border-radius: 13px;
@@ -2419,8 +2288,6 @@
 }
 
 .cockpit-ring {
-  width: 40px;
-  height: 40px;
   border-width: 5px;
 }
 
@@ -2455,7 +2322,6 @@
 }
 
 .cockpit-panel-grid {
-  grid-template-columns: minmax(520px, 1.1fr) minmax(420px, 0.9fr);
   gap: 8px;
 }
 
@@ -2468,21 +2334,13 @@
 }
 
 .cockpit-domain-tile-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
   margin-top: 7px;
 }
 
 .cockpit-domain-tile {
-  min-height: 50px;
   gap: 3px 6px;
   padding: 6px;
   border-radius: 11px;
-}
-
-.cockpit-domain-tile .dashboard-icon {
-  width: 1.45rem;
-  height: 1.45rem;
 }
 
 .cockpit-domain-tile strong {
@@ -2543,11 +2401,6 @@
   height: 7px;
 }
 
-.cockpit-traceability-radar,
-.cockpit-artifact-dock {
-  min-height: 94px;
-}
-
 .cockpit-radar-line {
   gap: 6px;
   margin-top: 7px;
@@ -2596,10 +2449,7 @@
 }
 
 .cockpit-attention-strip {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   gap: 6px;
-  padding: 6px 8px;
-  border-radius: 13px;
 }
 
 .cockpit-attention-counters,
@@ -2607,12 +2457,6 @@
 .cockpit-artifact-strip,
 .cockpit-radar-counters {
   gap: 4px;
-}
-
-.cockpit-attention-counter strong {
-  min-width: 18px;
-  height: 15px;
-  font-size: 0.54rem;
 }
 
 .cockpit-empty-panel {
@@ -2651,21 +2495,8 @@
   height: 6px;
 }
 
-@media (max-width: 1480px) {
-  .cockpit-panel-grid {
-    grid-template-columns: minmax(500px, 1.08fr) minmax(400px, 0.92fr);
-  }
-
-  .cockpit-domain-tile-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-
-/* PR 1 proportional cockpit balance. Final visual-only pass before screenshot QA. */
-.cockpit-instrument-panel {
-  align-content: start;
-  grid-template-rows: auto auto auto auto;
-}
+/* v0.15.0 Mission Cockpit proportional balance.
+   Visual-only layout stabilization before screenshot QA. */
 
 .cockpit-source-bus,
 .cockpit-primary-instrument-cluster,
@@ -2711,10 +2542,6 @@
   gap: 7px;
 }
 
-.cockpit-domain-tile {
-  min-height: 54px;
-}
-
 .cockpit-evidence-wall {
   min-height: 294px;
   grid-template-rows: auto auto auto auto;
@@ -2748,19 +2575,12 @@
 }
 
 .cockpit-attention-strip {
-  min-height: 34px;
-  height: auto;
-  max-height: 46px;
-  overflow: hidden;
   align-content: center;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
   border-radius: 12px;
-  padding: 5px 8px;
 }
 
 .cockpit-attention-counters,
 .cockpit-attention-chips {
-  align-items: center;
   align-content: center;
 }
 
@@ -2768,11 +2588,6 @@
 .cockpit-attention-counter {
   min-height: 19px;
   padding: 3px 7px;
-}
-
-.cockpit-attention-counter strong {
-  height: 15px;
-  min-width: 18px;
 }
 
 @media (min-width: 1500px) {
@@ -2799,39 +2614,17 @@
   }
 }
 
-/* PR 1 final cockpit polish. */
-.cockpit-domain-tile .dashboard-icon {
-  width: 1.72rem;
-  height: 1.72rem;
-  min-width: 1.72rem;
-  min-height: 1.72rem;
-}
-
-.cockpit-domain-tile {
-  align-items: start;
-}
-
-.cockpit-domain-tile strong {
-  line-height: 1;
-}
+/* v0.15.0 Mission Cockpit matrix and coverage polish. */
 
 .cockpit-domain-tile span {
   margin-top: 1px;
 }
 
 /* Coverage block: prevent label/bar/value overlap */
-.cockpit-evidence-coverage .cockpit-gauge-row {
-  grid-template-columns: 68px minmax(0, 1fr) 42px;
-  gap: 6px;
-}
 
 .cockpit-evidence-coverage .cockpit-gauge-row span,
 .cockpit-evidence-coverage .cockpit-gauge-row strong {
   white-space: nowrap;
-}
-
-.cockpit-evidence-coverage .cockpit-gauge-row strong {
-  text-align: right;
 }
 
 .cockpit-evidence-coverage .cockpit-gauge-row > div {
@@ -2839,79 +2632,25 @@
 }
 
 /* Attention strip: push CLEAR to the right cleanly */
-.cockpit-attention-strip {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.cockpit-attention-chips {
-  justify-content: flex-end;
-}
 
 .cockpit-attention-chips:has(> .cockpit-attention-reported:only-child) {
   justify-content: flex-end;
 }
 
-/* PR 1 core output pipeline integration. */
-.cockpit-domain-tile {
-  grid-template-columns: 2.1rem minmax(0, 1fr);
-  align-items: start;
-}
-
-.cockpit-domain-tile .dashboard-icon {
-  display: grid;
-  place-items: center;
-  width: 1.95rem;
-  height: 1.95rem;
-  min-width: 1.95rem;
-  min-height: 1.95rem;
-  border: 1px solid rgba(103, 232, 249, 0.24);
-  border-radius: 999px;
-  padding: 0;
-  overflow: visible;
-  background: rgba(8, 145, 178, 0.12);
-}
-
-.cockpit-domain-tile .dashboard-icon svg {
-  width: 1rem;
-  height: 1rem;
-  overflow: visible;
-}
-
-.cockpit-domain-tile strong {
-  align-self: center;
-}
-
-.cockpit-domain-tile span {
-  grid-column: 1 / -1;
-  padding-left: 0.1rem;
-}
+/* v0.15.0 Core output pipeline integration. */
 
 .cockpit-core-output-pipeline {
-  display: grid;
   gap: 7px;
-  min-height: 104px;
   border: 1px solid rgba(51, 65, 85, 0.9);
   border-radius: 14px;
-  padding: 8px;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.58));
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.58));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
-.cockpit-pipeline-stage-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 7px;
-}
-
 .cockpit-pipeline-stage {
-  display: grid;
-  gap: 6px;
   min-width: 0;
-  min-height: 72px;
   border: 1px solid rgba(71, 85, 105, 0.74);
   border-radius: 11px;
-  padding: 7px;
   background: rgba(2, 6, 23, 0.38);
 }
 
@@ -2932,7 +2671,6 @@
 
 .cockpit-pipeline-stage-header span {
   color: #cbd5e1;
-  font-size: 0.58rem;
   font-weight: 950;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2940,34 +2678,18 @@
 
 .cockpit-pipeline-stage-header strong {
   color: #f8fafc;
-  font-size: 0.72rem;
   white-space: nowrap;
 }
 
-.cockpit-pipeline-lanes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-content: start;
-}
-
 .cockpit-pipeline-lane {
-  display: inline-grid;
-  grid-template-columns: auto auto auto;
   align-items: center;
-  gap: 4px;
-  min-height: 18px;
-  min-width: 0;
   border: 1px solid rgba(71, 85, 105, 0.7);
   border-radius: 999px;
-  padding: 3px 5px;
   color: #cbd5e1;
   background: rgba(15, 23, 42, 0.56);
 }
 
 .cockpit-pipeline-lane i {
-  width: 5px;
-  height: 5px;
   border-radius: 999px;
   background: #64748b;
 }
@@ -2984,13 +2706,9 @@
 
 .cockpit-pipeline-lane em,
 .cockpit-pipeline-lane strong {
-  overflow: hidden;
-  font-size: 0.5rem;
   font-style: normal;
   font-weight: 900;
   letter-spacing: 0.04em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .cockpit-pipeline-lane em {
@@ -2999,11 +2717,6 @@
 
 .cockpit-pipeline-lane strong {
   color: #f8fafc;
-}
-
-.cockpit-attention-strip {
-  min-height: 28px;
-  max-height: 34px;
 }
 
 @media (max-width: 1480px) {
@@ -3018,9 +2731,10 @@
   }
 }
 
-/* PR 1 cockpit final functional hardening. */
+/* v0.15.0 Mission Cockpit functional hierarchy hardening. */
 
 /* Contract Matrix icon containment and semantic readability. */
+
 .cockpit-domain-tile {
   grid-template-columns: 2.35rem minmax(0, 1fr);
   min-height: 62px;
@@ -3038,8 +2752,7 @@
   border-radius: 999px;
   padding: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 35%, rgba(103, 232, 249, 0.16), transparent 62%),
+  background: radial-gradient(circle at 50% 35%, rgba(103, 232, 249, 0.16), transparent 62%),
     rgba(8, 145, 178, 0.1);
 }
 
@@ -3114,12 +2827,12 @@
 }
 
 /* KPI row: make N/R a clear waiting state, not a fake active gauge. */
+
 .cockpit-instrument-not-reported,
 .cockpit-instrument-unavailable {
   border-style: dashed;
   border-color: rgba(100, 116, 139, 0.52);
-  background:
-    radial-gradient(circle at 50% 0%, rgba(100, 116, 139, 0.08), transparent 68%),
+  background: radial-gradient(circle at 50% 0%, rgba(100, 116, 139, 0.08), transparent 68%),
     rgba(2, 6, 23, 0.34);
   opacity: 0.78;
 }
@@ -3142,6 +2855,7 @@
 }
 
 /* Evidence Wall: explicit empty state and safer coverage rows. */
+
 .cockpit-evidence-empty-band {
   display: flex;
   align-items: center;
@@ -3188,57 +2902,12 @@
 }
 
 /* Core pipeline: keep lower cockpit content stable and prevent bottom overlap. */
-.cockpit-core-output-pipeline {
-  min-height: 112px;
-  margin-bottom: 4px;
-  overflow: hidden;
-}
-
-.cockpit-core-output-pipeline .cockpit-panel-title-row {
-  min-height: 18px;
-}
-
-.cockpit-pipeline-stage {
-  overflow: hidden;
-}
-
-.cockpit-pipeline-lanes {
-  max-height: 42px;
-  overflow: hidden;
-}
 
 .cockpit-pipeline-lane {
   max-width: 100%;
 }
 
-.cockpit-pipeline-lane em,
-.cockpit-pipeline-lane strong {
-  min-width: 0;
-}
-
-.cockpit-attention-strip {
-  position: relative;
-  z-index: 1;
-  min-height: 26px;
-  max-height: 32px;
-  margin-top: 0;
-  overflow: hidden;
-}
-
-.cockpit-attention-counters,
-.cockpit-attention-chips {
-  min-height: 20px;
-}
-
-.cockpit-attention-chips {
-  justify-content: flex-end;
-}
-
 /* Use the lower space intentionally without stretching the final attention rail. */
-.cockpit-instrument-panel {
-  grid-template-rows: auto auto auto auto auto;
-  align-content: start;
-}
 
 @media (min-width: 1500px) {
   .cockpit-core-output-pipeline {
@@ -3267,36 +2936,7 @@
   }
 }
 
-/* PR 1 final pipeline attention separation. */
-.cockpit-core-output-pipeline {
-  min-height: 92px;
-  max-height: 104px;
-  margin-bottom: 8px;
-  padding: 7px 8px;
-  overflow: hidden;
-}
-
-.cockpit-core-output-pipeline .cockpit-panel-title-row {
-  min-height: 16px;
-  margin-bottom: 2px;
-}
-
-.cockpit-pipeline-stage-grid {
-  gap: 6px;
-  align-items: stretch;
-}
-
-.cockpit-pipeline-stage {
-  min-height: 56px;
-  max-height: 64px;
-  gap: 4px;
-  padding: 5px 6px;
-  overflow: hidden;
-}
-
-.cockpit-pipeline-stage-header {
-  min-height: 14px;
-}
+/* v0.15.0 Pipeline and attention rail separation. */
 
 .cockpit-pipeline-stage-header span {
   font-size: 0.5rem;
@@ -3306,89 +2946,14 @@
   font-size: 0.62rem;
 }
 
-.cockpit-pipeline-lanes {
-  max-height: 30px;
-  gap: 3px;
-  overflow: hidden;
-}
-
-.cockpit-pipeline-lane {
-  min-height: 14px;
-  padding: 2px 5px;
-  gap: 3px;
-}
-
-.cockpit-pipeline-lane i {
-  width: 4px;
-  height: 4px;
-}
-
-.cockpit-pipeline-lane em,
-.cockpit-pipeline-lane strong {
-  font-size: 0.46rem;
-  line-height: 1;
-}
-
 .cockpit-attention-strip {
-  position: relative;
-  z-index: 2;
-  min-height: 24px;
-  max-height: 28px;
-  margin-top: 0;
-  padding: 4px 8px;
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.82));
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.82));
 }
 
-.cockpit-attention-counters,
-.cockpit-attention-chips {
-  min-height: 16px;
-  align-items: center;
-}
-
-.cockpit-attention-counter,
-.cockpit-attention-chip {
-  min-height: 16px;
-  padding: 2px 6px;
-  line-height: 1;
-}
-
-.cockpit-attention-counter strong {
-  height: 13px;
-  min-width: 16px;
-  font-size: 0.48rem;
-}
-
-.cockpit-instrument-panel {
-  row-gap: 7px;
-}
-
-/* PR 1 final pipeline lane stabilization. */
-.cockpit-core-output-pipeline {
-  min-height: 98px;
-  max-height: none;
-  margin-bottom: 10px;
-  padding: 8px 9px;
-  overflow: hidden;
-}
-
-.cockpit-core-output-pipeline .cockpit-panel-title-row {
-  min-height: 16px;
-  margin-bottom: 3px;
-}
-
-.cockpit-pipeline-stage-grid {
-  gap: 7px;
-  align-items: stretch;
-}
+/* v0.15.0 Pipeline lane stabilization. */
 
 .cockpit-pipeline-stage {
-  min-height: 58px;
-  max-height: 66px;
   gap: 5px;
-  padding: 6px 7px;
-  overflow: hidden;
 }
 
 .cockpit-pipeline-stage-header {
@@ -3404,12 +2969,7 @@
 }
 
 .cockpit-pipeline-lanes {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-  max-height: 22px;
   min-width: 0;
-  overflow: hidden;
 }
 
 .cockpit-pipeline-lane {
@@ -3417,10 +2977,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   flex: 1 1 0;
   min-width: 0;
-  min-height: 18px;
   gap: 3px;
-  padding: 2px 5px;
-  overflow: hidden;
 }
 
 .cockpit-pipeline-lane i {
@@ -3432,8 +2989,6 @@
 .cockpit-pipeline-lane strong {
   min-width: 0;
   overflow: hidden;
-  font-size: 0.45rem;
-  line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3444,29 +2999,16 @@
 
 .cockpit-attention-strip {
   clear: both;
-  min-height: 25px;
-  max-height: 29px;
-  margin-top: 0;
-  padding: 4px 8px;
-  overflow: hidden;
 }
 
 .cockpit-attention-counters,
 .cockpit-attention-chips {
   min-width: 0;
-  overflow: hidden;
   white-space: nowrap;
-}
-
-.cockpit-attention-chips {
-  justify-content: flex-end;
 }
 
 .cockpit-attention-counter,
 .cockpit-attention-chip {
-  min-height: 16px;
-  padding: 2px 6px;
-  line-height: 1;
   white-space: nowrap;
 }
 
@@ -3476,50 +3018,19 @@
   font-size: 0.48rem;
 }
 
-
-/* PR 1 definitive pipeline attention layout fix.
-   The attention rail must stay below the Core Output Pipeline, never overlay it. */
-.cockpit-core-output-pipeline {
-  min-height: 118px;
-  max-height: none;
-  height: auto;
-  margin-bottom: 12px;
-  padding: 8px 9px 10px;
-  overflow: visible;
-}
+/* v0.15.0 Definitive pipeline and attention layout lock.
+   The attention rail stays below the Core Output Pipeline and never overlays it. */
 
 .cockpit-core-output-pipeline .cockpit-panel-title-row {
-  min-height: 18px;
   margin-bottom: 6px;
 }
 
 .cockpit-pipeline-stage-grid {
-  min-height: 72px;
   align-items: stretch;
 }
 
-.cockpit-pipeline-stage {
-  min-height: 68px;
-  max-height: none;
-  height: auto;
-  overflow: hidden;
-}
-
-.cockpit-pipeline-lanes {
-  max-height: none;
-  min-height: 22px;
-  overflow: hidden;
-}
-
 .cockpit-attention-strip {
-  position: static;
   z-index: auto;
-  min-height: 26px;
-  max-height: none;
-  height: auto;
-  margin-top: 0;
-  padding: 5px 8px;
-  overflow: hidden;
   align-self: start;
 }
 
@@ -3529,7 +3040,8 @@
   row-gap: 8px;
 }
 
-/* PR 1 final lower-stack layout lock. */
+/* v0.15.0 Lower-stack layout lock. */
+
 .cockpit-core-output-pipeline {
   display: grid;
   grid-template-rows: auto 1fr;
@@ -3631,9 +3143,9 @@
   box-sizing: border-box;
 }
 
+/* v0.15.0 Lower console structural separation.
+   Pipeline and Attention Strip are isolated in a two-row lower console. */
 
-/* PR 1 lower console structural separation.
-   Pipeline and Attention Strip are now isolated in a two-row lower console. */
 .cockpit-instrument-panel > .cockpit-lower-console {
   display: grid;
   grid-template-rows: auto auto;
