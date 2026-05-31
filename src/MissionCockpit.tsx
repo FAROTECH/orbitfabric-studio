@@ -690,6 +690,102 @@ export function MissionCockpit({
       : []),
   ].slice(0, 5);
 
+  const coreReportCount = [
+    lintReport,
+    modelSummary,
+    entityIndex,
+    relationshipManifest,
+    dashboardSummary,
+    scenarioRunIndex,
+    coverageSummary,
+    simulationReport,
+  ].filter(Boolean).length;
+
+  const evidenceSignalCount = [
+    validationResult,
+    scenarioRunIndex ?? simulationReport,
+    coverageSummary,
+    generatedArtifactSummary,
+  ].filter(Boolean).length;
+
+  const corePipelineStages: {
+    label: string;
+    value: string;
+    state: CockpitSignalState;
+    lanes: { label: string; value: string; state: CockpitSignalState }[];
+  }[] = [
+    {
+      label: "INPUTS",
+      value: `${formatCompactNumber(workspace?.source_model_files.length)} / ${formatCompactNumber(workspace?.scenario_files.length)}`,
+      state: workspace ? "reported" : "idle",
+      lanes: [
+        {
+          label: "MODEL SRC",
+          value: formatCompactNumber(workspace?.source_model_files.length),
+          state: signalForAvailability(Boolean(workspace?.source_model_files.length)),
+        },
+        {
+          label: "SCEN SRC",
+          value: formatCompactNumber(workspace?.scenario_files.length),
+          state: signalForAvailability(Boolean(workspace?.scenario_files.length)),
+        },
+        {
+          label: "GEN PATHS",
+          value: formatCompactNumber(workspace?.generated_locations.length),
+          state: signalForAvailability(Boolean(workspace?.generated_locations.length)),
+        },
+      ],
+    },
+    {
+      label: "CORE REPORTS",
+      value: `${coreReportCount}/8`,
+      state: coreReportCount > 0 ? "reported" : "idle",
+      lanes: [
+        { label: "LINT", value: lintReport ? "DET" : "N/R", state: signalForAvailability(Boolean(lintReport)) },
+        { label: "MODEL", value: modelSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(modelSummary)) },
+        { label: "ENTITY", value: entityIndex ? "DET" : "N/R", state: signalForAvailability(Boolean(entityIndex)) },
+        { label: "REL", value: relationshipManifest ? "DET" : "N/R", state: signalForAvailability(Boolean(relationshipManifest)) },
+        { label: "DASH", value: dashboardSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(dashboardSummary)) },
+        { label: "COV", value: coverageSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(coverageSummary)) },
+      ],
+    },
+    {
+      label: "EVIDENCE",
+      value: `${evidenceSignalCount}/4`,
+      state: evidenceSignalCount > 0 ? "reported" : "idle",
+      lanes: [
+        { label: "VALID", value: validationResult ? validationResult.toUpperCase() : "N/R", state: signalForAvailability(Boolean(validationResult)) },
+        {
+          label: "SCEN",
+          value: formatCompactNumber(scenarioRunIndex?.summary.total ?? coverageSummary?.scenario_runs.total),
+          state: signalForAvailability(Boolean(scenarioRunIndex ?? simulationReport)),
+        },
+        { label: "COVER", value: coverageSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(coverageSummary)) },
+        { label: "SIM", value: simulationReport ? simulationReport.result.toUpperCase() : "N/R", state: signalForAvailability(Boolean(simulationReport)) },
+      ],
+    },
+    {
+      label: "OUTPUTS",
+      value: formatCompactNumber(generatedArtifactSummary?.totalArtifacts),
+      state: generatedArtifactSummary
+        ? generatedArtifactSummary.warningCount > 0
+          ? "warning"
+          : "reported"
+        : "idle",
+      lanes: [
+        { label: "DOCS", value: generatedLocationNames.has("docs") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("docs")) },
+        { label: "REPORTS", value: generatedLocationNames.has("reports") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("reports")) },
+        { label: "RUNTIME", value: generatedLocationNames.has("runtime") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("runtime")) },
+        { label: "GROUND", value: generatedLocationNames.has("ground") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("ground")) },
+        {
+          label: "UNKNOWN",
+          value: formatCompactNumber(generatedArtifactSummary?.unknownArtifacts),
+          state: generatedArtifactSummary?.unknownArtifacts ? "warning" : "idle",
+        },
+      ],
+    },
+  ];
+
   return (
     <section
       id="studio-dashboard"
@@ -925,6 +1021,40 @@ export function MissionCockpit({
           </div>
         </section>
       </div>
+
+      <section className="cockpit-core-output-pipeline" aria-label="Core output pipeline">
+        <div className="cockpit-panel-title-row">
+          <span>CORE OUTPUT PIPELINE</span>
+          <StatusBadge label={coreResult ? (coreResult.success ? "CORE OK" : "CORE ERR") : "N/R"} />
+        </div>
+
+        <div className="cockpit-pipeline-stage-grid">
+          {corePipelineStages.map((stage) => (
+            <div
+              className={`cockpit-pipeline-stage cockpit-pipeline-stage-${stage.state}`}
+              key={stage.label}
+            >
+              <div className="cockpit-pipeline-stage-header">
+                <span>{stage.label}</span>
+                <strong>{stage.value}</strong>
+              </div>
+
+              <div className="cockpit-pipeline-lanes">
+                {stage.lanes.map((lane) => (
+                  <span
+                    className={`cockpit-pipeline-lane cockpit-pipeline-lane-${lane.state}`}
+                    key={`${stage.label}-${lane.label}`}
+                  >
+                    <i aria-hidden="true" />
+                    <em>{lane.label}</em>
+                    <strong>{lane.value}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="cockpit-attention-strip" aria-label="Attention strip">
         <div className="cockpit-attention-counters">
