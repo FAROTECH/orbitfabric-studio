@@ -2660,3 +2660,141 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+/* PR 1 proportional cockpit balance. Final visual-only pass before screenshot QA. */
+.cockpit-instrument-panel {
+  align-content: start;
+  grid-template-rows: auto auto auto auto;
+}
+
+.cockpit-source-bus,
+.cockpit-primary-instrument-cluster,
+.cockpit-panel-grid,
+.cockpit-attention-strip {
+  align-self: start;
+}
+
+.cockpit-source-bus {
+  min-height: 38px;
+}
+
+.cockpit-primary-instrument-cluster {
+  min-height: 122px;
+}
+
+.cockpit-instrument {
+  min-height: 116px;
+  align-content: start;
+}
+
+.cockpit-instrument-body {
+  min-height: 72px;
+  align-content: center;
+}
+
+.cockpit-ring {
+  width: 44px;
+  height: 44px;
+}
+
+.cockpit-panel-grid {
+  grid-template-columns: minmax(560px, 1.18fr) minmax(430px, 0.82fr);
+  align-items: start;
+}
+
+.cockpit-contract-matrix {
+  min-height: 294px;
+}
+
+.cockpit-domain-tile-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cockpit-domain-tile {
+  min-height: 54px;
+}
+
+.cockpit-evidence-wall {
+  min-height: 294px;
+  grid-template-rows: auto auto auto auto;
+}
+
+.cockpit-evidence-block {
+  min-height: 0;
+}
+
+.cockpit-evidence-validation {
+  padding-bottom: 6px;
+}
+
+.cockpit-evidence-scenarios {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.cockpit-evidence-coverage {
+  padding-top: 6px;
+}
+
+.cockpit-traceability-radar,
+.cockpit-artifact-dock {
+  min-height: 104px;
+}
+
+.cockpit-radar-node,
+.cockpit-artifact-module {
+  min-height: 48px;
+}
+
+.cockpit-attention-strip {
+  min-height: 34px;
+  height: auto;
+  max-height: 46px;
+  overflow: hidden;
+  align-content: center;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  border-radius: 12px;
+  padding: 5px 8px;
+}
+
+.cockpit-attention-counters,
+.cockpit-attention-chips {
+  align-items: center;
+  align-content: center;
+}
+
+.cockpit-attention-chip,
+.cockpit-attention-counter {
+  min-height: 19px;
+  padding: 3px 7px;
+}
+
+.cockpit-attention-counter strong {
+  height: 15px;
+  min-width: 18px;
+}
+
+@media (min-width: 1500px) {
+  .cockpit-instrument-panel {
+    gap: 8px;
+  }
+
+  .cockpit-panel-grid {
+    grid-template-columns: minmax(600px, 1.2fr) minmax(450px, 0.8fr);
+  }
+}
+
+@media (max-width: 1480px) {
+  .cockpit-primary-instrument-cluster {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .cockpit-panel-grid {
+    grid-template-columns: minmax(520px, 1.12fr) minmax(420px, 0.88fr);
+  }
+
+  .cockpit-domain-tile-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
