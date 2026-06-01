@@ -1,0 +1,104 @@
+/* Targeted refinement for the Scenario Runway Console target bay.
+   Loaded after scenarioRunwayConsole.css to remove file-card artifacts and make scenario entries behave as run targets. */
+
+.scenario-launch-bay-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.scenario-run-target {
+  position: relative;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.scenario-run-target-main {
+  min-width: 0;
+}
+
+.scenario-run-target-index {
+  width: 32px;
+  height: 32px;
+}
+
+.scenario-run-target-state-row {
+  justify-content: flex-start;
+  min-height: 22px;
+  margin-bottom: 2px;
+}
+
+.scenario-run-target-state-row .status-badge {
+  max-width: 100%;
+  padding: 4px 8px;
+  font-size: 0.62rem;
+}
+
+.scenario-run-target-title {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: #f8fafc;
+  background: transparent;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-run-target-title:hover {
+  color: #cffafe;
+}
+
+.scenario-run-target-main > span {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-run-target-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  margin-top: 4px;
+}
+
+.scenario-run-primary-action {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 12px;
+}
+
+.scenario-run-target .artifact-entry-badges {
+  justify-content: flex-start;
+  min-width: 0;
+  overflow: hidden;
+  gap: 6px;
+}
+
+.scenario-run-target .artifact-entry-badges .status-badge,
+.scenario-run-target .artifact-entry-badges .provenance-badge {
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+@media (max-width: 1320px) {
+  .scenario-launch-bay-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}

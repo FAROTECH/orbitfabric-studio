@@ -1,0 +1,165 @@
+/* Scenario Runway Console overflow stabilization.
+   Keeps real Core report paths, args and dense radar markers readable without changing Core semantics. */
+
+.scenario-temporal-radar {
+  overflow: hidden;
+}
+
+.scenario-radar-grid {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 22px 4px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(103, 232, 249, 0.34) rgba(15, 23, 42, 0.4);
+}
+
+.scenario-radar-grid::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scenario-radar-grid::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.scenario-radar-grid::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(103, 232, 249, 0.34);
+}
+
+.scenario-radar-grid::before,
+.scenario-radar-grid::after {
+  content: "";
+  position: sticky;
+  z-index: 4;
+  top: 0;
+  width: 34px;
+  pointer-events: none;
+}
+
+.scenario-radar-grid::before {
+  left: 0;
+  grid-row: 1 / -1;
+  background: linear-gradient(90deg, rgba(2, 6, 23, 0.92), transparent);
+}
+
+.scenario-radar-grid::after {
+  right: 0;
+  grid-row: 1 / -1;
+  background: linear-gradient(270deg, rgba(2, 6, 23, 0.92), transparent);
+}
+
+.scenario-radar-axis {
+  top: 64px;
+}
+
+.scenario-radar-marker {
+  min-width: 136px;
+  max-width: 176px;
+  min-height: 112px;
+  padding: 12px;
+}
+
+.scenario-radar-marker span {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-radar-marker strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+}
+
+.scenario-radar-lane {
+  min-width: calc(var(--radar-columns) * 136px);
+  grid-template-columns: 70px minmax(0, 1fr);
+}
+
+.scenario-radar-lane > div {
+  grid-template-columns: repeat(var(--radar-columns), minmax(96px, 1fr));
+  min-width: 0;
+}
+
+.scenario-radar-lane button {
+  min-width: 0;
+  max-width: 132px;
+}
+
+.scenario-lane-strip-records {
+  min-width: 0;
+}
+
+.scenario-lane-chip {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-lane-chip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.scenario-report-dock-grid article {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.scenario-report-dock-grid strong,
+.scenario-report-dock-grid small {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.scenario-report-dock-grid strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-report-dock-grid small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.scenario-report-dock-grid article:first-child small {
+  -webkit-line-clamp: 4;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.68rem;
+}
+
+.inspector-card code,
+.inspector-card pre,
+.inspector-detail code,
+.inspector-detail pre {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 1400px) {
+  .scenario-radar-marker {
+    min-width: 128px;
+    max-width: 156px;
+  }
+
+  .scenario-radar-lane {
+    min-width: calc(var(--radar-columns) * 128px);
+  }
+}

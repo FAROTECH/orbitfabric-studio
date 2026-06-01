@@ -1,0 +1,420 @@
+/* Scenario Runway Console experimental layer.
+   This file intentionally sits after scenarioTimelineRunner.css and overrides the first reset with the Runway + Radar grammar. */
+
+.scenario-runway-hero {
+  border-color: rgba(103, 232, 249, 0.28);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.18), transparent 32rem),
+    linear-gradient(135deg, rgba(8, 145, 178, 0.26), rgba(15, 23, 42, 0.86));
+}
+
+.scenario-runway-hero h3 {
+  font-size: clamp(1.7rem, 2.6vw, 2.55rem);
+}
+
+.scenario-runway-spine {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  border-radius: 22px;
+  padding: 16px;
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.14), rgba(30, 41, 59, 0.28)),
+    rgba(2, 6, 23, 0.38);
+  overflow: hidden;
+}
+
+.scenario-runway-spine::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 28px;
+  left: 28px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.7), rgba(139, 92, 246, 0.48));
+  transform: translateY(-50%);
+  opacity: 0.75;
+}
+
+.scenario-runway-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(2, 6, 23, 0.82);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.scenario-runway-stage-index {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #67e8f9;
+  background: rgba(8, 145, 178, 0.18);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.scenario-runway-stage-main span {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.scenario-runway-stage-main strong {
+  display: block;
+  margin: 4px 0;
+  color: #f8fafc;
+  font-size: 0.86rem;
+}
+
+.scenario-runway-stage-main small {
+  display: block;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-runway-stage-ready {
+  border-color: rgba(34, 197, 94, 0.26);
+}
+
+.scenario-runway-stage-reported {
+  border-color: rgba(103, 232, 249, 0.3);
+}
+
+.scenario-runway-stage-running {
+  border-color: rgba(59, 130, 246, 0.42);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.18);
+}
+
+.scenario-runway-stage-empty,
+.scenario-runway-stage-waiting {
+  opacity: 0.78;
+}
+
+.scenario-run-target-bay {
+  border-color: rgba(59, 130, 246, 0.24);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.11), transparent 24rem),
+    rgba(15, 23, 42, 0.48);
+}
+
+.scenario-launch-bay-grid {
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+}
+
+.scenario-run-target-state-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.scenario-run-target-reported {
+  border-color: rgba(103, 232, 249, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(103, 232, 249, 0.08), 0 18px 36px rgba(8, 145, 178, 0.12);
+}
+
+.scenario-run-target-running {
+  border-color: rgba(59, 130, 246, 0.42);
+}
+
+.scenario-temporal-radar {
+  border-color: rgba(103, 232, 249, 0.26);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(34, 211, 238, 0.14), transparent 30rem),
+    radial-gradient(circle at 82% 0%, rgba(139, 92, 246, 0.12), transparent 26rem),
+    rgba(2, 6, 23, 0.42);
+}
+
+.scenario-radar-empty {
+  display: grid;
+  gap: 18px;
+  border: 1px dashed rgba(103, 232, 249, 0.22);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.scenario-radar-empty-axis {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.scenario-radar-empty-axis::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  right: 36px;
+  left: 36px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.65), rgba(139, 92, 246, 0.45));
+}
+
+.scenario-radar-empty-axis span {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 999px;
+  padding: 7px 11px;
+  color: #cffafe;
+  background: #020617;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.scenario-radar-empty-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.scenario-radar-empty-steps div {
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.54);
+}
+
+.scenario-radar-empty-steps span {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: #67e8f9;
+  background: rgba(8, 145, 178, 0.18);
+  font-weight: 900;
+}
+
+.scenario-radar-empty-steps strong {
+  display: block;
+  margin: 11px 0 5px;
+  color: #f8fafc;
+}
+
+.scenario-radar-empty-steps small {
+  color: #94a3b8;
+}
+
+.scenario-radar-grid {
+  --radar-columns: 3;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--radar-columns), minmax(160px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding: 18px 4px 8px;
+}
+
+.scenario-radar-axis {
+  position: absolute;
+  top: 58px;
+  right: 28px;
+  left: 28px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.76), rgba(139, 92, 246, 0.46));
+}
+
+.scenario-radar-marker {
+  position: relative;
+  z-index: 1;
+  min-width: 160px;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  border-radius: 16px;
+  padding: 13px;
+  color: inherit;
+  background: rgba(2, 6, 23, 0.8);
+  text-align: left;
+}
+
+.scenario-radar-marker::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #67e8f9;
+  border-radius: 999px;
+  background: #020617;
+  box-shadow: 0 0 18px rgba(103, 232, 249, 0.45);
+}
+
+.scenario-radar-marker span {
+  color: #67e8f9;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.scenario-radar-marker strong {
+  display: block;
+  margin-top: 6px;
+  color: #f8fafc;
+  font-size: 0.82rem;
+}
+
+.scenario-radar-lane {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 9px;
+  background: rgba(15, 23, 42, 0.36);
+}
+
+.scenario-radar-lane > span {
+  color: #c4b5fd;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.scenario-radar-lane > div {
+  display: grid;
+  grid-template-columns: repeat(var(--radar-columns), minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.scenario-radar-lane button {
+  overflow: hidden;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 999px;
+  padding: 6px 8px;
+  color: #ddd6fe;
+  background: rgba(88, 28, 135, 0.18);
+  font: inherit;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-radar-lane small {
+  color: #64748b;
+}
+
+.scenario-evidence-lane-strips {
+  border-color: rgba(139, 92, 246, 0.22);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(139, 92, 246, 0.1), transparent 26rem),
+    rgba(2, 6, 23, 0.32);
+}
+
+.scenario-lane-strip-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.scenario-lane-strip {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.scenario-lane-strip header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scenario-lane-strip header span {
+  color: #c4b5fd;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.scenario-lane-strip header strong {
+  color: #f8fafc;
+}
+
+.scenario-lane-strip-records {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scenario-lane-strip-records small {
+  color: #64748b;
+}
+
+.scenario-lane-chip {
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.38);
+  font: inherit;
+}
+
+.scenario-lane-chip span {
+  margin-right: 6px;
+  color: #67e8f9;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.scenario-lane-chip strong {
+  font-size: 0.72rem;
+}
+
+.scenario-guardrail-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(120, 53, 15, 0.08);
+}
+
+.scenario-guardrail-strip span {
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #fef3c7;
+  background: rgba(120, 53, 15, 0.16);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 1400px) {
+  .scenario-runway-spine,
+  .scenario-runner-status-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .scenario-runway-spine,
+  .scenario-radar-empty-steps,
+  .scenario-lane-strip,
+  .scenario-runner-status-strip {
+    grid-template-columns: 1fr;
+  }
+}

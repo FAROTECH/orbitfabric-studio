@@ -41,6 +41,10 @@ import {
 } from "./navigationModel";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+import {
+  ScenarioTimelineRunnerSurface,
+  type ScenarioTimelineInspectorRecord,
+} from "./ScenarioTimelineRunnerSurface";
 
 import {
   parseCoreCoverageSummary,
@@ -724,7 +728,7 @@ function App() {
 
     if (activeSurface === "scenario-evidence") {
       return (
-        <ScenarioEvidenceSurface
+        <ScenarioTimelineRunnerSurface
           workspace={workspace}
           generatedEvidenceArtifactSummary={generatedEvidenceArtifactSummary}
           coreResult={coreResult}
@@ -733,11 +737,13 @@ function App() {
           isRunningCoreCommand={isRunningCoreCommand}
           onOpenFile={handleOpenFile}
           onRunScenario={handleCoreSimScenario}
-          onSelectSimulationRecord={handleSelectSimulationRecord}
+          onSelectSimulationRecord={(record: ScenarioTimelineInspectorRecord) =>
+            handleSelectSimulationRecord(record)
+          }
         />
       );
     }
-
+    
     if (activeSurface === "ground-integration") {
       return (
         <GroundIntegrationArtifactViewer
