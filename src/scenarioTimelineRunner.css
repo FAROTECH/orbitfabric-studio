@@ -1,0 +1,306 @@
+/* Scenario Timeline Runner visual reset. Visual-only layer: no Core data, parser, artifact or command semantics are introduced here. */
+
+.scenario-source-surface {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  border-color: rgba(103, 232, 249, 0.18);
+  border-radius: 26px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(34, 211, 238, 0.13), transparent 32rem),
+    radial-gradient(circle at 92% 8%, rgba(139, 92, 246, 0.1), transparent 28rem),
+    rgba(2, 6, 23, 0.3);
+}
+
+.scenario-source-surface > .file-viewer-header:first-child {
+  margin: 0;
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  border-radius: 24px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.2), rgba(15, 23, 42, 0.78));
+}
+
+.scenario-source-surface > .file-viewer-header:first-child h3 {
+  position: relative;
+  margin: 0 0 8px;
+  color: transparent;
+  font-size: 0;
+}
+
+.scenario-source-surface > .file-viewer-header:first-child h3::before {
+  content: "Scenario Timeline Runner";
+  color: #f8fafc;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.scenario-source-surface > .file-viewer-header:first-child h3::after {
+  content: "temporal scenario execution rendered from Core simulation evidence";
+  display: block;
+  margin-top: 7px;
+  color: #67e8f9;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.scenario-source-surface > .file-viewer-header:first-child p {
+  max-width: 820px;
+  color: #cbd5e1;
+  line-height: 1.65;
+}
+
+.scenario-source-surface > .file-viewer-header:first-child .badge-row::after {
+  content: "FIXED CORE WRAPPER";
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.18);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.scenario-source-surface > .summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.scenario-source-surface > .summary-grid .summary-item {
+  border-color: rgba(103, 232, 249, 0.16);
+  background: rgba(15, 23, 42, 0.68);
+}
+
+.scenario-source-surface > section[aria-label="Scenario Evidence boundary"],
+.scenario-source-surface > section[aria-label="Scenario source files"],
+.scenario-source-surface > section[aria-label="Core simulation report summary"],
+.scenario-source-surface > section[aria-label="Core simulation timeline and records"],
+.scenario-source-surface > section[aria-label="Core simulation evidence records"],
+.scenario-source-surface > section[aria-label="Simulation log link"],
+.scenario-source-surface > section[aria-label="Passive scenario report and log discovery"] {
+  margin: 0;
+}
+
+.scenario-source-surface > section[aria-label="Scenario Evidence boundary"] {
+  order: 1;
+  border-color: rgba(251, 191, 36, 0.24);
+  background: rgba(120, 53, 15, 0.08);
+}
+
+.scenario-source-surface > section[aria-label="Scenario Evidence boundary"] .entry-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.scenario-source-surface > section[aria-label="Scenario source files"] {
+  order: 2;
+  border-color: rgba(59, 130, 246, 0.2);
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.scenario-source-surface > section[aria-label="Scenario source files"]::before {
+  content: "Scenario Source / Run Rail";
+  display: block;
+  margin-bottom: 6px;
+  color: #67e8f9;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.scenario-source-surface > section[aria-label="Scenario source files"] .entry-list,
+.scenario-source-surface > section[aria-label="Passive scenario report and log discovery"] .entry-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.scenario-source-surface > section[aria-label="Core simulation report summary"] {
+  order: 3;
+  border-color: rgba(103, 232, 249, 0.18);
+  background: rgba(2, 6, 23, 0.34);
+}
+
+.scenario-source-surface > section[aria-label="Core simulation report summary"] .summary-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.scenario-source-surface > section[aria-label="Core simulation timeline and records"] {
+  order: 4;
+  border-color: rgba(103, 232, 249, 0.22);
+  background: rgba(2, 6, 23, 0.38);
+}
+
+.scenario-source-surface > section[aria-label="Core simulation timeline and records"] > .file-viewer-header h3 {
+  position: relative;
+  color: transparent;
+  font-size: 0;
+}
+
+.scenario-source-surface > section[aria-label="Core simulation timeline and records"] > .file-viewer-header h3::before {
+  content: "Scenario Timeline Path";
+  color: #f8fafc;
+  font-size: 1.05rem;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] {
+  position: relative;
+  margin: 0;
+  border-color: rgba(103, 232, 249, 0.22);
+  background: rgba(2, 6, 23, 0.38);
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] h3 {
+  color: #67e8f9;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-list {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 16px 4px 8px;
+  scroll-snap-type: x proximity;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-list::before {
+  content: "";
+  position: absolute;
+  top: 64px;
+  right: 18px;
+  left: 18px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.78), rgba(139, 92, 246, 0.42));
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-list li {
+  position: relative;
+  flex: 0 0 min(260px, 72vw);
+  min-height: 174px;
+  scroll-snap-align: start;
+  border-color: rgba(103, 232, 249, 0.28);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.62));
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-list li::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 18px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #67e8f9;
+  border-radius: 999px;
+  background: #020617;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-main strong {
+  min-height: 44px;
+  color: #f8fafc;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .entry-button {
+  width: fit-content;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.16);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.scenario-source-surface section[aria-label="Simulation timeline"] .command-meta {
+  border: 0;
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.scenario-source-surface section[aria-label="Simulation events"],
+.scenario-source-surface section[aria-label="Simulation commands"],
+.scenario-source-surface section[aria-label="Simulation mode transitions"] {
+  margin: 14px 0 0;
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.scenario-source-surface section[aria-label="Simulation events"] .entry-list,
+.scenario-source-surface section[aria-label="Simulation commands"] .entry-list,
+.scenario-source-surface section[aria-label="Simulation mode transitions"] .entry-list,
+.scenario-source-surface > section[aria-label="Core simulation evidence records"] .entry-list {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.scenario-source-surface > section[aria-label="Core simulation evidence records"] {
+  order: 5;
+  border-color: rgba(139, 92, 246, 0.22);
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.scenario-source-surface > section[aria-label="Core simulation evidence records"] > .file-viewer-header h3 {
+  position: relative;
+  color: transparent;
+  font-size: 0;
+}
+
+.scenario-source-surface > section[aria-label="Core simulation evidence records"] > .file-viewer-header h3::before {
+  content: "Evidence lanes";
+  color: #f8fafc;
+  font-size: 1.02rem;
+}
+
+.scenario-source-surface > section[aria-label="Simulation log link"],
+.scenario-source-surface > section[aria-label="Passive scenario report and log discovery"] {
+  order: 6;
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.scenario-source-surface .empty-text {
+  border: 1px dashed rgba(103, 232, 249, 0.28);
+  border-radius: 16px;
+  padding: 14px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.38);
+}
+
+@media (max-width: 1280px) {
+  .scenario-source-surface > .summary-grid,
+  .scenario-source-surface > section[aria-label="Core simulation report summary"] .summary-grid,
+  .scenario-source-surface > section[aria-label="Scenario Evidence boundary"] .entry-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .scenario-source-surface {
+    padding: 14px;
+  }
+
+  .scenario-source-surface > .summary-grid,
+  .scenario-source-surface > section[aria-label="Core simulation report summary"] .summary-grid,
+  .scenario-source-surface > section[aria-label="Scenario Evidence boundary"] .entry-list {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-source-surface section[aria-label="Simulation timeline"] .entry-list li {
+    flex-basis: 82vw;
+  }
+}
