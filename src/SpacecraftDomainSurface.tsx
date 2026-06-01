@@ -1,1 +1,8 @@
-export { MissionModelAtlasSurface as SpacecraftDomainSurface } from "./MissionModelAtlasSurface";
+import {
+  MissionModelAtlasSurface,
+  type MissionModelAtlasSurfaceProps,
+} from "./MissionModelAtlasSurface";
+
+export function SpacecraftDomainSurface(props: MissionModelAtlasSurfaceProps) {
+  return <MissionModelAtlasSurface {...props} preferredDomainId="spacecraft" />;
+}
