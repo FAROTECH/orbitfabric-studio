@@ -1,5 +1,4 @@
 import { GeneratedArtifactExplorerPanel } from "./GeneratedArtifactExplorer";
-import { ProvenanceBadge, StatusBadge } from "./Badges";
 import type {
   GeneratedArtifactDashboardSummary,
   GeneratedArtifactInspectorItem,
@@ -28,27 +27,9 @@ export function GeneratedArtifactsSurface({
 }) {
   return (
     <section
-      className="active-surface-frame generated-artifacts-surface"
-      aria-label="Generated Artifacts"
+      className="active-surface-frame generated-artifacts-surface generated-artifact-deck-surface"
+      aria-label="Generated Artifact Constellation Deck"
     >
-      <div className="file-viewer-header">
-        <div>
-          <span className="cockpit-eyebrow">Dedicated surface</span>
-          <h2>Generated Artifacts</h2>
-          <p>
-            Compact read-only surface for Core-derived files already present under
-            the workspace generated directory. Studio inspects artifact identity,
-            class and preview status without editing files or inferring Mission
-            Model semantics from generated output.
-          </p>
-        </div>
-        <div className="badge-row">
-          <ProvenanceBadge label="GENERATED" />
-          <ProvenanceBadge label="READ-ONLY" />
-          <StatusBadge label="DEDICATED SURFACE" />
-        </div>
-      </div>
-
       <GeneratedArtifactExplorerPanel
         workspacePath={workspace.selected_path}
         refreshToken={refreshToken}
