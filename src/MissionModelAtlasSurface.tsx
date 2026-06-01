@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
@@ -20,6 +20,8 @@ export interface MissionModelAtlasSurfaceProps {
   preferredDomainId?: string;
 }
 
+type AtlasDomainState = "indexed" | "reported" | "source" | "missing";
+
 interface AtlasDomain {
   id: string;
   label: string;
@@ -28,17 +30,26 @@ interface AtlasDomain {
   present: boolean;
   modelCount: number | null;
   entityCount: number;
-  state: "indexed" | "reported" | "source" | "missing";
+  state: AtlasDomainState;
   sourceEntry: ProjectEntry | null;
   entities: DomainEntitySummary[];
 }
 
-const stateCopy = {
+const domainStateOrder: AtlasDomainState[] = ["indexed", "reported", "source", "missing"];
+
+const stateCopy: Record<AtlasDomainState, string> = {
   source: "Workspace source detected, Core reports not yet available for this domain.",
   reported: "Core reported the domain, but no indexed entity records were attached.",
   indexed: "Core reported the domain and entity-index records are available.",
   missing: "Core reported the domain as expected, but the source file is missing.",
-} as const;
+};
+
+const stateLabels: Record<AtlasDomainState, string> = {
+  indexed: "Indexed",
+  reported: "Reported",
+  source: "Source",
+  missing: "Missing",
+};
 
 export function MissionModelAtlasSurface({
   workspace,
@@ -96,7 +107,7 @@ export function MissionModelAtlasSurface({
             <h3>Refresh the Core-derived model reports</h3>
             <p>
               Use the top-bar <strong>Refresh Core</strong> action, then run
-              <strong> Export model summary</strong> and <strong>Export entity index</strong>.
+              <strong> Export model summary</strong> and <strong> Export entity index</strong>.
               Until both reports are available, the Atlas shows only structural source-file posture.
             </p>
           </div>
@@ -110,37 +121,11 @@ export function MissionModelAtlasSurface({
       ) : null}
 
       <section className="mission-model-atlas-grid" aria-label="Mission Model posture">
-        <article className="mission-model-atlas-panel mission-model-atlas-map-panel">
-          <div className="mission-model-atlas-panel-heading">
-            <div>
-              <span className="cockpit-eyebrow">Atlas map</span>
-              <h3>Domain constellation</h3>
-            </div>
-            <StatusBadge label={`${atlas.domains.length} DOMAINS`} />
-          </div>
-          <div className="mission-model-orbit">
-            {atlas.domains.map((domain, index) => (
-              <button
-                type="button"
-                className={`mission-model-orbit-node mission-model-orbit-node-${domain.state} ${
-                  selectedDomain?.id === domain.id ? "mission-model-orbit-node-active" : ""
-                }`}
-                key={domain.id}
-                style={
-                  {
-                    "--orbit-index": index,
-                    "--orbit-total": atlas.domains.length,
-                  } as CSSProperties
-                }
-                onClick={() => setSelectedDomainId(domain.id)}
-                title={`${domain.label}: ${stateCopy[domain.state]}`}
-              >
-                <span>{shortLabel(domain.id)}</span>
-              </button>
-            ))}
-            <div className="mission-model-orbit-core">MODEL<br />CONTRACT</div>
-          </div>
-        </article>
+        <DomainStateBoard
+          domains={atlas.domains}
+          selectedDomain={selectedDomain}
+          onSelectDomain={setSelectedDomainId}
+        />
 
         <article className="mission-model-atlas-panel">
           <div className="mission-model-atlas-panel-heading">
@@ -160,13 +145,14 @@ export function MissionModelAtlasSurface({
           </div>
 
           <div className="mission-model-state-legend" aria-label="Atlas state legend">
-            <LegendItem state="source" label="Source" />
-            <LegendItem state="reported" label="Reported" />
-            <LegendItem state="indexed" label="Indexed" />
-            <LegendItem state="missing" label="Missing" />
+            {domainStateOrder.map((state) => (
+              <LegendItem state={state} label={stateLabels[state]} key={state} />
+            ))}
           </div>
         </article>
       </section>
+
+      <FocusedDomainStrip domain={selectedDomain} onOpenFile={onOpenFile} />
 
       <section className="mission-model-atlas-panel" aria-label="Mission Model source rails">
         <div className="mission-model-atlas-panel-heading">
@@ -275,6 +261,96 @@ export function MissionModelAtlasSurface({
   );
 }
 
+function DomainStateBoard({
+  domains,
+  selectedDomain,
+  onSelectDomain,
+}: {
+  domains: AtlasDomain[];
+  selectedDomain: AtlasDomain | null;
+  onSelectDomain: (domainId: string) => void;
+}) {
+  return (
+    <article className="mission-model-atlas-panel mission-model-state-board" aria-label="Mission Model domain state board">
+      <div className="mission-model-atlas-panel-heading">
+        <div>
+          <span className="cockpit-eyebrow">Domain state board</span>
+          <h3>Contract domain lanes</h3>
+          <p>Domains are grouped by evidence state instead of by inferred graph relationships.</p>
+        </div>
+        <StatusBadge label={`${domains.length} DOMAINS`} />
+      </div>
+
+      <div className="mission-model-state-lanes">
+        {domainStateOrder.map((state) => {
+          const laneDomains = domains.filter((domain) => domain.state === state);
+
+          return (
+            <section className={`mission-model-state-lane mission-model-state-lane-${state}`} key={state}>
+              <div className="mission-model-state-lane-header">
+                <strong>{stateLabels[state]}</strong>
+                <span>{laneDomains.length}</span>
+              </div>
+              <div className="mission-model-state-lane-items">
+                {laneDomains.length > 0 ? (
+                  laneDomains.map((domain) => (
+                    <button
+                      type="button"
+                      className="mission-model-state-domain-chip"
+                      key={domain.id}
+                      onClick={() => onSelectDomain(domain.id)}
+                      aria-current={selectedDomain?.id === domain.id ? "true" : undefined}
+                      title={`${domain.label}: ${stateCopy[domain.state]}`}
+                    >
+                      <strong>{domain.label}</strong>
+                      <span>{domain.entityCount} entities</span>
+                    </button>
+                  ))
+                ) : (
+                  <span className="mission-model-state-empty">none</span>
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
+
+function FocusedDomainStrip({
+  domain,
+  onOpenFile,
+}: {
+  domain: AtlasDomain | null;
+  onOpenFile: (entry: ProjectEntry) => void;
+}) {
+  if (!domain) {
+    return null;
+  }
+
+  return (
+    <section className="mission-model-focus-strip" aria-label="Focused Mission Model domain">
+      <div>
+        <span className="cockpit-eyebrow">Focused domain</span>
+        <h3>{domain.label}</h3>
+        <p>{stateCopy[domain.state]}</p>
+      </div>
+      <div className="mission-model-focus-metrics">
+        <AtlasMetric label="State" value={domain.state.toUpperCase()} />
+        <AtlasMetric label="Source" value={domain.sourceFile ?? "not reported"} />
+        <AtlasMetric label="Model" value={domain.modelCount === null ? "not reported" : String(domain.modelCount)} />
+        <AtlasMetric label="Entities" value={String(domain.entityCount)} />
+      </div>
+      {domain.sourceEntry ? (
+        <button className="mission-model-open-source" type="button" onClick={() => onOpenFile(domain.sourceEntry!)}>
+          Inspect source
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
 function AtlasMetric({ label, value }: { label: string; value: string }) {
   return (
     <article className="mission-model-status-card">
@@ -284,7 +360,7 @@ function AtlasMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LegendItem({ state, label }: { state: AtlasDomain["state"]; label: string }) {
+function LegendItem({ state, label }: { state: AtlasDomainState; label: string }) {
   return (
     <span className={`mission-model-state-legend-item mission-model-state-legend-item-${state}`} title={stateCopy[state]}>
       {label}
@@ -393,12 +469,4 @@ function formatSourceCategory(category: string): string {
 
 function labelFromId(id: string): string {
   return id.replace(/[_-]/g, " ").replace(/\b\w/g, (value) => value.toUpperCase());
-}
-
-function shortLabel(id: string): string {
-  return id
-    .split(/[_-]/g)
-    .map((part) => part.slice(0, 3).toUpperCase())
-    .join("/")
-    .slice(0, 10);
 }
