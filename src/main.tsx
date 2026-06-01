@@ -7,6 +7,7 @@ import "./missionCockpitVisualHierarchy.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
 import "./generatedArtifactExplorer.css";
 import "./generatedArtifactDeck.css";
+import "./generatedArtifactDeckStabilization.css";
 import "./releaseHardening.css";
 import "./scenarioTimelineRunner.css";
 import "./scenarioRunwayConsole.css";
