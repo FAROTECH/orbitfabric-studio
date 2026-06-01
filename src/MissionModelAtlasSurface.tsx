@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
@@ -17,6 +17,7 @@ export interface MissionModelAtlasSurfaceProps {
   selectedEntity: DomainEntitySummary | null;
   onSelectEntity: (entity: DomainEntitySummary) => void;
   onOpenFile: (entry: ProjectEntry) => void;
+  preferredDomainId?: string;
 }
 
 interface AtlasDomain {
@@ -32,6 +33,13 @@ interface AtlasDomain {
   entities: DomainEntitySummary[];
 }
 
+const stateCopy = {
+  source: "Workspace source detected, Core reports not yet available for this domain.",
+  reported: "Core reported the domain, but no indexed entity records were attached.",
+  indexed: "Core reported the domain and entity-index records are available.",
+  missing: "Core reported the domain as expected, but the source file is missing.",
+} as const;
+
 export function MissionModelAtlasSurface({
   workspace,
   modelSummary,
@@ -39,14 +47,26 @@ export function MissionModelAtlasSurface({
   selectedEntity,
   onSelectEntity,
   onOpenFile,
+  preferredDomainId,
 }: MissionModelAtlasSurfaceProps) {
   const atlas = useMemo(
     () => createAtlas(workspace, modelSummary, entityIndex),
     [workspace, modelSummary, entityIndex],
   );
-  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
+  const preferredResolvedDomainId = useMemo(
+    () => resolvePreferredDomainId(preferredDomainId, atlas.domains),
+    [preferredDomainId, atlas.domains],
+  );
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(preferredResolvedDomainId);
+  const reportsMissing = !modelSummary || !entityIndex;
+
+  useEffect(() => {
+    setSelectedDomainId(preferredResolvedDomainId);
+  }, [preferredResolvedDomainId]);
+
   const selectedDomain =
     atlas.domains.find((domain) => domain.id === selectedDomainId) ??
+    atlas.domains.find((domain) => domain.id === preferredResolvedDomainId) ??
     atlas.domains[0] ??
     null;
 
@@ -68,6 +88,26 @@ export function MissionModelAtlasSurface({
           <StatusBadge label="NO INFERENCE" />
         </div>
       </header>
+
+      {reportsMissing ? (
+        <section className="mission-model-atlas-panel mission-model-refresh-guidance" aria-label="Core report guidance">
+          <div>
+            <span className="cockpit-eyebrow">Core reports missing</span>
+            <h3>Refresh the Core-derived model reports</h3>
+            <p>
+              Use the top-bar <strong>Refresh Core</strong> action, then run
+              <strong> Export model summary</strong> and <strong>Export entity index</strong>.
+              Until both reports are available, the Atlas shows only structural source-file posture.
+            </p>
+          </div>
+          <div className="mission-model-refresh-steps">
+            <span>Refresh Core</span>
+            <span>Export model summary</span>
+            <span>Export entity index</span>
+            <span>Return to Model</span>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mission-model-atlas-grid" aria-label="Mission Model posture">
         <article className="mission-model-atlas-panel mission-model-atlas-map-panel">
@@ -93,6 +133,7 @@ export function MissionModelAtlasSurface({
                   } as CSSProperties
                 }
                 onClick={() => setSelectedDomainId(domain.id)}
+                title={`${domain.label}: ${stateCopy[domain.state]}`}
               >
                 <span>{shortLabel(domain.id)}</span>
               </button>
@@ -117,6 +158,13 @@ export function MissionModelAtlasSurface({
             <AtlasMetric label="Entity records" value={String(entityIndex?.counts.total_entities ?? 0)} />
             <AtlasMetric label="Indexed domains" value={String(atlas.domains.filter((domain) => domain.state === "indexed").length)} />
           </div>
+
+          <div className="mission-model-state-legend" aria-label="Atlas state legend">
+            <LegendItem state="source" label="Source" />
+            <LegendItem state="reported" label="Reported" />
+            <LegendItem state="indexed" label="Indexed" />
+            <LegendItem state="missing" label="Missing" />
+          </div>
         </article>
       </section>
 
@@ -138,7 +186,7 @@ export function MissionModelAtlasSurface({
               onClick={() => onOpenFile(entry)}
             >
               <span>{entry.name}</span>
-              <strong>{entry.category}</strong>
+              <strong>{formatSourceCategory(entry.category)}</strong>
             </button>
           ))}
           {workspace.missing_expected_source_files.map((file) => (
@@ -158,6 +206,7 @@ export function MissionModelAtlasSurface({
             key={domain.id}
             onClick={() => setSelectedDomainId(domain.id)}
             aria-current={selectedDomain?.id === domain.id ? "true" : undefined}
+            title={stateCopy[domain.state]}
           >
             <span>{domain.id}</span>
             <strong>{domain.label}</strong>
@@ -235,6 +284,14 @@ function AtlasMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function LegendItem({ state, label }: { state: AtlasDomain["state"]; label: string }) {
+  return (
+    <span className={`mission-model-state-legend-item mission-model-state-legend-item-${state}`} title={stateCopy[state]}>
+      {label}
+    </span>
+  );
+}
+
 function createAtlas(
   workspace: WorkspaceInspection,
   modelSummary: CoreModelSummary | null,
@@ -261,7 +318,7 @@ function createAtlas(
 
     return {
       id,
-      label: entityDomain?.display_name ?? modelDomain?.display_name ?? labelFromId(id),
+      label: labelFromId(id),
       sourceFile,
       required: entityDomain?.required ?? modelDomain?.required ?? false,
       present,
@@ -294,6 +351,44 @@ function groupEntities(entities: CoreEntityIndexEntity[]): Record<string, Domain
     grouped[entity.domain].push(summary);
     return grouped;
   }, {});
+}
+
+function resolvePreferredDomainId(
+  preferredDomainId: string | undefined,
+  domains: AtlasDomain[],
+): string | null {
+  if (!preferredDomainId) {
+    return domains[0]?.id ?? null;
+  }
+
+  const normalizedPreferredId = preferredDomainId.replace(/-/g, "_");
+  const preferredAliases = createPreferredDomainAliases(normalizedPreferredId);
+
+  for (const alias of preferredAliases) {
+    if (domains.some((domain) => domain.id === alias)) {
+      return alias;
+    }
+  }
+
+  return domains[0]?.id ?? null;
+}
+
+function createPreferredDomainAliases(preferredDomainId: string): string[] {
+  const aliases: Record<string, string[]> = {
+    contacts_downlink: ["contacts", "contact_profiles", "contact_windows", "downlink_flows"],
+    data_products: ["data_products"],
+    commandability: ["commandability", "command_sources", "commandability_rules", "autonomous_actions", "recovery_intents"],
+  };
+
+  return aliases[preferredDomainId] ?? [preferredDomainId];
+}
+
+function formatSourceCategory(category: string): string {
+  if (category === "sourceModel") {
+    return "Source model";
+  }
+
+  return category.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/\b\w/g, (value) => value.toUpperCase());
 }
 
 function labelFromId(id: string): string {
