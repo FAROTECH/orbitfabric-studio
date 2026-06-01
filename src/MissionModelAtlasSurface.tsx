@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { type CSSProperties, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
@@ -86,7 +86,12 @@ export function MissionModelAtlasSurface({
                   selectedDomain?.id === domain.id ? "mission-model-orbit-node-active" : ""
                 }`}
                 key={domain.id}
-                style={{ "--orbit-index": index, "--orbit-total": atlas.domains.length } as React.CSSProperties}
+                style={
+                  {
+                    "--orbit-index": index,
+                    "--orbit-total": atlas.domains.length,
+                  } as CSSProperties
+                }
                 onClick={() => setSelectedDomainId(domain.id)}
               >
                 <span>{shortLabel(domain.id)}</span>
