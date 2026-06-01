@@ -1,0 +1,472 @@
+.mission-model-atlas,
+.mission-model-fabric {
+  display: grid;
+  gap: 14px;
+}
+
+.mission-model-fabric-hero,
+.mission-model-contract-spine,
+.mission-model-fabric-matrix,
+.mission-model-focused-contract {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.64);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.22);
+}
+
+.mission-model-fabric-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border-color: rgba(103, 232, 249, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 28rem),
+    rgba(15, 23, 42, 0.64);
+}
+
+.mission-model-fabric-hero h2 {
+  margin-bottom: 6px;
+  font-size: 1.28rem;
+}
+
+.mission-model-fabric-hero p,
+.mission-model-fabric-matrix p,
+.mission-model-focused-contract p {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.54;
+}
+
+.mission-model-fabric-hero-badges {
+  flex-shrink: 0;
+}
+
+.mission-model-contract-spine {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-color: rgba(34, 211, 238, 0.18);
+}
+
+.mission-model-spine-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mission-model-spine-cell {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.mission-model-spine-cell span,
+.mission-model-focused-metric span,
+.mission-model-source-lane-header span,
+.mission-model-domain-capsule span,
+.mission-model-domain-capsule small,
+.mission-model-domain-capsule em,
+.mission-model-entity-ribbon-heading span,
+.mission-model-entity-ribbon-items span {
+  color: #94a3b8;
+  font-size: 0.69rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mission-model-spine-cell strong,
+.mission-model-focused-metric strong,
+.mission-model-source-lane-header strong,
+.mission-model-domain-capsule strong,
+.mission-model-entity-ribbon-items strong {
+  color: #f8fafc;
+  overflow-wrap: anywhere;
+}
+
+.mission-model-spine-remediation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mission-model-spine-remediation span,
+.mission-model-fabric-legend-item,
+.mission-model-focused-actions span {
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #fef3c7;
+  background: rgba(245, 158, 11, 0.08);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mission-model-fabric-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.32fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.mission-model-fabric-matrix,
+.mission-model-focused-contract {
+  min-width: 0;
+  padding: 16px;
+}
+
+.mission-model-fabric-panel-heading,
+.mission-model-focused-contract-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+
+.mission-model-fabric-panel-heading h3,
+.mission-model-focused-contract h3 {
+  margin-bottom: 4px;
+}
+
+.mission-model-fabric-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.mission-model-fabric-legend-item {
+  border-color: rgba(148, 163, 184, 0.16);
+  color: #e8eefc;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.mission-model-source-lanes {
+  display: grid;
+  gap: 9px;
+}
+
+.mission-model-source-lane {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(176px, 0.22fr) minmax(0, 0.78fr);
+  gap: 12px;
+  align-items: stretch;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 18px;
+  padding: 10px;
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.1), transparent 24rem),
+    rgba(2, 6, 23, 0.26);
+  overflow: hidden;
+}
+
+.mission-model-source-lane::after {
+  content: "";
+  position: absolute;
+  left: calc(22% + 18px);
+  right: 18px;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.26), rgba(103, 232, 249, 0));
+  pointer-events: none;
+}
+
+.mission-model-source-lane-missing {
+  border-color: rgba(245, 158, 11, 0.22);
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.1), transparent 24rem),
+    rgba(2, 6, 23, 0.26);
+}
+
+.mission-model-source-lane-header button {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  gap: 5px;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 15px;
+  padding: 12px;
+  color: #e8eefc;
+  background: rgba(15, 23, 42, 0.66);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mission-model-source-lane-header button:disabled {
+  cursor: default;
+  opacity: 0.74;
+}
+
+.mission-model-domain-capsule-rail {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-content: center;
+}
+
+.mission-model-domain-capsule {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "name state"
+    "count focus";
+  gap: 5px 10px;
+  min-width: 170px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 15px;
+  padding: 11px 12px;
+  color: #e8eefc;
+  background: rgba(15, 23, 42, 0.72);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mission-model-domain-capsule strong {
+  grid-area: name;
+  font-size: 0.84rem;
+}
+
+.mission-model-domain-capsule span {
+  grid-area: state;
+  justify-self: end;
+}
+
+.mission-model-domain-capsule small {
+  grid-area: count;
+}
+
+.mission-model-domain-capsule em {
+  grid-area: focus;
+  justify-self: end;
+  color: #cffafe;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.mission-model-domain-capsule:hover,
+.mission-model-domain-capsule:focus-visible,
+.mission-model-domain-capsule[aria-current="true"],
+.mission-model-source-lane-header button:hover:not(:disabled),
+.mission-model-source-lane-header button:focus-visible:not(:disabled),
+.mission-model-focused-actions button:hover,
+.mission-model-focused-actions button:focus-visible,
+.mission-model-entity-ribbon-items button:hover,
+.mission-model-entity-ribbon-items button:focus-visible {
+  border-color: rgba(103, 232, 249, 0.64);
+  color: #cffafe;
+  outline: none;
+}
+
+.mission-model-domain-capsule[aria-current="true"] {
+  box-shadow:
+    0 0 0 1px rgba(103, 232, 249, 0.45),
+    0 0 28px rgba(34, 211, 238, 0.18);
+  transform: translateY(-1px);
+}
+
+.mission-model-fabric-state-indexed {
+  border-color: rgba(34, 197, 94, 0.24);
+  background:
+    linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(15, 23, 42, 0.58));
+}
+
+.mission-model-fabric-state-reported {
+  border-color: rgba(56, 189, 248, 0.24);
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(15, 23, 42, 0.58));
+}
+
+.mission-model-fabric-state-source {
+  border-color: rgba(139, 92, 246, 0.26);
+  background:
+    linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(15, 23, 42, 0.58));
+}
+
+.mission-model-fabric-state-missing {
+  border-color: rgba(245, 158, 11, 0.28);
+  background:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(15, 23, 42, 0.58));
+}
+
+.mission-model-empty-capsule {
+  display: inline-grid;
+  place-items: center;
+  border: 1px dashed rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mission-model-focused-contract {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  gap: 13px;
+  max-width: 100%;
+  overflow: hidden;
+  border-color: rgba(103, 232, 249, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 20rem),
+    rgba(15, 23, 42, 0.64);
+}
+
+.mission-model-focused-contract-header {
+  min-width: 0;
+}
+
+.mission-model-focused-contract-header > div {
+  min-width: 0;
+}
+
+.mission-model-focused-contract h3,
+.mission-model-focused-contract p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.mission-model-focused-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  min-width: 0;
+}
+
+.mission-model-focused-metric {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.3);
+  overflow: hidden;
+}
+
+.mission-model-focused-metric strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.mission-model-focused-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.mission-model-focused-actions button {
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.14);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.mission-model-entity-ribbon {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 14px;
+}
+
+.mission-model-entity-ribbon-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mission-model-entity-ribbon-heading strong {
+  color: #cffafe;
+}
+
+.mission-model-entity-ribbon-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mission-model-entity-ribbon-items button {
+  display: grid;
+  flex: 1 1 136px;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: #e8eefc;
+  background: rgba(2, 6, 23, 0.3);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.mission-model-entity-ribbon-items button[aria-current="true"] {
+  border-color: rgba(103, 232, 249, 0.64);
+}
+
+.mission-model-entity-ribbon-items strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 1480px) {
+  .mission-model-fabric-workbench,
+  .mission-model-source-lane,
+  .mission-model-spine-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-model-source-lane::after {
+    left: 20px;
+  }
+
+  .mission-model-focused-contract {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .mission-model-fabric-hero,
+  .mission-model-fabric-panel-heading,
+  .mission-model-focused-contract-header {
+    flex-direction: column;
+  }
+
+  .mission-model-focused-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-model-domain-capsule {
+    min-width: 100%;
+  }
+}
