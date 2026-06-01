@@ -112,7 +112,7 @@
 
 .mission-model-fabric-workbench {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.34fr);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.32fr);
   gap: 14px;
   align-items: start;
 }
@@ -321,16 +321,33 @@
   top: 18px;
   display: grid;
   gap: 13px;
+  max-width: 100%;
+  overflow: hidden;
   border-color: rgba(103, 232, 249, 0.22);
   background:
     radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 20rem),
     rgba(15, 23, 42, 0.64);
 }
 
+.mission-model-focused-contract-header {
+  min-width: 0;
+}
+
+.mission-model-focused-contract-header > div {
+  min-width: 0;
+}
+
+.mission-model-focused-contract h3,
+.mission-model-focused-contract p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .mission-model-focused-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
+  min-width: 0;
 }
 
 .mission-model-focused-metric {
@@ -341,6 +358,13 @@
   border-radius: 14px;
   padding: 10px;
   background: rgba(2, 6, 23, 0.3);
+  overflow: hidden;
+}
+
+.mission-model-focused-metric strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .mission-model-focused-actions {
@@ -348,6 +372,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 9px;
+  min-width: 0;
 }
 
 .mission-model-focused-actions button {
@@ -363,6 +388,7 @@
 .mission-model-entity-ribbon {
   display: grid;
   gap: 10px;
+  min-width: 0;
   border-top: 1px solid rgba(148, 163, 184, 0.14);
   padding-top: 14px;
 }
@@ -372,6 +398,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
 }
 
 .mission-model-entity-ribbon-heading strong {
@@ -382,11 +409,15 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .mission-model-entity-ribbon-items button {
   display: grid;
+  flex: 1 1 136px;
   gap: 5px;
+  min-width: 0;
   max-width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 14px;
@@ -395,10 +426,17 @@
   background: rgba(2, 6, 23, 0.3);
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .mission-model-entity-ribbon-items button[aria-current="true"] {
   border-color: rgba(103, 232, 249, 0.64);
+}
+
+.mission-model-entity-ribbon-items strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 @media (max-width: 1480px) {
