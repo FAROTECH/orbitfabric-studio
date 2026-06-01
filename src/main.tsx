@@ -5,6 +5,7 @@ import App from "./App";
 import "./styles.css";
 import "./missionCockpitVisualHierarchy.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
+import "./scenarioTimelineRunner.css";
 import "./generatedArtifactExplorer.css";
 import "./releaseHardening.css";
 
