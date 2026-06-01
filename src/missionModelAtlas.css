@@ -38,6 +38,45 @@
   flex-shrink: 0;
 }
 
+.mission-model-refresh-guidance {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  border-color: rgba(245, 158, 11, 0.26);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.64));
+}
+
+.mission-model-refresh-guidance h3 {
+  margin-bottom: 6px;
+}
+
+.mission-model-refresh-guidance strong {
+  color: #fef3c7;
+}
+
+.mission-model-refresh-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  max-width: 520px;
+}
+
+.mission-model-refresh-steps span,
+.mission-model-state-legend-item {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #e8eefc;
+  background: rgba(2, 6, 23, 0.28);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .mission-model-atlas-grid {
   display: grid;
   grid-template-columns: minmax(360px, 0.92fr) minmax(300px, 1.08fr);
@@ -123,20 +162,31 @@
   outline: none;
 }
 
-.mission-model-orbit-node-indexed {
+.mission-model-orbit-node-indexed,
+.mission-model-state-legend-item-indexed {
   box-shadow: 0 0 22px rgba(34, 197, 94, 0.18);
 }
 
-.mission-model-orbit-node-reported {
+.mission-model-orbit-node-reported,
+.mission-model-state-legend-item-reported {
   box-shadow: 0 0 22px rgba(56, 189, 248, 0.18);
 }
 
-.mission-model-orbit-node-source {
+.mission-model-orbit-node-source,
+.mission-model-state-legend-item-source {
   box-shadow: 0 0 22px rgba(139, 92, 246, 0.18);
 }
 
-.mission-model-orbit-node-missing {
+.mission-model-orbit-node-missing,
+.mission-model-state-legend-item-missing {
   box-shadow: 0 0 22px rgba(245, 158, 11, 0.2);
+}
+
+.mission-model-state-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .mission-model-status-grid,
@@ -311,7 +361,8 @@ button.mission-model-source-card:focus-visible,
 
 @media (max-width: 720px) {
   .mission-model-atlas-hero,
-  .mission-model-atlas-panel-heading {
+  .mission-model-atlas-panel-heading,
+  .mission-model-refresh-guidance {
     flex-direction: column;
   }
 
