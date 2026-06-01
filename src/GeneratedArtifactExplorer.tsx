@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -111,6 +111,17 @@ type ClassifiedGeneratedArtifactEntry = GeneratedArtifactEntry & {
   };
 };
 
+interface ArtifactClassStats {
+  artifactClass: GeneratedArtifactClass;
+  label: string;
+  count: number;
+  known: number;
+  unknown: number;
+  previewable: number;
+  notPreviewable: number;
+  provenance: Record<GeneratedArtifactProvenanceSource, number>;
+}
+
 export function GeneratedArtifactExplorerPanel({
   workspacePath,
   refreshToken = 0,
@@ -121,6 +132,7 @@ export function GeneratedArtifactExplorerPanel({
   const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
   const [activeClass, setActiveClass] = useState<GeneratedArtifactClass>("reports");
   const [selectedArtifactFile, setSelectedArtifactFile] = useState<FileContent | null>(null);
+  const [selectedArtifact, setSelectedArtifact] = useState<ClassifiedGeneratedArtifactEntry | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
@@ -129,8 +141,11 @@ export function GeneratedArtifactExplorerPanel({
   const artifacts = classifyGeneratedArtifacts(inventory?.artifacts ?? []);
   const groupedArtifacts = groupArtifactsByClass(artifacts);
   const selectedArtifacts = groupedArtifacts[activeClass] ?? [];
+  const classStats = createArtifactClassStats(groupedArtifacts);
   const knownArtifacts = artifacts.filter((artifact) => artifact.known_status === "known").length;
   const unknownArtifacts = artifacts.length - knownArtifacts;
+  const previewableArtifacts = artifacts.filter((artifact) => artifact.preview_status === "previewable").length;
+  const notPreviewableArtifacts = artifacts.length - previewableArtifacts;
 
   useEffect(() => {
     if (refreshToken > 0) {
@@ -142,6 +157,7 @@ export function GeneratedArtifactExplorerPanel({
     setError(null);
     setPreviewError(null);
     setSelectedArtifactFile(null);
+    setSelectedArtifact(null);
     clearGeneratedArtifactInventory(workspacePath);
     onDashboardSummaryChange?.(null);
     onArtifactSelectionChange?.(null);
@@ -193,6 +209,7 @@ export function GeneratedArtifactExplorerPanel({
   }
 
   async function handleOpenArtifactPreview(artifact: ClassifiedGeneratedArtifactEntry) {
+    setSelectedArtifact(artifact);
     onArtifactSelectionChange?.(toInspectorItem(artifact));
     setSelectedArtifactFile(null);
 
@@ -217,149 +234,428 @@ export function GeneratedArtifactExplorerPanel({
     }
   }
 
+  function handleSelectClass(artifactClass: GeneratedArtifactClass) {
+    setActiveClass(artifactClass);
+    setSelectedArtifact(null);
+    setSelectedArtifactFile(null);
+    setPreviewError(null);
+    onArtifactSelectionChange?.(null);
+  }
+
   return (
     <section
       id="studio-artifacts"
-      className="entry-section generated-artifact-explorer"
-      aria-label="Generated Artifact Explorer"
+      className="generated-artifact-deck"
+      aria-label="Generated Artifact Constellation Deck"
     >
-      <div className="file-viewer-header">
+      <header className="artifact-deck-hero">
         <div>
-          <h3>Generated Artifact Explorer</h3>
+          <span className="cockpit-eyebrow">Generated Artifact Constellation Deck</span>
+          <h3>Inventory-derived output observatory</h3>
           <p>
-            Compact read-only inventory for files already present under generated output.
-            Select one artifact class at a time. Studio does not generate, edit or
-            infer Mission Model semantics from these files.
+            Studio observes generated files already present under the workspace generated directory.
+            The constellation shows artifact class, known status, previewability and provenance only.
+            No output is edited, regenerated or semantically interpreted as Mission Model source.
           </p>
         </div>
-        <div className="badge-row">
-          <ProvenanceBadge label="GENERATED" />
-          <ProvenanceBadge label="READ-ONLY" />
+        <div className="artifact-deck-hero-actions">
+          <div className="badge-row">
+            <ProvenanceBadge label="GENERATED" />
+            <ProvenanceBadge label="READ-ONLY" />
+            <StatusBadge label="NO INFERENCE" />
+          </div>
+          <button
+            className="artifact-deck-primary-action"
+            type="button"
+            onClick={handleInspectGeneratedArtifacts}
+            disabled={isInspecting}
+          >
+            {isInspecting ? "Inspecting" : inventory ? "Refresh inventory" : "Inspect generated artifacts"}
+          </button>
         </div>
-      </div>
-
-      <div className="command-actions">
-        <button type="button" onClick={handleInspectGeneratedArtifacts} disabled={isInspecting}>
-          {isInspecting ? "Inspecting generated artifacts..." : "Inspect generated artifacts"}
-        </button>
-      </div>
+      </header>
 
       {error ? <p className="error-text">{error}</p> : null}
-      {isInspecting ? <p className="empty-text">Inspecting generated artifacts...</p> : null}
+      {isInspecting ? <p className="empty-text">Inspecting generated artifact inventory...</p> : null}
+
       {!inventory && !isInspecting ? (
-        <p className="empty-text">
-          Run the generated artifact inspection to populate this compact surface and
-          link artifact evidence into the Mission Data Flow Workbench.
-        </p>
+        <ArtifactDeckWaitingState onInspect={handleInspectGeneratedArtifacts} />
       ) : null}
 
       {inventory ? (
         <>
-          <div className="summary-grid">
-            <ArtifactSummaryItem label="Generated directory" value={inventory.generated_dir ?? "Not detected"} />
-            <ArtifactSummaryItem label="Total artifacts" value={String(inventory.counts.total_artifacts)} />
-            <ArtifactSummaryItem label="Known artifacts" value={String(knownArtifacts)} />
-            <ArtifactSummaryItem label="Unknown artifacts" value={String(unknownArtifacts)} />
-            <ArtifactSummaryItem label="Previewable" value={String(inventory.counts.previewable_artifacts)} />
-            <ArtifactSummaryItem label="Not previewable" value={String(inventory.counts.not_previewable_artifacts)} />
-          </div>
+          <section className="artifact-deck-command-grid" aria-label="Generated artifact command deck">
+            <ArtifactConstellationMap
+              stats={classStats}
+              artifacts={artifacts}
+              activeClass={activeClass}
+              totalArtifacts={inventory.counts.total_artifacts}
+              knownArtifacts={knownArtifacts}
+              unknownArtifacts={unknownArtifacts}
+              previewableArtifacts={previewableArtifacts}
+              notPreviewableArtifacts={notPreviewableArtifacts}
+              warningCount={inventory.warnings.length}
+              generatedDir={inventory.generated_dir}
+              onSelectClass={handleSelectClass}
+              onSelectArtifact={handleOpenArtifactPreview}
+            />
 
-          <section className="entry-section muted-section" aria-label="Workbench artifact linkage">
-            <h3>Workbench linkage</h3>
-            <p>
-              This inventory is now available to the Mission Data Flow Workbench as
-              read-only artifact evidence. Studio does not mutate generated files,
-              regenerate artifacts or infer Mission Model semantics from generated output.
-            </p>
-            <div className="badge-row">
-              <ProvenanceBadge label="ARTIFACT EVIDENCE" />
-              <ProvenanceBadge label="READ-ONLY" />
-              <StatusBadge label="WORKBENCH LINKED" />
-            </div>
+            <ArtifactClassDeck
+              stats={classStats}
+              activeClass={activeClass}
+              selectedCount={selectedArtifacts.length}
+              onSelectClass={handleSelectClass}
+            />
           </section>
 
+          <ArtifactInventoryStatusStrip
+            inventory={inventory}
+            knownArtifacts={knownArtifacts}
+            unknownArtifacts={unknownArtifacts}
+            previewableArtifacts={previewableArtifacts}
+            notPreviewableArtifacts={notPreviewableArtifacts}
+          />
+
           {inventory.warnings.length > 0 ? (
-            <div className="warning-box">
-              <h3>Generated artifact warnings</h3>
-              <ul>
-                {inventory.warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            </div>
+            <ArtifactWarningRail warnings={inventory.warnings} />
           ) : null}
 
           {inventory.artifacts.length === 0 ? (
             <p className="empty-text">No generated artifacts were reported.</p>
           ) : (
-            <>
-              <section
-                className="entry-section muted-section generated-artifact-class-overview"
-                aria-label="Generated artifact class overview"
-              >
-                <div className="entry-main">
-                  <div>
-                    <h3>Artifact classes</h3>
-                    <p>Only the selected class is expanded below.</p>
-                  </div>
-                  <StatusBadge label={`${selectedArtifacts.length} SHOWN`} />
-                </div>
-                <div className="summary-grid">
-                  {artifactClassOrder.map((artifactClass) => (
-                    <button
-                      className="summary-item generated-artifact-class-card"
-                      type="button"
-                      key={artifactClass}
-                      aria-current={activeClass === artifactClass}
-                      onClick={() => setActiveClass(artifactClass)}
-                    >
-                      <span>{formatArtifactClass(artifactClass)}</span>
-                      <strong>{String(groupedArtifacts[artifactClass]?.length ?? 0)}</strong>
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <GeneratedArtifactClassSection
-                artifactClass={activeClass}
-                artifacts={selectedArtifacts}
-                onOpenArtifactPreview={handleOpenArtifactPreview}
-              />
-            </>
+            <ArtifactSignalCardGrid
+              artifactClass={activeClass}
+              artifacts={selectedArtifacts}
+              selectedArtifact={selectedArtifact}
+              onOpenArtifactPreview={handleOpenArtifactPreview}
+            />
           )}
 
-          <GeneratedArtifactPreviewPanel
+          <ArtifactPreviewDock
+            selectedArtifact={selectedArtifact}
             selectedArtifactFile={selectedArtifactFile}
             previewError={previewError}
             isReadingArtifact={isReadingArtifact}
           />
+
+          <ArtifactDeckGuardrailStrip />
         </>
       ) : null}
     </section>
   );
 }
 
-function GeneratedArtifactClassSection({
+function ArtifactDeckWaitingState({ onInspect }: { onInspect: () => void }) {
+  return (
+    <section className="artifact-deck-waiting-state" aria-label="Generated artifact deck waiting state">
+      <div className="artifact-deck-waiting-orbit" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div>
+        <span className="cockpit-eyebrow">Inventory not loaded</span>
+        <h3>No constellation yet</h3>
+        <p>
+          Run generated artifact inspection to populate the deck. Until inventory is reported,
+          Studio does not infer artifact evidence or preview status.
+        </p>
+        <button className="artifact-deck-primary-action" type="button" onClick={onInspect}>
+          Inspect generated artifacts
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ArtifactConstellationMap({
+  stats,
+  artifacts,
+  activeClass,
+  totalArtifacts,
+  knownArtifacts,
+  unknownArtifacts,
+  previewableArtifacts,
+  notPreviewableArtifacts,
+  warningCount,
+  generatedDir,
+  onSelectClass,
+  onSelectArtifact,
+}: {
+  stats: ArtifactClassStats[];
+  artifacts: ClassifiedGeneratedArtifactEntry[];
+  activeClass: GeneratedArtifactClass;
+  totalArtifacts: number;
+  knownArtifacts: number;
+  unknownArtifacts: number;
+  previewableArtifacts: number;
+  notPreviewableArtifacts: number;
+  warningCount: number;
+  generatedDir: string | null;
+  onSelectClass: (artifactClass: GeneratedArtifactClass) => void;
+  onSelectArtifact: (artifact: ClassifiedGeneratedArtifactEntry) => void;
+}) {
+  const viewBoxSize = 420;
+  const center = viewBoxSize / 2;
+  const classSegments = createClassSegments(stats, -110, 320);
+  const signalMarkers = createArtifactSignalMarkers(artifacts, classSegments, center);
+  const activeStats = stats.find((item) => item.artifactClass === activeClass);
+
+  return (
+    <section className="artifact-constellation-panel" aria-label="Artifact constellation map">
+      <div className="artifact-deck-panel-heading">
+        <div>
+          <span className="cockpit-eyebrow">Constellation map</span>
+          <h3>Generated output posture</h3>
+          <p>
+            Rings encode class, known status and previewability. Outer sparks are individual generated artifacts.
+          </p>
+        </div>
+        <StatusBadge label={`${totalArtifacts} SIGNALS`} />
+      </div>
+
+      <div className="artifact-constellation-stage">
+        <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} role="img" aria-label="Generated artifact constellation">
+          <circle className="artifact-orbit-grid artifact-orbit-grid-outer" cx={center} cy={center} r="176" />
+          <circle className="artifact-orbit-grid artifact-orbit-grid-middle" cx={center} cy={center} r="132" />
+          <circle className="artifact-orbit-grid artifact-orbit-grid-inner" cx={center} cy={center} r="88" />
+
+          {classSegments.map((segment) => {
+            const stat = stats.find((item) => item.artifactClass === segment.artifactClass);
+            const isActive = segment.artifactClass === activeClass;
+            const knownRatio = stat && stat.count > 0 ? stat.known / stat.count : 0;
+            const previewRatio = stat && stat.count > 0 ? stat.previewable / stat.count : 0;
+
+            return (
+              <g
+                key={segment.artifactClass}
+                className={`artifact-orbit-segment ${isActive ? "artifact-orbit-segment-active" : ""}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectClass(segment.artifactClass)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectClass(segment.artifactClass);
+                  }
+                }}
+              >
+                <path
+                  className="artifact-orbit-class-band"
+                  d={describeArcBand(center, center, 126, 164, segment.startAngle, segment.endAngle)}
+                />
+                <path
+                  className="artifact-orbit-known-band"
+                  d={describeArcBand(
+                    center,
+                    center,
+                    94,
+                    116,
+                    segment.startAngle,
+                    segment.startAngle + segment.sweep * knownRatio,
+                  )}
+                />
+                <path
+                  className="artifact-orbit-preview-band"
+                  d={describeArcBand(
+                    center,
+                    center,
+                    66,
+                    82,
+                    segment.startAngle,
+                    segment.startAngle + segment.sweep * previewRatio,
+                  )}
+                />
+                <text
+                  className="artifact-orbit-label"
+                  x={polarToCartesian(center, center, 182, segment.midAngle).x}
+                  y={polarToCartesian(center, center, 182, segment.midAngle).y}
+                  textAnchor="middle"
+                >
+                  {segment.shortLabel}
+                </text>
+              </g>
+            );
+          })}
+
+          {signalMarkers.map((marker) => (
+            <g
+              key={marker.artifact.path}
+              className={`artifact-signal-spark artifact-signal-${marker.artifact.known_status} artifact-signal-${marker.artifact.preview_status}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectArtifact(marker.artifact)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelectArtifact(marker.artifact);
+                }
+              }}
+            >
+              <circle cx={marker.x} cy={marker.y} r={marker.radius}>
+                <title>{`${marker.artifact.relative_path} · ${marker.artifact.provenance.source}`}</title>
+              </circle>
+            </g>
+          ))}
+
+          {warningCount > 0 ? (
+            <circle className="artifact-warning-ring" cx={center} cy={center} r="190" />
+          ) : null}
+
+          <g className="artifact-constellation-core">
+            <circle cx={center} cy={center} r="52" />
+            <text x={center} y={center - 8} textAnchor="middle">{totalArtifacts}</text>
+            <text x={center} y={center + 16} textAnchor="middle">ARTIFACTS</text>
+          </g>
+        </svg>
+
+        <div className="artifact-constellation-readout">
+          <span className="cockpit-eyebrow">Selected orbit</span>
+          <h3>{activeStats?.label ?? "No class"}</h3>
+          <div className="artifact-readout-grid">
+            <ArtifactReadout label="Count" value={String(activeStats?.count ?? 0)} />
+            <ArtifactReadout label="Known" value={String(activeStats?.known ?? 0)} />
+            <ArtifactReadout label="Unknown" value={String(activeStats?.unknown ?? 0)} />
+            <ArtifactReadout label="Preview" value={String(activeStats?.previewable ?? 0)} />
+          </div>
+          <div className="artifact-readout-grid artifact-readout-grid-wide">
+            <ArtifactReadout label="Generated dir" value={formatCompactPath(generatedDir)} title={generatedDir ?? undefined} />
+            <ArtifactReadout label="Warnings" value={String(warningCount)} />
+          </div>
+          <div className="artifact-constellation-legend" aria-label="Artifact constellation legend">
+            <span>Class orbit</span>
+            <span>Known band {knownArtifacts}</span>
+            <span>Unknown {unknownArtifacts}</span>
+            <span>Previewable {previewableArtifacts}</span>
+            <span>Not previewable {notPreviewableArtifacts}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ArtifactClassDeck({
+  stats,
+  activeClass,
+  selectedCount,
+  onSelectClass,
+}: {
+  stats: ArtifactClassStats[];
+  activeClass: GeneratedArtifactClass;
+  selectedCount: number;
+  onSelectClass: (artifactClass: GeneratedArtifactClass) => void;
+}) {
+  return (
+    <section className="artifact-class-deck" aria-label="Artifact class deck">
+      <div className="artifact-deck-panel-heading">
+        <div>
+          <span className="cockpit-eyebrow">Class deck</span>
+          <h3>Artifact orbits</h3>
+          <p>Each class is a static inventory bucket, not a generation pipeline stage.</p>
+        </div>
+        <StatusBadge label={`${selectedCount} SHOWN`} />
+      </div>
+
+      <div className="artifact-class-card-stack">
+        {stats.map((stat) => {
+          const isActive = stat.artifactClass === activeClass;
+          const knownRatio = stat.count > 0 ? stat.known / stat.count : 0;
+          const previewRatio = stat.count > 0 ? stat.previewable / stat.count : 0;
+
+          return (
+            <button
+              className="artifact-class-card"
+              type="button"
+              key={stat.artifactClass}
+              aria-current={isActive}
+              onClick={() => onSelectClass(stat.artifactClass)}
+            >
+              <div>
+                <span>{stat.label}</span>
+                <strong>{stat.count}</strong>
+              </div>
+              <div className="artifact-class-card-bars">
+                <span style={{ "--artifact-ratio": knownRatio } as CSSProperties}>
+                  <i />
+                </span>
+                <span style={{ "--artifact-ratio": previewRatio } as CSSProperties}>
+                  <i />
+                </span>
+              </div>
+              <small>
+                {stat.known} known · {stat.previewable} previewable · {stat.provenance.unknown} unknown provenance
+              </small>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ArtifactInventoryStatusStrip({
+  inventory,
+  knownArtifacts,
+  unknownArtifacts,
+  previewableArtifacts,
+  notPreviewableArtifacts,
+}: {
+  inventory: GeneratedArtifactInventory;
+  knownArtifacts: number;
+  unknownArtifacts: number;
+  previewableArtifacts: number;
+  notPreviewableArtifacts: number;
+}) {
+  return (
+    <section className="artifact-inventory-status-strip" aria-label="Generated artifact inventory status">
+      <ArtifactReadout label="Generated directory" value={formatCompactPath(inventory.generated_dir)} title={inventory.generated_dir ?? undefined} />
+      <ArtifactReadout label="Total artifacts" value={String(inventory.counts.total_artifacts)} />
+      <ArtifactReadout label="Known" value={String(knownArtifacts)} />
+      <ArtifactReadout label="Unknown" value={String(unknownArtifacts)} />
+      <ArtifactReadout label="Previewable" value={String(previewableArtifacts)} />
+      <ArtifactReadout label="Not previewable" value={String(notPreviewableArtifacts)} />
+    </section>
+  );
+}
+
+function ArtifactWarningRail({ warnings }: { warnings: string[] }) {
+  return (
+    <section className="artifact-warning-rail" aria-label="Generated artifact warnings">
+      <div>
+        <span className="cockpit-eyebrow">Warning rail</span>
+        <h3>Inventory warnings</h3>
+      </div>
+      <ul>
+        {warnings.map((warning) => (
+          <li key={warning}>{warning}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ArtifactSignalCardGrid({
   artifactClass,
   artifacts,
+  selectedArtifact,
   onOpenArtifactPreview,
 }: {
   artifactClass: GeneratedArtifactClass;
   artifacts: ClassifiedGeneratedArtifactEntry[];
+  selectedArtifact: ClassifiedGeneratedArtifactEntry | null;
   onOpenArtifactPreview: (artifact: ClassifiedGeneratedArtifactEntry) => void;
 }) {
   return (
-    <section
-      className="entry-section generated-artifact-compact-list"
-      aria-label={`${artifactClass} generated artifacts`}
-    >
-      <div className="entry-main">
+    <section className="artifact-signal-card-grid-panel" aria-label={`${artifactClass} generated artifact signals`}>
+      <div className="artifact-deck-panel-heading">
         <div>
+          <span className="cockpit-eyebrow">Selected orbit</span>
           <h3>{formatArtifactClass(artifactClass)}</h3>
-          <p>Scoped read-only list for the selected artifact class.</p>
+          <p>Artifact cards are inventory records. Preview is available only for supported read-only text files.</p>
         </div>
         <div className="badge-row">
-          <ProvenanceBadge label="GENERATED" />
+          <ProvenanceBadge label="INVENTORY" />
           <StatusBadge label={`${artifacts.length} ARTIFACTS`} />
         </div>
       </div>
@@ -367,106 +663,165 @@ function GeneratedArtifactClassSection({
       {artifacts.length === 0 ? (
         <p className="empty-text">No artifacts in this class.</p>
       ) : (
-        <ul className="entry-list">
+        <div className="artifact-signal-card-grid">
           {artifacts.map((artifact) => {
             const isPreviewable = artifact.preview_status === "previewable";
+            const isSelected = selectedArtifact?.path === artifact.path;
+
             return (
-              <li key={artifact.path}>
-                <div className="entry-main">
-                  {isPreviewable ? (
-                    <button
-                      className="entry-button"
-                      type="button"
-                      onClick={() => onOpenArtifactPreview(artifact)}
-                    >
-                      {artifact.name}
-                    </button>
-                  ) : (
-                    <strong>{artifact.name}</strong>
-                  )}
-                  <div className="badge-row artifact-entry-badges">
-                    <StatusBadge label={artifact.known_status === "known" ? "REPORTED" : "UNKNOWN"} />
-                    <StatusBadge label={isPreviewable ? "PREVIEW ONLY" : "UNAVAILABLE"} />
-                  </div>
+              <button
+                className="artifact-signal-card"
+                type="button"
+                key={artifact.path}
+                aria-current={isSelected}
+                onClick={() => onOpenArtifactPreview(artifact)}
+              >
+                <div className="artifact-signal-card-header">
+                  <span>{artifact.artifact_class}</span>
+                  <strong title={artifact.name}>{artifact.name}</strong>
                 </div>
-                <span className="entry-path">{artifact.relative_path}</span>
-                <div className="command-meta">
-                  <span>size: {artifact.size_bytes} bytes</span>
-                  <span>extension: {artifact.extension ?? "none"}</span>
-                  <span>class: {artifact.artifact_class}</span>
-                  <span>classification: {artifact.classification_reason}</span>
-                  <span>provenance: {artifact.provenance.source}</span>
+                <span className="artifact-signal-path" title={artifact.relative_path}>
+                  {artifact.relative_path}
+                </span>
+                <div className="artifact-signal-card-badges">
+                  <StatusBadge label={artifact.known_status === "known" ? "KNOWN" : "UNKNOWN"} />
+                  <StatusBadge label={isPreviewable ? "PREVIEW" : "NO PREVIEW"} />
+                  <ProvenanceBadge label={formatProvenanceLabel(artifact.provenance.source)} />
                 </div>
-              </li>
+                <div className="artifact-signal-meta">
+                  <span>{artifact.size_bytes} bytes</span>
+                  <span>{artifact.extension ?? "no ext"}</span>
+                </div>
+                <small>{artifact.classification_reason}</small>
+              </button>
             );
           })}
-        </ul>
+        </div>
       )}
     </section>
   );
 }
 
-function GeneratedArtifactPreviewPanel({
+function ArtifactPreviewDock({
+  selectedArtifact,
   selectedArtifactFile,
   previewError,
   isReadingArtifact,
 }: {
+  selectedArtifact: ClassifiedGeneratedArtifactEntry | null;
   selectedArtifactFile: FileContent | null;
   previewError: string | null;
   isReadingArtifact: boolean;
 }) {
   return (
-    <section className="file-viewer" aria-label="Generated artifact read-only preview">
-      <div className="file-viewer-header">
+    <section className="artifact-preview-dock" aria-label="Generated artifact read-only preview dock">
+      <div className="artifact-deck-panel-heading">
         <div>
-          <h3>Generated artifact preview</h3>
-          <p>Read-only text preview. No validation or semantic interpretation is implied.</p>
+          <span className="cockpit-eyebrow">Preview dock</span>
+          <h3>{selectedArtifact?.name ?? "No artifact selected"}</h3>
+          <p>Read-only text preview. No validation, semantic parsing or generated file mutation is performed.</p>
         </div>
         <div className="badge-row">
-          <ProvenanceBadge label="GENERATED" />
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="PREVIEW ONLY" />
         </div>
       </div>
 
+      {selectedArtifact ? (
+        <div className="artifact-preview-selected-strip">
+          <ArtifactReadout label="Class" value={selectedArtifact.artifact_class} />
+          <ArtifactReadout label="Status" value={selectedArtifact.known_status} />
+          <ArtifactReadout label="Preview" value={selectedArtifact.preview_status} />
+          <ArtifactReadout label="Provenance" value={selectedArtifact.provenance.source} />
+          <ArtifactReadout label="Path" value={formatCompactPath(selectedArtifact.relative_path)} title={selectedArtifact.relative_path} />
+        </div>
+      ) : null}
+
       {previewError ? <p className="error-text">{previewError}</p> : null}
       {isReadingArtifact ? <p className="empty-text">Reading generated artifact...</p> : null}
-      {!selectedArtifactFile && !isReadingArtifact ? (
-        <p className="empty-text">Select a previewable generated artifact.</p>
+      {!selectedArtifactFile && !isReadingArtifact && !previewError ? (
+        <p className="empty-text">Select a previewable generated artifact signal.</p>
       ) : null}
 
       {selectedArtifactFile ? (
-        <>
-          <div className="command-meta">
-            <strong>{selectedArtifactFile.name}</strong>
-            <span>{selectedArtifactFile.path}</span>
-            <span>{selectedArtifactFile.size_bytes} bytes</span>
-          </div>
-          <Editor
-            height="360px"
-            language={selectedArtifactFile.language}
-            value={selectedArtifactFile.content}
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              wordWrap: "on",
-              scrollBeyondLastLine: false,
-              renderLineHighlight: "none",
-            }}
-          />
-        </>
+        <Editor
+          height="360px"
+          language={selectedArtifactFile.language}
+          value={selectedArtifactFile.content}
+          options={{
+            readOnly: true,
+            minimap: { enabled: false },
+            wordWrap: "on",
+            scrollBeyondLastLine: false,
+            renderLineHighlight: "none",
+          }}
+        />
       ) : null}
     </section>
   );
 }
 
-function ArtifactSummaryItem({ label, value }: { label: string; value: string }) {
+function ArtifactDeckGuardrailStrip() {
   return (
-    <div className="summary-item">
+    <section className="artifact-deck-guardrail-strip" aria-label="Generated artifact guardrails">
+      <span>No generation</span>
+      <span>No editing</span>
+      <span>No semantic inference</span>
+      <span>No causal graph</span>
+      <span>No manifest interpretation unless exposed</span>
+      <span>Inventory-derived only</span>
+    </section>
+  );
+}
+
+function ArtifactReadout({
+  label,
+  value,
+  title,
+}: {
+  label: string;
+  value: string;
+  title?: string;
+}) {
+  return (
+    <div className="artifact-readout" title={title}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
   );
+}
+
+function createArtifactClassStats(
+  groupedArtifacts: Record<GeneratedArtifactClass, ClassifiedGeneratedArtifactEntry[]>,
+): ArtifactClassStats[] {
+  return artifactClassOrder.map((artifactClass) => {
+    const artifacts = groupedArtifacts[artifactClass] ?? [];
+    const provenance = createEmptyProvenanceCounts();
+
+    for (const artifact of artifacts) {
+      provenance[artifact.provenance.source] += 1;
+    }
+
+    return {
+      artifactClass,
+      label: formatArtifactClass(artifactClass),
+      count: artifacts.length,
+      known: artifacts.filter((artifact) => artifact.known_status === "known").length,
+      unknown: artifacts.filter((artifact) => artifact.known_status === "unknown").length,
+      previewable: artifacts.filter((artifact) => artifact.preview_status === "previewable").length,
+      notPreviewable: artifacts.filter((artifact) => artifact.preview_status !== "previewable").length,
+      provenance,
+    };
+  });
+}
+
+function createEmptyProvenanceCounts(): Record<GeneratedArtifactProvenanceSource, number> {
+  return {
+    documentedCorePath: 0,
+    documentedCoreFileName: 0,
+    manifestField: 0,
+    unknown: 0,
+  };
 }
 
 function classifyGeneratedArtifacts(
@@ -552,6 +907,98 @@ function toInspectorItem(
   };
 }
 
+function createClassSegments(
+  stats: ArtifactClassStats[],
+  startAngle: number,
+  totalSweep: number,
+) {
+  const total = stats.reduce((sum, stat) => sum + Math.max(stat.count, 0), 0);
+  const fallbackSweep = totalSweep / stats.length;
+  let currentAngle = startAngle;
+
+  return stats.map((stat) => {
+    const sweep = total > 0 ? Math.max(22, (stat.count / total) * totalSweep) : fallbackSweep;
+    const segment = {
+      artifactClass: stat.artifactClass,
+      shortLabel: shortArtifactClassLabel(stat.artifactClass),
+      startAngle: currentAngle,
+      endAngle: currentAngle + sweep - 5,
+      sweep: Math.max(1, sweep - 5),
+      midAngle: currentAngle + sweep / 2,
+    };
+    currentAngle += sweep;
+    return segment;
+  });
+}
+
+function createArtifactSignalMarkers(
+  artifacts: ClassifiedGeneratedArtifactEntry[],
+  segments: ReturnType<typeof createClassSegments>,
+  center: number,
+) {
+  const grouped = groupArtifactsByClass(artifacts);
+
+  return segments.flatMap((segment) => {
+    const classArtifacts = grouped[segment.artifactClass] ?? [];
+    const divisor = Math.max(classArtifacts.length, 1);
+
+    return classArtifacts.map((artifact, index) => {
+      const offset = (index + 0.5) / divisor;
+      const angle = segment.startAngle + segment.sweep * offset;
+      const radius = artifact.preview_status === "previewable" ? 188 : 174;
+      const position = polarToCartesian(center, center, radius, angle);
+
+      return {
+        artifact,
+        x: position.x,
+        y: position.y,
+        radius: artifact.known_status === "known" ? 4.6 : 3.5,
+      };
+    });
+  });
+}
+
+function describeArcBand(
+  centerX: number,
+  centerY: number,
+  innerRadius: number,
+  outerRadius: number,
+  startAngle: number,
+  endAngle: number,
+): string {
+  if (endAngle <= startAngle) {
+    return "";
+  }
+
+  const outerStart = polarToCartesian(centerX, centerY, outerRadius, endAngle);
+  const outerEnd = polarToCartesian(centerX, centerY, outerRadius, startAngle);
+  const innerStart = polarToCartesian(centerX, centerY, innerRadius, startAngle);
+  const innerEnd = polarToCartesian(centerX, centerY, innerRadius, endAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+  return [
+    "M", outerStart.x, outerStart.y,
+    "A", outerRadius, outerRadius, 0, largeArcFlag, 0, outerEnd.x, outerEnd.y,
+    "L", innerStart.x, innerStart.y,
+    "A", innerRadius, innerRadius, 0, largeArcFlag, 1, innerEnd.x, innerEnd.y,
+    "Z",
+  ].join(" ");
+}
+
+function polarToCartesian(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  angleInDegrees: number,
+) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+
+  return {
+    x: centerX + radius * Math.cos(angleInRadians),
+    y: centerY + radius * Math.sin(angleInRadians),
+  };
+}
+
 function formatArtifactClass(artifactClass: GeneratedArtifactClass): string {
   switch (artifactClass) {
     case "reports":
@@ -567,4 +1014,49 @@ function formatArtifactClass(artifactClass: GeneratedArtifactClass): string {
     case "unknown":
       return "Unknown generated artifacts";
   }
+}
+
+function shortArtifactClassLabel(artifactClass: GeneratedArtifactClass): string {
+  switch (artifactClass) {
+    case "reports":
+      return "RPT";
+    case "logs":
+      return "LOG";
+    case "docs":
+      return "DOC";
+    case "runtime":
+      return "RUN";
+    case "ground":
+      return "GND";
+    case "unknown":
+      return "UNK";
+  }
+}
+
+function formatProvenanceLabel(source: GeneratedArtifactProvenanceSource): string {
+  switch (source) {
+    case "documentedCorePath":
+      return "CORE PATH";
+    case "documentedCoreFileName":
+      return "CORE NAME";
+    case "manifestField":
+      return "MANIFEST";
+    case "unknown":
+      return "UNKNOWN SRC";
+  }
+}
+
+function formatCompactPath(value: string | null | undefined): string {
+  if (!value) {
+    return "not detected";
+  }
+
+  const normalized = value.replace(/\\/g, "/");
+  const parts = normalized.split("/").filter(Boolean);
+
+  if (parts.length <= 3) {
+    return normalized;
+  }
+
+  return `…/${parts.slice(-3).join("/")}`;
 }

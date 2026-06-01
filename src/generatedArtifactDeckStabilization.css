@@ -1,0 +1,243 @@
+.generated-artifact-deck {
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.44fr);
+  align-items: start;
+}
+
+.generated-artifact-deck > .artifact-deck-hero,
+.generated-artifact-deck > .artifact-deck-command-grid,
+.generated-artifact-deck > .artifact-inventory-status-strip,
+.generated-artifact-deck > .artifact-warning-rail,
+.generated-artifact-deck > .artifact-deck-waiting-state,
+.generated-artifact-deck > .artifact-deck-guardrail-strip,
+.generated-artifact-deck > .empty-text,
+.generated-artifact-deck > .error-text {
+  grid-column: 1 / -1;
+}
+
+.generated-artifact-deck > .artifact-signal-card-grid-panel {
+  grid-column: 1 / 2;
+}
+
+.generated-artifact-deck > .artifact-preview-dock {
+  grid-column: 2 / 3;
+  position: sticky;
+  top: 86px;
+}
+
+.artifact-deck-command-grid {
+  align-items: start;
+  grid-template-columns: minmax(0, 1.38fr) minmax(280px, 0.46fr);
+}
+
+.artifact-constellation-panel,
+.artifact-class-deck {
+  align-self: start;
+}
+
+.artifact-constellation-legend {
+  border: 1px solid rgba(56, 189, 248, 0.14);
+  border-radius: 18px;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.24);
+}
+
+.artifact-constellation-legend::before {
+  content: "Map legend";
+  flex-basis: 100%;
+  color: #67e8f9;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.artifact-constellation-legend span {
+  padding: 5px 8px;
+  font-size: 0.68rem;
+}
+
+.artifact-class-deck .artifact-deck-panel-heading {
+  margin-bottom: 12px;
+}
+
+.artifact-class-deck .artifact-deck-panel-heading p {
+  line-height: 1.42;
+}
+
+.artifact-class-card-stack {
+  gap: 7px;
+}
+
+.artifact-class-card {
+  gap: 5px;
+  border-radius: 15px;
+  padding: 8px 10px;
+}
+
+.artifact-class-card[aria-current="true"] {
+  padding: 10px 12px;
+}
+
+.artifact-class-card > div:first-child {
+  align-items: baseline;
+}
+
+.artifact-class-card span {
+  overflow: hidden;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-class-card strong {
+  font-size: 1rem;
+}
+
+.artifact-class-card small {
+  display: block;
+  overflow: hidden;
+  color: #8293aa;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-class-card[aria-current="true"] small {
+  color: #a9bdd7;
+}
+
+.artifact-class-card-bars {
+  gap: 3px;
+}
+
+.artifact-class-card-bars span {
+  height: 3px;
+}
+
+.artifact-signal-card-grid-panel {
+  min-width: 0;
+}
+
+.artifact-signal-card-grid-panel .artifact-deck-panel-heading {
+  margin-bottom: 14px;
+}
+
+.artifact-signal-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  max-height: 438px;
+  gap: 9px;
+}
+
+.artifact-signal-card {
+  gap: 6px;
+  border-radius: 15px;
+  padding: 10px 11px;
+}
+
+.artifact-signal-card-header {
+  gap: 2px;
+}
+
+.artifact-signal-card-header span {
+  font-size: 0.62rem;
+}
+
+.artifact-signal-card-header strong {
+  font-size: 0.86rem;
+  line-height: 1.16;
+}
+
+.artifact-signal-path {
+  font-size: 0.68rem;
+}
+
+.artifact-signal-card-badges {
+  gap: 4px;
+}
+
+.artifact-signal-meta {
+  gap: 8px;
+}
+
+.artifact-signal-meta span {
+  font-size: 0.66rem;
+}
+
+.artifact-signal-card small {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.34em;
+  line-height: 1.17;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.artifact-preview-dock {
+  max-height: calc(100vh - 132px);
+  overflow: auto;
+}
+
+.artifact-preview-dock .artifact-deck-panel-heading {
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.artifact-preview-dock .artifact-deck-panel-heading p {
+  line-height: 1.45;
+}
+
+.artifact-preview-selected-strip {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.artifact-preview-selected-strip .artifact-readout {
+  padding: 9px 10px;
+}
+
+.artifact-preview-dock .monaco-editor,
+.artifact-preview-dock .monaco-editor-background,
+.artifact-preview-dock .monaco-editor .margin {
+  border-radius: 12px;
+}
+
+.artifact-inventory-status-strip .artifact-readout {
+  padding: 10px 11px;
+}
+
+@media (max-width: 1440px) {
+  .generated-artifact-deck {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.4fr);
+  }
+
+  .artifact-signal-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  .generated-artifact-deck,
+  .artifact-deck-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .generated-artifact-deck > .artifact-signal-card-grid-panel,
+  .generated-artifact-deck > .artifact-preview-dock {
+    grid-column: 1 / -1;
+  }
+
+  .generated-artifact-deck > .artifact-preview-dock {
+    position: static;
+    max-height: none;
+  }
+
+  .artifact-preview-selected-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .artifact-preview-selected-strip {
+    grid-template-columns: 1fr;
+  }
+}
