@@ -1,0 +1,519 @@
+.generated-artifact-deck-surface {
+  overflow: hidden;
+}
+
+.generated-artifact-deck {
+  display: grid;
+  gap: 18px;
+}
+
+.artifact-deck-hero,
+.artifact-constellation-panel,
+.artifact-class-deck,
+.artifact-signal-card-grid-panel,
+.artifact-preview-dock,
+.artifact-warning-rail,
+.artifact-deck-waiting-state,
+.artifact-inventory-status-strip,
+.artifact-deck-guardrail-strip {
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  background:
+    linear-gradient(145deg, rgba(8, 17, 32, 0.96), rgba(9, 23, 41, 0.84)),
+    radial-gradient(circle at 20% 10%, rgba(14, 165, 233, 0.16), transparent 32rem);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+}
+
+.artifact-deck-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+  border-radius: 28px;
+  padding: 28px;
+}
+
+.artifact-deck-hero h3,
+.artifact-deck-panel-heading h3,
+.artifact-deck-waiting-state h3,
+.artifact-warning-rail h3,
+.artifact-preview-dock h3 {
+  margin-bottom: 8px;
+  color: #f8fafc;
+  font-size: 1.08rem;
+  letter-spacing: -0.02em;
+}
+
+.artifact-deck-hero p,
+.artifact-deck-panel-heading p,
+.artifact-deck-waiting-state p,
+.artifact-preview-dock p {
+  max-width: 820px;
+  margin-bottom: 0;
+  color: #9fb2cf;
+  line-height: 1.6;
+}
+
+.artifact-deck-hero-actions {
+  display: grid;
+  justify-items: end;
+  gap: 14px;
+}
+
+.artifact-deck-primary-action {
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  border-radius: 14px;
+  padding: 10px 16px;
+  color: #e0f2fe;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.28), rgba(59, 130, 246, 0.16));
+  cursor: pointer;
+}
+
+.artifact-deck-primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.artifact-deck-command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.artifact-constellation-panel,
+.artifact-class-deck,
+.artifact-signal-card-grid-panel,
+.artifact-preview-dock,
+.artifact-warning-rail,
+.artifact-deck-waiting-state {
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.artifact-deck-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.artifact-constellation-stage {
+  display: grid;
+  grid-template-columns: minmax(300px, 480px) minmax(240px, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.artifact-constellation-stage svg {
+  width: 100%;
+  max-width: 520px;
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.42));
+}
+
+.artifact-orbit-grid {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.14);
+  stroke-width: 1;
+}
+
+.artifact-orbit-grid-outer {
+  stroke-dasharray: 2 8;
+}
+
+.artifact-orbit-grid-middle {
+  stroke-dasharray: 8 10;
+}
+
+.artifact-orbit-grid-inner {
+  stroke-dasharray: 3 6;
+}
+
+.artifact-orbit-segment {
+  cursor: pointer;
+  outline: none;
+}
+
+.artifact-orbit-class-band {
+  fill: rgba(14, 165, 233, 0.13);
+  stroke: rgba(56, 189, 248, 0.36);
+  stroke-width: 1.2;
+  transition: fill 140ms ease, stroke 140ms ease, filter 140ms ease;
+}
+
+.artifact-orbit-segment-active .artifact-orbit-class-band,
+.artifact-orbit-segment:hover .artifact-orbit-class-band,
+.artifact-orbit-segment:focus .artifact-orbit-class-band {
+  fill: rgba(56, 189, 248, 0.24);
+  stroke: rgba(125, 211, 252, 0.84);
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.36));
+}
+
+.artifact-orbit-known-band {
+  fill: rgba(34, 197, 94, 0.42);
+  opacity: 0.88;
+}
+
+.artifact-orbit-preview-band {
+  fill: rgba(168, 85, 247, 0.44);
+  opacity: 0.9;
+}
+
+.artifact-orbit-label {
+  fill: #dbeafe;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+.artifact-signal-spark {
+  cursor: pointer;
+  outline: none;
+}
+
+.artifact-signal-spark circle {
+  fill: rgba(125, 211, 252, 0.92);
+  stroke: rgba(8, 17, 32, 0.92);
+  stroke-width: 1.5;
+  transition: r 140ms ease, fill 140ms ease, stroke 140ms ease;
+}
+
+.artifact-signal-unknown circle {
+  fill: rgba(251, 191, 36, 0.86);
+}
+
+.artifact-signal-notPreviewable circle {
+  fill-opacity: 0.42;
+  stroke: rgba(226, 232, 240, 0.72);
+  stroke-dasharray: 2 2;
+}
+
+.artifact-signal-spark:hover circle,
+.artifact-signal-spark:focus circle {
+  r: 6.5;
+  stroke: #e0f2fe;
+}
+
+.artifact-warning-ring {
+  fill: none;
+  stroke: rgba(251, 191, 36, 0.7);
+  stroke-width: 2;
+  stroke-dasharray: 6 8;
+}
+
+.artifact-constellation-core circle {
+  fill: rgba(8, 17, 32, 0.94);
+  stroke: rgba(125, 211, 252, 0.64);
+  stroke-width: 1.4;
+}
+
+.artifact-constellation-core text:first-of-type {
+  fill: #f8fafc;
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.artifact-constellation-core text:last-of-type {
+  fill: #67e8f9;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.artifact-constellation-readout {
+  display: grid;
+  gap: 14px;
+}
+
+.artifact-readout-grid,
+.artifact-inventory-status-strip,
+.artifact-preview-selected-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.artifact-readout-grid-wide {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+}
+
+.artifact-readout,
+.artifact-class-card,
+.artifact-signal-card {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.64);
+}
+
+.artifact-readout {
+  min-width: 0;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.artifact-readout span,
+.artifact-signal-card small,
+.artifact-class-card small {
+  color: #93a4bd;
+  font-size: 0.72rem;
+}
+
+.artifact-readout strong {
+  display: block;
+  overflow: hidden;
+  color: #f8fafc;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-constellation-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artifact-constellation-legend span,
+.artifact-deck-guardrail-strip span {
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.42);
+  font-size: 0.72rem;
+}
+
+.artifact-class-card-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.artifact-class-card {
+  display: grid;
+  gap: 9px;
+  width: 100%;
+  border-radius: 18px;
+  padding: 14px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.artifact-class-card[aria-current="true"] {
+  border-color: rgba(103, 232, 249, 0.62);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(15, 23, 42, 0.72));
+}
+
+.artifact-class-card > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.artifact-class-card span {
+  color: #dbeafe;
+  font-weight: 750;
+}
+
+.artifact-class-card strong {
+  color: #f8fafc;
+}
+
+.artifact-class-card-bars {
+  display: grid;
+  gap: 5px;
+}
+
+.artifact-class-card-bars span {
+  display: block;
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.94);
+}
+
+.artifact-class-card-bars i {
+  display: block;
+  width: calc(var(--artifact-ratio) * 100%);
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(56, 189, 248, 0.78);
+}
+
+.artifact-class-card-bars span:nth-child(2) i {
+  background: rgba(168, 85, 247, 0.72);
+}
+
+.artifact-inventory-status-strip {
+  grid-template-columns: minmax(220px, 1.4fr) repeat(5, minmax(110px, 0.6fr));
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.artifact-warning-rail {
+  border-color: rgba(251, 191, 36, 0.34);
+  background:
+    linear-gradient(135deg, rgba(120, 53, 15, 0.32), rgba(15, 23, 42, 0.84)),
+    radial-gradient(circle at 10% 20%, rgba(251, 191, 36, 0.18), transparent 24rem);
+}
+
+.artifact-warning-rail ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #fde68a;
+}
+
+.artifact-signal-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.artifact-signal-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border-radius: 18px;
+  padding: 14px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.artifact-signal-card:hover,
+.artifact-signal-card:focus,
+.artifact-signal-card[aria-current="true"] {
+  border-color: rgba(125, 211, 252, 0.56);
+  background: rgba(14, 165, 233, 0.12);
+  outline: none;
+}
+
+.artifact-signal-card-header {
+  display: grid;
+  gap: 4px;
+}
+
+.artifact-signal-card-header span {
+  color: #67e8f9;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.artifact-signal-card-header strong,
+.artifact-signal-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-signal-card-header strong {
+  color: #f8fafc;
+}
+
+.artifact-signal-path {
+  color: #9fb2cf;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+}
+
+.artifact-signal-card-badges,
+.artifact-signal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.artifact-signal-meta span {
+  color: #cbd5e1;
+  font-size: 0.74rem;
+}
+
+.artifact-preview-dock {
+  min-width: 0;
+}
+
+.artifact-preview-selected-strip {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-bottom: 12px;
+}
+
+.artifact-deck-guardrail-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.artifact-deck-waiting-state {
+  position: relative;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  min-height: 260px;
+  overflow: hidden;
+}
+
+.artifact-deck-waiting-orbit {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border: 1px dashed rgba(125, 211, 252, 0.38);
+  border-radius: 999px;
+}
+
+.artifact-deck-waiting-orbit span {
+  position: absolute;
+  border: 1px solid rgba(56, 189, 248, 0.26);
+  border-radius: inherit;
+  inset: 24px;
+}
+
+.artifact-deck-waiting-orbit span:nth-child(2) {
+  inset: 52px;
+}
+
+.artifact-deck-waiting-orbit span:nth-child(3) {
+  inset: 80px;
+  background: rgba(14, 165, 233, 0.18);
+}
+
+@media (max-width: 1180px) {
+  .artifact-deck-command-grid,
+  .artifact-constellation-stage,
+  .artifact-deck-hero,
+  .artifact-deck-waiting-state {
+    grid-template-columns: 1fr;
+  }
+
+  .artifact-deck-hero-actions {
+    justify-items: start;
+  }
+
+  .artifact-inventory-status-strip,
+  .artifact-preview-selected-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .artifact-readout-grid,
+  .artifact-inventory-status-strip,
+  .artifact-preview-selected-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .artifact-constellation-panel,
+  .artifact-class-deck,
+  .artifact-signal-card-grid-panel,
+  .artifact-preview-dock,
+  .artifact-deck-hero {
+    padding: 16px;
+  }
+}
