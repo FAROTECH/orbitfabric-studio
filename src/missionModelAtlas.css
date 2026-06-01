@@ -1,7 +1,7 @@
 .mission-model-atlas,
 .mission-model-fabric {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .mission-model-fabric-hero,
@@ -19,7 +19,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  padding: 22px;
+  padding: 18px 20px;
   border-color: rgba(103, 232, 249, 0.22);
   background:
     radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 28rem),
@@ -27,8 +27,8 @@
 }
 
 .mission-model-fabric-hero h2 {
-  margin-bottom: 8px;
-  font-size: 1.36rem;
+  margin-bottom: 6px;
+  font-size: 1.28rem;
 }
 
 .mission-model-fabric-hero p,
@@ -36,7 +36,7 @@
 .mission-model-focused-contract p {
   margin: 0;
   color: #cbd5e1;
-  line-height: 1.62;
+  line-height: 1.54;
 }
 
 .mission-model-fabric-hero-badges {
@@ -45,8 +45,8 @@
 
 .mission-model-contract-spine {
   display: grid;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px;
   border-color: rgba(34, 211, 238, 0.18);
 }
 
@@ -58,11 +58,11 @@
 
 .mission-model-spine-cell {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 16px;
-  padding: 13px 14px;
+  padding: 12px 14px;
   background: rgba(2, 6, 23, 0.28);
 }
 
@@ -71,10 +71,11 @@
 .mission-model-source-lane-header span,
 .mission-model-domain-capsule span,
 .mission-model-domain-capsule small,
+.mission-model-domain-capsule em,
 .mission-model-entity-ribbon-heading span,
 .mission-model-entity-ribbon-items span {
   color: #94a3b8;
-  font-size: 0.72rem;
+  font-size: 0.69rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -102,7 +103,7 @@
   padding: 7px 10px;
   color: #fef3c7;
   background: rgba(245, 158, 11, 0.08);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -111,15 +112,15 @@
 
 .mission-model-fabric-workbench {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(330px, 0.36fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.34fr);
+  gap: 14px;
   align-items: start;
 }
 
 .mission-model-fabric-matrix,
 .mission-model-focused-contract {
   min-width: 0;
-  padding: 18px;
+  padding: 16px;
 }
 
 .mission-model-fabric-panel-heading,
@@ -128,12 +129,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
 }
 
 .mission-model-fabric-panel-heading h3,
 .mission-model-focused-contract h3 {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .mission-model-fabric-legend {
@@ -152,12 +153,13 @@
 
 .mission-model-source-lanes {
   display: grid;
-  gap: 10px;
+  gap: 9px;
 }
 
 .mission-model-source-lane {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(190px, 0.24fr) minmax(0, 0.76fr);
+  grid-template-columns: minmax(176px, 0.22fr) minmax(0, 0.78fr);
   gap: 12px;
   align-items: stretch;
   border: 1px solid rgba(148, 163, 184, 0.13);
@@ -166,6 +168,18 @@
   background:
     linear-gradient(90deg, rgba(8, 145, 178, 0.1), transparent 24rem),
     rgba(2, 6, 23, 0.26);
+  overflow: hidden;
+}
+
+.mission-model-source-lane::after {
+  content: "";
+  position: absolute;
+  left: calc(22% + 18px);
+  right: 18px;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.26), rgba(103, 232, 249, 0));
+  pointer-events: none;
 }
 
 .mission-model-source-lane-missing {
@@ -176,16 +190,18 @@
 }
 
 .mission-model-source-lane-header button {
+  position: relative;
+  z-index: 1;
   display: grid;
   width: 100%;
   height: 100%;
   align-content: center;
-  gap: 6px;
+  gap: 5px;
   border: 1px solid rgba(103, 232, 249, 0.16);
   border-radius: 15px;
   padding: 12px;
   color: #e8eefc;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(15, 23, 42, 0.66);
   text-align: left;
   cursor: pointer;
 }
@@ -196,6 +212,8 @@
 }
 
 .mission-model-domain-capsule-rail {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
@@ -207,21 +225,21 @@
   grid-template-columns: 1fr auto;
   grid-template-areas:
     "name state"
-    "count count";
+    "count focus";
   gap: 5px 10px;
-  min-width: 176px;
+  min-width: 170px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 15px;
   padding: 11px 12px;
   color: #e8eefc;
-  background: rgba(15, 23, 42, 0.62);
+  background: rgba(15, 23, 42, 0.72);
   text-align: left;
   cursor: pointer;
 }
 
 .mission-model-domain-capsule strong {
   grid-area: name;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
 }
 
 .mission-model-domain-capsule span {
@@ -231,6 +249,14 @@
 
 .mission-model-domain-capsule small {
   grid-area: count;
+}
+
+.mission-model-domain-capsule em {
+  grid-area: focus;
+  justify-self: end;
+  color: #cffafe;
+  font-style: normal;
+  font-weight: 900;
 }
 
 .mission-model-domain-capsule:hover,
@@ -245,6 +271,13 @@
   border-color: rgba(103, 232, 249, 0.64);
   color: #cffafe;
   outline: none;
+}
+
+.mission-model-domain-capsule[aria-current="true"] {
+  box-shadow:
+    0 0 0 1px rgba(103, 232, 249, 0.45),
+    0 0 28px rgba(34, 211, 238, 0.18);
+  transform: translateY(-1px);
 }
 
 .mission-model-fabric-state-indexed {
@@ -278,7 +311,7 @@
   border-radius: 14px;
   padding: 12px;
   color: #94a3b8;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -287,7 +320,7 @@
   position: sticky;
   top: 18px;
   display: grid;
-  gap: 16px;
+  gap: 13px;
   border-color: rgba(103, 232, 249, 0.22);
   background:
     radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 20rem),
@@ -297,16 +330,16 @@
 .mission-model-focused-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 9px;
 }
 
 .mission-model-focused-metric {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 14px;
-  padding: 11px;
+  padding: 10px;
   background: rgba(2, 6, 23, 0.3);
 }
 
@@ -373,6 +406,10 @@
   .mission-model-source-lane,
   .mission-model-spine-steps {
     grid-template-columns: 1fr;
+  }
+
+  .mission-model-source-lane::after {
+    left: 20px;
   }
 
   .mission-model-focused-contract {
