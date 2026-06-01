@@ -55,6 +55,22 @@ interface MissionModelFabric {
   };
 }
 
+const missionSourceOrder = [
+  "spacecraft.yaml",
+  "subsystems.yaml",
+  "modes.yaml",
+  "telemetry.yaml",
+  "commands.yaml",
+  "events.yaml",
+  "faults.yaml",
+  "packets.yaml",
+  "payloads.yaml",
+  "data_products.yaml",
+  "contacts.yaml",
+  "commandability.yaml",
+  "policies.yaml",
+];
+
 const stateCopy: Record<FabricDomainState, string> = {
   source: "Workspace source exists, but Core reports are not attached to this domain yet.",
   reported: "Core reported this contract domain, with no indexed entity records attached.",
@@ -106,9 +122,7 @@ export function MissionModelAtlasSurface({
           <span className="cockpit-eyebrow">Mission Model Fabric</span>
           <h2>Source-to-contract weave</h2>
           <p>
-            Read-only contract fabric derived from workspace source lanes and Core reports.
-            YAML files stay as sources, Core domains become selectable contract capsules,
-            entity records remain inspection evidence.
+            Workspace YAML lanes, Core domain capsules and entity-index evidence in one read-only contract fabric.
           </p>
         </div>
         <div className="badge-row mission-model-fabric-hero-badges">
@@ -230,7 +244,7 @@ function FabricMatrix({
         <div>
           <span className="cockpit-eyebrow">Fabric Matrix</span>
           <h3>Source lanes and Core domain capsules</h3>
-          <p>Each lane is a workspace source file. Each capsule is a Core-facing contract domain attached to that source.</p>
+          <p>Each lane is a workspace source. Each capsule is a Core-facing contract domain attached to that source.</p>
         </div>
         <div className="mission-model-fabric-legend" aria-label="Fabric state legend">
           <LegendItem state="indexed" />
@@ -254,26 +268,31 @@ function FabricMatrix({
                 }}
               >
                 <strong>{lane.sourceFile}</strong>
-                <span>{lane.sourceCategory ?? (lane.missing ? "Missing source" : "Source lane")}</span>
+                <span>{lane.missing ? "Missing YAML" : "YAML source"}</span>
               </button>
             </div>
 
             <div className="mission-model-domain-capsule-rail">
               {lane.domains.length > 0 ? (
-                lane.domains.map((domain) => (
-                  <button
-                    type="button"
-                    className={`mission-model-domain-capsule mission-model-fabric-state-${domain.state}`}
-                    key={domain.id}
-                    onClick={() => onSelectDomain(domain.id)}
-                    aria-current={selectedDomain?.id === domain.id ? "true" : undefined}
-                    title={`${domain.label}: ${stateCopy[domain.state]}`}
-                  >
-                    <strong>{domain.label}</strong>
-                    <span>{stateLabels[domain.state]}</span>
-                    <small>{domain.entityCount} entities</small>
-                  </button>
-                ))
+                lane.domains.map((domain) => {
+                  const focused = selectedDomain?.id === domain.id;
+
+                  return (
+                    <button
+                      type="button"
+                      className={`mission-model-domain-capsule mission-model-fabric-state-${domain.state}`}
+                      key={domain.id}
+                      onClick={() => onSelectDomain(domain.id)}
+                      aria-current={focused ? "true" : undefined}
+                      title={`${domain.label}: ${stateCopy[domain.state]}`}
+                    >
+                      <strong>{domain.label}</strong>
+                      <span>{stateLabels[domain.state]}</span>
+                      <small>{domain.entityCount} entities</small>
+                      {focused ? <em>Focused</em> : null}
+                    </button>
+                  );
+                })
               ) : (
                 <span className="mission-model-empty-capsule">No Core domain capsule</span>
               )}
@@ -312,7 +331,6 @@ function FocusedContractPanel({
         <div>
           <span className="cockpit-eyebrow">Focused contract</span>
           <h3>{domain.label}</h3>
-          <p>{stateCopy[domain.state]}</p>
         </div>
         <StatusBadge label={domain.state.toUpperCase()} />
       </div>
@@ -454,6 +472,9 @@ function createMissionModelFabric(
 function createLaneNames(workspace: WorkspaceInspection, domains: FabricDomain[]): string[] {
   const orderedNames: string[] = [];
   const seen = new Set<string>();
+  const sourceNames = new Set(workspace.source_model_files.map((entry) => entry.name));
+  const missingNames = new Set(workspace.missing_expected_source_files);
+  const domainSourceNames = new Set(domains.map((domain) => domain.sourceFile).filter(Boolean) as string[]);
 
   function addName(name: string | null) {
     if (!name || seen.has(name)) {
@@ -463,6 +484,11 @@ function createLaneNames(workspace: WorkspaceInspection, domains: FabricDomain[]
     orderedNames.push(name);
   }
 
+  missionSourceOrder.forEach((name) => {
+    if (sourceNames.has(name) || missingNames.has(name) || domainSourceNames.has(name)) {
+      addName(name);
+    }
+  });
   workspace.source_model_files.forEach((entry) => addName(entry.name));
   workspace.missing_expected_source_files.forEach(addName);
   domains.forEach((domain) => addName(domain.sourceFile));
