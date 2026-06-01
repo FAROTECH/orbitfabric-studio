@@ -1,0 +1,1195 @@
+/* Mission Data Flow Workbench visual hierarchy.
+   Visual-only Evidence Flow Console. No Core semantics, graph semantics, authoring
+   or private inference are introduced here. */
+
+.mission-data-flow-console {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(34, 211, 238, 0.1), transparent 30rem),
+    radial-gradient(circle at 92% 12%, rgba(124, 58, 237, 0.1), transparent 28rem),
+    rgba(2, 6, 23, 0.24);
+}
+
+.mission-data-flow-console-header {
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 22px;
+  padding: 16px;
+  background:
+    linear-gradient(120deg, rgba(8, 47, 73, 0.72), rgba(15, 23, 42, 0.56)),
+    rgba(2, 6, 23, 0.46);
+}
+
+.mission-data-flow-console-header h3 {
+  margin-top: 4px;
+  color: #f8fafc;
+  font-size: clamp(1.45rem, 2vw, 2.1rem);
+  letter-spacing: -0.045em;
+}
+
+.mission-data-flow-console-header p {
+  max-width: 62rem;
+  color: #cbd5e1;
+}
+
+.mission-data-flow-console .muted-section {
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.24);
+}
+
+.mission-data-flow-source-rail {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.18fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(51, 65, 85, 0.9);
+  border-radius: 18px;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(2, 6, 23, 0.54));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.mission-data-flow-source-rail-title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mission-data-flow-source-rail-title span,
+.mission-data-flow-lane-card header span,
+.mission-data-flow-spine-header .cockpit-eyebrow {
+  color: #94a3b8;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-source-rail-title strong {
+  color: #f8fafc;
+  font-size: 0.84rem;
+}
+
+.mission-data-flow-source-strip {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 7px;
+  min-width: 0;
+}
+
+.mission-data-flow-source-node {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+  min-height: 30px;
+  border: 1px solid rgba(71, 85, 105, 0.74);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(2, 6, 23, 0.46);
+}
+
+.mission-data-flow-source-node i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #64748b;
+  box-shadow: 0 0 10px rgba(100, 116, 139, 0.54);
+}
+
+.mission-data-flow-source-node span,
+.mission-data-flow-source-node strong {
+  overflow: hidden;
+  color: #cbd5e1;
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-data-flow-source-node strong {
+  color: #94a3b8;
+}
+
+.mission-data-flow-source-reported {
+  border-color: rgba(34, 197, 94, 0.32);
+}
+
+.mission-data-flow-source-reported i {
+  background: #22c55e;
+  box-shadow: 0 0 13px rgba(34, 197, 94, 0.66);
+}
+
+.mission-data-flow-source-reported strong {
+  color: #bbf7d0;
+}
+
+.mission-data-flow-source-not-reported,
+.mission-data-flow-source-unavailable {
+  border-style: dashed;
+  opacity: 0.76;
+}
+
+.mission-data-flow-console .summary-grid {
+  gap: 8px;
+}
+
+.mission-data-flow-console .summary-item {
+  border-radius: 14px;
+  border-color: rgba(148, 163, 184, 0.13);
+  background: rgba(15, 23, 42, 0.36);
+}
+
+.mission-data-flow-console-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.58fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.mission-data-flow-spine-panel,
+.mission-data-flow-inspector,
+.mission-data-flow-deck-card,
+.mission-data-flow-source-ledger {
+  border-color: rgba(51, 65, 85, 0.9);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(2, 6, 23, 0.46));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.mission-data-flow-spine-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.mission-data-flow-spine-header {
+  border-bottom: 1px solid rgba(51, 65, 85, 0.74);
+  padding-bottom: 10px;
+}
+
+.mission-data-flow-spine-header p {
+  color: #94a3b8;
+}
+
+.mission-data-flow-spine {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.mission-data-flow-spine::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  right: 8%;
+  left: 8%;
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.44), transparent);
+  pointer-events: none;
+}
+
+.mission-data-flow-lane {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mission-data-flow-lane-index {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.mission-data-flow-lane-index span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.1rem;
+  height: 1.55rem;
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  border-radius: 999px;
+  color: #bae6fd;
+  background: rgba(8, 145, 178, 0.16);
+  font-size: 0.62rem;
+  font-weight: 950;
+}
+
+.mission-data-flow-lane-index i {
+  position: absolute;
+  bottom: -7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+}
+
+.mission-data-flow-lane-card {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 8px;
+  min-width: 0;
+  min-height: 252px;
+  border: 1px solid rgba(71, 85, 105, 0.78);
+  border-radius: 16px;
+  padding: 10px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08), transparent 64%),
+    rgba(2, 6, 23, 0.42);
+}
+
+.mission-data-flow-lane-reported .mission-data-flow-lane-card {
+  border-color: rgba(34, 197, 94, 0.24);
+}
+
+.mission-data-flow-lane-not-reported .mission-data-flow-lane-card,
+.mission-data-flow-lane-unavailable .mission-data-flow-lane-card {
+  border-style: dashed;
+  opacity: 0.8;
+}
+
+.mission-data-flow-lane-card header {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mission-data-flow-lane-card header strong,
+.mission-data-flow-lane-card header small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-data-flow-lane-card header strong {
+  color: #f8fafc;
+  font-size: 0.84rem;
+  letter-spacing: -0.015em;
+}
+
+.mission-data-flow-lane-card header small {
+  color: #64748b;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.mission-data-flow-lane-meter {
+  display: flex;
+  justify-content: space-between;
+  gap: 7px;
+  align-items: center;
+  border: 1px solid rgba(51, 65, 85, 0.74);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.mission-data-flow-lane-meter span,
+.mission-data-flow-lane-meter strong {
+  color: #cbd5e1;
+  font-size: 0.56rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mission-data-flow-record-stack {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mission-data-flow-record-chip {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid rgba(71, 85, 105, 0.72);
+  border-radius: 12px;
+  padding: 7px;
+  background: rgba(15, 23, 42, 0.48);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mission-data-flow-record-chip:hover {
+  border-color: rgba(56, 189, 248, 0.34);
+  background: rgba(8, 145, 178, 0.12);
+}
+
+.mission-data-flow-record-chip span,
+.mission-data-flow-record-chip strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-data-flow-record-chip span {
+  color: #f8fafc;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.mission-data-flow-record-chip strong {
+  color: #94a3b8;
+  font-size: 0.54rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-record-reported {
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.mission-data-flow-empty-lane {
+  display: grid;
+  gap: 5px;
+  min-height: 96px;
+  border: 1px dashed rgba(100, 116, 139, 0.56);
+  border-radius: 13px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.mission-data-flow-empty-lane strong {
+  color: #cbd5e1;
+  font-size: 0.72rem;
+}
+
+.mission-data-flow-empty-lane span {
+  color: #94a3b8;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+.mission-data-flow-lane-overflow {
+  align-self: end;
+  color: #67e8f9;
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-inspector {
+  position: sticky;
+  top: 12px;
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+}
+
+.mission-data-flow-inspector-beacon {
+  height: 4px;
+  border-radius: 999px;
+  background: #64748b;
+  box-shadow: 0 0 12px rgba(100, 116, 139, 0.55);
+}
+
+.mission-data-flow-inspector-reported {
+  background: #22c55e;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.66);
+}
+
+.mission-data-flow-inspector-not-reported {
+  background: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.58);
+}
+
+.mission-data-flow-inspector .raw-output-block {
+  max-height: 260px;
+  overflow: auto;
+}
+
+.mission-data-flow-evidence-deck {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.mission-data-flow-deck-card {
+  display: grid;
+  gap: 12px;
+}
+
+.mission-data-flow-scenario-card {
+  border-color: rgba(56, 189, 248, 0.16);
+}
+
+.mission-data-flow-validation-card {
+  border-color: rgba(245, 158, 11, 0.16);
+}
+
+.mission-data-flow-deck-card .cockpit-compact-list {
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.26);
+}
+
+.mission-data-flow-deck-card .cockpit-row {
+  min-height: 34px;
+}
+
+.mission-data-flow-source-ledger {
+  display: grid;
+  gap: 12px;
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.mission-data-flow-source-ledger .summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1680px) {
+  .mission-data-flow-spine {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mission-data-flow-spine::before {
+    display: none;
+  }
+
+  .mission-data-flow-lane-card {
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .mission-data-flow-console-grid,
+  .mission-data-flow-evidence-deck,
+  .mission-data-flow-source-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-data-flow-source-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .mission-data-flow-inspector {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .mission-data-flow-spine,
+  .mission-data-flow-source-strip,
+  .mission-data-flow-source-ledger .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-data-flow-console-header,
+  .mission-data-flow-spine-panel,
+  .mission-data-flow-source-ledger {
+    border-radius: 18px;
+  }
+}
+
+/* v0.15.0 Evidence Flow Console instrumental pass.
+   Visual-only pass. Keeps the Workbench read-only and Core-derived. */
+
+.mission-data-flow-console {
+  gap: 12px;
+}
+
+.mission-data-flow-console-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.mission-data-flow-console-header h3 {
+  margin: 2px 0 6px;
+  font-size: clamp(1.32rem, 1.7vw, 1.82rem);
+}
+
+.mission-data-flow-console-header p {
+  max-width: 54rem;
+  margin: 0;
+  color: #b6c2d4;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.mission-data-flow-source-rail {
+  grid-template-columns: minmax(142px, 0.14fr) minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 16px;
+}
+
+.mission-data-flow-source-strip {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mission-data-flow-source-node {
+  min-height: 25px;
+  padding: 4px 7px;
+}
+
+.mission-data-flow-source-node span,
+.mission-data-flow-source-node strong {
+  font-size: 0.54rem;
+}
+
+.mission-data-flow-console-grid {
+  grid-template-columns: minmax(0, 1.5fr) minmax(310px, 0.5fr);
+  gap: 12px;
+}
+
+.mission-data-flow-spine-panel {
+  gap: 10px;
+  padding: 12px;
+}
+
+.mission-data-flow-spine-header {
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.mission-data-flow-spine-header h3 {
+  margin: 2px 0 3px;
+}
+
+.mission-data-flow-spine-header p {
+  max-width: 48rem;
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.32;
+}
+
+.mission-data-flow-spine {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mission-data-flow-spine::before {
+  display: none;
+}
+
+.mission-data-flow-lane {
+  gap: 6px;
+}
+
+.mission-data-flow-lane-index {
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+
+.mission-data-flow-lane-index span {
+  min-width: 1.9rem;
+  height: 1.38rem;
+  font-size: 0.56rem;
+}
+
+.mission-data-flow-lane-index i {
+  right: 10px;
+  bottom: -5px;
+  left: auto;
+  width: 5px;
+  height: 5px;
+}
+
+.mission-data-flow-lane-card {
+  position: relative;
+  min-height: 186px;
+  border-radius: 15px;
+  padding: 9px;
+  overflow: hidden;
+}
+
+.mission-data-flow-lane-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 12px;
+  left: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.5);
+}
+
+.mission-data-flow-lane-reported .mission-data-flow-lane-card::after {
+  background: #22c55e;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.58);
+}
+
+.mission-data-flow-lane-not-reported .mission-data-flow-lane-card::after,
+.mission-data-flow-lane-unavailable .mission-data-flow-lane-card::after {
+  background: #64748b;
+}
+
+.mission-data-flow-lane-card header {
+  gap: 2px;
+}
+
+.mission-data-flow-lane-card header strong {
+  font-size: 0.82rem;
+}
+
+.mission-data-flow-lane-card header small {
+  font-size: 0.52rem;
+}
+
+.mission-data-flow-lane-meter {
+  padding: 3px 7px;
+}
+
+.mission-data-flow-lane-meter span,
+.mission-data-flow-lane-meter strong {
+  font-size: 0.52rem;
+}
+
+.mission-data-flow-record-stack {
+  gap: 5px;
+}
+
+.mission-data-flow-record-chip {
+  min-height: 38px;
+  padding: 6px 7px;
+  border-radius: 10px;
+}
+
+.mission-data-flow-empty-lane {
+  min-height: 74px;
+  padding: 8px;
+  border-radius: 11px;
+}
+
+.mission-data-flow-empty-lane strong {
+  font-size: 0.68rem;
+}
+
+.mission-data-flow-empty-lane span {
+  font-size: 0.62rem;
+}
+
+.mission-data-flow-lane-overflow {
+  font-size: 0.52rem;
+}
+
+.mission-data-flow-inspector {
+  gap: 9px;
+  padding: 12px;
+  border-radius: 18px;
+}
+
+.mission-data-flow-inspector .entry-main {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.7);
+}
+
+.mission-data-flow-inspector-beacon {
+  height: 3px;
+}
+
+.mission-data-flow-inspector .cockpit-compact-list {
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.mission-data-flow-inspector .raw-output-block {
+  max-height: 210px;
+}
+
+.mission-data-flow-evidence-deck {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 12px;
+}
+
+.mission-data-flow-deck-card {
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+}
+
+.mission-data-flow-deck-card .entry-main {
+  align-items: center;
+}
+
+.mission-data-flow-deck-card .entry-main h3 {
+  margin: 2px 0 0;
+  font-size: 0.98rem;
+}
+
+.mission-data-flow-deck-card .cockpit-empty-module {
+  min-height: 54px;
+  padding: 8px 10px;
+}
+
+.mission-data-flow-deck-card .cockpit-compact-list h4 {
+  margin-bottom: 6px;
+}
+
+.mission-data-flow-source-ledger {
+  display: none;
+}
+
+@media (max-width: 1500px) {
+  .mission-data-flow-console-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mission-data-flow-inspector {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .mission-data-flow-spine,
+  .mission-data-flow-source-strip,
+  .mission-data-flow-evidence-deck {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-data-flow-console-header,
+  .mission-data-flow-source-rail {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* v0.15.0 Evidence Flow Console final polish.
+   Visual-only polish. Keeps the Workbench read-only and Core-derived. */
+
+.mission-data-flow-console-header {
+  padding: 12px 16px;
+}
+
+.mission-data-flow-console-header h3 {
+  font-size: clamp(1.2rem, 1.45vw, 1.58rem);
+}
+
+.mission-data-flow-console-header p {
+  max-width: 46rem;
+  font-size: 0.86rem;
+}
+
+.mission-data-flow-console .muted-section {
+  padding: 8px 12px;
+}
+
+.mission-data-flow-console .muted-section .badge-row {
+  gap: 7px;
+}
+
+.mission-data-flow-console .cockpit-command-chip {
+  min-height: 25px;
+  padding: 5px 10px;
+  font-size: 0.62rem;
+}
+
+.mission-data-flow-source-rail {
+  margin-top: -2px;
+}
+
+.mission-data-flow-spine-panel {
+  padding: 11px;
+}
+
+.mission-data-flow-spine-header {
+  padding-bottom: 7px;
+}
+
+.mission-data-flow-spine-header h3 {
+  font-size: 0.98rem;
+}
+
+.mission-data-flow-spine-header p {
+  max-width: 43rem;
+  font-size: 0.78rem;
+}
+
+.mission-data-flow-lane-card {
+  min-height: 174px;
+}
+
+.mission-data-flow-empty-lane {
+  min-height: 66px;
+  align-content: center;
+}
+
+.mission-data-flow-empty-lane strong {
+  color: #e2e8f0;
+}
+
+.mission-data-flow-empty-lane span {
+  color: #8fa1b8;
+}
+
+.mission-data-flow-inspector {
+  padding: 11px;
+}
+
+.mission-data-flow-inspector .entry-main h3 {
+  font-size: 0.98rem;
+}
+
+.mission-data-flow-deck-card {
+  padding: 11px;
+}
+
+.mission-data-flow-deck-card .cockpit-empty-module {
+  min-height: 48px;
+}
+
+@media (min-width: 1501px) {
+  .mission-data-flow-console-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.45fr);
+  }
+}
+
+/* v0.15.0 Evidence Route Canvas reset.
+   Visual-only central reset. Represents the Core-derived evidence route without
+   introducing Studio-owned graph semantics or inferred mission links. */
+
+.mission-data-flow-spine-panel {
+  overflow: hidden;
+}
+
+.mission-data-flow-spine-header h3 {
+  letter-spacing: -0.018em;
+}
+
+.mission-data-flow-route-canvas {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 0 2px;
+}
+
+.mission-data-flow-route-node {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 8px;
+  min-width: 0;
+  min-height: 198px;
+  border: 1px solid rgba(71, 85, 105, 0.78);
+  border-radius: 17px;
+  padding: 11px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.1), transparent 62%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(2, 6, 23, 0.5));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 16px 36px rgba(0, 0, 0, 0.18);
+}
+
+.mission-data-flow-route-node:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: 45px;
+  right: -10px;
+  width: 10px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.58), rgba(56, 189, 248, 0));
+  box-shadow: 0 0 11px rgba(56, 189, 248, 0.32);
+}
+
+.mission-data-flow-route-node:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 42px;
+  right: -11px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid rgba(56, 189, 248, 0.74);
+  border-right: 1px solid rgba(56, 189, 248, 0.74);
+  transform: rotate(45deg);
+}
+
+.mission-data-flow-route-node-reported {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.mission-data-flow-route-node-not-reported,
+.mission-data-flow-route-node-unavailable {
+  border-style: dashed;
+}
+
+.mission-data-flow-route-node-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.mission-data-flow-route-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 12px;
+  color: #67e8f9;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(34, 211, 238, 0.18), transparent 72%),
+    rgba(8, 47, 73, 0.34);
+  font-size: 0.62rem;
+  font-weight: 1000;
+  letter-spacing: 0.07em;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.1);
+}
+
+.mission-data-flow-route-step {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.7rem;
+  height: 1.18rem;
+  border: 1px solid rgba(71, 85, 105, 0.82);
+  border-radius: 999px;
+  color: #94a3b8;
+  background: rgba(2, 6, 23, 0.44);
+  font-size: 0.5rem;
+  font-weight: 1000;
+}
+
+.mission-data-flow-route-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mission-data-flow-route-title span {
+  color: #67e8f9;
+  font-size: 0.55rem;
+  font-weight: 1000;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-route-title strong,
+.mission-data-flow-route-title small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-data-flow-route-title strong {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  letter-spacing: -0.01em;
+}
+
+.mission-data-flow-route-title small {
+  color: #64748b;
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.mission-data-flow-route-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.mission-data-flow-route-status span,
+.mission-data-flow-route-status strong {
+  color: #cbd5e1;
+  font-size: 0.52rem;
+  font-weight: 1000;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mission-data-flow-route-node-reported .mission-data-flow-route-status strong {
+  color: #bbf7d0;
+}
+
+.mission-data-flow-route-slots {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mission-data-flow-route-slot {
+  display: flex;
+  justify-content: space-between;
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(51, 65, 85, 0.64);
+  border-radius: 10px;
+  padding: 5px 7px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.mission-data-flow-route-slot span,
+.mission-data-flow-route-slot strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 0.54rem;
+  font-weight: 950;
+  letter-spacing: 0.055em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mission-data-flow-route-slot strong {
+  color: #e2e8f0;
+}
+
+.mission-data-flow-route-action {
+  display: grid;
+  align-content: center;
+  min-height: 46px;
+  border: 1px dashed rgba(100, 116, 139, 0.54);
+  border-radius: 12px;
+  padding: 7px;
+  background: rgba(2, 6, 23, 0.28);
+}
+
+.mission-data-flow-route-action strong,
+.mission-data-flow-route-action span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mission-data-flow-route-action strong {
+  color: #e2e8f0;
+  font-size: 0.66rem;
+}
+
+.mission-data-flow-route-action span {
+  color: #8fa1b8;
+  font-size: 0.58rem;
+  line-height: 1.28;
+}
+
+.mission-data-flow-route-records {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mission-data-flow-route-record {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  border-radius: 10px;
+  padding: 6px;
+  background: rgba(21, 128, 61, 0.09);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mission-data-flow-route-record:hover {
+  border-color: rgba(56, 189, 248, 0.38);
+  background: rgba(8, 145, 178, 0.12);
+}
+
+.mission-data-flow-route-record span,
+.mission-data-flow-route-record strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-data-flow-route-record span {
+  color: #f8fafc;
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+.mission-data-flow-route-record strong {
+  color: #94a3b8;
+  font-size: 0.5rem;
+  font-weight: 1000;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-route-overflow {
+  align-self: end;
+  color: #67e8f9;
+  font-size: 0.52rem;
+  font-weight: 1000;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1720px) {
+  .mission-data-flow-route-canvas {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .mission-data-flow-route-node {
+    padding: 9px;
+  }
+
+  .mission-data-flow-route-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 1450px) {
+  .mission-data-flow-route-canvas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mission-data-flow-route-node::before,
+  .mission-data-flow-route-node::after {
+    display: none;
+  }
+}
+
+@media (max-width: 940px) {
+  .mission-data-flow-route-canvas {
+    grid-template-columns: 1fr;
+  }
+}\n\n
+/* v0.15.0 Evidence Route Canvas pre-PR tightening. */
+.mission-data-flow-spine-panel.cockpit-panel-large {
+  min-height: 0;
+}
+
+.mission-data-flow-spine-panel {
+  align-content: start;
+  padding-bottom: 12px;
+}
+
+.mission-data-flow-route-canvas {
+  align-items: stretch;
+}

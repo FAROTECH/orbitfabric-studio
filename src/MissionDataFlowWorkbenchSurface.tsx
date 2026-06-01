@@ -73,45 +73,53 @@ export function MissionDataFlowWorkbenchSurface({
   const relationshipLane = snapshot.lanes.find(
     (lane) => lane.id === "relationship-manifest",
   );
+  const flowLanes = selectEvidenceFlowLanes(snapshot);
 
   return (
     <section
       id="studio-data-flow-workbench"
-      className="entry-section mission-data-flow-workbench"
+      className="entry-section mission-data-flow-workbench mission-data-flow-console"
       aria-label="Mission Data Flow Workbench"
     >
-      <div className="file-viewer-header">
+      <div className="file-viewer-header mission-data-flow-console-header">
         <div>
-          <span className="cockpit-eyebrow">v0.14.0 traceability integration</span>
-          <h3>Mission Data Flow Workbench</h3>
+          <span className="cockpit-eyebrow">Evidence Flow Console</span>
+          <h3>Contract evidence route</h3>
           <p>
-            Read-only workbench surface for Core-derived mission data-flow evidence,
-            relationships, validation, coverage, generated artifact context and
-            reported traceability links. The visual grammar follows Reference B
-            without introducing private graph semantics.
+            Model structure to generated outputs, rendered only from reported
+            Core and artifact evidence.
           </p>
         </div>
         <div className="badge-row">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="TRACEABILITY" />
+          <StatusBadge label={`${snapshot.counts.traceabilityLinks} TRACE LINKS`} />
         </div>
       </div>
 
       <MissionDataFlowWorkbenchTabs />
-      <MissionDataFlowWorkbenchEvidenceSummary snapshot={snapshot} />
-
+      <MissionDataFlowWorkbenchSourceRail sources={snapshot.sources} />
       <div
-        className="cockpit-work-grid mission-data-flow-workbench-grid"
-        aria-label="Mission Data Flow Workbench layout"
+        className="mission-data-flow-console-grid"
+        aria-label="Mission Data Flow Workbench evidence flow console"
       >
         <section
-          className="cockpit-panel cockpit-panel-large mission-data-flow-workbench-canvas"
-          aria-label="Read-only graph view foundation"
+          className="cockpit-panel cockpit-panel-large mission-data-flow-spine-panel"
+          aria-label="Evidence flow spine"
         >
-          <MissionDataFlowWorkbenchToolbar snapshot={snapshot} />
-          <MissionDataFlowWorkbenchCanvas
-            snapshot={snapshot}
+          <div className="entry-main mission-data-flow-spine-header">
+            <div>
+              <span className="cockpit-eyebrow">Evidence Router</span>
+              <h3>Evidence route canvas</h3>
+              <p>
+                Iconographic route from Core structure to generated mission outputs.
+                Waiting stages expose the command that can populate them.
+              </p>
+            </div>
+            <DashboardIcon kind="evidence" />
+          </div>
+          <MissionDataFlowWorkbenchFlowSpine
+            lanes={flowLanes}
             onSelectInspectorItem={setSelectedInspectorItem}
           />
         </section>
@@ -123,8 +131,8 @@ export function MissionDataFlowWorkbenchSurface({
       </div>
 
       <div
-        className="cockpit-work-grid mission-data-flow-workbench-lower-grid"
-        aria-label="Mission Data Flow Workbench lower evidence panels"
+        className="mission-data-flow-evidence-deck"
+        aria-label="Mission Data Flow Workbench evidence deck"
       >
         <MissionDataFlowWorkbenchScenarioPanel
           lane={scenarioLane}
@@ -142,9 +150,304 @@ export function MissionDataFlowWorkbenchSurface({
         />
       </div>
 
-      <MissionDataFlowWorkbenchSources sources={snapshot.sources} />
     </section>
   );
+}
+
+function MissionDataFlowWorkbenchSourceRail({
+  sources,
+}: {
+  sources: MissionDataFlowWorkbenchSourceSummary[];
+}) {
+  return (
+    <section className="mission-data-flow-source-rail" aria-label="Workbench source rail">
+      <div className="mission-data-flow-source-rail-title">
+        <span>Source readiness</span>
+        <strong>Core report bus</strong>
+      </div>
+      <div className="mission-data-flow-source-strip">
+        {sources.map((source) => (
+          <div
+            className={`mission-data-flow-source-node mission-data-flow-source-${source.state}`}
+            key={source.id}
+            title={`${source.label}: ${source.detail}`}
+          >
+            <i aria-hidden="true" />
+            <span>{formatSourceShortLabel(source.id)}</span>
+            <strong>{source.state === "reported" ? "ON" : "N/R"}</strong>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+interface WorkbenchRouteStageSlot {
+  label: string;
+  value: number | string;
+}
+
+interface WorkbenchRouteStage {
+  id: string;
+  eyebrow: string;
+  title: string;
+  source: string;
+  iconLabel: string;
+  state: MissionDataFlowWorkbenchLane["state"];
+  records: MissionDataFlowWorkbenchRecord[];
+  slots: WorkbenchRouteStageSlot[];
+  actionLabel: string;
+  emptyHint: string;
+}
+
+function MissionDataFlowWorkbenchFlowSpine({
+  lanes,
+  onSelectInspectorItem,
+}: {
+  lanes: MissionDataFlowWorkbenchLane[];
+  onSelectInspectorItem: (selection: WorkbenchInspectorSelection) => void;
+}) {
+  const stages = createEvidenceRouteStages(lanes);
+
+  return (
+    <div className="mission-data-flow-route-canvas" aria-label="Core evidence route canvas">
+      {stages.map((stage, index) => (
+        <MissionDataFlowWorkbenchRouteNode
+          key={stage.id}
+          stage={stage}
+          index={index}
+          onSelectInspectorItem={onSelectInspectorItem}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MissionDataFlowWorkbenchRouteNode({
+  stage,
+  index,
+  onSelectInspectorItem,
+}: {
+  stage: WorkbenchRouteStage;
+  index: number;
+  onSelectInspectorItem: (selection: WorkbenchInspectorSelection) => void;
+}) {
+  const displayedRecords = stage.records.slice(0, 3);
+  const hiddenRecords = Math.max(0, stage.records.length - displayedRecords.length);
+
+  return (
+    <article
+      className={`mission-data-flow-route-node mission-data-flow-route-node-${stage.state}`}
+      aria-label={stage.title}
+    >
+      <div className="mission-data-flow-route-node-top">
+        <div className="mission-data-flow-route-icon" aria-hidden="true">
+          {stage.iconLabel}
+        </div>
+        <span className="mission-data-flow-route-step">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      </div>
+
+      <header className="mission-data-flow-route-title">
+        <span>{stage.eyebrow}</span>
+        <strong>{stage.title}</strong>
+        <small>{stage.source}</small>
+      </header>
+
+      <div className="mission-data-flow-route-status">
+        <span>{formatLaneRecordCount(stage.records.length)}</span>
+        <strong>{formatLaneState(stage.state)}</strong>
+      </div>
+
+      <div className="mission-data-flow-route-slots" aria-label={`${stage.title} evidence slots`}>
+        {stage.slots.map((slot) => (
+          <div className="mission-data-flow-route-slot" key={slot.label}>
+            <span>{slot.label}</span>
+            <strong>{String(slot.value)}</strong>
+          </div>
+        ))}
+      </div>
+
+      {displayedRecords.length > 0 ? (
+        <div className="mission-data-flow-route-records">
+          {displayedRecords.map((record) => (
+            <button
+              className="mission-data-flow-route-record"
+              key={record.id}
+              title={record.detail}
+              type="button"
+              onClick={() => {
+                const selection = toInspectorSelectionFromRecord(record);
+
+                if (selection) {
+                  onSelectInspectorItem(selection);
+                }
+              }}
+            >
+              <span>{record.label}</span>
+              <strong>{record.kind}</strong>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="mission-data-flow-route-action">
+          <strong>{stage.actionLabel}</strong>
+          <span>{stage.emptyHint}</span>
+        </div>
+      )}
+
+      {hiddenRecords > 0 ? (
+        <div className="mission-data-flow-route-overflow">
+          +{hiddenRecords} more records
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function createEvidenceRouteStages(
+  lanes: MissionDataFlowWorkbenchLane[],
+): WorkbenchRouteStage[] {
+  const missionDomains = findWorkbenchLane(lanes, "mission-domains");
+  const relationshipManifest = findWorkbenchLane(lanes, "relationship-manifest");
+  const scenarioEvidence = findWorkbenchLane(lanes, "scenario-data-flow-evidence");
+  const validationEvidence = findWorkbenchLane(lanes, "validation");
+  const coverageEvidence = findWorkbenchLane(lanes, "coverage");
+  const generatedArtifacts = findWorkbenchLane(lanes, "generated-artifacts");
+
+  return [
+    createRouteStage({
+      id: "structure",
+      eyebrow: "STRUCTURE",
+      title: "Mission model basis",
+      source: "MODEL / INDEX",
+      iconLabel: "MDL",
+      lanes: [missionDomains],
+      slots: [
+        { label: "Domains", value: missionDomains?.records.length ?? 0 },
+        { label: "Index", value: missionDomains ? formatLaneState(missionDomains.state) : "WAITING" },
+      ],
+      actionLabel: "Refresh Core",
+      emptyHint: "Populate model and entity-index evidence.",
+    }),
+    createRouteStage({
+      id: "relationships",
+      eyebrow: "RELATIONSHIPS",
+      title: "Contract links",
+      source: "REL MANIFEST",
+      iconLabel: "REL",
+      lanes: [relationshipManifest],
+      slots: [
+        { label: "Records", value: relationshipManifest?.records.length ?? 0 },
+        { label: "Manifest", value: relationshipManifest ? formatLaneState(relationshipManifest.state) : "WAITING" },
+      ],
+      actionLabel: "Refresh Core",
+      emptyHint: "Expose Core relationship evidence.",
+    }),
+    createRouteStage({
+      id: "scenario-flow",
+      eyebrow: "SCENARIO FLOW",
+      title: "Runtime evidence",
+      source: "SIM REPORT",
+      iconLabel: "SIM",
+      lanes: [scenarioEvidence],
+      slots: [
+        { label: "Events", value: scenarioEvidence?.records.length ?? 0 },
+        { label: "Scenario", value: scenarioEvidence ? formatLaneState(scenarioEvidence.state) : "WAITING" },
+      ],
+      actionLabel: "Run Scenario",
+      emptyHint: "Produce scenario data-flow evidence.",
+    }),
+    createRouteStage({
+      id: "quality-gate",
+      eyebrow: "QUALITY GATE",
+      title: "Validation & coverage",
+      source: "LINT / COV",
+      iconLabel: "QA",
+      lanes: [validationEvidence, coverageEvidence],
+      slots: [
+        { label: "Validation", value: validationEvidence?.records.length ?? 0 },
+        { label: "Coverage", value: coverageEvidence?.records.length ?? 0 },
+      ],
+      actionLabel: "Validate Mission",
+      emptyHint: "Populate validation and coverage evidence.",
+    }),
+    createRouteStage({
+      id: "outputs",
+      eyebrow: "OUTPUTS",
+      title: "Generated artifacts",
+      source: "ARTIFACT INVENTORY",
+      iconLabel: "ART",
+      lanes: [generatedArtifacts],
+      slots: [
+        { label: "Artifacts", value: generatedArtifacts?.records.length ?? 0 },
+        { label: "Inventory", value: generatedArtifacts ? formatLaneState(generatedArtifacts.state) : "WAITING" },
+      ],
+      actionLabel: "Generate Artifacts",
+      emptyHint: "Populate output and artifact evidence.",
+    }),
+  ];
+}
+
+function createRouteStage({
+  id,
+  eyebrow,
+  title,
+  source,
+  iconLabel,
+  lanes,
+  slots,
+  actionLabel,
+  emptyHint,
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  source: string;
+  iconLabel: string;
+  lanes: Array<MissionDataFlowWorkbenchLane | undefined>;
+  slots: WorkbenchRouteStageSlot[];
+  actionLabel: string;
+  emptyHint: string;
+}): WorkbenchRouteStage {
+  const presentLanes = lanes.filter(
+    (lane): lane is MissionDataFlowWorkbenchLane => Boolean(lane),
+  );
+
+  return {
+    id,
+    eyebrow,
+    title,
+    source,
+    iconLabel,
+    state: combineRouteStageState(presentLanes),
+    records: presentLanes.flatMap((lane) => lane.records),
+    slots,
+    actionLabel,
+    emptyHint,
+  };
+}
+
+function findWorkbenchLane(
+  lanes: MissionDataFlowWorkbenchLane[],
+  id: MissionDataFlowWorkbenchLane["id"],
+): MissionDataFlowWorkbenchLane | undefined {
+  return lanes.find((lane) => lane.id === id);
+}
+
+function combineRouteStageState(
+  lanes: MissionDataFlowWorkbenchLane[],
+): MissionDataFlowWorkbenchLane["state"] {
+  if (lanes.some((lane) => lane.state === "reported" || lane.records.length > 0)) {
+    return "reported";
+  }
+
+  if (lanes.some((lane) => lane.state === "unavailable")) {
+    return "unavailable";
+  }
+
+  return "not-reported";
 }
 
 function MissionDataFlowWorkbenchTabs() {
@@ -152,7 +455,7 @@ function MissionDataFlowWorkbenchTabs() {
     { label: "Graph View", state: "active" },
     { label: "YAML View", state: "reserved" },
     { label: "Scenario Runner", state: "reserved" },
-    { label: "Data Flow Evidence", state: "reported" },
+    { label: "Evidence View", state: "reported" },
   ] as const;
 
   return (
@@ -175,6 +478,123 @@ function MissionDataFlowWorkbenchTabs() {
       </div>
     </nav>
   );
+}
+
+function selectEvidenceFlowLanes(
+  snapshot: MissionDataFlowWorkbenchSnapshot,
+): MissionDataFlowWorkbenchLane[] {
+  const laneOrder: MissionDataFlowWorkbenchLane["id"][] = [
+    "mission-domains",
+    "relationship-manifest",
+    "scenario-data-flow-evidence",
+    "validation",
+    "coverage",
+    "generated-artifacts",
+  ];
+
+  return laneOrder
+    .map((laneId) => snapshot.lanes.find((lane) => lane.id === laneId))
+    .filter((lane): lane is MissionDataFlowWorkbenchLane => Boolean(lane));
+}
+
+function formatSourceShortLabel(id: MissionDataFlowWorkbenchSourceSummary["id"]): string {
+  switch (id) {
+    case "core-model-summary":
+      return "MODEL";
+    case "core-entity-index":
+      return "INDEX";
+    case "core-relationship-manifest":
+      return "REL";
+    case "core-dashboard-summary":
+      return "DASH";
+    case "core-lint-report":
+      return "LINT";
+    case "core-coverage-summary":
+      return "COV";
+    case "core-simulation-report":
+      return "SIM";
+    case "generated-artifact-inventory":
+      return "ART";
+    case "workspace-inspection":
+      return "WS";
+    case "explicit-unavailable-state":
+      return "N/A";
+  }
+}
+
+function getLaneShortLabel(id: MissionDataFlowWorkbenchLane["id"]): string {
+  switch (id) {
+    case "mission-domains":
+      return "DOMAIN";
+    case "relationship-manifest":
+      return "RELATION";
+    case "scenario-data-flow-evidence":
+      return "SCENARIO";
+    case "validation":
+      return "VALIDATE";
+    case "coverage":
+      return "COVERAGE";
+    case "generated-artifacts":
+      return "OUTPUT";
+  }
+}
+
+function formatLaneRecordCount(count: number): string {
+  if (count === 0) {
+    return "0 records";
+  }
+
+  if (count === 1) {
+    return "1 record";
+  }
+
+  return `${count} records`;
+}
+
+function formatLaneState(state: MissionDataFlowWorkbenchLane["state"]): string {
+  if (state === "reported") {
+    return "READY";
+  }
+
+  if (state === "unavailable") {
+    return "N/A";
+  }
+
+  return "WAITING";
+}
+
+function formatLaneEmptyHint(id: MissionDataFlowWorkbenchLane["id"]): string {
+  switch (id) {
+    case "mission-domains":
+      return "Load Core model summary or entity index.";
+    case "relationship-manifest":
+      return "Load Core relationship manifest.";
+    case "scenario-data-flow-evidence":
+      return "Load Core simulation data-flow evidence.";
+    case "validation":
+      return "Load Core lint or dashboard validation.";
+    case "coverage":
+      return "Load Core coverage summary.";
+    case "generated-artifacts":
+      return "Load generated artifact inventory.";
+  }
+}
+
+function formatLaneActionHint(id: MissionDataFlowWorkbenchLane["id"]): string {
+  switch (id) {
+    case "mission-domains":
+      return "Refresh Core to populate model and index evidence.";
+    case "relationship-manifest":
+      return "Refresh Core to expose relationship evidence.";
+    case "scenario-data-flow-evidence":
+      return "Run Scenario to produce data-flow evidence.";
+    case "validation":
+      return "Validate Mission to populate quality evidence.";
+    case "coverage":
+      return "Run coverage-producing Core reports.";
+    case "generated-artifacts":
+      return "Generate artifacts to populate output evidence.";
+  }
 }
 
 function MissionDataFlowWorkbenchEvidenceSummary({
@@ -332,16 +752,19 @@ function MissionDataFlowWorkbenchInspector({
   const relatedTraceabilityLinks = selection
     ? selectTraceabilityLinksForSelection(traceability, selection)
     : [];
+  const traceabilityState =
+    relatedTraceabilityLinks.length > 0 ? "reported" : "not-reported";
 
   return (
-    <aside className="cockpit-panel" aria-label="Workbench Inspector">
+    <aside className="cockpit-panel mission-data-flow-inspector" aria-label="Workbench Inspector">
       <div className="entry-main">
         <div>
-          <span className="cockpit-eyebrow">Inspector</span>
-          <h3>{selection ? "Selected reported evidence" : "No selection"}</h3>
+          <span className="cockpit-eyebrow">Evidence Detail</span>
+          <h3>{selection ? "Selected Core record" : "No evidence selected"}</h3>
         </div>
         <DashboardIcon kind="evidence" />
       </div>
+      <div className={`mission-data-flow-inspector-beacon mission-data-flow-inspector-${traceabilityState}`} />
 
       {selection ? (
         <div className="cockpit-compact-list">
@@ -462,11 +885,11 @@ function MissionDataFlowWorkbenchScenarioPanel({
   const records = lane?.records ?? [];
 
   return (
-    <article className="cockpit-panel" aria-label="Scenario timeline foundation">
+    <article className="cockpit-panel mission-data-flow-deck-card mission-data-flow-scenario-card" aria-label="Scenario timeline foundation">
       <div className="entry-main">
         <div>
-          <span className="cockpit-eyebrow">Scenario Timeline</span>
-          <h3>Core-reported data-flow evidence</h3>
+          <span className="cockpit-eyebrow">Scenario Evidence</span>
+          <h3>Reported data-flow events</h3>
         </div>
         <StatusBadge label={lane?.state.toUpperCase() ?? "NOT-REPORTED"} />
       </div>
@@ -557,11 +980,11 @@ function MissionDataFlowWorkbenchValidationPanel({
   const relationshipRecords = relationshipLane?.records ?? [];
 
   return (
-    <article className="cockpit-panel" aria-label="Validation and coverage evidence">
+    <article className="cockpit-panel mission-data-flow-deck-card mission-data-flow-validation-card" aria-label="Validation and coverage evidence">
       <div className="entry-main">
         <div>
-          <span className="cockpit-eyebrow">Lint / Validation Results</span>
-          <h3>Core-reported validation and coverage</h3>
+          <span className="cockpit-eyebrow">Validation & Coverage</span>
+          <h3>Reported quality evidence</h3>
         </div>
         <DashboardIcon kind="validation" />
       </div>
@@ -664,10 +1087,10 @@ function MissionDataFlowWorkbenchSources({
   sources: MissionDataFlowWorkbenchSourceSummary[];
 }) {
   return (
-    <section className="entry-section" aria-label="Workbench reported sources">
+    <section className="entry-section mission-data-flow-source-ledger" aria-label="Workbench reported sources">
       <div className="entry-main">
         <div>
-          <h3>Reported sources</h3>
+          <h3>Evidence source ledger</h3>
           <p>
             The workbench shell exposes only sources already reported by Core or
             loaded through generated artifact inspection.
