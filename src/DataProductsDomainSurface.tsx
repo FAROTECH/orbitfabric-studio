@@ -1,1 +1,8 @@
-export { MissionModelAtlasSurface as DataProductsDomainSurface } from "./MissionModelAtlasSurface";
+import {
+  MissionModelAtlasSurface,
+  type MissionModelAtlasSurfaceProps,
+} from "./MissionModelAtlasSurface";
+
+export function DataProductsDomainSurface(props: MissionModelAtlasSurfaceProps) {
+  return <MissionModelAtlasSurface {...props} preferredDomainId="data_products" />;
+}
