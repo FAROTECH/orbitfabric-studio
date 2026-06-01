@@ -20,9 +20,9 @@ export interface MissionModelAtlasSurfaceProps {
   preferredDomainId?: string;
 }
 
-type AtlasDomainState = "indexed" | "reported" | "source" | "missing";
+type FabricDomainState = "indexed" | "reported" | "source" | "missing";
 
-interface AtlasDomain {
+interface FabricDomain {
   id: string;
   label: string;
   sourceFile: string | null;
@@ -30,21 +30,39 @@ interface AtlasDomain {
   present: boolean;
   modelCount: number | null;
   entityCount: number;
-  state: AtlasDomainState;
+  state: FabricDomainState;
   sourceEntry: ProjectEntry | null;
   entities: DomainEntitySummary[];
 }
 
-const domainStateOrder: AtlasDomainState[] = ["indexed", "reported", "source", "missing"];
+interface FabricLane {
+  sourceFile: string;
+  sourceEntry: ProjectEntry | null;
+  sourceCategory: string | null;
+  missing: boolean;
+  domains: FabricDomain[];
+}
 
-const stateCopy: Record<AtlasDomainState, string> = {
-  source: "Workspace source detected, Core reports not yet available for this domain.",
-  reported: "Core reported the domain, but no indexed entity records were attached.",
-  indexed: "Core reported the domain and entity-index records are available.",
-  missing: "Core reported the domain as expected, but the source file is missing.",
+interface MissionModelFabric {
+  domains: FabricDomain[];
+  lanes: FabricLane[];
+  counts: {
+    sourceFiles: number;
+    missingFiles: number;
+    modelDomains: number;
+    entityRecords: number;
+    indexedDomains: number;
+  };
+}
+
+const stateCopy: Record<FabricDomainState, string> = {
+  source: "Workspace source exists, but Core reports are not attached to this domain yet.",
+  reported: "Core reported this contract domain, with no indexed entity records attached.",
+  indexed: "Core reported this domain and entity-index records are available.",
+  missing: "This expected source lane is missing or not present in the workspace.",
 };
 
-const stateLabels: Record<AtlasDomainState, string> = {
+const stateLabels: Record<FabricDomainState, string> = {
   indexed: "Indexed",
   reported: "Reported",
   source: "Source",
@@ -60,13 +78,13 @@ export function MissionModelAtlasSurface({
   onOpenFile,
   preferredDomainId,
 }: MissionModelAtlasSurfaceProps) {
-  const atlas = useMemo(
-    () => createAtlas(workspace, modelSummary, entityIndex),
+  const fabric = useMemo(
+    () => createMissionModelFabric(workspace, modelSummary, entityIndex),
     [workspace, modelSummary, entityIndex],
   );
   const preferredResolvedDomainId = useMemo(
-    () => resolvePreferredDomainId(preferredDomainId, atlas.domains),
-    [preferredDomainId, atlas.domains],
+    () => resolvePreferredDomainId(preferredDomainId, fabric.domains),
+    [preferredDomainId, fabric.domains],
   );
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(preferredResolvedDomainId);
   const reportsMissing = !modelSummary || !entityIndex;
@@ -76,321 +94,319 @@ export function MissionModelAtlasSurface({
   }, [preferredResolvedDomainId]);
 
   const selectedDomain =
-    atlas.domains.find((domain) => domain.id === selectedDomainId) ??
-    atlas.domains.find((domain) => domain.id === preferredResolvedDomainId) ??
-    atlas.domains[0] ??
+    fabric.domains.find((domain) => domain.id === selectedDomainId) ??
+    fabric.domains.find((domain) => domain.id === preferredResolvedDomainId) ??
+    fabric.domains[0] ??
     null;
 
   return (
-    <section id="studio-model" className="mission-model-atlas" aria-label="Mission Model Atlas">
-      <header className="mission-model-atlas-hero">
+    <section id="studio-model" className="mission-model-atlas mission-model-fabric" aria-label="Mission Model Fabric">
+      <header className="mission-model-fabric-hero">
         <div>
-          <span className="cockpit-eyebrow">Mission Model Atlas</span>
-          <h2>Contract territory map</h2>
+          <span className="cockpit-eyebrow">Mission Model Fabric</span>
+          <h2>Source-to-contract weave</h2>
           <p>
-            Read-only map of Mission Model source files, Core-reported domains and
-            Core-reported entity records. Studio observes the contract posture without
-            editing YAML, parsing source semantics or inventing missing model meaning.
+            Read-only contract fabric derived from workspace source lanes and Core reports.
+            YAML files stay as sources, Core domains become selectable contract capsules,
+            entity records remain inspection evidence.
           </p>
         </div>
-        <div className="badge-row mission-model-atlas-hero-badges">
+        <div className="badge-row mission-model-fabric-hero-badges">
           <ProvenanceBadge label="READ-ONLY" />
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label="NO INFERENCE" />
+          <StatusBadge label="NO YAML AUTHORING" />
+          <StatusBadge label="NO GRAPH INFERENCE" />
         </div>
       </header>
 
-      {reportsMissing ? (
-        <section className="mission-model-atlas-panel mission-model-refresh-guidance" aria-label="Core report guidance">
-          <div>
-            <span className="cockpit-eyebrow">Core reports missing</span>
-            <h3>Refresh the Core-derived model reports</h3>
-            <p>
-              Use the top-bar <strong>Refresh Core</strong> action, then run
-              <strong> Export model summary</strong> and <strong> Export entity index</strong>.
-              Until both reports are available, the Atlas shows only structural source-file posture.
-            </p>
-          </div>
-          <div className="mission-model-refresh-steps">
-            <span>Refresh Core</span>
-            <span>Export model summary</span>
-            <span>Export entity index</span>
-            <span>Return to Model</span>
-          </div>
-        </section>
-      ) : null}
+      <ContractSpine
+        fabric={fabric}
+        modelSummary={modelSummary}
+        entityIndex={entityIndex}
+        selectedDomain={selectedDomain}
+        reportsMissing={reportsMissing}
+      />
 
-      <section className="mission-model-atlas-grid" aria-label="Mission Model posture">
-        <DomainStateBoard
-          domains={atlas.domains}
+      <section className="mission-model-fabric-workbench" aria-label="Mission Model Fabric workbench">
+        <FabricMatrix
+          lanes={fabric.lanes}
           selectedDomain={selectedDomain}
+          onOpenFile={onOpenFile}
           onSelectDomain={setSelectedDomainId}
         />
 
-        <article className="mission-model-atlas-panel">
-          <div className="mission-model-atlas-panel-heading">
-            <div>
-              <span className="cockpit-eyebrow">Report rails</span>
-              <h3>Core posture</h3>
-            </div>
-            <StatusBadge label="READ ONLY" />
-          </div>
-          <div className="mission-model-status-grid">
-            <AtlasMetric label="Model summary" value={modelSummary ? "reported" : "not reported"} />
-            <AtlasMetric label="Entity index" value={entityIndex ? "reported" : "not reported"} />
-            <AtlasMetric label="Source files" value={String(workspace.source_model_files.length)} />
-            <AtlasMetric label="Missing files" value={String(workspace.missing_expected_source_files.length)} />
-            <AtlasMetric label="Entity records" value={String(entityIndex?.counts.total_entities ?? 0)} />
-            <AtlasMetric label="Indexed domains" value={String(atlas.domains.filter((domain) => domain.state === "indexed").length)} />
-          </div>
-
-          <div className="mission-model-state-legend" aria-label="Atlas state legend">
-            {domainStateOrder.map((state) => (
-              <LegendItem state={state} label={stateLabels[state]} key={state} />
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <FocusedDomainStrip domain={selectedDomain} onOpenFile={onOpenFile} />
-
-      <section className="mission-model-atlas-panel" aria-label="Mission Model source rails">
-        <div className="mission-model-atlas-panel-heading">
-          <div>
-            <span className="cockpit-eyebrow">Source rails</span>
-            <h3>Workspace contract files</h3>
-          </div>
-          <StatusBadge label="STRUCTURAL" />
-        </div>
-        <div className="mission-model-source-grid">
-          {workspace.source_model_files.map((entry) => (
-            <button
-              className="mission-model-source-card"
-              type="button"
-              key={entry.path}
-              disabled={entry.kind !== "file"}
-              onClick={() => onOpenFile(entry)}
-            >
-              <span>{entry.name}</span>
-              <strong>{formatSourceCategory(entry.category)}</strong>
-            </button>
-          ))}
-          {workspace.missing_expected_source_files.map((file) => (
-            <article className="mission-model-source-card mission-model-source-card-missing" key={file}>
-              <span>{file}</span>
-              <strong>MISSING</strong>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="mission-model-domain-grid" aria-label="Mission Model domains">
-        {atlas.domains.map((domain) => (
-          <button
-            className={`mission-model-domain-card mission-model-domain-card-${domain.state}`}
-            type="button"
-            key={domain.id}
-            onClick={() => setSelectedDomainId(domain.id)}
-            aria-current={selectedDomain?.id === domain.id ? "true" : undefined}
-            title={stateCopy[domain.state]}
-          >
-            <span>{domain.id}</span>
-            <strong>{domain.label}</strong>
-            <small>source: {domain.sourceFile ?? "not reported"}</small>
-            <small>model: {domain.modelCount ?? "not reported"}</small>
-            <small>entities: {domain.entityCount}</small>
-            <StatusBadge label={domain.state.toUpperCase()} />
-          </button>
-        ))}
-      </section>
-
-      <section className="mission-model-atlas-panel mission-model-dossier" aria-label="Selected domain dossier">
-        {selectedDomain ? (
-          <>
-            <div className="mission-model-atlas-panel-heading">
-              <div>
-                <span className="cockpit-eyebrow">Domain dossier</span>
-                <h3>{selectedDomain.label}</h3>
-                <p>{selectedDomain.id}</p>
-              </div>
-              <StatusBadge label={selectedDomain.state.toUpperCase()} />
-            </div>
-            <div className="mission-model-status-grid">
-              <AtlasMetric label="Source file" value={selectedDomain.sourceFile ?? "not reported"} />
-              <AtlasMetric label="Required" value={selectedDomain.required ? "yes" : "no"} />
-              <AtlasMetric label="Present" value={selectedDomain.present ? "yes" : "no"} />
-              <AtlasMetric label="Model count" value={selectedDomain.modelCount === null ? "not reported" : String(selectedDomain.modelCount)} />
-            </div>
-            {selectedDomain.sourceEntry ? (
-              <button className="mission-model-open-source" type="button" onClick={() => onOpenFile(selectedDomain.sourceEntry!)}>
-                Inspect source file: {selectedDomain.sourceEntry.name}
-              </button>
-            ) : null}
-            {selectedDomain.entities.length > 0 ? (
-              <ul className="mission-model-entity-list">
-                {selectedDomain.entities.map((entity) => (
-                  <li key={`${entity.domain}-${entity.id}`}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectEntity(entity)}
-                      aria-current={selectedEntity?.id === entity.id ? "true" : undefined}
-                    >
-                      <strong>{entity.displayName || entity.id}</strong>
-                      <span>{entity.entityType}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="empty-text">No entity records are reported for this domain.</p>
-            )}
-          </>
-        ) : (
-          <p className="empty-text">No domain records are available.</p>
-        )}
-      </section>
-
-      <section className="mission-model-atlas-guardrail" aria-label="Mission Model Atlas guardrails">
-        <span>No YAML authoring</span>
-        <span>No semantic YAML parsing</span>
-        <span>No private completeness score</span>
-        <span>No graph inference</span>
-        <span>No runtime behavior</span>
+        <FocusedContractPanel
+          domain={selectedDomain}
+          selectedEntity={selectedEntity}
+          onOpenFile={onOpenFile}
+          onSelectEntity={onSelectEntity}
+        />
       </section>
     </section>
   );
 }
 
-function DomainStateBoard({
-  domains,
+function ContractSpine({
+  fabric,
+  modelSummary,
+  entityIndex,
   selectedDomain,
-  onSelectDomain,
+  reportsMissing,
 }: {
-  domains: AtlasDomain[];
-  selectedDomain: AtlasDomain | null;
-  onSelectDomain: (domainId: string) => void;
+  fabric: MissionModelFabric;
+  modelSummary: CoreModelSummary | null;
+  entityIndex: CoreEntityIndex | null;
+  selectedDomain: FabricDomain | null;
+  reportsMissing: boolean;
 }) {
   return (
-    <article className="mission-model-atlas-panel mission-model-state-board" aria-label="Mission Model domain state board">
-      <div className="mission-model-atlas-panel-heading">
-        <div>
-          <span className="cockpit-eyebrow">Domain state board</span>
-          <h3>Contract domain lanes</h3>
-          <p>Domains are grouped by evidence state instead of by inferred graph relationships.</p>
+    <section className="mission-model-contract-spine" aria-label="Mission Model contract spine">
+      <div className="mission-model-spine-steps">
+        <SpineCell
+          label="Workspace sources"
+          value={`${fabric.counts.sourceFiles} files`}
+          state={fabric.counts.missingFiles > 0 ? "missing" : "source"}
+        />
+        <SpineCell
+          label="Model summary"
+          value={modelSummary ? `${fabric.counts.modelDomains} domains` : "not reported"}
+          state={modelSummary ? "reported" : "missing"}
+        />
+        <SpineCell
+          label="Entity index"
+          value={entityIndex ? `${fabric.counts.entityRecords} records` : "not reported"}
+          state={entityIndex ? "indexed" : "missing"}
+        />
+        <SpineCell
+          label="Focused contract"
+          value={selectedDomain?.label ?? "none"}
+          state={selectedDomain?.state ?? "source"}
+        />
+      </div>
+
+      {reportsMissing ? (
+        <div className="mission-model-spine-remediation" aria-label="Core report refresh path">
+          <span>Refresh Core</span>
+          <span>Export model summary</span>
+          <span>Export entity index</span>
+          <span>Return to Model</span>
         </div>
-        <StatusBadge label={`${domains.length} DOMAINS`} />
-      </div>
-
-      <div className="mission-model-state-lanes">
-        {domainStateOrder.map((state) => {
-          const laneDomains = domains.filter((domain) => domain.state === state);
-
-          return (
-            <section className={`mission-model-state-lane mission-model-state-lane-${state}`} key={state}>
-              <div className="mission-model-state-lane-header">
-                <strong>{stateLabels[state]}</strong>
-                <span>{laneDomains.length}</span>
-              </div>
-              <div className="mission-model-state-lane-items">
-                {laneDomains.length > 0 ? (
-                  laneDomains.map((domain) => (
-                    <button
-                      type="button"
-                      className="mission-model-state-domain-chip"
-                      key={domain.id}
-                      onClick={() => onSelectDomain(domain.id)}
-                      aria-current={selectedDomain?.id === domain.id ? "true" : undefined}
-                      title={`${domain.label}: ${stateCopy[domain.state]}`}
-                    >
-                      <strong>{domain.label}</strong>
-                      <span>{domain.entityCount} entities</span>
-                    </button>
-                  ))
-                ) : (
-                  <span className="mission-model-state-empty">none</span>
-                )}
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    </article>
-  );
-}
-
-function FocusedDomainStrip({
-  domain,
-  onOpenFile,
-}: {
-  domain: AtlasDomain | null;
-  onOpenFile: (entry: ProjectEntry) => void;
-}) {
-  if (!domain) {
-    return null;
-  }
-
-  return (
-    <section className="mission-model-focus-strip" aria-label="Focused Mission Model domain">
-      <div>
-        <span className="cockpit-eyebrow">Focused domain</span>
-        <h3>{domain.label}</h3>
-        <p>{stateCopy[domain.state]}</p>
-      </div>
-      <div className="mission-model-focus-metrics">
-        <AtlasMetric label="State" value={domain.state.toUpperCase()} />
-        <AtlasMetric label="Source" value={domain.sourceFile ?? "not reported"} />
-        <AtlasMetric label="Model" value={domain.modelCount === null ? "not reported" : String(domain.modelCount)} />
-        <AtlasMetric label="Entities" value={String(domain.entityCount)} />
-      </div>
-      {domain.sourceEntry ? (
-        <button className="mission-model-open-source" type="button" onClick={() => onOpenFile(domain.sourceEntry!)}>
-          Inspect source
-        </button>
       ) : null}
     </section>
   );
 }
 
-function AtlasMetric({ label, value }: { label: string; value: string }) {
+function SpineCell({
+  label,
+  value,
+  state,
+}: {
+  label: string;
+  value: string;
+  state: FabricDomainState;
+}) {
   return (
-    <article className="mission-model-status-card">
+    <article className={`mission-model-spine-cell mission-model-fabric-state-${state}`}>
       <span>{label}</span>
       <strong>{value}</strong>
     </article>
   );
 }
 
-function LegendItem({ state, label }: { state: AtlasDomainState; label: string }) {
+function FabricMatrix({
+  lanes,
+  selectedDomain,
+  onOpenFile,
+  onSelectDomain,
+}: {
+  lanes: FabricLane[];
+  selectedDomain: FabricDomain | null;
+  onOpenFile: (entry: ProjectEntry) => void;
+  onSelectDomain: (domainId: string) => void;
+}) {
   return (
-    <span className={`mission-model-state-legend-item mission-model-state-legend-item-${state}`} title={stateCopy[state]}>
-      {label}
-    </span>
+    <section className="mission-model-fabric-matrix" aria-label="Mission Model source lanes">
+      <div className="mission-model-fabric-panel-heading">
+        <div>
+          <span className="cockpit-eyebrow">Fabric Matrix</span>
+          <h3>Source lanes and Core domain capsules</h3>
+          <p>Each lane is a workspace source file. Each capsule is a Core-facing contract domain attached to that source.</p>
+        </div>
+        <div className="mission-model-fabric-legend" aria-label="Fabric state legend">
+          <LegendItem state="indexed" />
+          <LegendItem state="reported" />
+          <LegendItem state="source" />
+          <LegendItem state="missing" />
+        </div>
+      </div>
+
+      <div className="mission-model-source-lanes">
+        {lanes.map((lane) => (
+          <article className={`mission-model-source-lane ${lane.missing ? "mission-model-source-lane-missing" : ""}`} key={lane.sourceFile}>
+            <div className="mission-model-source-lane-header">
+              <button
+                type="button"
+                disabled={!lane.sourceEntry}
+                onClick={() => {
+                  if (lane.sourceEntry) {
+                    onOpenFile(lane.sourceEntry);
+                  }
+                }}
+              >
+                <strong>{lane.sourceFile}</strong>
+                <span>{lane.sourceCategory ?? (lane.missing ? "Missing source" : "Source lane")}</span>
+              </button>
+            </div>
+
+            <div className="mission-model-domain-capsule-rail">
+              {lane.domains.length > 0 ? (
+                lane.domains.map((domain) => (
+                  <button
+                    type="button"
+                    className={`mission-model-domain-capsule mission-model-fabric-state-${domain.state}`}
+                    key={domain.id}
+                    onClick={() => onSelectDomain(domain.id)}
+                    aria-current={selectedDomain?.id === domain.id ? "true" : undefined}
+                    title={`${domain.label}: ${stateCopy[domain.state]}`}
+                  >
+                    <strong>{domain.label}</strong>
+                    <span>{stateLabels[domain.state]}</span>
+                    <small>{domain.entityCount} entities</small>
+                  </button>
+                ))
+              ) : (
+                <span className="mission-model-empty-capsule">No Core domain capsule</span>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function createAtlas(
+function FocusedContractPanel({
+  domain,
+  selectedEntity,
+  onOpenFile,
+  onSelectEntity,
+}: {
+  domain: FabricDomain | null;
+  selectedEntity: DomainEntitySummary | null;
+  onOpenFile: (entry: ProjectEntry) => void;
+  onSelectEntity: (entity: DomainEntitySummary) => void;
+}) {
+  if (!domain) {
+    return (
+      <aside className="mission-model-focused-contract" aria-label="Focused contract">
+        <span className="cockpit-eyebrow">Focused contract</span>
+        <h3>No contract selected</h3>
+        <p>Select a Core domain capsule from the Fabric Matrix.</p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="mission-model-focused-contract" aria-label="Focused contract">
+      <div className="mission-model-focused-contract-header">
+        <div>
+          <span className="cockpit-eyebrow">Focused contract</span>
+          <h3>{domain.label}</h3>
+          <p>{stateCopy[domain.state]}</p>
+        </div>
+        <StatusBadge label={domain.state.toUpperCase()} />
+      </div>
+
+      <div className="mission-model-focused-metrics">
+        <FocusedMetric label="Source" value={domain.sourceFile ?? "not reported"} />
+        <FocusedMetric label="Model" value={domain.modelCount === null ? "not reported" : String(domain.modelCount)} />
+        <FocusedMetric label="Entities" value={String(domain.entityCount)} />
+        <FocusedMetric label="Required" value={domain.required ? "yes" : "no"} />
+      </div>
+
+      <div className="mission-model-focused-actions">
+        {domain.sourceEntry ? (
+          <button type="button" onClick={() => onOpenFile(domain.sourceEntry!)}>
+            Inspect source
+          </button>
+        ) : null}
+        <span>{domain.present ? "present" : "not present"}</span>
+      </div>
+
+      <section className="mission-model-entity-ribbon" aria-label="Focused contract entity ribbon">
+        <div className="mission-model-entity-ribbon-heading">
+          <span>Entity ribbon</span>
+          <strong>{domain.entities.length}</strong>
+        </div>
+        {domain.entities.length > 0 ? (
+          <div className="mission-model-entity-ribbon-items">
+            {domain.entities.map((entity) => (
+              <button
+                type="button"
+                key={`${entity.domain}-${entity.id}`}
+                onClick={() => onSelectEntity(entity)}
+                aria-current={selectedEntity?.id === entity.id ? "true" : undefined}
+              >
+                <strong>{entity.displayName || entity.id}</strong>
+                <span>{entity.entityType}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="empty-text">No entity records are reported for this contract domain.</p>
+        )}
+      </section>
+    </aside>
+  );
+}
+
+function FocusedMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <article className="mission-model-focused-metric">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </article>
+  );
+}
+
+function LegendItem({ state }: { state: FabricDomainState }) {
+  return <span className={`mission-model-fabric-legend-item mission-model-fabric-state-${state}`}>{stateLabels[state]}</span>;
+}
+
+function createMissionModelFabric(
   workspace: WorkspaceInspection,
   modelSummary: CoreModelSummary | null,
   entityIndex: CoreEntityIndex | null,
-) {
+): MissionModelFabric {
   const sourceByName = new Map(workspace.source_model_files.map((entry) => [entry.name, entry]));
   const modelById = new Map((modelSummary?.domains ?? []).map((domain) => [domain.id, domain]));
   const entityDomainById = new Map((entityIndex?.domains ?? []).map((domain) => [domain.id, domain]));
+  const missingSourceFiles = new Set(workspace.missing_expected_source_files);
   const ids = new Set<string>();
 
   modelById.forEach((_, id) => ids.add(id));
   entityDomainById.forEach((_, id) => ids.add(id));
-  workspace.source_model_files.forEach((entry) => ids.add(entry.name.replace(/\.ya?ml$/i, "")));
+  workspace.source_model_files.forEach((entry) => ids.add(sourceFileNameToDomainId(entry.name)));
+  workspace.missing_expected_source_files.forEach((file) => ids.add(sourceFileNameToDomainId(file)));
 
   const entitiesByDomain = groupEntities(entityIndex?.entities ?? []);
-  const domains = [...ids].sort().map((id): AtlasDomain => {
+  const domains = [...ids].sort((left, right) => left.localeCompare(right)).map((id): FabricDomain => {
     const modelDomain = modelById.get(id) ?? null;
     const entityDomain = entityDomainById.get(id) ?? null;
-    const sourceFile = entityDomain?.source_file ?? modelDomain?.source_file ?? `${id}.yaml`;
+    const sourceFile = entityDomain?.source_file ?? modelDomain?.source_file ?? domainIdToSourceFileName(id);
     const sourceEntry = sourceByName.get(sourceFile) ?? null;
     const entities = entitiesByDomain[id] ?? [];
     const indexed = Boolean(entityDomain?.indexed);
     const present = entityDomain?.present ?? modelDomain?.present ?? Boolean(sourceEntry);
+    const state: FabricDomainState = missingSourceFiles.has(sourceFile)
+      ? "missing"
+      : indexed
+        ? "indexed"
+        : entityDomain || modelDomain
+          ? present
+            ? "reported"
+            : "missing"
+          : "source";
 
     return {
       id,
@@ -400,13 +416,72 @@ function createAtlas(
       present,
       modelCount: entityDomain?.model_count ?? modelDomain?.count ?? null,
       entityCount: entityDomain?.entity_count ?? entities.length,
-      state: indexed ? "indexed" : entityDomain || modelDomain ? (present ? "reported" : "missing") : "source",
+      state,
       sourceEntry,
       entities,
     };
   });
 
-  return { domains };
+  const laneNames = createLaneNames(workspace, domains);
+  const lanes = laneNames.map((sourceFile): FabricLane => {
+    const sourceEntry = sourceByName.get(sourceFile) ?? null;
+    const missing = missingSourceFiles.has(sourceFile);
+
+    return {
+      sourceFile,
+      sourceEntry,
+      sourceCategory: sourceEntry ? formatSourceCategory(sourceEntry.category) : null,
+      missing,
+      domains: domains
+        .filter((domain) => domain.sourceFile === sourceFile)
+        .sort(sortDomainsForLane(sourceFile)),
+    };
+  });
+
+  return {
+    domains,
+    lanes,
+    counts: {
+      sourceFiles: workspace.source_model_files.length,
+      missingFiles: workspace.missing_expected_source_files.length,
+      modelDomains: modelSummary?.domains.length ?? 0,
+      entityRecords: entityIndex?.counts.total_entities ?? 0,
+      indexedDomains: domains.filter((domain) => domain.state === "indexed").length,
+    },
+  };
+}
+
+function createLaneNames(workspace: WorkspaceInspection, domains: FabricDomain[]): string[] {
+  const orderedNames: string[] = [];
+  const seen = new Set<string>();
+
+  function addName(name: string | null) {
+    if (!name || seen.has(name)) {
+      return;
+    }
+    seen.add(name);
+    orderedNames.push(name);
+  }
+
+  workspace.source_model_files.forEach((entry) => addName(entry.name));
+  workspace.missing_expected_source_files.forEach(addName);
+  domains.forEach((domain) => addName(domain.sourceFile));
+
+  return orderedNames;
+}
+
+function sortDomainsForLane(sourceFile: string) {
+  const primaryDomainId = sourceFileNameToDomainId(sourceFile);
+
+  return (left: FabricDomain, right: FabricDomain) => {
+    if (left.id === primaryDomainId && right.id !== primaryDomainId) {
+      return -1;
+    }
+    if (right.id === primaryDomainId && left.id !== primaryDomainId) {
+      return 1;
+    }
+    return left.label.localeCompare(right.label);
+  };
 }
 
 function groupEntities(entities: CoreEntityIndexEntity[]): Record<string, DomainEntitySummary[]> {
@@ -431,7 +506,7 @@ function groupEntities(entities: CoreEntityIndexEntity[]): Record<string, Domain
 
 function resolvePreferredDomainId(
   preferredDomainId: string | undefined,
-  domains: AtlasDomain[],
+  domains: FabricDomain[],
 ): string | null {
   if (!preferredDomainId) {
     return domains[0]?.id ?? null;
@@ -457,6 +532,14 @@ function createPreferredDomainAliases(preferredDomainId: string): string[] {
   };
 
   return aliases[preferredDomainId] ?? [preferredDomainId];
+}
+
+function sourceFileNameToDomainId(name: string): string {
+  return name.replace(/\.ya?ml$/i, "").replace(/-/g, "_");
+}
+
+function domainIdToSourceFileName(id: string): string {
+  return `${id}.yaml`;
 }
 
 function formatSourceCategory(category: string): string {
