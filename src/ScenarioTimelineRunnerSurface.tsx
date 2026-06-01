@@ -33,6 +33,10 @@ interface ScenarioTimelineRunnerSurfaceProps {
   onSelectSimulationRecord: (record: ScenarioTimelineInspectorRecord) => void;
 }
 
+type PassiveArtifactCandidate =
+  | GeneratedEvidenceArtifactSummary["reportCandidates"][number]
+  | GeneratedEvidenceArtifactSummary["logCandidates"][number];
+
 interface ScenarioMetric {
   label: string;
   value: string;
@@ -48,6 +52,20 @@ interface EvidenceLaneItem {
   record: unknown;
 }
 
+interface EvidenceLane {
+  title: string;
+  label: string;
+  items: EvidenceLaneItem[];
+}
+
+interface RunwayStage {
+  id: string;
+  label: string;
+  detail: string;
+  state: string;
+  tone: "ready" | "waiting" | "running" | "reported" | "empty";
+}
+
 export function ScenarioTimelineRunnerSurface({
   workspace,
   generatedEvidenceArtifactSummary,
@@ -60,46 +78,58 @@ export function ScenarioTimelineRunnerSurface({
   onSelectSimulationRecord,
 }: ScenarioTimelineRunnerSurfaceProps) {
   const scenarioFiles = workspace.scenario_files;
-  const artifactCandidates = generatedEvidenceArtifactSummary
+  const artifactCandidates: PassiveArtifactCandidate[] = generatedEvidenceArtifactSummary
     ? [
         ...generatedEvidenceArtifactSummary.reportCandidates,
         ...generatedEvidenceArtifactSummary.logCandidates,
       ]
     : [];
+  const evidenceLanes = createEvidenceLanes(simulationReport);
+  const evidenceCount = countEvidenceLaneItems(evidenceLanes);
   const metrics = createScenarioRunnerMetrics({
     scenarioFiles,
     simulationReport,
     generatedEvidenceArtifactSummary,
     artifactCandidates,
+    evidenceCount,
+  });
+  const runwayStages = createRunwayStages({
+    scenarioFiles,
+    coreResult,
+    simulationReport,
+    simulationReportSource,
+    isRunningCoreCommand,
+    evidenceCount,
   });
 
   return (
     <section
       id="studio-evidence"
       className="entry-section scenario-timeline-runner-surface"
-      aria-label="Scenario Timeline Runner"
+      aria-label="Scenario Runway Console"
     >
-      <ScenarioTimelineRunnerHeader
-        simulationReport={simulationReport}
-        simulationReportSource={simulationReportSource}
-      />
+      <ScenarioTimelineRunnerHeader simulationReport={simulationReport} />
+
+      <ScenarioRunwaySpine stages={runwayStages} />
 
       <ScenarioRunnerStatusStrip metrics={metrics} />
 
-      <ScenarioRunRail
+      <ScenarioRunTargetBay
         scenarioFiles={scenarioFiles}
+        simulationReport={simulationReport}
         isRunningCoreCommand={isRunningCoreCommand}
         onOpenFile={onOpenFile}
         onRunScenario={onRunScenario}
       />
 
-      <ScenarioTimelineCanvas
+      <TemporalRadarCanvas
         simulationReport={simulationReport}
+        evidenceLanes={evidenceLanes}
         onSelectSimulationRecord={onSelectSimulationRecord}
       />
 
-      <ScenarioEvidenceLanes
-        simulationReport={simulationReport}
+      <ScenarioEvidenceLaneStrips
+        lanes={evidenceLanes}
         onSelectSimulationRecord={onSelectSimulationRecord}
       />
 
@@ -110,37 +140,51 @@ export function ScenarioTimelineRunnerSurface({
         onOpenFile={onOpenFile}
       />
 
-      <ScenarioBoundaryPanel />
+      <ScenarioGuardrailStrip />
     </section>
   );
 }
 
 function ScenarioTimelineRunnerHeader({
   simulationReport,
-  simulationReportSource,
 }: {
   simulationReport: CoreSimulationReport | null;
-  simulationReportSource: string | null;
 }) {
   return (
-    <header className="scenario-runner-hero">
+    <header className="scenario-runner-hero scenario-runway-hero">
       <div>
-        <span className="cockpit-eyebrow">Scenario Timeline Runner</span>
-        <h3>Scenario execution path</h3>
+        <span className="cockpit-eyebrow">Scenario Runway Console</span>
+        <h3>Core-derived execution trace</h3>
         <p>
-          Select a scenario source, run it through the fixed Core wrapper, inspect
-          the produced timeline and evidence lanes. Studio renders only Core
-          simulation JSON evidence and never derives scenario state from YAML or logs.
+          From scenario source to inspection evidence. Studio shows the Core simulation
+          trace only: source target, fixed wrapper, JSON report, temporal markers,
+          evidence lanes and inspector endpoint.
         </p>
       </div>
       <div className="scenario-runner-hero-badges">
         <ProvenanceBadge label="READ-ONLY" />
         <ProvenanceBadge label="CORE-DERIVED" />
-        <StatusBadge label="FIXED CORE WRAPPER" />
+        <StatusBadge label="FIXED WRAPPER" />
         <StatusBadge label={simulationReport ? simulationReport.result.toUpperCase() : "WAITING"} />
-        {simulationReportSource ? <ProvenanceBadge label="REPORT SELECTED" /> : null}
       </div>
     </header>
+  );
+}
+
+function ScenarioRunwaySpine({ stages }: { stages: RunwayStage[] }) {
+  return (
+    <section className="scenario-runway-spine" aria-label="Scenario runway stages">
+      {stages.map((stage, index) => (
+        <article className={`scenario-runway-stage scenario-runway-stage-${stage.tone}`} key={stage.id}>
+          <div className="scenario-runway-stage-index">{String(index + 1).padStart(2, "0")}</div>
+          <div className="scenario-runway-stage-main">
+            <span>{stage.label}</span>
+            <strong>{stage.state}</strong>
+            <small>{stage.detail}</small>
+          </div>
+        </article>
+      ))}
+    </section>
   );
 }
 
@@ -158,61 +202,70 @@ function ScenarioRunnerStatusStrip({ metrics }: { metrics: ScenarioMetric[] }) {
   );
 }
 
-function ScenarioRunRail({
+function ScenarioRunTargetBay({
   scenarioFiles,
+  simulationReport,
   isRunningCoreCommand,
   onOpenFile,
   onRunScenario,
 }: {
   scenarioFiles: ProjectEntry[];
+  simulationReport: CoreSimulationReport | null;
   isRunningCoreCommand: boolean;
   onOpenFile: (entry: ProjectEntry) => void;
   onRunScenario: (entry: ProjectEntry) => void;
 }) {
   return (
-    <section className="scenario-runner-panel scenario-run-rail" aria-label="Scenario Source Run Rail">
+    <section className="scenario-runner-panel scenario-run-target-bay" aria-label="Scenario Run Target Bay">
       <div className="scenario-runner-panel-heading">
         <div>
-          <span className="cockpit-eyebrow">Run targets</span>
-          <h3>Scenario Source / Run Rail</h3>
-          <p>YAML files are source targets only. Execution is available only through Core.</p>
+          <span className="cockpit-eyebrow">Run target bay</span>
+          <h3>Scenario sources ready for Core execution</h3>
+          <p>Scenario YAML is treated as a run target. Studio does not parse it into private scenario state.</p>
         </div>
-        <StatusBadge label={`${scenarioFiles.length} SCENARIOS`} />
+        <StatusBadge label={`${scenarioFiles.length} TARGETS`} />
       </div>
 
       {scenarioFiles.length > 0 ? (
-        <div className="scenario-run-target-grid">
-          {scenarioFiles.map((scenario, index) => (
-            <article className="scenario-run-target" key={scenario.path}>
-              <div className="scenario-run-target-index">{String(index + 1).padStart(2, "0")}</div>
-              <div className="scenario-run-target-main">
-                <button
-                  className="scenario-run-target-title"
-                  type="button"
-                  onClick={() => onOpenFile(scenario)}
-                  disabled={scenario.kind !== "file"}
-                >
-                  {scenario.name}
-                </button>
-                <span title={scenario.path}>{formatCompactPath(scenario.path)}</span>
-              </div>
-              <div className="scenario-run-target-actions">
-                <button
-                  className="scenario-run-primary-action"
-                  type="button"
-                  onClick={() => onRunScenario(scenario)}
-                  disabled={scenario.kind !== "file" || isRunningCoreCommand}
-                >
-                  {isRunningCoreCommand ? "Running through Core" : "Run through Core"}
-                </button>
-                <div className="badge-row artifact-entry-badges">
-                  <ProvenanceBadge label="SOURCE" />
-                  <StatusBadge label="SCENARIO SOURCE" />
-                  <ProvenanceBadge label="READ-ONLY" />
+        <div className="scenario-run-target-grid scenario-launch-bay-grid">
+          {scenarioFiles.map((scenario, index) => {
+            const state = getScenarioTargetState(scenario, simulationReport, isRunningCoreCommand);
+
+            return (
+              <article className={`scenario-run-target scenario-run-target-${state.tone}`} key={scenario.path}>
+                <div className="scenario-run-target-index">{String(index + 1).padStart(2, "0")}</div>
+                <div className="scenario-run-target-main">
+                  <div className="scenario-run-target-state-row">
+                    <StatusBadge label={state.label} />
+                  </div>
+                  <button
+                    className="scenario-run-target-title"
+                    type="button"
+                    onClick={() => onOpenFile(scenario)}
+                    disabled={scenario.kind !== "file"}
+                  >
+                    {stripYamlExtension(scenario.name)}
+                  </button>
+                  <span title={scenario.path}>{formatCompactPath(scenario.path)}</span>
                 </div>
-              </div>
-            </article>
-          ))}
+                <div className="scenario-run-target-actions">
+                  <button
+                    className="scenario-run-primary-action"
+                    type="button"
+                    onClick={() => onRunScenario(scenario)}
+                    disabled={scenario.kind !== "file" || isRunningCoreCommand}
+                  >
+                    {isRunningCoreCommand ? "Running through Core" : "Run through Core"}
+                  </button>
+                  <div className="badge-row artifact-entry-badges">
+                    <ProvenanceBadge label="SOURCE" />
+                    <StatusBadge label="FIXED WRAPPER" />
+                    <ProvenanceBadge label="READ-ONLY" />
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : (
         <ScenarioRunnerEmptyState
@@ -224,35 +277,40 @@ function ScenarioRunRail({
   );
 }
 
-function ScenarioTimelineCanvas({
+function TemporalRadarCanvas({
   simulationReport,
+  evidenceLanes,
   onSelectSimulationRecord,
 }: {
   simulationReport: CoreSimulationReport | null;
+  evidenceLanes: EvidenceLane[];
   onSelectSimulationRecord: (record: ScenarioTimelineInspectorRecord) => void;
 }) {
   const timeline = simulationReport?.timeline ?? [];
+  const markerCount = Math.max(timeline.length, 3);
 
   return (
-    <section className="scenario-runner-panel scenario-timeline-canvas" aria-label="Scenario Timeline Canvas">
+    <section className="scenario-runner-panel scenario-temporal-radar" aria-label="Temporal Radar Canvas">
       <div className="scenario-runner-panel-heading">
         <div>
-          <span className="cockpit-eyebrow">Timeline</span>
-          <h3>Core simulation path</h3>
-          <p>Temporal records are rendered only from the selected Core simulation report.</p>
+          <span className="cockpit-eyebrow">Temporal radar</span>
+          <h3>Timeline trace and synchronized evidence lanes</h3>
+          <p>Markers are ordered from Core timeline records. Lane chips are grouped by Core-reported category only.</p>
         </div>
         <div className="badge-row">
           <ProvenanceBadge label="CORE-DERIVED" />
-          <StatusBadge label={`${timeline.length} RECORDS`} />
+          <StatusBadge label={`${timeline.length} MARKERS`} />
         </div>
       </div>
 
       {timeline.length > 0 ? (
-        <div className="scenario-timeline-track" aria-label="Core timeline records">
+        <div className="scenario-radar-grid" style={{ "--radar-columns": String(markerCount) } as React.CSSProperties}>
+          <div className="scenario-radar-axis" aria-hidden="true" />
           {timeline.map((entry, index) => (
             <button
-              className="scenario-timeline-node"
+              className="scenario-radar-marker"
               key={`${formatRecordTime(entry)}-${index}`}
+              style={{ gridColumn: `${index + 1} / span 1` }}
               type="button"
               onClick={() =>
                 onSelectSimulationRecord({
@@ -262,28 +320,62 @@ function ScenarioTimelineCanvas({
                 })
               }
             >
-              <span className="scenario-timeline-node-time">{formatRecordTime(entry)}</span>
-              <strong>{getRecordTitle(entry, `Timeline step ${index + 1}`)}</strong>
-              <small>{getRecordDetail(entry)}</small>
+              <span>{formatRecordTime(entry)}</span>
+              <strong>{getRecordTitle(entry, `Step ${index + 1}`)}</strong>
             </button>
+          ))}
+          {evidenceLanes.map((lane) => (
+            <div className="scenario-radar-lane" key={lane.title} style={{ gridColumn: `1 / span ${markerCount}` }}>
+              <span>{lane.label}</span>
+              <div>
+                {lane.items.length > 0 ? (
+                  lane.items.slice(0, 8).map((item, index) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      title={item.detail}
+                      style={{ gridColumn: `${Math.min(index + 1, markerCount)} / span 1` }}
+                      onClick={() =>
+                        onSelectSimulationRecord({
+                          kind: item.kind,
+                          title: item.title,
+                          record: item.record,
+                        })
+                      }
+                    >
+                      {item.title}
+                    </button>
+                  ))
+                ) : (
+                  <small>No records</small>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <div className="scenario-empty-runway" aria-label="Scenario timeline waiting state">
-          <div className="scenario-empty-step">
-            <span>01</span>
-            <strong>Select scenario</strong>
-            <small>Choose a source YAML run target.</small>
+        <div className="scenario-radar-empty" aria-label="Scenario temporal radar waiting state">
+          <div className="scenario-radar-empty-axis" aria-hidden="true">
+            <span>T+0</span>
+            <span>T+?</span>
+            <span>T+?</span>
           </div>
-          <div className="scenario-empty-step">
-            <span>02</span>
-            <strong>Run Core</strong>
-            <small>Execute only through the fixed wrapper.</small>
-          </div>
-          <div className="scenario-empty-step">
-            <span>03</span>
-            <strong>Inspect timeline</strong>
-            <small>Read Core JSON timeline and evidence records.</small>
+          <div className="scenario-radar-empty-steps">
+            <div>
+              <span>01</span>
+              <strong>Select scenario</strong>
+              <small>Choose a source YAML run target.</small>
+            </div>
+            <div>
+              <span>02</span>
+              <strong>Run Core</strong>
+              <small>Execute only through the fixed wrapper.</small>
+            </div>
+            <div>
+              <span>03</span>
+              <strong>Inspect trace</strong>
+              <small>Read Core JSON timeline and evidence records.</small>
+            </div>
           </div>
         </div>
       )}
@@ -291,40 +383,39 @@ function ScenarioTimelineCanvas({
   );
 }
 
-function ScenarioEvidenceLanes({
-  simulationReport,
+function ScenarioEvidenceLaneStrips({
+  lanes,
   onSelectSimulationRecord,
 }: {
-  simulationReport: CoreSimulationReport | null;
+  lanes: EvidenceLane[];
   onSelectSimulationRecord: (record: ScenarioTimelineInspectorRecord) => void;
 }) {
-  const lanes = createEvidenceLanes(simulationReport);
-
   return (
-    <section className="scenario-runner-panel scenario-evidence-lanes" aria-label="Scenario Evidence Lanes">
+    <section className="scenario-runner-panel scenario-evidence-lane-strips" aria-label="Scenario Evidence Lane Strips">
       <div className="scenario-runner-panel-heading">
         <div>
-          <span className="cockpit-eyebrow">Evidence</span>
-          <h3>Commands, events, modes and data-flow</h3>
-          <p>No causality is inferred between lanes. Records are grouped only by Core-reported category.</p>
+          <span className="cockpit-eyebrow">Evidence lanes</span>
+          <h3>Core record categories</h3>
+          <p>No causality is inferred between lanes. Each chip opens the raw Core record in the Inspector.</p>
         </div>
         <ProvenanceBadge label="NO INFERENCE" />
       </div>
 
-      <div className="scenario-evidence-lane-grid">
+      <div className="scenario-lane-strip-stack">
         {lanes.map((lane) => (
-          <article className="scenario-evidence-lane" key={lane.title}>
+          <article className="scenario-lane-strip" key={lane.title}>
             <header>
-              <span>{lane.title}</span>
+              <span>{lane.label}</span>
               <strong>{lane.items.length}</strong>
             </header>
-            {lane.items.length > 0 ? (
-              <div className="scenario-evidence-lane-items">
-                {lane.items.slice(0, 5).map((item) => (
+            <div className="scenario-lane-strip-records">
+              {lane.items.length > 0 ? (
+                lane.items.slice(0, 8).map((item) => (
                   <button
-                    className="scenario-evidence-lane-item"
+                    className="scenario-lane-chip"
                     key={item.id}
                     type="button"
+                    title={item.detail}
                     onClick={() =>
                       onSelectSimulationRecord({
                         kind: item.kind,
@@ -335,13 +426,12 @@ function ScenarioEvidenceLanes({
                   >
                     <span>{item.time}</span>
                     <strong>{item.title}</strong>
-                    <small>{item.detail}</small>
                   </button>
-                ))}
-              </div>
-            ) : (
-              <p>No Core records reported for this lane.</p>
-            )}
+                ))
+              ) : (
+                <small>empty lane</small>
+              )}
+            </div>
           </article>
         ))}
       </div>
@@ -357,16 +447,16 @@ function ScenarioReportDock({
 }: {
   coreResult: CoreCommandResult | null;
   generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
-  artifactCandidates: GeneratedEvidenceArtifactSummary["reportCandidates"];
+  artifactCandidates: PassiveArtifactCandidate[];
   onOpenFile: (entry: ProjectEntry) => void;
 }) {
   return (
-    <section className="scenario-runner-panel scenario-report-dock" aria-label="Scenario Report And Log Dock">
+    <section className="scenario-runner-panel scenario-report-dock" aria-label="Scenario Report Dock">
       <div className="scenario-runner-panel-heading">
         <div>
           <span className="cockpit-eyebrow">Report dock</span>
-          <h3>Core output, logs and passive candidates</h3>
-          <p>Logs and generated artifacts are preview surfaces. They do not produce scenario state.</p>
+          <h3>Core output, log and passive candidates</h3>
+          <p>Reports and logs are preview surfaces here. They do not produce private scenario state.</p>
         </div>
         <StatusBadge label={coreResult ? (coreResult.success ? "CORE PASS" : "CORE FAIL") : "NO CORE RUN"} />
       </div>
@@ -419,25 +509,21 @@ function ScenarioReportDock({
   );
 }
 
-function ScenarioBoundaryPanel() {
+function ScenarioGuardrailStrip() {
+  const guardrails = [
+    "READ-ONLY",
+    "CORE JSON ONLY",
+    "FIXED WRAPPER",
+    "NO UPLINK",
+    "NO LIVE TELEMETRY",
+    "NO LOG-DERIVED STATE",
+  ];
+
   return (
-    <section className="scenario-runner-panel scenario-boundary-panel" aria-label="Scenario Runner Boundary">
-      <div className="scenario-runner-panel-heading">
-        <div>
-          <span className="cockpit-eyebrow">Boundary</span>
-          <h3>Safety and provenance boundary</h3>
-          <p>The runner is an inspection surface, not a mission-control system.</p>
-        </div>
-        <ProvenanceBadge label="READ-ONLY" />
-      </div>
-      <div className="scenario-boundary-grid">
-        <span>Fixed Core command only</span>
-        <span>Core JSON timeline only</span>
-        <span>No live telemetry</span>
-        <span>No command uplink</span>
-        <span>No private simulation</span>
-        <span>No log-derived state</span>
-      </div>
+    <section className="scenario-guardrail-strip" aria-label="Scenario Runner Guardrails">
+      {guardrails.map((guardrail) => (
+        <span key={guardrail}>{guardrail}</span>
+      ))}
     </section>
   );
 }
@@ -456,11 +542,13 @@ function createScenarioRunnerMetrics({
   simulationReport,
   generatedEvidenceArtifactSummary,
   artifactCandidates,
+  evidenceCount,
 }: {
   scenarioFiles: ProjectEntry[];
   simulationReport: CoreSimulationReport | null;
   generatedEvidenceArtifactSummary: GeneratedEvidenceArtifactSummary | null;
-  artifactCandidates: GeneratedEvidenceArtifactSummary["reportCandidates"];
+  artifactCandidates: PassiveArtifactCandidate[];
+  evidenceCount: number;
 }): ScenarioMetric[] {
   return [
     {
@@ -479,8 +567,8 @@ function createScenarioRunnerMetrics({
       detail: "Core-reported timeline entries only.",
     },
     {
-      label: "Evidence lanes",
-      value: simulationReport ? String(createEvidenceLanes(simulationReport).reduce((total, lane) => total + lane.items.length, 0)) : "0",
+      label: "Evidence records",
+      value: String(evidenceCount),
       detail: "Commands, events, modes, data-flow and expectations.",
     },
     {
@@ -491,26 +579,92 @@ function createScenarioRunnerMetrics({
   ];
 }
 
-function createEvidenceLanes(simulationReport: CoreSimulationReport | null) {
+function createRunwayStages({
+  scenarioFiles,
+  coreResult,
+  simulationReport,
+  simulationReportSource,
+  isRunningCoreCommand,
+  evidenceCount,
+}: {
+  scenarioFiles: ProjectEntry[];
+  coreResult: CoreCommandResult | null;
+  simulationReport: CoreSimulationReport | null;
+  simulationReportSource: string | null;
+  isRunningCoreCommand: boolean;
+  evidenceCount: number;
+}): RunwayStage[] {
+  return [
+    {
+      id: "source",
+      label: "Source",
+      state: scenarioFiles.length > 0 ? "READY" : "EMPTY",
+      detail: `${scenarioFiles.length} YAML targets`,
+      tone: scenarioFiles.length > 0 ? "ready" : "empty",
+    },
+    {
+      id: "core",
+      label: "Core sim",
+      state: isRunningCoreCommand ? "RUNNING" : coreResult ? "COMPLETE" : "WAITING",
+      detail: "fixed wrapper only",
+      tone: isRunningCoreCommand ? "running" : coreResult ? "reported" : "waiting",
+    },
+    {
+      id: "report",
+      label: "Report JSON",
+      state: simulationReport ? "AVAILABLE" : "MISSING",
+      detail: simulationReportSource ?? "no report selected",
+      tone: simulationReport ? "reported" : "waiting",
+    },
+    {
+      id: "timeline",
+      label: "Timeline",
+      state: simulationReport ? `${simulationReport.timeline.length} RECORDS` : "EMPTY",
+      detail: "Core timeline only",
+      tone: simulationReport && simulationReport.timeline.length > 0 ? "reported" : "empty",
+    },
+    {
+      id: "evidence",
+      label: "Evidence",
+      state: `${evidenceCount} RECORDS`,
+      detail: "grouped by Core category",
+      tone: evidenceCount > 0 ? "reported" : "empty",
+    },
+    {
+      id: "inspect",
+      label: "Inspect",
+      state: evidenceCount > 0 || Boolean(simulationReport) ? "READY" : "IDLE",
+      detail: "raw Core record endpoint",
+      tone: evidenceCount > 0 || Boolean(simulationReport) ? "ready" : "waiting",
+    },
+  ];
+}
+
+function createEvidenceLanes(simulationReport: CoreSimulationReport | null): EvidenceLane[] {
   return [
     {
       title: "Commands",
+      label: "CMD",
       items: mapReportRecords(simulationReport?.commands ?? [], "command"),
     },
     {
       title: "Events",
+      label: "EVT",
       items: mapReportRecords(simulationReport?.events ?? [], "event"),
     },
     {
       title: "Mode transitions",
+      label: "MODE",
       items: mapReportRecords(simulationReport?.mode_transitions ?? [], "modeTransition"),
     },
     {
       title: "Data-flow",
+      label: "FLOW",
       items: mapReportRecords(simulationReport?.data_flow_evidence ?? [], "dataFlowEvidence"),
     },
     {
       title: "Failed expectations",
+      label: "EXPECT",
       items: mapReportRecords(simulationReport?.failed_expectations ?? [], "failedExpectation"),
     },
   ];
@@ -525,6 +679,26 @@ function mapReportRecords(records: unknown[], kind: ScenarioTimelineRecordKind):
     kind,
     record,
   }));
+}
+
+function countEvidenceLaneItems(lanes: EvidenceLane[]): number {
+  return lanes.reduce((total, lane) => total + lane.items.length, 0);
+}
+
+function getScenarioTargetState(
+  scenario: ProjectEntry,
+  simulationReport: CoreSimulationReport | null,
+  isRunningCoreCommand: boolean,
+): { label: string; tone: string } {
+  if (isRunningCoreCommand) {
+    return { label: "RUNNING", tone: "running" };
+  }
+
+  if (simulationReport && scenario.name.includes(simulationReport.scenario)) {
+    return { label: "LAST RUN", tone: "reported" };
+  }
+
+  return { label: "READY", tone: "ready" };
 }
 
 function getRecordTitle(record: unknown, fallback: string): string {
@@ -581,6 +755,10 @@ function formatCompactPath(value: string | null | undefined): string {
 
   const parts = value.split(/[\\/]/).filter(Boolean);
   return parts.length <= 4 ? value : `…/${parts.slice(-4).join("/")}`;
+}
+
+function stripYamlExtension(value: string): string {
+  return value.replace(/\.ya?ml$/i, "");
 }
 
 function toObjectRecord(record: unknown): Record<string, unknown> {
