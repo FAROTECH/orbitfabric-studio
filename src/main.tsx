@@ -5,9 +5,9 @@ import App from "./App";
 import "./styles.css";
 import "./missionCockpitVisualHierarchy.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
-import "./scenarioTimelineRunner.css";
 import "./generatedArtifactExplorer.css";
 import "./releaseHardening.css";
+import "./scenarioTimelineRunner.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
