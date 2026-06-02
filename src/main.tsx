@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles.css";
 import "./missionCockpitVisualHierarchy.css";
+import "./missionContentCockpit.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
 import "./generatedArtifactExplorer.css";
 import "./generatedArtifactDeck.css";
