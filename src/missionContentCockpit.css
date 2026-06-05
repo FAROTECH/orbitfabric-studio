@@ -2884,3 +2884,35 @@
     transform: translateY(1px) !important;
   }
 }
+
+
+/* Sidebar collapse button containment fix.
+   The button must be anchored to the sidebar, never to the page viewport. */
+.reference-sidebar {
+  position: relative !important;
+  contain: layout paint !important;
+}
+
+.reference-sidebar-collapse {
+  position: absolute !important;
+  right: 16px !important;
+  bottom: 16px !important;
+  left: auto !important;
+  top: auto !important;
+  z-index: 8 !important;
+  transform: none !important;
+}
+
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-collapse {
+  right: 16px !important;
+  bottom: 16px !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+.reference-sidebar-collapsed .reference-sidebar-collapse {
+  left: 50% !important;
+  right: auto !important;
+  bottom: 16px !important;
+  transform: translateX(-50%) !important;
+}

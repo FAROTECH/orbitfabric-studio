@@ -1437,3 +1437,324 @@
     font-size: 0.56rem !important;
   }
 }
+
+
+/* Mission bottom row pass v1.
+   Scope: Generated Artifacts, Warnings, Evidence Posture. */
+.mission-target-bottom-grid {
+  gap: 10px !important;
+  min-height: 0 !important;
+}
+
+.mission-target-bottom-grid .mission-target-card {
+  display: grid !important;
+  grid-template-rows: 34px minmax(0, 1fr) 32px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding: 12px 14px 11px !important;
+  border-color: rgba(92, 135, 175, 0.24) !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(14, 165, 233, 0.05), transparent 20rem),
+    linear-gradient(180deg, rgba(5, 15, 30, 0.96), rgba(3, 10, 21, 0.96)) !important;
+}
+
+.mission-target-bottom-grid .mission-target-card-header {
+  align-items: center !important;
+  min-height: 32px !important;
+  padding-bottom: 6px !important;
+  border-bottom: 1px solid rgba(92, 135, 175, 0.12) !important;
+}
+
+.mission-target-bottom-grid .mission-target-card-header h3 {
+  color: #edf6ff !important;
+  font-size: 0.98rem !important;
+  font-weight: 850 !important;
+  letter-spacing: -0.015em !important;
+}
+
+.mission-target-bottom-grid .mission-target-card-header strong {
+  color: #71eaff !important;
+  font-size: 0.82rem !important;
+  font-weight: 820 !important;
+}
+
+.mission-target-bottom-grid .mission-target-card-body {
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  align-content: center !important;
+}
+
+.mission-target-bottom-grid .mission-target-card-footer-button {
+  align-self: end !important;
+  justify-self: start !important;
+  min-height: 26px !important;
+  margin-top: 0 !important;
+  border-color: rgba(64, 223, 255, 0.32) !important;
+  color: #c6f7ff !important;
+  background: rgba(8, 145, 178, 0.1) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.13em !important;
+}
+
+/* Generated Artifacts */
+.mission-target-artifacts .mission-target-card-body {
+  align-content: stretch !important;
+}
+
+.mission-target-artifact-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+  border-bottom: 0 !important;
+}
+
+.mission-target-artifact-grid div {
+  display: grid !important;
+  grid-template-rows: 28px auto auto minmax(0, 1fr) !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  padding: 8px 10px !important;
+  border-right: 1px solid rgba(92, 135, 175, 0.12) !important;
+  background: linear-gradient(180deg, rgba(8, 47, 73, 0.04), transparent) !important;
+}
+
+.mission-target-artifact-grid div:last-child {
+  border-right: 0 !important;
+}
+
+.mission-target-artifact-grid i {
+  width: 28px !important;
+  height: 28px !important;
+  color: #77e7fa !important;
+  background: rgba(8, 47, 73, 0.18) !important;
+}
+
+.mission-target-artifact-grid span {
+  color: #72e6f7 !important;
+  font-size: 0.58rem !important;
+  font-weight: 920 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+}
+
+.mission-target-artifact-grid strong {
+  color: #e2eefb !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+  line-height: 1.08 !important;
+}
+
+.mission-target-artifact-grid small {
+  overflow: hidden !important;
+  color: #8498ae !important;
+  font-size: 0.66rem !important;
+  line-height: 1.16 !important;
+}
+
+/* Warnings */
+.mission-target-warnings .mission-target-card-body {
+  align-content: stretch !important;
+}
+
+.mission-target-warnings ul {
+  display: grid !important;
+  min-height: 0 !important;
+  align-content: start !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.mission-target-warnings li {
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) 58px !important;
+  gap: 10px !important;
+  align-items: start !important;
+  min-height: 54px !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid rgba(92, 135, 175, 0.1) !important;
+}
+
+.mission-target-warnings li:last-child {
+  border-bottom: 0 !important;
+}
+
+.mission-target-warnings li > small {
+  display: inline-grid !important;
+  place-items: center !important;
+  min-width: 48px !important;
+  height: 21px !important;
+  border-radius: 5px !important;
+  color: #fde68a !important;
+  background: rgba(146, 64, 14, 0.42) !important;
+  font-size: 0.56rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.mission-target-warnings li div {
+  min-width: 0 !important;
+}
+
+.mission-target-warnings li strong {
+  display: block !important;
+  overflow: hidden !important;
+  color: #e5effb !important;
+  font-size: 0.78rem !important;
+  font-weight: 820 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.mission-target-warnings li span {
+  display: block !important;
+  overflow: hidden !important;
+  color: #879bb2 !important;
+  font-size: 0.68rem !important;
+  line-height: 1.22 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.mission-target-warnings li em {
+  overflow: hidden !important;
+  color: #7b8fa6 !important;
+  font-size: 0.62rem !important;
+  font-style: normal !important;
+  line-height: 1.12 !important;
+  text-align: right !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.mission-target-warnings-empty .mission-target-card-header strong {
+  color: #77e7fa !important;
+  font-size: 0.72rem !important;
+}
+
+/* Evidence posture */
+.mission-target-evidence .mission-target-card-body {
+  align-content: stretch !important;
+  gap: 9px !important;
+}
+
+.mission-target-evidence-validation {
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 9px !important;
+  align-items: center !important;
+  padding-bottom: 6px !important;
+  border-bottom: 1px solid rgba(92, 135, 175, 0.1) !important;
+}
+
+.mission-target-evidence-validation span,
+.mission-target-last-validation span {
+  color: #94a8bf !important;
+  font-size: 0.76rem !important;
+}
+
+.mission-target-evidence-validation strong,
+.mission-target-evidence-validation small,
+.mission-target-evidence-validation em {
+  overflow: hidden !important;
+  color: #b8c8d8 !important;
+  font-size: 0.72rem !important;
+  font-style: normal !important;
+  font-weight: 780 !important;
+  text-align: right !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.mission-target-evidence .mission-target-metric-line {
+  gap: 5px !important;
+}
+
+.mission-target-evidence .mission-target-metric-line > div {
+  align-items: baseline !important;
+}
+
+.mission-target-evidence .mission-target-metric-line span {
+  color: #72e6f7 !important;
+  font-size: 0.58rem !important;
+  letter-spacing: 0.18em !important;
+}
+
+.mission-target-evidence .mission-target-metric-line strong,
+.mission-target-last-validation strong {
+  color: #b8c8d8 !important;
+  font-size: 0.8rem !important;
+  font-weight: 780 !important;
+}
+
+.mission-target-last-validation {
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  margin-top: 0 !important;
+  padding-top: 2px !important;
+}
+
+.mission-target-evidence-empty .mission-target-progress span {
+  opacity: 0.45 !important;
+}
+
+@media (max-width: 1500px) {
+  .mission-target-bottom-grid .mission-target-card {
+    grid-template-rows: 32px minmax(0, 1fr) 30px !important;
+    padding: 10px 12px 10px !important;
+  }
+
+  .mission-target-artifact-grid div {
+    padding: 7px 8px !important;
+  }
+
+  .mission-target-artifact-grid strong {
+    font-size: 0.82rem !important;
+  }
+
+  .mission-target-artifact-grid small {
+    font-size: 0.6rem !important;
+  }
+
+  .mission-target-warnings li {
+    grid-template-columns: 48px minmax(0, 1fr) 50px !important;
+    min-height: 48px !important;
+    gap: 8px !important;
+  }
+
+  .mission-target-warnings li > small {
+    min-width: 42px !important;
+    height: 19px !important;
+    font-size: 0.5rem !important;
+  }
+
+  .mission-target-warnings li strong {
+    font-size: 0.72rem !important;
+  }
+
+  .mission-target-warnings li span,
+  .mission-target-warnings li em {
+    font-size: 0.6rem !important;
+  }
+
+  .mission-target-evidence-validation {
+    grid-template-columns: 78px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 7px !important;
+  }
+
+  .mission-target-evidence-validation span,
+  .mission-target-last-validation span {
+    font-size: 0.7rem !important;
+  }
+
+  .mission-target-evidence-validation strong,
+  .mission-target-evidence-validation small,
+  .mission-target-evidence-validation em {
+    font-size: 0.66rem !important;
+  }
+}

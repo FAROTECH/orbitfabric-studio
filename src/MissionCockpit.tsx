@@ -775,15 +775,17 @@ function GeneratedArtifactsCard({ display, onOpen }: { display: ReferenceDisplay
       <header className="mission-target-card-header">
         <h3>Generated Artifacts</h3>
       </header>
-      <div className="mission-target-artifact-grid">
-        {display.artifactTiles.map(([label, value, detail]) => (
-          <div key={label}>
-            <i aria-hidden="true">{artifactIcon(label)}</i>
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{detail}</small>
-          </div>
-        ))}
+      <div className="mission-target-card-body">
+        <div className="mission-target-artifact-grid">
+          {display.artifactTiles.map(([label, value, detail]) => (
+            <div key={label}>
+              <i aria-hidden="true">{artifactIcon(label)}</i>
+              <span>{label}</span>
+              <strong>{value}</strong>
+              <small>{detail}</small>
+            </div>
+          ))}
+        </div>
       </div>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>Open Artifacts Folder</button>
     </article>
@@ -792,51 +794,79 @@ function GeneratedArtifactsCard({ display, onOpen }: { display: ReferenceDisplay
 
 function WarningsCard({
   display,
+  warnings,
 }: {
   display: ReferenceDisplayModel;
   warnings: MissionContentWarning[];
 }) {
+  const warningCount = warnings.length;
+  const hasReportedWarnings = warningCount > 0;
+
   return (
-    <article className="mission-target-card mission-target-warnings">
+    <article
+      className={[
+        "mission-target-card",
+        "mission-target-warnings",
+        hasReportedWarnings ? "" : "mission-target-warnings-empty",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <header className="mission-target-card-header">
         <h3>Warnings</h3>
-        <strong>1</strong>
+        <strong>{hasReportedWarnings ? String(warningCount) : "Load Core"}</strong>
       </header>
-      <ul>
-        {display.warningRows.map(([level, title, detail, time]) => (
-          <li key={`${level}:${title}`}>
-            <small>{level}</small>
-            <div>
-              <strong>{title}</strong>
-              <span>{detail}</span>
-            </div>
-            <em>{time}</em>
-          </li>
-        ))}
-      </ul>
-      <button type="button" className="mission-target-card-footer-button">View All Warnings →</button>
+      <div className="mission-target-card-body">
+        <ul>
+          {display.warningRows.map(([level, title, detail, time]) => (
+            <li key={`${level}:${title}`}>
+              <small>{level}</small>
+              <div>
+                <strong>{title}</strong>
+                <span>{detail}</span>
+              </div>
+              <em>{time}</em>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button type="button" className="mission-target-card-footer-button">
+        {hasReportedWarnings ? "View All Warnings →" : "Open Warning Evidence →"}
+      </button>
     </article>
   );
 }
 
 function EvidenceCard({ display }: { display: ReferenceDisplayModel }) {
+  const evidenceUnavailable = display.evidence.status.toLowerCase().includes("load");
+
   return (
-    <article className="mission-target-card mission-target-evidence">
+    <article
+      className={[
+        "mission-target-card",
+        "mission-target-evidence",
+        evidenceUnavailable ? "mission-target-evidence-empty" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <header className="mission-target-card-header">
         <h3>Evidence Posture</h3>
         <strong>{display.evidence.status}</strong>
       </header>
-      <div className="mission-target-evidence-validation">
-        <span>Validation</span>
-        <strong>{display.evidence.passed}</strong>
-        <small>{display.evidence.warning}</small>
-        <em>{display.evidence.failed}</em>
-      </div>
-      <MetricLine label="Trace Coverage" value={display.evidence.traceCoverage} percent={display.evidence.traceCoveragePercent} />
-      <MetricLine label="Requirements Connected" value={display.evidence.requirements} percent={display.evidence.requirementsPercent} />
-      <div className="mission-target-last-validation">
-        <span>Last Validation</span>
-        <strong>{display.evidence.lastValidation}</strong>
+      <div className="mission-target-card-body">
+        <div className="mission-target-evidence-validation">
+          <span>Validation</span>
+          <strong>{display.evidence.validation}</strong>
+          <small>{display.evidence.warning}</small>
+          <em>{display.evidence.failed}</em>
+        </div>
+        <MetricLine label="Trace Coverage" value={display.evidence.traceCoverage} percent={display.evidence.traceCoveragePercent} />
+        <MetricLine label="Requirements Connected" value={display.evidence.requirements} percent={display.evidence.requirementsPercent} />
+        <div className="mission-target-last-validation">
+          <span>Last Validation</span>
+          <strong>{display.evidence.lastValidation}</strong>
+        </div>
       </div>
       <button type="button" className="mission-target-card-footer-button">Open Validation Report +</button>
     </article>
