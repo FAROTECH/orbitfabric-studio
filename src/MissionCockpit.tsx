@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
+import missionOverviewPatch from "./assets/mission/mission-overview-patch.png";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
 import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import {
@@ -490,13 +491,12 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
 
 function MissionPatch() {
   return (
-    <div className="mission-target-patch" aria-label="Reference mission patch placeholder">
-      <div className="mission-target-earth" />
-      <div className="mission-target-satellite">
-        <span />
-        <i />
-      </div>
-      <em>REFERENCE EO 3U</em>
+    <div className="mission-target-patch" aria-label="Reference mission patch">
+      <img
+        src={missionOverviewPatch}
+        alt="Reference mission patch"
+        className="mission-target-patch-image"
+      />
     </div>
   );
 }

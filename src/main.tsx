@@ -5,6 +5,7 @@ import App from "./App";
 import "./styles.css";
 import "./missionCockpitVisualHierarchy.css";
 import "./missionContentCockpit.css";
+import "./missionWorkspaceTopbarHeroFix.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
 import "./generatedArtifactExplorer.css";
 import "./generatedArtifactDeck.css";

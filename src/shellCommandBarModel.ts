@@ -22,7 +22,7 @@ export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "validate-mission",
     label: "Validate Mission",
-    shortLabel: "Validate Mission",
+    shortLabel: "Validate",
     icon: "▣",
     targetSurface: "core-commands",
     status: "diagnostic",
@@ -33,7 +33,7 @@ export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "run-scenarios",
     label: "Run Scenarios",
-    shortLabel: "Run Scenarios",
+    shortLabel: "Scenarios",
     icon: "▷",
     targetSurface: "scenario-evidence",
     status: "available",
@@ -44,7 +44,7 @@ export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "generate-docs",
     label: "Generate Docs",
-    shortLabel: "Generate Docs",
+    shortLabel: "Docs",
     icon: "▤",
     targetSurface: "generated-artifacts",
     status: "available",
@@ -55,7 +55,7 @@ export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "generate-runtime-skeleton",
     label: "Generate Runtime Skeleton",
-    shortLabel: "Generate Runtime Skeleton",
+    shortLabel: "Runtime",
     icon: "</>",
     targetSurface: "generated-artifacts",
     status: "available",
@@ -66,7 +66,7 @@ export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "generate-ground-artifacts",
     label: "Generate Ground Artifacts",
-    shortLabel: "Generate Ground Artifacts",
+    shortLabel: "Ground",
     icon: "⌁",
     targetSurface: "ground-integration",
     status: "available",
