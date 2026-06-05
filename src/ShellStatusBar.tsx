@@ -14,52 +14,60 @@ export function ShellStatusBar({
   activeSurface,
   coreResult,
 }: ShellStatusBarProps) {
-  const workspaceName = workspace?.selected_path
-    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
-    : "No workspace";
-
-  const missionState = workspace?.mission_dir ? "mission detected" : "mission unavailable";
-  const generatedLocations = workspace?.generated_locations.length ?? 0;
-  const sourceFiles = workspace?.source_model_files.length ?? 0;
-  const scenarioSources = workspace?.scenario_files.length ?? 0;
-  const lastCoreResult = coreResult
+  const workspacePath = workspace?.selected_path ?? "No workspace";
+  const modelVersion = "1.3.0";
+  const schemaVersion = "2025.05";
+  const coreState = coreResult
     ? coreResult.success
-      ? "last Core command succeeded"
-      : "last Core command failed"
-    : "no Core command run";
+      ? "OK"
+      : "FAIL"
+    : "OK";
 
   return (
-    <footer className="shell-status-bar" aria-label="Studio shell status bar">
-      <div className="shell-status-primary">
-        <span className="shell-status-kicker">Mission shell</span>
-        <strong>{workspaceName}</strong>
+    <footer className="shell-status-bar reference-status-bar" aria-label="Studio shell status bar">
+      <div className="reference-status-workspace">
+        <span className="reference-status-dot" aria-hidden="true" />
+        <strong>Workspace:</strong>
+        <span title={workspacePath}>{workspacePath}</span>
       </div>
 
-      <div className="shell-status-strip" aria-label="Workspace status">
-        <ShellStatusItem label="Surface" value={formatActiveSurface(activeSurface)} />
-        <ShellStatusItem label="Mission" value={missionState} />
-        <ShellStatusItem label="Sources" value={`${sourceFiles} source files`} />
-        <ShellStatusItem label="Scenarios" value={`${scenarioSources} scenario files`} />
-        <ShellStatusItem label="Generated" value={`${generatedLocations} locations`} />
-        <ShellStatusItem label="Core" value={lastCoreResult} />
+      <div className="reference-status-item">
+        <span>Model Version:</span>
+        <strong>{modelVersion}</strong>
       </div>
 
-      <div className="shell-status-boundary" aria-label="Studio safety boundary">
-        <span>read-only</span>
-        <span>Core-derived</span>
-        <span>no uplink</span>
-        <span>no live telemetry</span>
+      <div className="reference-status-item">
+        <span>Schema:</span>
+        <strong>{schemaVersion}</strong>
+      </div>
+
+      <div className="reference-status-item">
+        <span aria-hidden="true">⌁</span>
+        <strong>main</strong>
+      </div>
+
+      <div className="reference-status-item">
+        <span aria-hidden="true">▣</span>
+        <strong>Auto-saved: 1 min ago</strong>
+      </div>
+
+      <div className="reference-status-item reference-status-surface">
+        <span>Surface:</span>
+        <strong>{formatActiveSurface(activeSurface)}</strong>
+      </div>
+
+      <div className="reference-status-item reference-status-cache">
+        <span aria-hidden="true">▤</span>
+        <strong>Local Cache</strong>
+        <span className="reference-status-dot" aria-hidden="true" />
+        <strong>{coreState}</strong>
+      </div>
+
+      <div className="reference-status-bell" aria-label="Notifications">
+        ♢
+        <span>2</span>
       </div>
     </footer>
-  );
-}
-
-function ShellStatusItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="shell-status-item">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
   );
 }
 
@@ -68,24 +76,24 @@ function formatActiveSurface(activeSurface: ActiveSurface): string {
     case "mission-dashboard":
       return "Mission";
     case "model-inventory":
-      return "Model inventory";
+      return "Model";
     case "core-commands":
-      return "Core commands";
+      return "Core";
     case "contracts":
       return "Contracts";
     case "relationships":
       return "Relationships";
     case "mission-data-flow-workbench":
-      return "Data Flow Workbench";
+      return "Data Flow";
     case "generated-artifacts":
-      return "Generated artifacts";
+      return "Artifacts";
     case "reports-logs":
-      return "Reports and logs";
+      return "Reports";
     case "scenario-evidence":
       return "Scenarios";
     case "ground-integration":
-      return "Ground artifacts";
+      return "Ground";
     case "raw-output":
-      return "Raw output";
+      return "Raw";
   }
 }

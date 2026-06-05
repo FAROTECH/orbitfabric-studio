@@ -1,4 +1,4 @@
-import { type ComponentType, useRef, useState } from "react";
+import { type ComponentType, useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -207,6 +207,7 @@ function App() {
     useState<ActiveSurface>("mission-dashboard");
   const [activeNavigationId, setActiveNavigationId] =
     useState<TargetDomainId>("mission");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedDetail, setSelectedDetail] =
     useState<StudioDetailSelection | null>(null);
 
@@ -685,10 +686,22 @@ function App() {
               <div>
                 <h1 id="studio-title">OrbitFabric Studio</h1>
                 <div className="cockpit-empty-led-row" aria-label="Initial cockpit state">
-                  <span>WS 0</span>
-                  <span>MISSION 0</span>
-                  <span>CORE N/R</span>
-                  <span>MODEL N/R</span>
+                  <span>
+                    <strong>Workspace</strong>
+                    <em>Not opened</em>
+                  </span>
+                  <span>
+                    <strong>Mission</strong>
+                    <em>Not loaded</em>
+                  </span>
+                  <span>
+                    <strong>Core Evidence</strong>
+                    <em>Not loaded</em>
+                  </span>
+                  <span>
+                    <strong>Model Status</strong>
+                    <em>Not reported</em>
+                  </span>
                 </div>
               </div>
               <button
@@ -713,7 +726,14 @@ function App() {
           coreResult={coreResult}
           coreReportSnapshots={coreReportSnapshots}
           generatedArtifactSummary={generatedArtifactSummary}
-          onActiveSurfaceChange={handleActiveSurfaceChange}
+          onNavigate={(surface, navigationId) => {
+            if (navigationId) {
+              handlePrimaryNavigationSelect(surface, navigationId);
+              return;
+            }
+
+            handleActiveSurfaceChange(surface);
+          }}
         />
       );
     }
@@ -823,6 +843,7 @@ function App() {
         className={[
           "workbench-layout",
           activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : "",
+          isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
         ]
           .filter(Boolean)
@@ -831,6 +852,8 @@ function App() {
         <PrimarySidebar
           activeNavigationId={activeNavigationId}
           surfaceAvailability={surfaceAvailability}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapsed={() => setIsSidebarCollapsed((current) => !current)}
           onNavigationSelect={handlePrimaryNavigationSelect}
         />
 
@@ -879,25 +902,38 @@ function WorkspaceHeader({
     : "No workspace";
 
   return (
-    <header className="workspace-header cockpit-command-bar" aria-label="Workspace command bar">
-      <div className="cockpit-command-identity cockpit-command-identity-compact">
-        <div className="cockpit-command-mark">OF</div>
-        <strong>OrbitFabric Studio</strong>
+    <header
+      className={[
+        "workspace-header",
+        "cockpit-command-bar",
+        "reference-command-bar",
+        !workspace ? "reference-command-bar-empty" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label="Workspace command bar"
+    >
+      <div className="reference-command-left">
+        <div className="reference-product-title" aria-label="OrbitFabric Studio">
+          <strong>OrbitFabric</strong>
+          <span>Studio</span>
+        </div>
       </div>
 
-      <div className="cockpit-command-workspace cockpit-command-workspace-compact" title={workspace?.selected_path ?? undefined}>
-        <span>Workspace</span>
-        <strong>{workspaceName}</strong>
-      </div>
-
-      <button
-        type="button"
-        className="cockpit-workspace-switcher cockpit-workspace-switcher-compact"
-        onClick={onOpenWorkspace}
-        disabled={isOpening}
-      >
-        {isOpening ? "Opening" : workspace ? "Switch" : "Open"}
-      </button>
+      {workspace ? (
+        <button
+          type="button"
+          className="reference-project-switcher"
+          onClick={onOpenWorkspace}
+          disabled={isOpening}
+          title={workspace.selected_path}
+          aria-label="Project workspace switcher"
+        >
+          <span>Project</span>
+          <strong>{isOpening ? "Opening" : workspaceName}</strong>
+          <small aria-hidden="true">⌄</small>
+        </button>
+      ) : null}
 
       <ShellCommandActions
         workspace={workspace}
@@ -905,12 +941,16 @@ function WorkspaceHeader({
         onActiveSurfaceChange={onActiveSurfaceChange}
       />
 
-      <div className="cockpit-command-safety" aria-label="Studio safety boundary">
-        <span title="Read-only Studio surface">🔒 RO</span>
-        <span title="Core-derived reports and generated artifacts">◆ CORE</span>
-        <span title="No command uplink">⊘ UPLINK</span>
-        <span title="No live telemetry">⊘ LIVE</span>
-        <span title="No private health, completeness or coverage calculation">⊘ PRIVATE</span>
+      <div className="reference-command-icons" aria-label="Studio utilities">
+        <button type="button" className="reference-icon-button" title="Help" aria-label="Help">
+          ?
+        </button>
+        <button type="button" className="reference-icon-button" title="Settings" aria-label="Settings">
+          ⚙
+        </button>
+        <button type="button" className="reference-icon-button" title="Profile" aria-label="Profile">
+          ♙
+        </button>
       </div>
     </header>
   );
@@ -919,37 +959,47 @@ function WorkspaceHeader({
 function PrimarySidebar({
   activeNavigationId,
   surfaceAvailability,
+  isCollapsed,
+  onToggleCollapsed,
   onNavigationSelect,
 }: {
   activeNavigationId: TargetDomainId;
   surfaceAvailability: Record<ActiveSurface, boolean>;
+  isCollapsed: boolean;
+  onToggleCollapsed: () => void;
   onNavigationSelect: (surface: ActiveSurface, navigationId: TargetDomainId) => void;
 }) {
-  return (
-    <nav className="primary-sidebar cockpit-sidebar" aria-label="Studio surfaces">
-      <div className="cockpit-sidebar-brand">
-        <div className="cockpit-sidebar-mark">OF</div>
-        <div>
-          <strong>Studio</strong>
-          <span>Workbench</span>
-        </div>
-      </div>
+  const activeItemRef = useRef<HTMLElement | null>(null);
 
-      <ul className="surface-nav-list cockpit-surface-nav-list">
+  useEffect(() => {
+    activeItemRef.current?.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [activeNavigationId]);
+
+  return (
+    <nav
+      className={[
+        "primary-sidebar",
+        "cockpit-sidebar",
+        "reference-sidebar",
+        isCollapsed ? "reference-sidebar-collapsed" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label="Studio surfaces"
+    >
+      <ul className="surface-nav-list cockpit-surface-nav-list reference-sidebar-nav">
         {shellSurfaceItems.map((item) => {
           const isActive = item.id === activeNavigationId;
           const isEnabled = Boolean(surfaceAvailability[item.surface]);
-          const displayedStatus = isActive
-            ? "active"
-            : isEnabled
-              ? item.status
-              : "unavailable";
-
           const itemClassName = [
             "surface-nav-item",
             "cockpit-surface-nav-item",
-            isActive ? "surface-nav-item-active" : "",
-            !isEnabled ? "surface-nav-item-disabled" : "",
+            "reference-sidebar-item",
+            isActive ? "surface-nav-item-active reference-sidebar-item-active" : "",
+            !isEnabled ? "surface-nav-item-disabled reference-sidebar-item-disabled" : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -957,12 +1007,8 @@ function PrimarySidebar({
           const itemContent = (
             <>
               <DashboardIcon kind={item.icon} />
-              <span className="surface-nav-copy">
+              <span className="surface-nav-copy reference-sidebar-copy">
                 <strong>{item.label}</strong>
-                <span>{item.caption}</span>
-              </span>
-              <span className={`surface-status surface-status-${displayedStatus}`}>
-                {displayedStatus}
               </span>
             </>
           );
@@ -971,8 +1017,14 @@ function PrimarySidebar({
             <li key={item.label}>
               {isEnabled ? (
                 <a
+                  ref={(node) => {
+                    if (isActive) {
+                      activeItemRef.current = node;
+                    }
+                  }}
                   className={`${itemClassName} surface-nav-link`}
                   href={`#${item.targetId}`}
+                  title={item.label}
                   aria-current={isActive ? "page" : undefined}
                   onClick={(event) => {
                     event.preventDefault();
@@ -982,7 +1034,16 @@ function PrimarySidebar({
                   {itemContent}
                 </a>
               ) : (
-                <span className={itemClassName} aria-disabled="true">
+                <span
+                  ref={(node) => {
+                    if (isActive) {
+                      activeItemRef.current = node;
+                    }
+                  }}
+                  className={itemClassName}
+                  title={item.label}
+                  aria-disabled="true"
+                >
                   {itemContent}
                 </span>
               )}
@@ -990,6 +1051,17 @@ function PrimarySidebar({
           );
         })}
       </ul>
+
+      <button
+        type="button"
+        className="reference-sidebar-collapse"
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-pressed={isCollapsed}
+        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        onClick={onToggleCollapsed}
+      >
+        {isCollapsed ? "›" : "‹"}
+      </button>
     </nav>
   );
 }
