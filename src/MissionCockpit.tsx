@@ -605,19 +605,27 @@ function TargetCard({
   action,
   onOpen,
   children,
+  className,
 }: {
   title: string;
   value?: string;
   action?: string;
   onOpen?: () => void;
   children: ReactNode;
+  className?: string;
 }) {
+  const isValueUnavailable = value?.toLowerCase().includes("not reported") ?? false;
+
   return (
-    <article className="mission-target-card">
+    <article className={["mission-target-card", className].filter(Boolean).join(" ")}>
       <header className="mission-target-card-header">
         <h3>{title}</h3>
         <div title={action}>
-          {value ? <strong>{value}</strong> : null}
+          {value ? (
+            <strong className={isValueUnavailable ? "mission-target-card-status-muted" : undefined}>
+              {value}
+            </strong>
+          ) : null}
         </div>
       </header>
       {children}
@@ -627,17 +635,25 @@ function TargetCard({
 
 function SpacecraftCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
   return (
-    <TargetCard title="Spacecraft" value={display.spacecraftCount} action="View Spacecraft" onOpen={onOpen}>
-      <div className="mission-target-spacecraft-body">
-        <dl className="mission-target-detail-list">
-          {display.spacecraftRows.map(([label, value]) => (
-            <MetaDefinition label={label} value={value} key={label} />
-          ))}
-        </dl>
-        <div className="mission-target-cubesat" aria-hidden="true">
-          <span className="mission-target-cubesat-panel-left" />
-          <span className="mission-target-cubesat-body" />
-          <span className="mission-target-cubesat-panel-right" />
+    <TargetCard
+      title="Spacecraft"
+      value={display.spacecraftCount}
+      action="View Spacecraft"
+      onOpen={onOpen}
+      className="mission-target-spacecraft-card"
+    >
+      <div className="mission-target-card-body">
+        <div className="mission-target-spacecraft-body">
+          <dl className="mission-target-detail-list">
+            {display.spacecraftRows.map(([label, value]) => (
+              <MetaDefinition label={label} value={value} key={label} />
+            ))}
+          </dl>
+          <div className="mission-target-cubesat" aria-hidden="true">
+            <span className="mission-target-cubesat-panel-left" />
+            <span className="mission-target-cubesat-body" />
+            <span className="mission-target-cubesat-panel-right" />
+          </div>
         </div>
       </div>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Spacecraft</button>
@@ -646,16 +662,38 @@ function SpacecraftCard({ display, onOpen }: { display: ReferenceDisplayModel; o
 }
 
 function PayloadsCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  const inventoryUnavailable =
+    display.payloadRows.length === 1 &&
+    display.payloadRows[0][1].toLowerCase().includes("not");
+
   return (
-    <TargetCard title="Payloads" value={display.payloadCount} action="View Payloads" onOpen={onOpen}>
-      <ul className="mission-target-payload-list">
-        {display.payloadRows.map(([name, status]) => (
-          <li key={name}>
-            <span>{name}</span>
-            <strong>{status}</strong>
-          </li>
-        ))}
-      </ul>
+    <TargetCard
+      title="Payloads"
+      value={display.payloadCount}
+      action="View Payloads"
+      onOpen={onOpen}
+      className="mission-target-payloads-card"
+    >
+      <div className="mission-target-card-body">
+        {inventoryUnavailable ? (
+          <div className="mission-target-empty-state mission-target-payload-empty">
+            <span aria-hidden="true">▣</span>
+            <div>
+              <strong>Payload inventory not loaded</strong>
+              <small>Load Core evidence to inspect modeled payload records.</small>
+            </div>
+          </div>
+        ) : (
+          <ul className="mission-target-payload-list">
+            {display.payloadRows.map(([name, status]) => (
+              <li key={name}>
+                <span>{name}</span>
+                <strong>{status}</strong>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Payloads</button>
     </TargetCard>
   );
@@ -663,23 +701,31 @@ function PayloadsCard({ display, onOpen }: { display: ReferenceDisplayModel; onO
 
 function DataProductsCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
   return (
-    <TargetCard title="Data Products" value={display.dataProductValue} action="View Data Products" onOpen={onOpen}>
-      <MetricLine label="Coverage" value={display.dataProductRows.coverage} percent={display.dataProductRows.coveragePercent} />
-      <div className="mission-target-data-product-grid">
-        <div>
-          <span>Producers</span>
-          <strong>{display.dataProductRows.producers}</strong>
+    <TargetCard
+      title="Data Products"
+      value={display.dataProductValue}
+      action="View Data Products"
+      onOpen={onOpen}
+      className="mission-target-data-products-card"
+    >
+      <div className="mission-target-card-body">
+        <MetricLine label="Coverage" value={display.dataProductRows.coverage} percent={display.dataProductRows.coveragePercent} />
+        <div className="mission-target-data-product-grid">
+          <div>
+            <span>Producers</span>
+            <strong>{display.dataProductRows.producers}</strong>
+          </div>
+          <div>
+            <span>Downlink Linkage</span>
+            <strong>{display.dataProductRows.downlink}</strong>
+          </div>
         </div>
-        <div>
-          <span>Downlink Linkage</span>
-          <strong>{display.dataProductRows.downlink}</strong>
+        <div className="mission-target-flow">
+          <span>{display.dataProductRows.producerName}</span>
+          <i aria-hidden="true">→</i>
+          <strong>L1C_TILE_16BIT</strong>
+          <small>+3</small>
         </div>
-      </div>
-      <div className="mission-target-flow">
-        <span>{display.dataProductRows.producerName}</span>
-        <i aria-hidden="true">→</i>
-        <strong>L1C_TILE_16BIT</strong>
-        <small>+3</small>
       </div>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Data Products</button>
     </TargetCard>
@@ -687,23 +733,37 @@ function DataProductsCard({ display, onOpen }: { display: ReferenceDisplayModel;
 }
 
 function ScenariosCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  const runEvidenceReported = display.scenarioCoverage.toLowerCase().includes("covered");
+  const sourceSummary = runEvidenceReported ? display.scenarioValue : display.scenarioCoverage;
+  const runSummary = runEvidenceReported ? display.scenarioCoverage : "run evidence not reported";
+
   return (
-    <TargetCard title="Scenarios" value={display.scenarioValue} action="View Scenarios" onOpen={onOpen}>
-      <div className="mission-target-scenario-metadata">
-        <span>Sources</span>
-        <strong>1 Manual · 1 Imported</strong>
-        <span>Pass / Fail</span>
-        <strong>● 18  ·  ✖ 3</strong>
+    <TargetCard
+      title="Scenarios"
+      value={display.scenarioValue}
+      action="View Scenarios"
+      onOpen={onOpen}
+      className="mission-target-scenarios-card"
+    >
+      <div className="mission-target-card-body">
+        <div className="mission-target-scenario-metadata">
+          <span>Sources</span>
+          <strong>{sourceSummary}</strong>
+          <span>Run Evidence</span>
+          <strong>{runSummary}</strong>
+        </div>
+        <ul className="mission-target-scenario-list">
+          {display.scenarioRows.map(([name, status, time]) => (
+            <li key={name}>
+              <span>{name}</span>
+              <strong className={`mission-target-scenario-status mission-target-scenario-status-${status.toLowerCase().replace(/\s+/g, "-")}`}>
+                {status}
+              </strong>
+              <small>{time}</small>
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="mission-target-scenario-list">
-        {display.scenarioRows.map(([name, status, time]) => (
-          <li key={name}>
-            <span>{name}</span>
-            <strong>{status}</strong>
-            <small>{time}</small>
-          </li>
-        ))}
-      </ul>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Scenarios</button>
     </TargetCard>
   );
@@ -869,7 +929,15 @@ function formatRelationship(value: { covered: number | null; total: number | nul
 }
 
 function scenarioStatusLabel(result: string): string {
-  const normalized = result.toLowerCase();
+  const normalized = result.toLowerCase().replace(/[_-]+/g, " ");
+
+  if (normalized.includes("not") && normalized.includes("run")) {
+    return "NOT RUN";
+  }
+
+  if (normalized.includes("source")) {
+    return "SOURCE";
+  }
 
   if (normalized.includes("pass")) {
     return "PASSED";
@@ -879,7 +947,7 @@ function scenarioStatusLabel(result: string): string {
     return "FAILED";
   }
 
-  if (normalized.includes("run") || normalized.includes("progress")) {
+  if (normalized.includes("running") || normalized.includes("progress")) {
     return "RUNNING";
   }
 
