@@ -305,13 +305,48 @@ export function MissionCockpit({
       <section className="mission-target-quick" aria-label="Mission Quick Stats">
         <h3>Mission Quick Stats</h3>
         <div className="mission-target-quick-grid">
-          <QuickStat icon="⌘" label="Spacecraft" value={display.spacecraftCount} detail="Active" />
-          <QuickStat icon="▣" label="Payloads" value={display.payloadCount} detail="Active" />
-          <QuickStat icon="▤" label="Data Products" value={display.dataProductValue} detail={display.dataProductCoverage} />
-          <QuickStat icon="〽" label="Scenarios" value={display.scenarioValue} detail={display.scenarioCoverage} />
-          <QuickStat icon="⌁" label="Downlink Windows" value={display.downlinkWindows} detail="Configured" />
-          <QuickStat icon="◎" label="Contacts" value={display.contacts} detail="Configured" />
-          <QuickStat icon="▷" label="Commands Modeled" value={display.commandValue} detail={display.commandCoverage} />
+          <QuickStat
+            icon="⌘"
+            label="Spacecraft"
+            value={display.spacecraftCount}
+            detail={display.spacecraftCount === "not reported" ? "entity not reported" : "entity loaded"}
+          />
+          <QuickStat
+            icon="▣"
+            label="Payloads"
+            value={display.payloadCount}
+            detail={display.payloadCount === "not reported" ? "inventory not reported" : "payload records loaded"}
+          />
+          <QuickStat
+            icon="▤"
+            label="Data Products"
+            value={display.dataProductValue}
+            detail={display.dataProductCoverage}
+          />
+          <QuickStat
+            icon="〽"
+            label="Scenarios"
+            value={display.scenarioValue}
+            detail={display.scenarioCoverage}
+          />
+          <QuickStat
+            icon="⌁"
+            label="Downlink Windows"
+            value={display.downlinkWindows}
+            detail={display.downlinkWindows === "not reported" ? "downlink not reported" : "windows detected"}
+          />
+          <QuickStat
+            icon="◎"
+            label="Contacts"
+            value={display.contacts}
+            detail={display.contacts === "not reported" ? "contacts not reported" : "contact evidence loaded"}
+          />
+          <QuickStat
+            icon="▷"
+            label="Commands Modeled"
+            value={display.commandValue}
+            detail={display.commandCoverage}
+          />
         </div>
       </section>
 
@@ -540,8 +575,20 @@ function LoadRow({ label, value, percent }: { label: string; value: string; perc
 }
 
 function QuickStat({ icon, label, value, detail }: { icon: string; label: string; value: string; detail: string }) {
+  const isUnavailable =
+    value.toLowerCase().includes("not reported") || detail.toLowerCase().includes("not reported");
+  const hasEvidence = !isUnavailable && !value.toLowerCase().includes("not loaded");
+
   return (
-    <article className="mission-target-quick-stat">
+    <article
+      className={[
+        "mission-target-quick-stat",
+        isUnavailable ? "mission-target-quick-stat-muted" : "",
+        hasEvidence ? "mission-target-quick-stat-evidence" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <span className="mission-target-quick-icon" aria-hidden="true">{icon}</span>
       <div>
         <span>{label}</span>
