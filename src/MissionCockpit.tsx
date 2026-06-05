@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 import missionOverviewPatch from "./assets/mission/mission-overview-patch.png";
+import spacecraftCardIllustration from "./assets/mission/spacecraft-card-illustration.png";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
 import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import {
@@ -24,7 +26,9 @@ import {
 } from "./missionContentViewModel";
 import type {
   CoreCommandResult,
+  CoreEntityIndex,
   CoreRelationshipManifest,
+  GeneratedArtifactInventory,
   WorkspaceInspection,
 } from "./types/workspace";
 import type { CoreReportSnapshots } from "./missionCockpitModel";
@@ -63,6 +67,8 @@ interface ReferenceDisplayModel {
     coveragePercent: number;
     producers: string;
     producerName: string;
+    targetName: string;
+    targetExtra: string | null;
     downlink: string;
   };
   scenarioRows: Array<[string, string, string]>;
@@ -83,6 +89,24 @@ interface ReferenceDisplayModel {
   coreLoaded: boolean;
 }
 
+interface ExistingCoreReportContents {
+  lintReport: string | null;
+  modelSummary: string | null;
+  entityIndex: string | null;
+  relationshipManifest: string | null;
+  dashboardSummary: string | null;
+  scenarioRunIndex: string | null;
+  coverageSummary: string | null;
+  simulationReport: string | null;
+}
+
+interface GeneratedArtifactClassPresence {
+  docs: boolean;
+  reports: boolean;
+  runtime: boolean;
+  ground: boolean;
+}
+
 const emptyReferenceDisplay: ReferenceDisplayModel = {
   coreLoaded: false,
   missionName: "Mission workspace",
@@ -92,10 +116,10 @@ const emptyReferenceDisplay: ReferenceDisplayModel = {
   phase: "not reported",
   owner: "not reported",
   updated: "not reported",
-  healthValue: "pending",
-  healthLabel: "Load Core",
-  completenessValue: "not reported",
-  completenessLabel: "Load Core reports",
+  healthValue: "Not reported",
+  healthLabel: "Core metric not available",
+  completenessValue: "Not reported",
+  completenessLabel: "Core metric not available",
   lintErrors: "not reported",
   lintWarnings: "not reported",
   lintPassed: "not reported",
@@ -125,6 +149,8 @@ const emptyReferenceDisplay: ReferenceDisplayModel = {
     coveragePercent: 0,
     producers: "not reported",
     producerName: "not reported",
+    targetName: "data product not resolved",
+    targetExtra: null,
     downlink: "not reported",
   },
   scenarioRows: [],
@@ -168,11 +194,69 @@ export function MissionCockpit({
     () => parseCoreRelationshipManifest(currentReportContent),
     [currentReportContent],
   );
+  const [existingReportSnapshots, setExistingReportSnapshots] =
+    useState<CoreReportSnapshots>(() => createEmptyCoreReportSnapshots());
   const [relationshipManifestSnapshot, setRelationshipManifestSnapshot] =
     useState<CoreRelationshipManifest | null>(null);
+  const [observedGeneratedArtifactSummary, setObservedGeneratedArtifactSummary] =
+    useState<GeneratedArtifactDashboardSummary | null>(null);
+  const [observedGeneratedArtifactClasses, setObservedGeneratedArtifactClasses] =
+    useState<GeneratedArtifactClassPresence | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    setExistingReportSnapshots(createEmptyCoreReportSnapshots());
     setRelationshipManifestSnapshot(null);
+    setObservedGeneratedArtifactSummary(null);
+    setObservedGeneratedArtifactClasses(null);
+
+    if (!workspace) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const workspacePath = workspace.selected_path;
+
+    async function loadExistingWorkspaceEvidence() {
+      try {
+        const existingReports = await readExistingCoreReports(workspacePath);
+
+        if (!cancelled) {
+          setExistingReportSnapshots(createCoreReportSnapshotsFromExistingReports(existingReports));
+          setRelationshipManifestSnapshot(parseCoreRelationshipManifest(existingReports.relationshipManifest));
+        }
+      } catch {
+        if (!cancelled) {
+          setExistingReportSnapshots(createEmptyCoreReportSnapshots());
+          setRelationshipManifestSnapshot(null);
+        }
+      }
+
+      try {
+        const inventory = await invoke<GeneratedArtifactInventory>(
+          "inspect_generated_artifacts",
+          { workspacePath },
+        );
+
+        if (!cancelled) {
+          setObservedGeneratedArtifactSummary(toGeneratedArtifactDashboardSummary(inventory));
+          setObservedGeneratedArtifactClasses(toGeneratedArtifactClassPresence(inventory));
+        }
+      } catch {
+        if (!cancelled) {
+          setObservedGeneratedArtifactSummary(null);
+          setObservedGeneratedArtifactClasses(null);
+        }
+      }
+    }
+
+    void loadExistingWorkspaceEvidence();
+
+    return () => {
+      cancelled = true;
+    };
   }, [workspace?.selected_path]);
 
   useEffect(() => {
@@ -182,20 +266,21 @@ export function MissionCockpit({
   }, [currentRelationshipManifest]);
 
   const lintReport =
-    parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport;
+    parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport ?? existingReportSnapshots.lintReport;
   const modelSummary =
-    parseCoreModelSummary(currentReportContent) ?? coreReportSnapshots.modelSummary;
+    parseCoreModelSummary(currentReportContent) ?? coreReportSnapshots.modelSummary ?? existingReportSnapshots.modelSummary;
   const entityIndex =
-    parseCoreEntityIndex(currentReportContent) ?? coreReportSnapshots.entityIndex;
+    parseCoreEntityIndex(currentReportContent) ?? coreReportSnapshots.entityIndex ?? existingReportSnapshots.entityIndex;
   const relationshipManifest = currentRelationshipManifest ?? relationshipManifestSnapshot;
   const dashboardSummary =
-    parseCoreDashboardSummary(currentReportContent) ?? coreReportSnapshots.dashboardSummary;
+    parseCoreDashboardSummary(currentReportContent) ?? coreReportSnapshots.dashboardSummary ?? existingReportSnapshots.dashboardSummary;
   const scenarioRunIndex =
-    parseCoreScenarioRunIndex(currentReportContent) ?? coreReportSnapshots.scenarioRunIndex;
+    parseCoreScenarioRunIndex(currentReportContent) ?? coreReportSnapshots.scenarioRunIndex ?? existingReportSnapshots.scenarioRunIndex;
   const coverageSummary =
-    parseCoreCoverageSummary(currentReportContent) ?? coreReportSnapshots.coverageSummary;
+    parseCoreCoverageSummary(currentReportContent) ?? coreReportSnapshots.coverageSummary ?? existingReportSnapshots.coverageSummary;
   const simulationReport =
-    parseCoreSimulationReport(currentReportContent) ?? coreReportSnapshots.simulationReport;
+    parseCoreSimulationReport(currentReportContent) ?? coreReportSnapshots.simulationReport ?? existingReportSnapshots.simulationReport;
+  const effectiveGeneratedArtifactSummary = generatedArtifactSummary ?? observedGeneratedArtifactSummary;
 
   const missionContent = createMissionContentViewModel({
     workspace,
@@ -209,10 +294,14 @@ export function MissionCockpit({
       simulationReport,
     },
     relationshipManifest,
-    generatedArtifactSummary,
+    generatedArtifactSummary: effectiveGeneratedArtifactSummary,
   });
 
-  const display = createReferenceDisplayModel(missionContent);
+  const display = createReferenceDisplayModel(
+    missionContent,
+    entityIndex,
+    observedGeneratedArtifactClasses,
+  );
 
   return (
     <section
@@ -225,7 +314,11 @@ export function MissionCockpit({
           <h2>Mission Overview</h2>
           <span aria-hidden="true">ⓘ</span>
         </div>
-        <button type="button" className="mission-target-report-button">
+        <button
+          type="button"
+          className="mission-target-report-button"
+          onClick={() => onNavigate("reports-logs", "mission")}
+        >
           View Mission Report ↗
         </button>
       </header>
@@ -254,15 +347,15 @@ export function MissionCockpit({
         <div className="mission-target-posture">
           <PostureBlock
             icon="♡"
-            title="Mission Health"
+            title="Contract Health"
             value={display.healthValue}
             subtitle={display.healthLabel}
-            progress={display.coreLoaded ? 100 : 100}
+            progress={0}
             tone="green"
           />
           <PostureBlock
             icon="◎"
-            title="Model Completeness"
+            title="Contract Completeness"
             value={display.completenessValue}
             subtitle={display.completenessLabel}
             progress={94}
@@ -324,7 +417,7 @@ export function MissionCockpit({
             detail={display.dataProductCoverage}
           />
           <QuickStat
-            icon="〽"
+            icon="∿"
             label="Scenarios"
             value={display.scenarioValue}
             detail={display.scenarioCoverage}
@@ -374,14 +467,25 @@ export function MissionCockpit({
           display={display}
           onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
         />
-        <WarningsCard display={display} warnings={missionContent.warnings} />
-        <EvidenceCard display={display} />
+        <WarningsCard
+          display={display}
+          warnings={missionContent.warnings}
+          onOpen={() => onNavigate("reports-logs", "mission")}
+        />
+        <EvidenceCard
+          display={display}
+          onOpen={() => onNavigate("reports-logs", "mission")}
+        />
       </section>
     </section>
   );
 }
 
-function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceDisplayModel {
+function createReferenceDisplayModel(
+  model: MissionContentViewModel,
+  entityIndex: CoreEntityIndex | null,
+  generatedArtifactClasses: GeneratedArtifactClassPresence | null,
+): ReferenceDisplayModel {
   const coreLoaded = model.evidence.items.some((item) => item.key !== "workspace" && item.available);
   const workspaceTitle = titleFromWorkspaceName(model.mission.workspaceName);
   const missionName =
@@ -396,7 +500,6 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
   const lintReported =
     validation.errors !== null || validation.warnings !== null || validation.info !== null;
   const dataProductCoverage = model.dataProducts.coverage.percent;
-  const commandCoverage = model.commandability.percent;
   const scenarioRunsReported = model.scenarios.passed !== null || model.scenarios.failed !== null;
   const scenarioPassed = model.scenarios.passed ?? null;
   const scenarioFailed = model.scenarios.failed ?? null;
@@ -406,6 +509,14 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
   const contactWindows = uniqueContactWindows(model.dataProducts.observedProducts);
   const downlinkFlows = uniqueDownlinkFlows(model.dataProducts.observedProducts);
   const spacecraftEntity = model.spacecraft.items[0] ?? null;
+  const downlinkFlowCount = entityDomainCount(entityIndex, ["downlink_flows"]);
+  const contactWindowCount = entityDomainCount(entityIndex, ["contact_windows"]);
+  const commandModeledCount = entityDomainCount(entityIndex, ["commands"]) ?? model.commandability.total;
+  const commandCoverageDetail =
+    model.commandability.covered !== null && model.commandability.total !== null
+      ? `${model.commandability.covered}/${model.commandability.total} covered`
+      : "coverage not reported";
+  const selectedDataProduct = selectDataProductFlowTarget(model.dataProducts);
 
   return {
     ...emptyReferenceDisplay,
@@ -418,10 +529,10 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
     phase: "not reported",
     owner: "not reported",
     updated: "not reported",
-    healthValue: coreLoaded ? (model.warnings.some((warning) => warning.severity === "critical") ? "action" : "reported") : "pending",
-    healthLabel: coreLoaded ? (model.warnings.length > 0 ? "Warnings" : "Healthy") : "Load Core",
-    completenessValue: coreLoaded ? `${model.evidence.reported} / ${model.evidence.total}` : "not reported",
-    completenessLabel: coreLoaded ? "Evidence loaded" : "Load Core reports",
+    healthValue: "Not reported",
+    healthLabel: "Core metric not available",
+    completenessValue: "Not reported",
+    completenessLabel: "Core metric not available",
     lintErrors: lintReported ? String(validation.errors ?? 0) : "not reported",
     lintWarnings: lintReported ? String(validation.warnings ?? 0) : "not reported",
     lintPassed: lintReported ? String(validation.info ?? 0) : "not reported",
@@ -453,14 +564,20 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
       scenarioTotal !== null && scenarioPassed !== null
         ? `${Math.round((scenarioPassed / Math.max(scenarioTotal, 1)) * 100)}% Covered`
         : `${model.scenarios.sourceCount} scenario sources`,
-    downlinkWindows: downlinkFlows.length > 0 ? String(downlinkFlows.length) : "not reported",
-    contacts: contactWindows.length > 0 ? String(contactWindows.length) : "not reported",
-    commandValue:
-      model.commandability.covered !== null && model.commandability.total !== null
-        ? `${model.commandability.covered} / ${model.commandability.total}`
-        : "not reported",
-    commandCoverage:
-      commandCoverage !== null ? `${commandCoverage}% Coverage` : "coverage not reported",
+    downlinkWindows:
+      downlinkFlowCount !== null
+        ? String(downlinkFlowCount)
+        : downlinkFlows.length > 0
+          ? String(downlinkFlows.length)
+          : "not reported",
+    contacts:
+      contactWindowCount !== null
+        ? String(contactWindowCount)
+        : contactWindows.length > 0
+          ? String(contactWindows.length)
+          : "not reported",
+    commandValue: commandModeledCount !== null ? String(commandModeledCount) : "not reported",
+    commandCoverage: commandCoverageDetail,
     spacecraftRows: [
       ["Bus", spacecraftEntity?.label ?? "not reported"],
       ["Configuration", spacecraftEntity?.entityType ?? "not reported"],
@@ -477,6 +594,8 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
       coveragePercent: dataProductCoverage ?? 0,
       producers: formatRelationship(model.dataProducts.producedBy),
       producerName: model.dataProducts.observedProducts[0]?.producer ?? "not reported",
+      targetName: selectedDataProduct.targetName,
+      targetExtra: selectedDataProduct.targetExtra,
       downlink: formatRelationship(model.dataProducts.downlinkLinked),
     },
     scenarioRows:
@@ -488,10 +607,10 @@ function createReferenceDisplayModel(model: MissionContentViewModel): ReferenceD
           ] as [string, string, string])
         : emptyReferenceDisplay.scenarioRows,
     artifactTiles: [
-      ["Docs", artifactLocationLabel(model.generatedArtifacts.docs), "Generated location"],
-      ["Reports", artifactLocationLabel(model.generatedArtifacts.reports), "Generated location"],
-      ["Runtime", artifactLocationLabel(model.generatedArtifacts.runtime), "Generated location"],
-      ["Ground", artifactLocationLabel(model.generatedArtifacts.ground), "Generated location"],
+      ["Docs", artifactPresenceLabel(generatedArtifactClasses?.docs, model.generatedArtifacts.docs), "Generated docs"],
+      ["Reports", artifactPresenceLabel(generatedArtifactClasses?.reports, model.generatedArtifacts.reports), "Generated reports"],
+      ["Runtime", artifactPresenceLabel(generatedArtifactClasses?.runtime, model.generatedArtifacts.runtime), "C++17 runtime"],
+      ["Ground", artifactPresenceLabel(generatedArtifactClasses?.ground, model.generatedArtifacts.ground), "Ground artifacts"],
       ["Warnings", formatNullableNumber(model.generatedArtifacts.warnings), "Artifact warnings"],
     ],
     warningRows:
@@ -649,10 +768,30 @@ function SpacecraftCard({ display, onOpen }: { display: ReferenceDisplayModel; o
               <MetaDefinition label={label} value={value} key={label} />
             ))}
           </dl>
-          <div className="mission-target-cubesat" aria-hidden="true">
-            <span className="mission-target-cubesat-panel-left" />
-            <span className="mission-target-cubesat-body" />
-            <span className="mission-target-cubesat-panel-right" />
+          <div
+            aria-hidden="true"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flex: "0 0 152px",
+              minWidth: "152px",
+              paddingInlineStart: "12px",
+            }}
+          >
+            <img
+              src={spacecraftCardIllustration}
+              alt=""
+              style={{
+                display: "block",
+                width: "132px",
+                maxWidth: "100%",
+                height: "auto",
+                objectFit: "contain",
+                opacity: 0.96,
+                filter: "drop-shadow(0 10px 22px rgba(0, 209, 255, 0.18))",
+              }}
+            />
           </div>
         </div>
       </div>
@@ -723,8 +862,8 @@ function DataProductsCard({ display, onOpen }: { display: ReferenceDisplayModel;
         <div className="mission-target-flow">
           <span>{display.dataProductRows.producerName}</span>
           <i aria-hidden="true">→</i>
-          <strong>L1C_TILE_16BIT</strong>
-          <small>+3</small>
+          <strong>{display.dataProductRows.targetName}</strong>
+          {display.dataProductRows.targetExtra ? <small>{display.dataProductRows.targetExtra}</small> : null}
         </div>
       </div>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Data Products</button>
@@ -795,9 +934,11 @@ function GeneratedArtifactsCard({ display, onOpen }: { display: ReferenceDisplay
 function WarningsCard({
   display,
   warnings,
+  onOpen,
 }: {
   display: ReferenceDisplayModel;
   warnings: MissionContentWarning[];
+  onOpen: () => void;
 }) {
   const warningCount = warnings.length;
   const hasReportedWarnings = warningCount > 0;
@@ -830,14 +971,14 @@ function WarningsCard({
           ))}
         </ul>
       </div>
-      <button type="button" className="mission-target-card-footer-button">
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>
         {hasReportedWarnings ? "View All Warnings →" : "Open Warning Evidence →"}
       </button>
     </article>
   );
 }
 
-function EvidenceCard({ display }: { display: ReferenceDisplayModel }) {
+function EvidenceCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
   const evidenceUnavailable = display.evidence.status.toLowerCase().includes("load");
 
   return (
@@ -862,13 +1003,13 @@ function EvidenceCard({ display }: { display: ReferenceDisplayModel }) {
           <em>{display.evidence.failed}</em>
         </div>
         <MetricLine label="Trace Coverage" value={display.evidence.traceCoverage} percent={display.evidence.traceCoveragePercent} />
-        <MetricLine label="Requirements Connected" value={display.evidence.requirements} percent={display.evidence.requirementsPercent} />
+        <MetricLine label="Relationships Indexed" value={display.evidence.requirements} percent={display.evidence.requirementsPercent} />
         <div className="mission-target-last-validation">
           <span>Last Validation</span>
           <strong>{display.evidence.lastValidation}</strong>
         </div>
       </div>
-      <button type="button" className="mission-target-card-footer-button">Open Validation Report +</button>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>Open Validation Report +</button>
     </article>
   );
 }
@@ -934,8 +1075,180 @@ function titleFromWorkspaceName(workspaceName: string): string {
     .join(" ");
 }
 
+function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
+  return {
+    lintReport: null,
+    modelSummary: null,
+    entityIndex: null,
+    dashboardSummary: null,
+    scenarioRunIndex: null,
+    coverageSummary: null,
+    simulationReport: null,
+  };
+}
+
+async function readExistingCoreReports(workspacePath: string): Promise<ExistingCoreReportContents> {
+  const readFirstAvailableReport = async (relativePaths: string[]): Promise<string | null> => {
+    for (const relativePath of relativePaths) {
+      try {
+        const file = await invoke<{ content: string }>("read_text_file", {
+          workspacePath,
+          filePath: joinWorkspacePath(workspacePath, "generated", "reports", ...relativePath.split("/")),
+        });
+
+        return file.content;
+      } catch {
+        continue;
+      }
+    }
+
+    return null;
+  };
+
+  return {
+    lintReport: await readFirstAvailableReport([
+      "lint_report.json",
+      "orbitfabric_studio_lint_report.json",
+    ]),
+    modelSummary: await readFirstAvailableReport([
+      "model_summary.json",
+      "orbitfabric_studio_model_summary.json",
+    ]),
+    entityIndex: await readFirstAvailableReport([
+      "entity_index.json",
+      "orbitfabric_studio_entity_index.json",
+    ]),
+    relationshipManifest: await readFirstAvailableReport([
+      "relationship_manifest.json",
+      "orbitfabric_studio_relationship_manifest.json",
+    ]),
+    dashboardSummary: await readFirstAvailableReport([
+      "dashboard_summary.json",
+      "orbitfabric_studio_dashboard_summary.json",
+    ]),
+    scenarioRunIndex: await readFirstAvailableReport([
+      "scenario_run_index.json",
+      "orbitfabric_studio_scenario_run_index.json",
+    ]),
+    coverageSummary: await readFirstAvailableReport([
+      "coverage_summary.json",
+      "orbitfabric_studio_coverage_summary.json",
+    ]),
+    simulationReport: await readFirstAvailableReport([
+      "nominal_payload_acquisition_report.json",
+      "delayed_sband_downlink_backlog_pending_report.json",
+      "eclipse_low_power_payload_suspension_report.json",
+      "adcs_degraded_pointing_payload_inhibit_report.json",
+    ]),
+  };
+}
+
+function createCoreReportSnapshotsFromExistingReports(
+  reports: ExistingCoreReportContents,
+): CoreReportSnapshots {
+  return {
+    lintReport: parseCoreLintReport(reports.lintReport),
+    modelSummary: parseCoreModelSummary(reports.modelSummary),
+    entityIndex: parseCoreEntityIndex(reports.entityIndex),
+    dashboardSummary: parseCoreDashboardSummary(reports.dashboardSummary),
+    scenarioRunIndex: parseCoreScenarioRunIndex(reports.scenarioRunIndex),
+    coverageSummary: parseCoreCoverageSummary(reports.coverageSummary),
+    simulationReport: parseCoreSimulationReport(reports.simulationReport),
+  };
+}
+
+function joinWorkspacePath(basePath: string, ...segments: string[]): string {
+  const separator = basePath.includes("\\") ? "\\" : "/";
+  const normalizedBase = basePath.replace(/[\\/]+$/, "");
+  const normalizedSegments = segments.map((segment) => segment.replace(/^[\\/]+|[\\/]+$/g, ""));
+
+  return [normalizedBase, ...normalizedSegments].filter(Boolean).join(separator);
+}
+
+function toGeneratedArtifactDashboardSummary(
+  inventory: GeneratedArtifactInventory,
+): GeneratedArtifactDashboardSummary {
+  return {
+    generatedDir: inventory.generated_dir,
+    totalArtifacts: inventory.counts.total_artifacts,
+    knownArtifacts: inventory.counts.known_artifacts,
+    unknownArtifacts: inventory.counts.unknown_artifacts,
+    previewableArtifacts: inventory.counts.previewable_artifacts,
+    notPreviewableArtifacts: inventory.counts.not_previewable_artifacts,
+    warningCount: inventory.warnings.length,
+  };
+}
+
+function toGeneratedArtifactClassPresence(
+  inventory: GeneratedArtifactInventory,
+): GeneratedArtifactClassPresence {
+  return {
+    docs: inventory.artifacts.some((artifact) => artifact.artifact_class === "docs"),
+    reports: inventory.artifacts.some((artifact) => artifact.artifact_class === "reports"),
+    runtime: inventory.artifacts.some((artifact) => artifact.artifact_class === "runtime"),
+    ground: inventory.artifacts.some((artifact) => artifact.artifact_class === "ground"),
+  };
+}
+
+function entityDomainCount(entityIndex: CoreEntityIndex | null, domainIds: string[]): number | null {
+  if (!entityIndex) {
+    return null;
+  }
+
+  for (const domainId of domainIds) {
+    const count = entityIndex.counts.domains[domainId];
+
+    if (typeof count === "number") {
+      return count;
+    }
+  }
+
+  return null;
+}
+
+function artifactPresenceLabel(
+  detectedByInventory: boolean | undefined,
+  detectedByWorkspace: number | null,
+): string {
+  if (detectedByInventory || detectedByWorkspace !== null) {
+    return "detected";
+  }
+
+  return "not reported";
+}
+
 function entityCountLabel(group: MissionContentEntityGroup): string {
   return group.items.length > 0 ? String(group.items.length) : "not reported";
+}
+
+
+function selectDataProductFlowTarget(dataProducts: MissionContentDataProductGroup): {
+  targetName: string;
+  targetExtra: string | null;
+} {
+  const observedId = dataProducts.observedProducts[0]?.id ?? null;
+  const matchingObservedEntity = observedId
+    ? dataProducts.items.find((item) => item.id === observedId)
+    : null;
+  const targetName =
+    matchingObservedEntity?.label ??
+    observedId ??
+    dataProducts.items[0]?.label ??
+    "data product not resolved";
+
+  const totalProducts =
+    dataProducts.coverage.total ??
+    dataProducts.count ??
+    dataProducts.items.length;
+  const targetResolved = targetName !== "data product not resolved";
+  const remainingProducts = targetResolved
+    ? Math.max(0, totalProducts - 1)
+    : 0;
+
+  return {
+    targetName,
+    targetExtra: remainingProducts > 0 ? `+${remainingProducts}` : null,
+  };
 }
 
 function uniqueContactWindows(products: MissionContentDataProductGroup["observedProducts"]): string[] {

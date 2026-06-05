@@ -15,59 +15,62 @@ export function ShellStatusBar({
   coreResult,
 }: ShellStatusBarProps) {
   const workspacePath = workspace?.selected_path ?? "No workspace";
-  const modelVersion = "1.3.0";
-  const schemaVersion = "2025.05";
-  const coreState = coreResult
+  const coreCommandState = coreResult
     ? coreResult.success
       ? "OK"
       : "FAIL"
-    : "OK";
+    : "Idle";
 
   return (
     <footer className="shell-status-bar reference-status-bar" aria-label="Studio shell status bar">
-      <div className="reference-status-workspace">
-        <span className="reference-status-dot" aria-hidden="true" />
-        <strong>Workspace:</strong>
-        <span title={workspacePath}>{workspacePath}</span>
+      <div className="reference-status-workspace reference-status-real" title={workspacePath}>
+        <span className="reference-status-dot reference-status-dot-real" aria-hidden="true" />
+        <strong>Workspace</strong>
+        <span>{workspacePath}</span>
       </div>
 
-      <div className="reference-status-item">
-        <span>Model Version:</span>
-        <strong>{modelVersion}</strong>
-      </div>
+      <PreviewStatusItem label="Model Version" value="Not wired" />
+      <PreviewStatusItem label="Schema" value="Not wired" />
 
-      <div className="reference-status-item">
-        <span>Schema:</span>
-        <strong>{schemaVersion}</strong>
-      </div>
-
-      <div className="reference-status-item">
+      <div className="reference-status-item reference-status-preview-item">
         <span aria-hidden="true">⌁</span>
         <strong>main</strong>
+        <small>Preview</small>
       </div>
 
-      <div className="reference-status-item">
+      <div className="reference-status-item reference-status-preview-item">
         <span aria-hidden="true">▣</span>
-        <strong>Auto-saved: 1 min ago</strong>
+        <strong>Auto-save not wired</strong>
+        <small>Preview</small>
       </div>
 
-      <div className="reference-status-item reference-status-surface">
-        <span>Surface:</span>
+      <div className="reference-status-item reference-status-surface reference-status-real">
+        <span>Surface</span>
         <strong>{formatActiveSurface(activeSurface)}</strong>
       </div>
 
-      <div className="reference-status-item reference-status-cache">
+      <div className="reference-status-item reference-status-cache reference-status-preview-item">
         <span aria-hidden="true">▤</span>
         <strong>Local Cache</strong>
-        <span className="reference-status-dot" aria-hidden="true" />
-        <strong>{coreState}</strong>
+        <small>Preview</small>
+        <em>{coreCommandState}</em>
       </div>
 
-      <div className="reference-status-bell" aria-label="Notifications">
+      <div className="reference-status-bell reference-status-preview-item" aria-label="Notifications preview">
         ♢
-        <span>2</span>
+        <small>Preview</small>
       </div>
     </footer>
+  );
+}
+
+function PreviewStatusItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="reference-status-item reference-status-preview-item">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>Preview</small>
+    </div>
   );
 }
 
