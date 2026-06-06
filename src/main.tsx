@@ -9,6 +9,7 @@ import "./missionWorkspaceTopbarHeroFix.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
 import "./missionDataFlowWorkbenchStep2.css";
 import "./missionDataFlowWorkbenchStep5.css";
+import "./missionDataFlowWorkbenchDrawer.css";
 import "./generatedArtifactExplorer.css";
 import "./generatedArtifactDeck.css";
 import "./generatedArtifactDeckStabilization.css";

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { DataFlowWorkbenchContextDrawer } from "./DataFlowWorkbenchContextDrawer";
 import type {
   MissionDataFlowTraceabilityLink,
   MissionDataFlowTraceabilitySummary,
@@ -139,9 +140,13 @@ export function MissionDataFlowWorkbenchSurface({
 }) {
   const viewModel = useMemo(() => createWorkbenchViewModel(snapshot), [snapshot]);
   const [selectedItem, setSelectedItem] = useState<WorkbenchSelection | null>(null);
+  const [drawerSelection, setDrawerSelection] = useState<WorkbenchSelection | null>(null);
   const selection = selectedItem ?? viewModel.primarySelection;
   const relatedTraceabilityLinks = selection
     ? selectTraceabilityLinksForSelection(snapshot.traceability, selection)
+    : [];
+  const drawerTraceabilityLinks = drawerSelection
+    ? selectTraceabilityLinksForSelection(snapshot.traceability, drawerSelection)
     : [];
 
   return (
@@ -304,7 +309,11 @@ export function MissionDataFlowWorkbenchSurface({
                   key={node.id}
                   type="button"
                   title={node.detail}
-                  onClick={() => setSelectedItem(selectionFromPathNode(node))}
+                  onClick={() => {
+                    const pathSelection = selectionFromPathNode(node);
+                    setSelectedItem(pathSelection);
+                    setDrawerSelection(pathSelection);
+                  }}
                 >
                   <span>{node.label}</span>
                   <strong>{node.kind}</strong>
@@ -320,6 +329,20 @@ export function MissionDataFlowWorkbenchSurface({
           )}
         </article>
       </section>
+
+      {drawerSelection ? (
+        <DataFlowWorkbenchContextDrawer
+          selection={drawerSelection}
+          selectedPath={viewModel.selectedPath}
+          relatedTraceabilityLinks={drawerTraceabilityLinks}
+          onClose={() => setDrawerSelection(null)}
+          onSelectPathNode={(node) => {
+            const pathSelection = selectionFromPathNode(node);
+            setSelectedItem(pathSelection);
+            setDrawerSelection(pathSelection);
+          }}
+        />
+      ) : null}
     </section>
   );
 }
