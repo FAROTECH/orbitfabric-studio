@@ -1,0 +1,79 @@
+/* Mission Data Flow Workbench step 5 v2.
+   Layout-only stabilization for the first-open canvas/inspector balance.
+   No Core semantics, graph semantics, authoring behavior, generated artifact
+   mutation or private inference are introduced here. */
+
+.mission-data-flow-route-frame {
+  align-items: start;
+}
+
+.mission-data-flow-cockpit {
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.mission-data-flow-main-grid {
+  align-items: start;
+}
+
+.mission-data-flow-canvas-panel {
+  align-self: start;
+  min-height: 0;
+}
+
+.mission-data-flow-canvas-panel .mission-data-flow-stage-grid {
+  align-self: start;
+}
+
+.mission-data-flow-stage {
+  min-height: 236px;
+}
+
+.mission-data-flow-stage-items {
+  max-height: 150px;
+}
+
+.mission-data-flow-inspector {
+  align-self: start;
+  min-height: 0;
+  max-height: clamp(320px, 42vh, 380px);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.mission-data-flow-inspector > header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.mission-data-flow-inspector .mission-data-flow-related-links {
+  min-height: 0;
+}
+
+.mission-data-flow-inspector .mission-data-flow-raw-block {
+  max-height: 126px;
+  overflow: auto;
+}
+
+.mission-data-flow-bottom-deck {
+  align-self: start;
+}
+
+@media (max-height: 820px) {
+  .mission-data-flow-stage {
+    min-height: 220px;
+  }
+
+  .mission-data-flow-stage-items {
+    max-height: 132px;
+  }
+
+  .mission-data-flow-inspector {
+    max-height: clamp(292px, 40vh, 340px);
+  }
+
+  .mission-data-flow-inspector .mission-data-flow-raw-block {
+    max-height: 108px;
+  }
+}
