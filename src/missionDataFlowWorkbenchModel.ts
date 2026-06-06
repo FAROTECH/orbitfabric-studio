@@ -121,6 +121,7 @@ export interface MissionDataFlowWorkbenchInput {
   dashboardSummary: CoreDashboardSummary | null;
   lintReport?: CoreLintReport | null;
   simulationReport: CoreSimulationReport | null;
+  simulationReports?: CoreSimulationReport[];
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
   generatedArtifactInventory: GeneratedArtifactInventory | null;
@@ -164,6 +165,8 @@ export interface MissionDataFlowWorkbenchBoundary {
 
 export interface MissionDataFlowWorkbenchSnapshot {
   boundary: MissionDataFlowWorkbenchBoundary;
+  simulationReport: CoreSimulationReport | null;
+  simulationReports: CoreSimulationReport[];
   scenarioRunIndex: CoreScenarioRunIndex | null;
   sources: MissionDataFlowWorkbenchSourceSummary[];
   lanes: MissionDataFlowWorkbenchLane[];
@@ -211,6 +214,8 @@ export function createMissionDataFlowWorkbenchSnapshot(
       authoring: "not-supported",
       sourceOfTruth: "OrbitFabric Core reports and generated artifacts",
     },
+    simulationReport: input.simulationReport,
+    simulationReports: input.simulationReports ?? (input.simulationReport ? [input.simulationReport] : []),
     scenarioRunIndex: input.scenarioRunIndex,
     sources: createSourceSummaries(input),
     lanes: [

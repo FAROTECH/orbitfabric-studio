@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DataFlowWorkbenchContextDrawer } from "./DataFlowWorkbenchContextDrawer";
+import { DataFlowWorkbenchScenarioTimeline } from "./DataFlowWorkbenchScenarioTimeline";
 import type {
   MissionDataFlowTraceabilityLink,
   MissionDataFlowTraceabilitySummary,
@@ -20,6 +21,7 @@ import type {
   CoreScenarioRunRecord,
   CoreScenarioRunIndexSummary,
   CoreSimulationDataFlowEvidenceRecord,
+  CoreSimulationReport,
   GeneratedArtifactClass,
   GeneratedArtifactEntry,
 } from "./types/workspace";
@@ -141,6 +143,7 @@ export function MissionDataFlowWorkbenchSurface({
   const viewModel = useMemo(() => createWorkbenchViewModel(snapshot), [snapshot]);
   const [selectedItem, setSelectedItem] = useState<WorkbenchSelection | null>(null);
   const [drawerSelection, setDrawerSelection] = useState<WorkbenchSelection | null>(null);
+  const [expandedScenario, setExpandedScenario] = useState<ScenarioRow | null>(null);
   const selection = selectedItem ?? viewModel.primarySelection;
   const relatedTraceabilityLinks = selection
     ? selectTraceabilityLinksForSelection(snapshot.traceability, selection)
@@ -267,7 +270,10 @@ export function MissionDataFlowWorkbenchSurface({
                 className={`mission-data-flow-scenario-row mission-data-flow-state-${row.state}`}
                 key={row.id}
                 type="button"
-                onClick={() => setSelectedItem(selectionFromScenarioRow(row))}
+                onClick={() => {
+                  setSelectedItem(selectionFromScenarioRow(row));
+                  setExpandedScenario(row);
+                }}
                 role="row"
               >
                 <span>{row.scenario}</span>
@@ -329,6 +335,19 @@ export function MissionDataFlowWorkbenchSurface({
           )}
         </article>
       </section>
+
+      {expandedScenario ? (
+        <DataFlowWorkbenchScenarioTimeline
+          scenario={expandedScenario}
+          simulationReports={snapshot.simulationReports}
+          onClose={() => setExpandedScenario(null)}
+          onSelectDataFlowEvidence={(evidence) => {
+            const evidenceSelection = selectionFromDataFlowEvidence(evidence);
+            setSelectedItem(evidenceSelection);
+            setDrawerSelection(evidenceSelection);
+          }}
+        />
+      ) : null}
 
       {drawerSelection ? (
         <DataFlowWorkbenchContextDrawer
@@ -1272,6 +1291,20 @@ function selectionFromScenarioRow(row: ScenarioRow): WorkbenchSelection {
   };
 }
 
+function selectionFromDataFlowEvidence(
+  evidence: CoreSimulationDataFlowEvidenceRecord,
+): WorkbenchSelection {
+  return {
+    id: `timeline:data-flow:${evidence.t}:${evidence.data_product_id ?? "unknown"}`,
+    label: evidence.data_product_id ?? "data-flow evidence",
+    kind: "data-flow evidence",
+    state: "reported",
+    source: "core-simulation-report",
+    detail: `${evidence.data_product_id ?? "Data-flow evidence"} produced by ${evidence.producer ?? "not reported"}`,
+    raw: evidence,
+  };
+}
+
 function selectPrimaryRecordSelection(
   snapshot: MissionDataFlowWorkbenchSnapshot,
 ): WorkbenchSelection | null {
@@ -1567,3 +1600,16 @@ function isCoreSimulationDataFlowEvidenceRecord(
 
   return Boolean(candidate && typeof candidate.t === "number");
 }
+
+function isCoreSimulationReport(value: unknown): value is CoreSimulationReport {
+  const candidate = asObject(value);
+
+  return Boolean(
+    candidate &&
+      typeof candidate.scenario === "string" &&
+      Array.isArray(candidate.timeline) &&
+      Array.isArray(candidate.commands) &&
+      Array.isArray(candidate.events),
+  );
+}
+void isCoreSimulationReport;

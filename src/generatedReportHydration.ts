@@ -37,6 +37,7 @@ export interface PassiveCoreReportSnapshots {
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
   simulationReport: CoreSimulationReport | null;
+  simulationReports: CoreSimulationReport[];
 }
 
 export interface GeneratedReportHydrationResult {
@@ -55,6 +56,7 @@ const EMPTY_CORE_REPORT_SNAPSHOTS: PassiveCoreReportSnapshots = {
   scenarioRunIndex: null,
   coverageSummary: null,
   simulationReport: null,
+  simulationReports: [],
 };
 
 export async function hydrateGeneratedReportsFromWorkspace(
@@ -168,6 +170,9 @@ function mergeCoreReportSnapshots(
       current.simulationReport,
       next.simulationReport ?? null,
     ),
+    simulationReports: next.simulationReport
+      ? upsertSimulationReport(current.simulationReports, next.simulationReport)
+      : current.simulationReports,
   };
 }
 
@@ -195,6 +200,15 @@ function selectSimulationReport(
   }
 
   return current;
+}
+
+function upsertSimulationReport(
+  reports: CoreSimulationReport[],
+  report: CoreSimulationReport,
+): CoreSimulationReport[] {
+  const nextReports = reports.filter((candidate) => candidate.scenario !== report.scenario);
+
+  return [...nextReports, report];
 }
 
 function formatCaughtError(caught: unknown): string {

@@ -1,0 +1,855 @@
+/* Mission Data Flow Workbench scenario timeline.
+   Read-only, Core-derived inline expansion. No editing, generation or private inference. */
+
+.dfw-timeline-expansion {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 20px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(34, 211, 238, 0.12), transparent 28rem),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.58));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 18px 70px rgba(0, 0, 0, 0.18);
+}
+
+.dfw-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.74);
+  padding-bottom: 10px;
+}
+
+.dfw-timeline-header h3 {
+  margin: 3px 0 4px;
+  color: #f8fafc;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.dfw-timeline-header p {
+  max-width: 62rem;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.dfw-timeline-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dfw-timeline-header-actions button,
+.dfw-timeline-tabs button,
+.dfw-timeline-layer-toggles button,
+.dfw-timeline-filter-button {
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #bae6fd;
+  background: rgba(8, 47, 73, 0.22);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.dfw-timeline-filter-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.dfw-timeline-status-chip {
+  border: 1px solid rgba(34, 197, 94, 0.26);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #bbf7d0;
+  background: rgba(22, 101, 52, 0.2);
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dfw-timeline-tabs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.62);
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+
+.dfw-timeline-tabs button {
+  border-color: transparent;
+  color: #94a3b8;
+  background: transparent;
+}
+
+.dfw-timeline-tabs .dfw-timeline-tab-active {
+  border-color: rgba(34, 211, 238, 0.42);
+  color: #67e8f9;
+  background: rgba(8, 145, 178, 0.16);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.08);
+}
+
+.dfw-timeline-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dfw-timeline-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.dfw-timeline-layer-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dfw-timeline-layer-toggles button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  border-color: rgba(71, 85, 105, 0.58);
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.dfw-timeline-layer-toggles .dfw-timeline-toggle-active {
+  border-color: rgba(34, 211, 238, 0.34);
+  color: #e0f2fe;
+  background: rgba(8, 145, 178, 0.14);
+}
+
+.dfw-timeline-dot {
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 999px;
+  background: #64748b;
+  box-shadow: 0 0 10px rgba(100, 116, 139, 0.45);
+}
+
+.dfw-timeline-dot-commands,
+.dfw-timeline-marker-command {
+  fill: #22d3ee;
+  background: #22d3ee;
+}
+
+.dfw-timeline-dot-events,
+.dfw-timeline-marker-event {
+  fill: #65a30d;
+  background: #65a30d;
+}
+
+.dfw-timeline-dot-data-flow,
+.dfw-timeline-marker-data-flow {
+  fill: #a78bfa;
+  background: #a78bfa;
+}
+
+.dfw-timeline-dot-mode-state,
+.dfw-timeline-marker-mode {
+  fill: #fb923c;
+  background: #fb923c;
+}
+
+.dfw-timeline-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.36fr) minmax(0, 1fr) minmax(170px, 0.2fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.34);
+}
+
+.dfw-timeline-table,
+.dfw-timeline-state-rail {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  border-right: 1px solid rgba(51, 65, 85, 0.64);
+}
+
+.dfw-timeline-state-rail {
+  border-right: 0;
+  border-left: 1px solid rgba(51, 65, 85, 0.64);
+}
+
+.dfw-timeline-table-head,
+.dfw-timeline-state-head {
+  display: grid;
+  min-height: 30px;
+  align-items: center;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.72);
+  padding: 0 8px;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.68);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dfw-timeline-table-head {
+  grid-template-columns: 62px 90px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.dfw-timeline-row {
+  display: grid;
+  grid-template-columns: 62px 90px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: var(--dfw-timeline-row-height);
+  border: 0;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.42);
+  padding: 0 8px;
+  background: transparent;
+  color: #cbd5e1;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dfw-timeline-row span,
+.dfw-timeline-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dfw-timeline-row span {
+  font-size: 0.63rem;
+}
+
+.dfw-timeline-row strong {
+  color: #8ee6ff;
+  font-size: 0.56rem;
+  letter-spacing: 0.04em;
+}
+
+.dfw-timeline-row:hover {
+  background: rgba(8, 145, 178, 0.1);
+}
+
+.dfw-timeline-canvas {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.08), transparent 18%, transparent 82%, rgba(8, 47, 73, 0.08)),
+    rgba(2, 6, 23, 0.24);
+}
+
+.dfw-timeline-ruler {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 30px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.72);
+  background: rgba(15, 23, 42, 0.6);
+  z-index: 3;
+}
+
+.dfw-timeline-ruler span {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  color: #94a3b8;
+  font-size: 0.58rem;
+  font-weight: 850;
+}
+
+.dfw-timeline-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.dfw-timeline-grid-line {
+  stroke: rgba(51, 65, 85, 0.52);
+  stroke-width: 0.16;
+  vector-effect: non-scaling-stroke;
+}
+
+.dfw-timeline-marker-command,
+.dfw-timeline-marker-event,
+.dfw-timeline-marker-data-flow,
+.dfw-timeline-marker-mode {
+  filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.34));
+  vector-effect: non-scaling-stroke;
+}
+
+.dfw-timeline-marker-event {
+  filter: drop-shadow(0 0 7px rgba(132, 204, 22, 0.34));
+}
+
+.dfw-timeline-marker-data-flow {
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.42));
+}
+
+.dfw-timeline-marker-mode {
+  filter: drop-shadow(0 0 7px rgba(251, 146, 60, 0.36));
+}
+
+.dfw-timeline-label-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.dfw-timeline-floating-label {
+  position: absolute;
+  max-width: 210px;
+  transform: translateX(-50%);
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #bae6fd;
+  background: rgba(15, 23, 42, 0.78);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.dfw-timeline-floating-label-data-flow {
+  border-color: rgba(167, 139, 250, 0.44);
+  color: #ddd6fe;
+}
+
+.dfw-timeline-state-pill {
+  display: flex;
+  align-items: center;
+  min-height: var(--dfw-timeline-row-height);
+  border-bottom: 1px solid rgba(51, 65, 85, 0.42);
+  padding: 0 8px;
+  color: #bbf7d0;
+  font-size: 0.58rem;
+  font-weight: 850;
+}
+
+.dfw-timeline-record-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dfw-timeline-record-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(71, 85, 105, 0.7);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.44);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dfw-timeline-record-card span,
+.dfw-timeline-record-card small {
+  color: #94a3b8;
+  font-size: 0.6rem;
+}
+
+.dfw-timeline-record-card strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dfw-timeline-empty {
+  display: grid;
+  gap: 5px;
+  border: 1px dashed rgba(71, 85, 105, 0.72);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.36);
+}
+
+.dfw-timeline-empty strong {
+  color: #e2e8f0;
+  font-size: 0.72rem;
+}
+
+.dfw-timeline-empty span {
+  color: #94a3b8;
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+.dfw-timeline-raw {
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  border-radius: 14px;
+  font-size: 0.58rem;
+}
+
+@media (max-width: 1420px) {
+  .dfw-timeline-grid {
+    grid-template-columns: minmax(280px, 0.44fr) minmax(0, 1fr);
+  }
+
+  .dfw-timeline-state-rail {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .dfw-timeline-grid,
+  .dfw-timeline-record-list {
+    grid-template-columns: 1fr;
+  }
+
+  .dfw-timeline-canvas {
+    min-height: 260px;
+  }
+}
+
+/* Step 7C: make timeline pins and temporal canvas evidence explicit.
+   CSS-only visual refinement. No new data, no inference, no generation. */
+
+.dfw-timeline-canvas {
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.08), transparent 18%, transparent 82%, rgba(8, 47, 73, 0.08)),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--dfw-timeline-row-height, 38px) - 1px),
+      rgba(51, 65, 85, 0.34) calc(var(--dfw-timeline-row-height, 38px) - 1px),
+      rgba(51, 65, 85, 0.34) var(--dfw-timeline-row-height, 38px)
+    ),
+    rgba(2, 6, 23, 0.24);
+}
+
+.dfw-timeline-ruler {
+  z-index: 6;
+}
+
+.dfw-timeline-svg {
+  z-index: 2;
+}
+
+.dfw-timeline-marker-command,
+.dfw-timeline-marker-event,
+.dfw-timeline-marker-data-flow,
+.dfw-timeline-marker-mode {
+  opacity: 1;
+  stroke: rgba(2, 6, 23, 0.92);
+  stroke-width: 0.28;
+  paint-order: stroke fill;
+}
+
+.dfw-timeline-floating-label {
+  overflow: visible;
+  padding-left: 19px;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.62),
+    0 0 18px rgba(56, 189, 248, 0.08);
+}
+
+.dfw-timeline-floating-label::before,
+.dfw-timeline-floating-label::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.dfw-timeline-floating-label::before {
+  left: 7px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(226, 232, 240, 0.32);
+  background: #64748b;
+  box-shadow: 0 0 10px rgba(100, 116, 139, 0.55);
+  transform: translate(-50%, -50%);
+}
+
+.dfw-timeline-floating-label::after {
+  left: 7px;
+  top: -12px;
+  width: 1px;
+  height: 12px;
+  background: linear-gradient(180deg, transparent, rgba(148, 163, 184, 0.72));
+}
+
+.dfw-timeline-floating-label-commands::before {
+  border-radius: 2px;
+  background: #22d3ee;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.54);
+}
+
+.dfw-timeline-floating-label-events::before {
+  width: 8px;
+  height: 8px;
+  background: #65a30d;
+  box-shadow: 0 0 14px rgba(132, 204, 22, 0.48);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.dfw-timeline-floating-label-data-flow::before {
+  width: 10px;
+  height: 7px;
+  border-radius: 4px;
+  background: #a78bfa;
+  box-shadow: 0 0 16px rgba(167, 139, 250, 0.58);
+}
+
+.dfw-timeline-floating-label-mode-state::before {
+  border-radius: 999px;
+  background: #fb923c;
+  box-shadow: 0 0 14px rgba(251, 146, 60, 0.54);
+}
+
+.dfw-timeline-floating-label-commands::after {
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.75));
+}
+
+.dfw-timeline-floating-label-events::after {
+  background: linear-gradient(180deg, transparent, rgba(132, 204, 22, 0.7));
+}
+
+.dfw-timeline-floating-label-data-flow::after {
+  background: linear-gradient(180deg, transparent, rgba(167, 139, 250, 0.8));
+}
+
+.dfw-timeline-floating-label-mode-state::after {
+  background: linear-gradient(180deg, transparent, rgba(251, 146, 60, 0.75));
+}
+
+/* Step 7D: horizontal scroll for the temporal canvas only.
+   Keeps scenario metadata and status rail fixed while the time axis scrolls. */
+
+.dfw-timeline-canvas-shell {
+  position: relative;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.08), transparent 18%, transparent 82%, rgba(8, 47, 73, 0.08)),
+    rgba(2, 6, 23, 0.24);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.38) rgba(15, 23, 42, 0.55);
+}
+
+.dfw-timeline-canvas-shell::-webkit-scrollbar {
+  height: 10px;
+}
+
+.dfw-timeline-canvas-shell::-webkit-scrollbar-track {
+  border-top: 1px solid rgba(51, 65, 85, 0.46);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.dfw-timeline-canvas-shell::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(15, 23, 42, 0.75);
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.42);
+}
+
+.dfw-timeline-canvas-shell::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.62);
+}
+
+.dfw-timeline-canvas {
+  min-width: 100%;
+  overflow: visible;
+}
+
+.dfw-timeline-ruler,
+.dfw-timeline-svg,
+.dfw-timeline-label-layer {
+  min-width: 100%;
+}
+
+/* Step 7E: align timeline axis, labels and row grid.
+   Visual/layout correction only. No data changes, no inference, no generation. */
+
+.dfw-timeline-canvas {
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.08), transparent 18%, transparent 82%, rgba(8, 47, 73, 0.08)),
+    rgba(2, 6, 23, 0.24);
+}
+
+.dfw-timeline-row,
+.dfw-timeline-state-pill {
+  height: var(--dfw-timeline-row-height);
+  min-height: var(--dfw-timeline-row-height);
+}
+
+.dfw-timeline-state-pill {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dfw-timeline-ruler {
+  overflow: hidden;
+}
+
+.dfw-timeline-axis-title {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  z-index: 2;
+  color: #94a3b8;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dfw-timeline-ruler-tick {
+  z-index: 1;
+}
+
+.dfw-timeline-row-line {
+  stroke: rgba(51, 65, 85, 0.42);
+  stroke-width: 0.16;
+  vector-effect: non-scaling-stroke;
+}
+
+.dfw-timeline-floating-label {
+  max-width: 190px;
+  transform: translateX(0);
+}
+
+/* Step 7F: clean timeline axis and pin/label separation.
+   Visual correction only. No data changes, no inference, no generation. */
+
+.dfw-timeline-ruler {
+  overflow: hidden;
+}
+
+.dfw-timeline-axis-title {
+  min-width: 88px;
+  padding-right: 10px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.74), transparent);
+}
+
+.dfw-timeline-ruler-tick {
+  color: #9fb0c7;
+}
+
+.dfw-timeline-floating-label {
+  transform: translateX(12px);
+  max-width: 210px;
+  overflow: hidden;
+  padding-left: 8px;
+  text-overflow: ellipsis;
+}
+
+.dfw-timeline-floating-label::before,
+.dfw-timeline-floating-label::after {
+  display: none;
+}
+
+.dfw-timeline-marker-command,
+.dfw-timeline-marker-event,
+.dfw-timeline-marker-data-flow,
+.dfw-timeline-marker-mode {
+  stroke-width: 0.22;
+}
+
+/* Step 7G: final timeline visual polish.
+   Adds same-time vertical connectors, stronger time-grid texture and clearer type semantics.
+   Visual correction only. No data changes, no inference, no generation. */
+
+.dfw-timeline-canvas {
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.12), transparent 16%, transparent 84%, rgba(8, 47, 73, 0.1)),
+    repeating-linear-gradient(
+      to right,
+      rgba(15, 23, 42, 0.18) 0,
+      rgba(15, 23, 42, 0.18) 84px,
+      rgba(51, 65, 85, 0.22) 84px,
+      rgba(51, 65, 85, 0.22) 85px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(2, 6, 23, 0) 0,
+      rgba(2, 6, 23, 0) calc(var(--dfw-timeline-row-height, 38px) - 1px),
+      rgba(71, 85, 105, 0.34) calc(var(--dfw-timeline-row-height, 38px) - 1px),
+      rgba(71, 85, 105, 0.34) var(--dfw-timeline-row-height, 38px)
+    ),
+    rgba(2, 6, 23, 0.28);
+}
+
+.dfw-timeline-axis-title {
+  min-width: 108px;
+  color: #b6c7dc;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.82) 72%, transparent);
+}
+
+.dfw-timeline-ruler-tick {
+  text-shadow: 0 1px 8px rgba(2, 6, 23, 0.9);
+}
+
+.dfw-timeline-group-connector {
+  opacity: 0.72;
+  stroke: rgba(125, 211, 252, 0.44);
+  stroke-width: 0.32;
+  stroke-dasharray: 1.2 0.9;
+  vector-effect: non-scaling-stroke;
+}
+
+.dfw-timeline-group-connector-commands {
+  stroke: rgba(34, 211, 238, 0.48);
+}
+
+.dfw-timeline-group-connector-events {
+  stroke: rgba(132, 204, 22, 0.48);
+}
+
+.dfw-timeline-group-connector-data-flow {
+  stroke: rgba(167, 139, 250, 0.56);
+}
+
+.dfw-timeline-group-connector-mode-state {
+  stroke: rgba(251, 146, 60, 0.52);
+}
+
+.dfw-timeline-row-commands strong {
+  color: #67e8f9;
+  text-shadow: 0 0 9px rgba(34, 211, 238, 0.22);
+}
+
+.dfw-timeline-row-events strong {
+  color: #bef264;
+  text-shadow: 0 0 9px rgba(132, 204, 22, 0.2);
+}
+
+.dfw-timeline-row-data-flow strong {
+  color: #c4b5fd;
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.24);
+}
+
+.dfw-timeline-row-mode-state strong {
+  color: #fdba74;
+  text-shadow: 0 0 9px rgba(251, 146, 60, 0.22);
+}
+
+.dfw-timeline-row-commands {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.04), transparent 42%);
+}
+
+.dfw-timeline-row-events {
+  background: linear-gradient(90deg, rgba(132, 204, 22, 0.04), transparent 42%);
+}
+
+.dfw-timeline-row-data-flow {
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.045), transparent 42%);
+}
+
+.dfw-timeline-row-mode-state {
+  background: linear-gradient(90deg, rgba(251, 146, 60, 0.045), transparent 42%);
+}
+
+.dfw-timeline-floating-label {
+  border-color: rgba(56, 189, 248, 0.26);
+  background: rgba(15, 23, 42, 0.84);
+}
+
+.dfw-timeline-floating-label-events {
+  border-color: rgba(132, 204, 22, 0.3);
+  color: #d9f99d;
+}
+
+.dfw-timeline-floating-label-commands {
+  border-color: rgba(34, 211, 238, 0.34);
+  color: #cffafe;
+}
+
+.dfw-timeline-floating-label-mode-state {
+  border-color: rgba(251, 146, 60, 0.34);
+  color: #fed7aa;
+}
+
+/* Step 7H: timeline alignment and visible same-time connectors.
+   Visual/layout correction only. No data changes, no inference, no generation. */
+
+.dfw-timeline-canvas {
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.12), transparent 16%, transparent 84%, rgba(8, 47, 73, 0.1)),
+    repeating-linear-gradient(
+      to right,
+      rgba(15, 23, 42, 0.2) 0,
+      rgba(15, 23, 42, 0.2) 84px,
+      rgba(51, 65, 85, 0.26) 84px,
+      rgba(51, 65, 85, 0.26) 85px
+    ),
+    rgba(2, 6, 23, 0.3);
+}
+
+.dfw-timeline-svg {
+  z-index: 3;
+}
+
+.dfw-timeline-label-layer {
+  z-index: 4;
+}
+
+.dfw-timeline-ruler {
+  z-index: 5;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.46);
+}
+
+.dfw-timeline-row-line {
+  stroke: rgba(71, 85, 105, 0.46);
+  stroke-width: 0.18;
+  vector-effect: non-scaling-stroke;
+}
+
+.dfw-timeline-group-connector {
+  opacity: 0.95;
+  stroke: rgba(125, 211, 252, 0.72);
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-dasharray: 2.6 2.1;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.38));
+}
+
+.dfw-timeline-group-connector-commands {
+  stroke: rgba(34, 211, 238, 0.76);
+  filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.34));
+}
+
+.dfw-timeline-group-connector-events {
+  stroke: rgba(132, 204, 22, 0.76);
+  filter: drop-shadow(0 0 5px rgba(132, 204, 22, 0.32));
+}
+
+.dfw-timeline-group-connector-data-flow {
+  stroke: rgba(167, 139, 250, 0.82);
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.36));
+}
+
+.dfw-timeline-group-connector-mode-state {
+  stroke: rgba(251, 146, 60, 0.78);
+  filter: drop-shadow(0 0 5px rgba(251, 146, 60, 0.32));
+}
+

@@ -114,6 +114,7 @@ interface CoreReportSnapshots {
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
   simulationReport: CoreSimulationReport | null;
+  simulationReports: CoreSimulationReport[];
 }
 
 type StudioDetailKind =
@@ -182,6 +183,7 @@ function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
     scenarioRunIndex: null,
     coverageSummary: null,
     simulationReport: null,
+    simulationReports: [],
   };
 }
 
@@ -565,7 +567,19 @@ function App() {
       scenarioRunIndex: scenarioRunIndex ?? current.scenarioRunIndex,
       coverageSummary: coverageSummary ?? current.coverageSummary,
       simulationReport: simulationReport ?? current.simulationReport,
+      simulationReports: simulationReport
+        ? upsertSimulationReport(current.simulationReports, simulationReport)
+        : current.simulationReports,
     }));
+  }
+
+  function upsertSimulationReport(
+    reports: CoreSimulationReport[],
+    report: CoreSimulationReport,
+  ): CoreSimulationReport[] {
+    const nextReports = reports.filter((candidate) => candidate.scenario !== report.scenario);
+
+    return [...nextReports, report];
   }
 
   const coreReportContent = coreResult?.json_report_content ?? null;
@@ -584,6 +598,9 @@ function App() {
       : coreReportSnapshots.simulationReport
         ? "latest Core simulation report snapshot"
         : null;
+  const simulationReports = simulationReport
+    ? upsertSimulationReport(coreReportSnapshots.simulationReports, simulationReport)
+    : coreReportSnapshots.simulationReports;
   const coreModelSummary = parseCoreModelSummary(coreReportContent);
   const coreEntityIndex = parseCoreEntityIndex(coreReportContent);
   const coreRelationshipManifest = parseCoreRelationshipManifest(coreReportContent);
@@ -605,6 +622,7 @@ function App() {
     lintReport,
     scenarioRunIndex: coreReportSnapshots.scenarioRunIndex,
     simulationReport,
+    simulationReports,
     coverageSummary,
     generatedArtifactInventory: null,
   });
