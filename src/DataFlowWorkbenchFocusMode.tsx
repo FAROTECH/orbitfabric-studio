@@ -5,7 +5,14 @@ import type {
   MissionDataFlowTraceabilityLink,
   MissionDataFlowWorkbenchSourceState,
 } from "./missionDataFlowWorkbenchModel";
-import type { CoreSimulationDataFlowEvidenceRecord } from "./types/workspace";
+import type {
+  CoreSimulationCommandRecord,
+  CoreSimulationDataFlowEvidenceRecord,
+  CoreSimulationEventRecord,
+  CoreSimulationModeTransitionRecord,
+  CoreSimulationReport,
+  CoreSimulationTimelineEntry,
+} from "./types/workspace";
 
 interface FocusSelection {
   id: string;
@@ -69,15 +76,16 @@ interface DataFlowWorkbenchFocusModeProps {
   selectedPath: FocusPathNode[];
   relatedTraceabilityLinks: MissionDataFlowTraceabilityLink[];
   coverageItems: FocusCoverageItem[];
+  simulationReports: CoreSimulationReport[];
   onBack: () => void;
   onSelectPathNode: (node: FocusPathNode) => void;
 }
 
 const FOCUS_TABS: Array<{ id: FocusTabId; label: string; wired: boolean }> = [
   { id: "flow-path", label: "Flow Path", wired: true },
-  { id: "scenario-timeline", label: "Scenario Timeline", wired: false },
-  { id: "coverage", label: "Coverage", wired: false },
-  { id: "artifacts", label: "Artifacts", wired: false },
+  { id: "scenario-timeline", label: "Scenario Timeline", wired: true },
+  { id: "coverage", label: "Coverage", wired: true },
+  { id: "artifacts", label: "Artifacts", wired: true },
   { id: "json", label: "JSON", wired: true },
 ];
 
@@ -86,6 +94,7 @@ export function DataFlowWorkbenchFocusMode({
   selectedPath,
   relatedTraceabilityLinks,
   coverageItems,
+  simulationReports,
   onBack,
   onSelectPathNode,
 }: DataFlowWorkbenchFocusModeProps) {
@@ -109,6 +118,10 @@ export function DataFlowWorkbenchFocusMode({
   const currentState = currentItem.state;
   const generatedLinks = relatedTraceabilityLinks.filter(
     (link) => link.kind === "generated-artifact" || link.evidenceKind === "artifact-evidence",
+  );
+  const selectedScenarioReport = useMemo(
+    () => selectScenarioReportForEvidence(simulationReports, selectedDataFlowEvidence),
+    [simulationReports, selectedDataFlowEvidence],
   );
 
   function handleSelectNode(node: FocusPathNode) {
@@ -242,17 +255,29 @@ export function DataFlowWorkbenchFocusMode({
               />
             ) : null}
 
+            {activeTab === "scenario-timeline" ? (
+              <FocusScenarioTimelinePanel
+                report={selectedScenarioReport}
+                selectedDataFlowEvidence={selectedDataFlowEvidence}
+              />
+            ) : null}
+
+            {activeTab === "coverage" ? (
+              <FocusCoveragePanel
+                coverageItems={coverageItems}
+                relatedTraceabilityLinks={relatedTraceabilityLinks}
+                selectedDataFlowEvidence={selectedDataFlowEvidence}
+              />
+            ) : null}
+
+            {activeTab === "artifacts" ? (
+              <FocusArtifactsPanel generatedLinks={generatedLinks} />
+            ) : null}
+
             {activeTab === "json" ? (
               <pre className="raw-output-block mission-data-flow-focus-raw">
                 {formatRawValue(createFocusJsonPayload(currentItem, selectedDataFlowEvidence, selectedPath))}
               </pre>
-            ) : null}
-
-            {activeTab !== "flow-path" && activeTab !== "json" ? (
-              <FocusEmptyState
-                title={`${FOCUS_TABS.find((tab) => tab.id === activeTab)?.label ?? "Tab"} not wired`}
-                detail="This focus mode shell keeps the tab visible as a deliberate preview, but it does not fabricate additional Core evidence."
-              />
             ) : null}
           </div>
         </section>
@@ -300,6 +325,191 @@ export function DataFlowWorkbenchFocusMode({
             ) : null}
           </section>
         </aside>
+      </div>
+    </section>
+  );
+}
+
+
+interface FocusTimelineRecord {
+  id: string;
+  t: number;
+  kind: "timeline" | "command" | "event" | "mode" | "data-flow";
+  label: string;
+  detail: string;
+  state: string;
+  raw: unknown;
+  highlighted: boolean;
+}
+
+function FocusScenarioTimelinePanel({
+  report,
+  selectedDataFlowEvidence,
+}: {
+  report: CoreSimulationReport | null;
+  selectedDataFlowEvidence: CoreSimulationDataFlowEvidenceRecord | null;
+}) {
+  const rows = useMemo(
+    () => createFocusTimelineRows(report, selectedDataFlowEvidence),
+    [report, selectedDataFlowEvidence],
+  );
+
+  if (!report) {
+    return (
+      <FocusEmptyState
+        title="Scenario timeline not reported"
+        detail="No loaded Core simulation report matches the selected route evidence. Studio does not infer a scenario timeline."
+      />
+    );
+  }
+
+  return (
+    <section className="mission-data-flow-focus-tab-panel">
+      <header>
+        <div>
+          <span className="cockpit-eyebrow">Scenario Timeline</span>
+          <strong>{report.scenario}</strong>
+        </div>
+        <StatusBadge label={report.result.toUpperCase()} />
+      </header>
+
+      <div className="mission-data-flow-focus-timeline-summary">
+        <span>{rows.length} reported records</span>
+        <span>{report.summary.commands} commands</span>
+        <span>{report.summary.events} events</span>
+        <span>{report.summary.data_flow_evidence} data-flow evidence</span>
+      </div>
+
+      <div className="mission-data-flow-focus-timeline-list">
+        {rows.map((row) => (
+          <article
+            className={[
+              "mission-data-flow-focus-timeline-row",
+              `mission-data-flow-focus-timeline-${row.kind}`,
+              row.highlighted ? "mission-data-flow-focus-timeline-highlight" : "",
+            ].filter(Boolean).join(" ")}
+            key={row.id}
+          >
+            <span className="mission-data-flow-focus-timeline-time">{formatTimeSeconds(row.t)}</span>
+            <strong>{formatTimelineKind(row.kind)}</strong>
+            <div>
+              <span>{row.label}</span>
+              <small>{row.detail}</small>
+            </div>
+            <em>{row.state}</em>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FocusCoveragePanel({
+  coverageItems,
+  relatedTraceabilityLinks,
+  selectedDataFlowEvidence,
+}: {
+  coverageItems: FocusCoverageItem[];
+  relatedTraceabilityLinks: MissionDataFlowTraceabilityLink[];
+  selectedDataFlowEvidence: CoreSimulationDataFlowEvidenceRecord | null;
+}) {
+  const reportedItems = coverageItems.filter((item) => item.state === "reported");
+  const routeLinks = relatedTraceabilityLinks.filter((link) => link.state === "reported");
+
+  return (
+    <section className="mission-data-flow-focus-tab-panel">
+      <header>
+        <div>
+          <span className="cockpit-eyebrow">Coverage</span>
+          <strong>{reportedItems.length} reported scopes</strong>
+        </div>
+        <StatusBadge label={reportedItems.length > 0 ? "REPORTED" : "NOT REPORTED"} />
+      </header>
+
+      <div className="mission-data-flow-focus-coverage-tab-grid">
+        {coverageItems.map((item) => (
+          <article className={`mission-data-flow-focus-coverage-tile mission-data-flow-focus-coverage-${item.state}`} key={item.id}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.detail}</small>
+          </article>
+        ))}
+      </div>
+
+      <section className="mission-data-flow-focus-tab-subsection">
+        <header>
+          <span className="cockpit-eyebrow">Route coverage context</span>
+          <strong>{routeLinks.length} related reported links</strong>
+        </header>
+        <div className="mission-data-flow-focus-link-list mission-data-flow-focus-link-list-contained">
+          {routeLinks.slice(0, 8).map((link) => (
+            <article key={link.id}>
+              <span>{link.label}</span>
+              <strong>{link.state}</strong>
+              <small>{link.detail}</small>
+            </article>
+          ))}
+          {routeLinks.length === 0 ? (
+            <div className="mission-data-flow-focus-inline-empty">
+              <strong>No route-specific coverage links reported</strong>
+              <span>Coverage is shown only from loaded Core reports and matching traceability links.</span>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="mission-data-flow-focus-tab-subsection">
+        <header>
+          <span className="cockpit-eyebrow">Selected route evidence</span>
+          <strong>{selectedDataFlowEvidence?.data_product_id ?? "not reported"}</strong>
+        </header>
+        <div className="mission-data-flow-focus-property-grid mission-data-flow-focus-property-grid-relaxed">
+          <span>producer</span>
+          <strong>{selectedDataFlowEvidence?.producer ?? "not reported"}</strong>
+          <span>triggered by command</span>
+          <strong>{selectedDataFlowEvidence?.triggered_by_command ?? "not reported"}</strong>
+          <span>eligible flow</span>
+          <strong>{formatStringList(selectedDataFlowEvidence?.eligible_downlink_flows, "not reported")}</strong>
+          <span>contact window</span>
+          <strong>{formatStringList(selectedDataFlowEvidence?.contact_windows, "not reported")}</strong>
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function FocusArtifactsPanel({
+  generatedLinks,
+}: {
+  generatedLinks: MissionDataFlowTraceabilityLink[];
+}) {
+  if (generatedLinks.length === 0) {
+    return (
+      <FocusEmptyState
+        title="No linked generated artifacts"
+        detail="No generated artifact traceability link is associated with the selected route evidence. Studio does not infer artifact lineage."
+      />
+    );
+  }
+
+  return (
+    <section className="mission-data-flow-focus-tab-panel">
+      <header>
+        <div>
+          <span className="cockpit-eyebrow">Artifacts</span>
+          <strong>{generatedLinks.length} linked generated artifacts</strong>
+        </div>
+        <StatusBadge label="REPORTED" />
+      </header>
+
+      <div className="mission-data-flow-focus-artifact-list">
+        {generatedLinks.map((link) => (
+          <article key={link.id}>
+            <span>{link.label}</span>
+            <strong>{link.state}</strong>
+            <small>{link.detail}</small>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -568,6 +778,181 @@ function selectDataFlowEvidence(
   const node = selectedPath.find((item) => isCoreSimulationDataFlowEvidenceRecord(item.raw));
 
   return isCoreSimulationDataFlowEvidenceRecord(node?.raw) ? node.raw : null;
+}
+
+
+function selectScenarioReportForEvidence(
+  reports: CoreSimulationReport[],
+  evidence: CoreSimulationDataFlowEvidenceRecord | null,
+): CoreSimulationReport | null {
+  if (!evidence) {
+    return null;
+  }
+
+  return (
+    reports.find((report) =>
+      report.data_flow_evidence.some((candidate) => dataFlowEvidenceMatches(candidate, evidence)),
+    ) ?? null
+  );
+}
+
+function createFocusTimelineRows(
+  report: CoreSimulationReport | null,
+  selectedDataFlowEvidence: CoreSimulationDataFlowEvidenceRecord | null,
+): FocusTimelineRecord[] {
+  if (!report) {
+    return [];
+  }
+
+  const rows: FocusTimelineRecord[] = [];
+
+  report.timeline.forEach((entry, index) => {
+    rows.push(timelineRowFromTimelineEntry(entry, index));
+  });
+
+  report.commands.forEach((command, index) => {
+    rows.push(timelineRowFromCommand(command, index));
+  });
+
+  report.events.forEach((event, index) => {
+    rows.push(timelineRowFromEvent(event, index));
+  });
+
+  report.mode_transitions.forEach((transition, index) => {
+    rows.push(timelineRowFromModeTransition(transition, index));
+  });
+
+  report.data_flow_evidence.forEach((evidence, index) => {
+    rows.push(timelineRowFromDataFlowEvidence(evidence, index, selectedDataFlowEvidence));
+  });
+
+  return rows.sort(compareFocusTimelineRows);
+}
+
+function timelineRowFromTimelineEntry(entry: CoreSimulationTimelineEntry, index: number): FocusTimelineRecord {
+  return {
+    id: `timeline:${index}:${entry.t}:${entry.message}`,
+    t: entry.t,
+    kind: "timeline",
+    label: entry.message,
+    detail: entry.rendered || entry.time,
+    state: "reported",
+    raw: entry,
+    highlighted: false,
+  };
+}
+
+function timelineRowFromCommand(command: CoreSimulationCommandRecord, index: number): FocusTimelineRecord {
+  return {
+    id: `command:${index}:${command.t}:${command.command_id}`,
+    t: command.t,
+    kind: "command",
+    label: command.command_id,
+    detail: `${command.status}, dispatch ${command.dispatch}`,
+    state: command.status,
+    raw: command,
+    highlighted: false,
+  };
+}
+
+function timelineRowFromEvent(event: CoreSimulationEventRecord, index: number): FocusTimelineRecord {
+  return {
+    id: `event:${index}:${event.t}:${event.event_id}`,
+    t: event.t,
+    kind: "event",
+    label: event.event_id,
+    detail: `severity ${event.severity}`,
+    state: event.severity,
+    raw: event,
+    highlighted: false,
+  };
+}
+
+function timelineRowFromModeTransition(
+  transition: CoreSimulationModeTransitionRecord,
+  index: number,
+): FocusTimelineRecord {
+  return {
+    id: `mode:${index}:${transition.t}:${transition.from}->${transition.to}`,
+    t: transition.t,
+    kind: "mode",
+    label: `${transition.from} → ${transition.to}`,
+    detail: transition.reason,
+    state: "reported",
+    raw: transition,
+    highlighted: false,
+  };
+}
+
+function timelineRowFromDataFlowEvidence(
+  evidence: CoreSimulationDataFlowEvidenceRecord,
+  index: number,
+  selectedDataFlowEvidence: CoreSimulationDataFlowEvidenceRecord | null,
+): FocusTimelineRecord {
+  return {
+    id: `data-flow:${index}:${evidence.t}:${evidence.data_product_id ?? "unknown"}`,
+    t: evidence.t,
+    kind: "data-flow",
+    label: evidence.data_product_id ?? "data-flow evidence",
+    detail: `producer ${evidence.producer ?? "not reported"}`,
+    state: "reported",
+    raw: evidence,
+    highlighted: Boolean(selectedDataFlowEvidence && dataFlowEvidenceMatches(evidence, selectedDataFlowEvidence)),
+  };
+}
+
+function compareFocusTimelineRows(left: FocusTimelineRecord, right: FocusTimelineRecord): number {
+  if (left.t !== right.t) {
+    return left.t - right.t;
+  }
+
+  const priority: Record<FocusTimelineRecord["kind"], number> = {
+    mode: 0,
+    command: 1,
+    event: 2,
+    "data-flow": 3,
+    timeline: 4,
+  };
+
+  return priority[left.kind] - priority[right.kind] || left.label.localeCompare(right.label);
+}
+
+function dataFlowEvidenceMatches(
+  left: CoreSimulationDataFlowEvidenceRecord,
+  right: CoreSimulationDataFlowEvidenceRecord,
+): boolean {
+  if (left.t !== right.t) {
+    return false;
+  }
+
+  if (left.data_product_id && right.data_product_id && left.data_product_id !== right.data_product_id) {
+    return false;
+  }
+
+  if (left.producer && right.producer && left.producer !== right.producer) {
+    return false;
+  }
+
+  if (
+    left.triggered_by_command &&
+    right.triggered_by_command &&
+    left.triggered_by_command !== right.triggered_by_command
+  ) {
+    return false;
+  }
+
+  return Boolean(left.data_product_id || left.producer || left.triggered_by_command);
+}
+
+function formatTimelineKind(kind: FocusTimelineRecord["kind"]): string {
+  switch (kind) {
+    case "data-flow":
+      return "Data-flow";
+    case "mode":
+      return "Mode / State";
+    default:
+      return kind;
+  }
 }
 
 function formatRouteNodeKind(kind: string): string {

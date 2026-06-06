@@ -162,6 +162,7 @@ export function MissionDataFlowWorkbenchSurface({
       <DataFlowWorkbenchFocusMode
         selection={focusSelection}
         selectedPath={viewModel.selectedPath}
+        simulationReports={snapshot.simulationReports}
         relatedTraceabilityLinks={focusTraceabilityLinks}
         coverageItems={viewModel.coverageItems}
         onBack={() => setFocusSelection(null)}

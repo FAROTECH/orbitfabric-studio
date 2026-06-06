@@ -708,3 +708,289 @@
 }
 /* End Step 8E focus inspector layout */
 
+/* Step 9A: Focus Mode wired tabs */
+.mission-data-flow-focus-tab-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.mission-data-flow-focus-tab-panel > header,
+.mission-data-flow-focus-tab-subsection > header {
+  align-items: center;
+  background: rgba(5, 16, 30, 0.72);
+  border: 1px solid rgba(100, 181, 216, 0.2);
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.mission-data-flow-focus-timeline-summary {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mission-data-flow-focus-timeline-summary span,
+.mission-data-flow-focus-inline-empty {
+  background: rgba(6, 18, 32, 0.78);
+  border: 1px solid rgba(105, 155, 190, 0.2);
+  border-radius: 12px;
+  color: rgba(216, 234, 246, 0.84);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 10px;
+}
+
+.mission-data-flow-focus-timeline-list {
+  background:
+    linear-gradient(180deg, rgba(5, 14, 28, 0.68), rgba(4, 10, 22, 0.72)),
+    repeating-linear-gradient(180deg, rgba(83, 172, 211, 0.06) 0 1px, transparent 1px 44px);
+  border: 1px solid rgba(97, 159, 194, 0.18);
+  border-radius: 14px;
+  display: grid;
+  overflow: hidden;
+}
+
+.mission-data-flow-focus-timeline-row {
+  align-items: center;
+  border-bottom: 1px solid rgba(108, 143, 172, 0.13);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 76px 100px minmax(0, 1fr) 90px;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
+.mission-data-flow-focus-timeline-row:last-child {
+  border-bottom: 0;
+}
+
+.mission-data-flow-focus-timeline-row > strong {
+  border-radius: 999px;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  padding: 5px 7px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-focus-timeline-time {
+  color: rgba(117, 233, 255, 0.9);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.mission-data-flow-focus-timeline-row div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mission-data-flow-focus-timeline-row div span,
+.mission-data-flow-focus-artifact-list article span,
+.mission-data-flow-focus-link-list-contained article span {
+  color: rgba(235, 247, 255, 0.94);
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mission-data-flow-focus-timeline-row div small,
+.mission-data-flow-focus-artifact-list article small,
+.mission-data-flow-focus-link-list-contained article small {
+  color: rgba(188, 207, 224, 0.72);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.mission-data-flow-focus-timeline-row em {
+  color: rgba(139, 255, 173, 0.78);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.mission-data-flow-focus-timeline-command > strong {
+  background: rgba(63, 162, 255, 0.13);
+  border: 1px solid rgba(63, 162, 255, 0.34);
+  color: rgba(158, 219, 255, 0.94);
+}
+
+.mission-data-flow-focus-timeline-event > strong {
+  background: rgba(255, 176, 62, 0.12);
+  border: 1px solid rgba(255, 176, 62, 0.32);
+  color: rgba(255, 218, 156, 0.94);
+}
+
+.mission-data-flow-focus-timeline-data-flow > strong {
+  background: rgba(0, 220, 170, 0.12);
+  border: 1px solid rgba(0, 220, 170, 0.36);
+  color: rgba(142, 255, 221, 0.94);
+}
+
+.mission-data-flow-focus-timeline-mode > strong {
+  background: rgba(174, 107, 255, 0.12);
+  border: 1px solid rgba(174, 107, 255, 0.34);
+  color: rgba(218, 190, 255, 0.94);
+}
+
+.mission-data-flow-focus-timeline-timeline > strong {
+  background: rgba(126, 150, 178, 0.12);
+  border: 1px solid rgba(126, 150, 178, 0.26);
+  color: rgba(205, 218, 232, 0.88);
+}
+
+.mission-data-flow-focus-timeline-highlight {
+  background: rgba(0, 220, 255, 0.08);
+  box-shadow: inset 3px 0 0 rgba(0, 220, 255, 0.76);
+}
+
+.mission-data-flow-focus-coverage-tab-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mission-data-flow-focus-coverage-tile,
+.mission-data-flow-focus-artifact-list article,
+.mission-data-flow-focus-link-list-contained article {
+  background: rgba(6, 18, 32, 0.78);
+  border: 1px solid rgba(105, 155, 190, 0.2);
+  border-radius: 13px;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px 12px;
+}
+
+.mission-data-flow-focus-coverage-tile span {
+  color: rgba(174, 196, 216, 0.72);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mission-data-flow-focus-coverage-tile strong {
+  color: rgba(236, 248, 255, 0.95);
+  font-size: 1rem;
+}
+
+.mission-data-flow-focus-coverage-tile small {
+  color: rgba(188, 207, 224, 0.72);
+  overflow-wrap: anywhere;
+}
+
+.mission-data-flow-focus-coverage-reported {
+  border-color: rgba(0, 220, 170, 0.32);
+}
+
+.mission-data-flow-focus-tab-subsection,
+.mission-data-flow-focus-artifact-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mission-data-flow-focus-artifact-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mission-data-flow-focus-property-grid-relaxed strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (max-width: 1180px) {
+  .mission-data-flow-focus-timeline-summary,
+  .mission-data-flow-focus-coverage-tab-grid,
+  .mission-data-flow-focus-artifact-list {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-data-flow-focus-timeline-row {
+    grid-template-columns: 70px 90px minmax(0, 1fr);
+  }
+
+  .mission-data-flow-focus-timeline-row em {
+    grid-column: 3;
+    text-align: left;
+  }
+}
+
+/* Step 9B: Focus Mode wired tabs polish */
+.mission-data-flow-focus-tab-panel > header,
+.mission-data-flow-focus-tab-subsection > header {
+  align-items: flex-start;
+}
+
+.mission-data-flow-focus-tab-panel > header > div,
+.mission-data-flow-focus-tab-subsection > header > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mission-data-flow-focus-tab-panel > header .cockpit-eyebrow,
+.mission-data-flow-focus-tab-subsection > header .cockpit-eyebrow {
+  display: block;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.mission-data-flow-focus-tab-panel > header strong,
+.mission-data-flow-focus-tab-subsection > header strong {
+  color: rgba(236, 248, 255, 0.95);
+  display: block;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.mission-data-flow-focus-tab-panel > header > .status-badge,
+.mission-data-flow-focus-tab-subsection > header > .status-badge {
+  flex: 0 0 auto;
+}
+
+.mission-data-flow-focus-timeline-summary span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mission-data-flow-focus-timeline-row {
+  grid-template-columns: 76px 104px minmax(0, 1fr) 96px;
+}
+
+.mission-data-flow-focus-timeline-row > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mission-data-flow-focus-coverage-tab-grid,
+.mission-data-flow-focus-artifact-list,
+.mission-data-flow-focus-link-list-contained {
+  min-width: 0;
+}
+
+.mission-data-flow-focus-link-list-contained article span,
+.mission-data-flow-focus-artifact-list article span {
+  line-height: 1.25;
+}
+
+.mission-data-flow-focus-inline-empty {
+  display: grid;
+  gap: 4px;
+}
+
+.mission-data-flow-focus-inline-empty span {
+  color: rgba(188, 207, 224, 0.72);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
