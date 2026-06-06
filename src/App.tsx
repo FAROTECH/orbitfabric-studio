@@ -41,6 +41,7 @@ import {
 } from "./navigationModel";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+import { hydrateGeneratedReportsFromWorkspace } from "./generatedReportHydration";
 import {
   ScenarioTimelineRunnerSurface,
   type ScenarioTimelineInspectorRecord,
@@ -260,8 +261,12 @@ function App() {
       const inspection = await invoke<WorkspaceInspection>("inspect_workspace", {
         path: selected,
       });
+      const generatedHydration = await hydrateGeneratedReportsFromWorkspace(
+        inspection.selected_path,
+      );
 
       setWorkspace(inspection);
+      setCoreReportSnapshots(generatedHydration.coreReportSnapshots);
       setSelectedDetail({
         kind: "workspace",
         title: "Workspace inspection",
@@ -598,6 +603,7 @@ function App() {
     relationshipManifest,
     dashboardSummary,
     lintReport,
+    scenarioRunIndex: coreReportSnapshots.scenarioRunIndex,
     simulationReport,
     coverageSummary,
     generatedArtifactInventory: null,

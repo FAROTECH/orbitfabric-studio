@@ -9,6 +9,7 @@ import type {
   CoreRelationshipManifest,
   CoreRelationshipRecord,
   CoreRelationshipType,
+  CoreScenarioRunIndex,
   CoreSimulationDataFlowEvidenceRecord,
   CoreSimulationReport,
   GeneratedArtifactEntry,
@@ -120,6 +121,7 @@ export interface MissionDataFlowWorkbenchInput {
   dashboardSummary: CoreDashboardSummary | null;
   lintReport?: CoreLintReport | null;
   simulationReport: CoreSimulationReport | null;
+  scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
   generatedArtifactInventory: GeneratedArtifactInventory | null;
 }
@@ -162,6 +164,7 @@ export interface MissionDataFlowWorkbenchBoundary {
 
 export interface MissionDataFlowWorkbenchSnapshot {
   boundary: MissionDataFlowWorkbenchBoundary;
+  scenarioRunIndex: CoreScenarioRunIndex | null;
   sources: MissionDataFlowWorkbenchSourceSummary[];
   lanes: MissionDataFlowWorkbenchLane[];
   traceability: MissionDataFlowTraceabilitySummary;
@@ -208,6 +211,7 @@ export function createMissionDataFlowWorkbenchSnapshot(
       authoring: "not-supported",
       sourceOfTruth: "OrbitFabric Core reports and generated artifacts",
     },
+    scenarioRunIndex: input.scenarioRunIndex,
     sources: createSourceSummaries(input),
     lanes: [
       createLane({

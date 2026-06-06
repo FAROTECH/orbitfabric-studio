@@ -15,6 +15,8 @@ import type {
   CoreExpectationCoverage,
   CoreRelationshipRecord,
   CoreRelationshipType,
+  CoreScenarioRunIndex,
+  CoreScenarioRunRecord,
   CoreScenarioRunIndexSummary,
   CoreSimulationDataFlowEvidenceRecord,
   GeneratedArtifactClass,
@@ -99,6 +101,8 @@ interface ScenarioRow {
   expectations: string;
   events: string;
   state: MissionDataFlowWorkbenchSourceState;
+  source: string;
+  detail: string;
   raw: unknown;
 }
 
@@ -456,7 +460,9 @@ function createWorkbenchViewModel(
   const generatedArtifactRecords = recordsForLane(snapshot, "generated-artifacts");
 
   const entityCount = deriveEntityCount(missionDomainRecords);
-  const scenarioRunSummary = selectScenarioRunSummary(coverageRecords);
+  const scenarioRunSummary =
+    selectScenarioRunSummary(coverageRecords) ??
+    snapshot.scenarioRunIndex?.summary ?? null;
   const lintSummary = selectLintSummary(validationRecords);
   const expectationCoverage = selectExpectationCoverage(coverageRecords);
   const artifactCounts = aggregateArtifactCounts(generatedArtifactRecords);
@@ -575,7 +581,12 @@ function createWorkbenchViewModel(
     ],
     sourceItems: createSourceItems(snapshot.sources),
     stages,
-    scenarioRows: createScenarioRows(scenarioEvidenceRecords, scenarioRunSummary, expectationCoverage),
+    scenarioRows: createScenarioRows(
+      scenarioEvidenceRecords,
+      scenarioRunSummary,
+      expectationCoverage,
+      snapshot.scenarioRunIndex,
+    ),
     legendItems: createLegendItems(),
     selectedPath,
     primarySelection,
@@ -801,7 +812,23 @@ function createScenarioRows(
   scenarioEvidenceRecords: MissionDataFlowWorkbenchRecord[],
   scenarioRunSummary: CoreScenarioRunIndexSummary | null,
   expectationCoverage: CoreExpectationCoverage | null,
+  scenarioRunIndex: CoreScenarioRunIndex | null,
 ): ScenarioRow[] {
+  if (scenarioRunIndex?.runs.length) {
+    return scenarioRunIndex.runs.map((run, index) => ({
+      id: `scenario-run-index:${index}:${run.scenario}`,
+      scenario: run.scenario,
+      status: run.result,
+      evidence: run.report_file,
+      expectations: formatRunExpectationSummary(run),
+      events: formatRunSummaryNumber(run, "events", "not reported"),
+      state: "reported",
+      source: "core-scenario-run-index",
+      detail: `${run.result}, report ${run.report_file}`,
+      raw: run,
+    }));
+  }
+
   const rows: ScenarioRow[] = [];
 
   if (scenarioRunSummary) {
@@ -815,6 +842,8 @@ function createScenarioRows(
         : "not reported",
       events: "not reported",
       state: "reported",
+      source: "core-coverage-summary",
+      detail: `${scenarioRunSummary.passed}/${scenarioRunSummary.total} scenario runs passed`,
       raw: scenarioRunSummary,
     });
   }
@@ -830,6 +859,8 @@ function createScenarioRows(
       expectations: "not reported by record",
       events: evidence ? `t=${formatTimeSeconds(evidence.t)}` : "not reported",
       state: record.state,
+      source: record.provenance,
+      detail: record.detail,
       raw: record.raw,
     });
   }
@@ -843,11 +874,38 @@ function createScenarioRows(
       expectations: "not reported",
       events: "not reported",
       state: "not-reported",
+      source: "core-scenario-run-index",
+      detail: "No Core scenario run index or simulation evidence has been reported.",
       raw: null,
     });
   }
 
   return rows;
+}
+
+function formatRunExpectationSummary(run: CoreScenarioRunRecord): string {
+  const total = run.summary.expectations;
+  const passed = run.summary.passed_expectations;
+
+  if (typeof total === "number" && typeof passed === "number") {
+    return `${passed}/${total}`;
+  }
+
+  if (typeof total === "number") {
+    return `0/${total}`;
+  }
+
+  return "not reported";
+}
+
+function formatRunSummaryNumber(
+  run: CoreScenarioRunRecord,
+  key: string,
+  fallback: string,
+): string {
+  const value = run.summary[key];
+
+  return typeof value === "number" ? String(value) : fallback;
 }
 
 function createSelectedFlowPath(
@@ -1185,8 +1243,8 @@ function selectionFromScenarioRow(row: ScenarioRow): WorkbenchSelection {
     label: row.scenario,
     kind: "scenario evidence",
     state: row.state,
-    source: "core-coverage-summary",
-    detail: `${row.status}, ${row.evidence}`,
+    source: row.source,
+    detail: row.detail,
     raw: row.raw,
   };
 }
