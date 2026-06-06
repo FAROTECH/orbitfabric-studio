@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DataFlowWorkbenchContextDrawer } from "./DataFlowWorkbenchContextDrawer";
+import { DataFlowWorkbenchFocusMode } from "./DataFlowWorkbenchFocusMode";
 import { DataFlowWorkbenchScenarioTimeline } from "./DataFlowWorkbenchScenarioTimeline";
 import type {
   MissionDataFlowTraceabilityLink,
@@ -143,6 +144,7 @@ export function MissionDataFlowWorkbenchSurface({
   const viewModel = useMemo(() => createWorkbenchViewModel(snapshot), [snapshot]);
   const [selectedItem, setSelectedItem] = useState<WorkbenchSelection | null>(null);
   const [drawerSelection, setDrawerSelection] = useState<WorkbenchSelection | null>(null);
+  const [focusSelection, setFocusSelection] = useState<WorkbenchSelection | null>(null);
   const [expandedScenario, setExpandedScenario] = useState<ScenarioRow | null>(null);
   const selection = selectedItem ?? viewModel.primarySelection;
   const relatedTraceabilityLinks = selection
@@ -151,6 +153,25 @@ export function MissionDataFlowWorkbenchSurface({
   const drawerTraceabilityLinks = drawerSelection
     ? selectTraceabilityLinksForSelection(snapshot.traceability, drawerSelection)
     : [];
+  const focusTraceabilityLinks = focusSelection
+    ? selectTraceabilityLinksForSelection(snapshot.traceability, focusSelection)
+    : [];
+
+  if (focusSelection) {
+    return (
+      <DataFlowWorkbenchFocusMode
+        selection={focusSelection}
+        selectedPath={viewModel.selectedPath}
+        relatedTraceabilityLinks={focusTraceabilityLinks}
+        coverageItems={viewModel.coverageItems}
+        onBack={() => setFocusSelection(null)}
+        onSelectPathNode={(node) => {
+          const pathSelection = selectionFromPathNode(node);
+          setSelectedItem(pathSelection);
+        }}
+      />
+    );
+  }
 
   return (
     <section
@@ -355,6 +376,11 @@ export function MissionDataFlowWorkbenchSurface({
           selectedPath={viewModel.selectedPath}
           relatedTraceabilityLinks={drawerTraceabilityLinks}
           onClose={() => setDrawerSelection(null)}
+          onOpenFocusMode={() => {
+            setFocusSelection(drawerSelection);
+            setSelectedItem(drawerSelection);
+            setDrawerSelection(null);
+          }}
           onSelectPathNode={(node) => {
             const pathSelection = selectionFromPathNode(node);
             setSelectedItem(pathSelection);

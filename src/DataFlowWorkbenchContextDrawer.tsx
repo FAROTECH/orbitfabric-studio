@@ -40,6 +40,7 @@ interface DataFlowWorkbenchContextDrawerProps {
   selectedPath: DrawerPathNode[];
   relatedTraceabilityLinks: MissionDataFlowTraceabilityLink[];
   onClose: () => void;
+  onOpenFocusMode: () => void;
   onSelectPathNode: (node: DrawerPathNode) => void;
 }
 
@@ -56,6 +57,7 @@ export function DataFlowWorkbenchContextDrawer({
   selectedPath,
   relatedTraceabilityLinks,
   onClose,
+  onOpenFocusMode,
   onSelectPathNode,
 }: DataFlowWorkbenchContextDrawerProps) {
   const [activeTab, setActiveTab] = useState<DrawerTabId>("traceability");
@@ -86,7 +88,7 @@ export function DataFlowWorkbenchContextDrawer({
             <p>{selection.kind}</p>
           </div>
           <div className="mission-data-flow-drawer-actions">
-            <button type="button" disabled title="Focus mode is not wired in this step.">
+            <button type="button" onClick={onOpenFocusMode} title="Open the read-only route workspace for this data-flow path.">
               Open focus mode
             </button>
             <button type="button" disabled title="Copy ID is not wired in this step.">
