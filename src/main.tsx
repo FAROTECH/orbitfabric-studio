@@ -7,6 +7,7 @@ import "./missionCockpitVisualHierarchy.css";
 import "./missionContentCockpit.css";
 import "./missionWorkspaceTopbarHeroFix.css";
 import "./missionDataFlowWorkbenchVisualHierarchy.css";
+import "./missionDataFlowWorkbenchStep2.css";
 import "./generatedArtifactExplorer.css";
 import "./generatedArtifactDeck.css";
 import "./generatedArtifactDeckStabilization.css";
