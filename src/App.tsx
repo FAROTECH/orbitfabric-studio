@@ -867,6 +867,7 @@ function App() {
         className={[
           "workbench-layout",
           activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : "",
+          activeSurface === "scenario-evidence" ? "workbench-layout-scenario-evidence" : "",
           isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
         ]
@@ -881,7 +882,15 @@ function App() {
           onNavigationSelect={handlePrimaryNavigationSelect}
         />
 
-        <section className="main-surface" aria-label="Studio main surface">
+        <section
+          className={[
+            "main-surface",
+            activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          aria-label="Studio main surface"
+        >
           {renderActiveSurface()}
         </section>
 

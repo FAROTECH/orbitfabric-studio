@@ -115,6 +115,7 @@ export function ScenarioTimelineRunnerSurface({
   const scenarioFiles = workspace.scenario_files;
   const [selectedScenarioPath, setSelectedScenarioPath] = useState<string | null>(null);
   const [activeLane, setActiveLane] = useState<EvidenceLaneId>("all");
+  const [selectedTimelineRecordId, setSelectedTimelineRecordId] = useState<string | null>(null);
   const [generatedHydration, setGeneratedHydration] =
     useState<GeneratedReportHydrationResult | null>(null);
   const [isHydratingGeneratedReports, setIsHydratingGeneratedReports] = useState(false);
@@ -326,6 +327,12 @@ export function ScenarioTimelineRunnerSurface({
   const filteredTimelineRecords = timelineRecords.filter((record) =>
     activeLane === "all" ? true : record.lane === activeLane,
   );
+  const selectedTimelineRecord =
+    filteredTimelineRecords.find((record) => record.id === selectedTimelineRecordId) ??
+    timelineRecords.find((record) => record.id === selectedTimelineRecordId) ??
+    filteredTimelineRecords[0] ??
+    timelineRecords[0] ??
+    null;
   const laneSummaries = createEvidenceLaneSummaries(selectedReport, selectedRunRecord, selectedArtifacts.length);
   const catalogRows = scenarioFiles.map((scenario) =>
     createScenarioCatalogRow({
@@ -360,6 +367,7 @@ export function ScenarioTimelineRunnerSurface({
           onSelectScenario={(scenario) => {
             setSelectedScenarioPath(scenario.path);
             setActiveLane("all");
+            setSelectedTimelineRecordId(null);
           }}
         />
 
@@ -393,13 +401,21 @@ export function ScenarioTimelineRunnerSurface({
           laneSummaries={laneSummaries}
           records={filteredTimelineRecords}
           totalRecords={timelineRecords.length}
+          selectedRecordId={selectedTimelineRecord?.id ?? null}
           onSelectLane={setActiveLane}
-          onSelectRecord={onSelectSimulationRecord}
+          onSelectRecord={(record) => {
+            setSelectedTimelineRecordId(record.id);
+            onSelectSimulationRecord({
+              kind: record.kind,
+              title: record.title,
+              record: record.record,
+            });
+          }}
         />
 
         <ScenarioInspectorPreview
           selectedReport={selectedReport}
-          firstDataFlowRecord={selectedReport?.data_flow_evidence[0] ?? null}
+          selectedRecord={selectedTimelineRecord}
           onSelectRecord={onSelectSimulationRecord}
         />
       </section>
@@ -818,6 +834,7 @@ function TimelineEvidencePanel({
   laneSummaries,
   records,
   totalRecords,
+  selectedRecordId,
   onSelectLane,
   onSelectRecord,
 }: {
@@ -825,8 +842,9 @@ function TimelineEvidencePanel({
   laneSummaries: Array<{ id: EvidenceLaneId; label: string; count: string }>;
   records: TimelineDisplayRecord[];
   totalRecords: number;
+  selectedRecordId: string | null;
   onSelectLane: (lane: EvidenceLaneId) => void;
-  onSelectRecord: (record: ScenarioTimelineInspectorRecord) => void;
+  onSelectRecord: (record: TimelineDisplayRecord) => void;
 }) {
   return (
     <section className="scenario-panel scenario-timeline-evidence" aria-label="Timeline evidence">
@@ -863,28 +881,27 @@ function TimelineEvidencePanel({
           detail="Generated files are preview-only and do not create scenario state."
         />
       ) : records.length > 0 ? (
-        <div className="scenario-timeline-list">
+        <div className="scenario-timeline-compact-list">
           {records.map((record) => (
             <button
-              className="scenario-timeline-row"
+              className={[
+                  "scenario-timeline-compact-row",
+                  selectedRecordId === record.id ? "scenario-timeline-compact-row-selected" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               key={record.id}
               type="button"
-              onClick={() =>
-                onSelectRecord({
-                  kind: record.kind,
-                  title: record.title,
-                  record: record.record,
-                })
-              }
+              onClick={() => onSelectRecord(record)}
             >
-              <span className="scenario-timeline-node" aria-hidden="true" />
-              <span className="scenario-timeline-time">{record.time}</span>
-              <span className={`scenario-timeline-badge scenario-timeline-badge-${record.lane}`}>
+              <span className="scenario-timeline-compact-node" aria-hidden="true" />
+              <span className="scenario-timeline-compact-time">{record.time}</span>
+              <span className={`scenario-timeline-compact-badge scenario-timeline-compact-badge-${record.lane}`}>
                 {record.badge}
               </span>
               <strong>{record.title}</strong>
-              <span className="scenario-timeline-detail">{record.detail}</span>
-              <small>{record.source}</small>
+              <span className="scenario-timeline-compact-detail">{record.detail}</span>
+              <small className="scenario-timeline-compact-source">{record.source}</small>
             </button>
           ))}
         </div>
@@ -900,59 +917,50 @@ function TimelineEvidencePanel({
 
 function ScenarioInspectorPreview({
   selectedReport,
-  firstDataFlowRecord,
+  selectedRecord,
   onSelectRecord,
 }: {
   selectedReport: CoreSimulationReport | null;
-  firstDataFlowRecord: CoreSimulationDataFlowEvidenceRecord | null;
+  selectedRecord: TimelineDisplayRecord | null;
   onSelectRecord: (record: ScenarioTimelineInspectorRecord) => void;
 }) {
-  const jsonPreview = firstDataFlowRecord
-    ? JSON.stringify(firstDataFlowRecord, null, 2)
-    : "not reported";
+  const activeTab = selectedRecord ? getInspectorTabForTimelineRecord(selectedRecord) : "Scenario";
+  const inspectorFields = selectedRecord ? createTimelineInspectorFields(selectedRecord) : [];
+  const jsonPreview = selectedRecord ? JSON.stringify(selectedRecord.record, null, 2) : "not reported";
 
   return (
     <aside className="scenario-panel scenario-local-inspector" aria-label="Scenario inspector preview">
       <div className="scenario-panel-heading">
         <div>
           <span className="cockpit-eyebrow">Scenario Inspector</span>
-          <h3>Selected evidence preview</h3>
+          <h3>{selectedRecord ? selectedRecord.title : "Selected evidence preview"}</h3>
         </div>
-        <StatusBadge label={firstDataFlowRecord ? "DATA FLOW" : "WAITING"} />
+        <StatusBadge label={selectedRecord ? selectedRecord.badge : "WAITING"} />
       </div>
 
       <div className="scenario-inspector-tabs" aria-label="Scenario inspector tabs">
-        <span>Scenario</span>
-        <span>Timeline</span>
-        <span>Commands</span>
-        <span>Events</span>
-        <span>Modes</span>
-        <span className="scenario-inspector-tab-active">Data Flow</span>
-        <span>Expectations</span>
-        <span>Artifacts</span>
-        <span>JSON</span>
+        {["Scenario", "Timeline", "Commands", "Events", "Modes", "Data Flow", "Expectations", "Artifacts", "JSON"].map((tab) => (
+          <span
+            className={tab === activeTab ? "scenario-inspector-tab-active" : ""}
+            key={tab}
+          >
+            {tab}
+          </span>
+        ))}
       </div>
 
-      {firstDataFlowRecord ? (
+      {selectedRecord ? (
         <>
+          <div className="scenario-selected-record-summary">
+            <span>{selectedRecord.time}</span>
+            <strong>{selectedRecord.badge}</strong>
+            <em>{selectedRecord.source}</em>
+          </div>
+
           <div className="scenario-inspector-fields">
-            <ScenarioFact label="data_product_id" value={stringOrNotReported(firstDataFlowRecord.data_product_id)} />
-            <ScenarioFact label="producer" value={stringOrNotReported(firstDataFlowRecord.producer)} />
-            <ScenarioFact
-              label="triggered_by_command"
-              value={stringOrNotReported(firstDataFlowRecord.triggered_by_command)}
-            />
-            <ScenarioFact label="storage_intent" value={formatJsonField(firstDataFlowRecord.storage_intent)} />
-            <ScenarioFact label="downlink_intent" value={formatJsonField(firstDataFlowRecord.downlink_intent)} />
-            <ScenarioFact
-              label="eligible_downlink_flows"
-              value={formatArrayField(firstDataFlowRecord.eligible_downlink_flows)}
-            />
-            <ScenarioFact
-              label="contact_windows"
-              value={formatArrayField(firstDataFlowRecord.contact_windows)}
-            />
-            <ScenarioFact label="inference" value="none" />
+            {inspectorFields.map((field) => (
+              <ScenarioFact key={field.label} label={field.label} value={field.value} />
+            ))}
           </div>
 
           <button
@@ -960,9 +968,9 @@ function ScenarioInspectorPreview({
             className="scenario-secondary-button scenario-inspector-open-button"
             onClick={() =>
               onSelectRecord({
-                kind: "dataFlowEvidence",
-                title: firstDataFlowRecord.data_product_id ?? "Data-flow evidence",
-                record: firstDataFlowRecord,
+                kind: selectedRecord.kind,
+                title: selectedRecord.title,
+                record: selectedRecord.record,
               })
             }
           >
@@ -976,16 +984,136 @@ function ScenarioInspectorPreview({
         </>
       ) : (
         <ScenarioEmptyState
-          title="No data-flow record selected"
+          title="No timeline record selected"
           detail={
             selectedReport
-              ? "The selected simulation report does not contain data-flow evidence records."
+              ? "Select a command, event, mode transition, data-flow record or expectation from the timeline."
               : "No valid simulation report is selected."
           }
         />
       )}
     </aside>
   );
+}
+
+function getInspectorTabForTimelineRecord(record: TimelineDisplayRecord): string {
+  switch (record.lane) {
+    case "commands":
+      return "Commands";
+    case "events":
+      return "Events";
+    case "modes":
+      return "Modes";
+    case "dataFlow":
+      return "Data Flow";
+    case "expectations":
+      return "Expectations";
+    case "artifacts":
+      return "Artifacts";
+    default:
+      return record.kind === "timeline" ? "Timeline" : "Scenario";
+  }
+}
+
+function createTimelineInspectorFields(record: TimelineDisplayRecord): Array<{ label: string; value: string }> {
+  const raw = record.record;
+
+  switch (record.kind) {
+    case "command":
+      return [
+        { label: "t", value: record.time },
+        { label: "command_id", value: formatInspectorValue(getRecordValue(raw, "command_id")) },
+        { label: "status", value: formatInspectorValue(getRecordValue(raw, "status")) },
+        { label: "dispatch", value: formatInspectorValue(getRecordValue(raw, "dispatch")) },
+        { label: "source", value: record.source },
+        { label: "inference", value: "none" },
+      ];
+    case "event":
+      return [
+        { label: "t", value: record.time },
+        { label: "event_id", value: formatInspectorValue(getRecordValue(raw, "event_id")) },
+        { label: "severity", value: formatInspectorValue(getRecordValue(raw, "severity")) },
+        { label: "detail", value: record.detail },
+        { label: "source", value: record.source },
+        { label: "inference", value: "none" },
+      ];
+    case "modeTransition":
+      return [
+        { label: "t", value: record.time },
+        { label: "from", value: formatInspectorValue(getRecordValue(raw, "from")) },
+        { label: "to", value: formatInspectorValue(getRecordValue(raw, "to")) },
+        { label: "reason", value: formatInspectorValue(getRecordValue(raw, "reason")) },
+        { label: "source", value: record.source },
+        { label: "inference", value: "none" },
+      ];
+    case "dataFlowEvidence":
+      return [
+        { label: "t", value: record.time },
+        { label: "data_product_id", value: formatInspectorValue(getRecordValue(raw, "data_product_id")) },
+        { label: "producer", value: formatInspectorValue(getRecordValue(raw, "producer")) },
+        { label: "triggered_by_command", value: formatInspectorValue(getRecordValue(raw, "triggered_by_command")) },
+        { label: "storage_intent", value: formatInspectorValue(getRecordValue(raw, "storage_intent")) },
+        { label: "downlink_intent", value: formatInspectorValue(getRecordValue(raw, "downlink_intent")) },
+        { label: "eligible_downlink_flows", value: formatInspectorValue(getRecordValue(raw, "eligible_downlink_flows")) },
+        { label: "contact_windows", value: formatInspectorValue(getRecordValue(raw, "contact_windows")) },
+        { label: "inference", value: "none" },
+      ];
+    case "failedExpectation":
+      return [
+        { label: "t", value: record.time },
+        { label: "expectation_type", value: formatInspectorValue(getRecordValue(raw, "expectation_type")) },
+        { label: "target", value: formatInspectorValue(getRecordValue(raw, "target")) },
+        { label: "result", value: formatInspectorValue(getRecordValue(raw, "result")) },
+        { label: "message", value: formatInspectorValue(getRecordValue(raw, "message")) },
+        { label: "inference", value: "none" },
+      ];
+    default:
+      return [
+        { label: "t", value: record.time },
+        { label: "title", value: record.title },
+        { label: "detail", value: record.detail },
+        { label: "source", value: record.source },
+        { label: "inference", value: "none" },
+      ];
+  }
+}
+
+function getRecordValue(record: unknown, key: string): unknown {
+  if (!record || typeof record !== "object") {
+    return undefined;
+  }
+
+  return (record as Record<string, unknown>)[key];
+}
+
+function formatInspectorValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value.trim() ? value : NOT_REPORTED;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0 ? `[${value.map((item) => formatInspectorValue(item)).join(", ")}]` : NOT_REPORTED;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+
+    if (entries.length === 0) {
+      return NOT_REPORTED;
+    }
+
+    if (entries.length <= 2) {
+      return entries.map(([key, entryValue]) => `${key}: ${formatInspectorValue(entryValue)}`).join(" / ");
+    }
+
+    return `${entries.length} fields`;
+  }
+
+  return NOT_REPORTED;
 }
 
 function ScenarioArtifactDock({

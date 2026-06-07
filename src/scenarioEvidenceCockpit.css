@@ -1098,3 +1098,1417 @@ body.scenario-evidence-scroll-active .scenario-cockpit-main-grid,
 body.scenario-evidence-scroll-active .scenario-construction-grid {
   min-height: 0 !important;
 }
+/* Step 7: bind Scenarios to the shell layout the same way the completed
+   heavy cockpit surfaces do. Earlier fixes were fighting the wrong level:
+   the Scenario cockpit can scroll only if the outer workbench gives the
+   center surface a stable, surface-specific layout contract. */
+.workbench-layout-scenario-evidence > .contextual-inspector,
+.workbench-layout-scenario-evidence > .workbench-inspector {
+  display: none;
+}
+
+.workbench-layout-scenario-evidence > .main-surface-scenario-evidence {
+  grid-column: 2 / -1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.scenario-evidence-scroll-active .studio-app-shell {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+}
+
+body.scenario-evidence-scroll-active .workbench-layout-scenario-evidence {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  align-items: start !important;
+}
+
+body.scenario-evidence-scroll-active .main-surface-scenario-evidence {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+.scenario-evidence-cockpit {
+  height: calc(100vh - 132px) !important;
+  max-height: calc(100vh - 132px) !important;
+  min-height: 0 !important;
+  align-content: start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 8px;
+  padding-bottom: 72px !important;
+}
+
+.scenario-evidence-cockpit > * {
+  min-width: 0;
+}
+
+.scenario-evidence-cockpit::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scenario-evidence-cockpit::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.24);
+  border-radius: 999px;
+}
+
+.scenario-evidence-cockpit::-webkit-scrollbar-thumb {
+  background: rgba(103, 232, 249, 0.2);
+  border-radius: 999px;
+}
+
+.scenario-evidence-cockpit::-webkit-scrollbar-thumb:hover {
+  background: rgba(103, 232, 249, 0.34);
+}
+
+@media (max-height: 820px) {
+  .scenario-evidence-cockpit {
+    height: calc(100vh - 112px) !important;
+    max-height: calc(100vh - 112px) !important;
+    padding-bottom: 64px !important;
+  }
+}
+
+/* Step 8: compact timeline/layout correction after scroll fix.
+   The Step 7 shell binding fixed scrolling, but the timeline grid was still
+   stretching each record vertically because the timeline panel and inspector
+   column were allowed to stretch together. Keep the evidence readable, but make
+   rows behave like compact engineering records again. */
+.scenario-evidence-work-grid {
+  align-items: start !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.65fr);
+}
+
+.scenario-timeline-evidence,
+.scenario-local-inspector {
+  align-self: start !important;
+  align-content: start !important;
+  min-height: 0 !important;
+}
+
+.scenario-timeline-evidence {
+  min-height: 0 !important;
+}
+
+.scenario-local-inspector {
+  max-height: calc(100vh - 156px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.scenario-timeline-list {
+  align-content: start !important;
+  grid-auto-rows: minmax(48px, auto);
+  gap: 6px;
+}
+
+.scenario-timeline-list::before {
+  top: 14px;
+  bottom: 14px;
+}
+
+.scenario-timeline-row {
+  align-self: start !important;
+  min-height: 48px !important;
+  height: auto !important;
+  grid-template-columns: 72px 92px minmax(170px, 0.75fr) minmax(240px, 1fr) minmax(70px, 0.26fr);
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.scenario-timeline-time,
+.scenario-timeline-badge,
+.scenario-timeline-row strong,
+.scenario-timeline-detail,
+.scenario-timeline-row small {
+  align-self: center;
+}
+
+.scenario-timeline-row strong,
+.scenario-timeline-detail,
+.scenario-timeline-row small {
+  line-height: 1.22;
+  white-space: normal;
+}
+
+.scenario-timeline-row strong {
+  overflow-wrap: anywhere;
+}
+
+.scenario-timeline-detail,
+.scenario-timeline-row small {
+  max-height: 2.55em;
+  overflow: hidden;
+}
+
+/* The execution flow is valuable, but cards must never overlap. Prefer a
+   compact horizontal scroll over squeezing text into unreadable cards. */
+.scenario-plan-flow {
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+  scrollbar-gutter: stable;
+}
+
+.scenario-plan-step-wrap {
+  flex: 0 0 132px !important;
+  min-width: 132px !important;
+}
+
+.scenario-plan-step {
+  width: 132px !important;
+  min-width: 132px !important;
+  min-height: 76px !important;
+}
+
+.scenario-plan-step strong,
+.scenario-plan-step small {
+  overflow-wrap: anywhere;
+}
+
+.scenario-plan-arrow {
+  flex: 0 0 auto;
+}
+
+/* With the external inspector hidden, keep artifact cards useful but compact. */
+.scenario-artifact-card-row {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+@media (max-width: 1500px) {
+  .scenario-evidence-work-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.72fr);
+  }
+
+  .scenario-plan-step-wrap {
+    flex-basis: 126px !important;
+    min-width: 126px !important;
+  }
+
+  .scenario-plan-step {
+    width: 126px !important;
+    min-width: 126px !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .scenario-evidence-work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-local-inspector {
+    max-height: none;
+  }
+
+  .scenario-timeline-row {
+    grid-template-columns: 1fr;
+    padding-left: 24px;
+  }
+}
+
+/* Step 9: final timeline density correction.
+   The page scrolls correctly, but timeline entries were still behaving like
+   tall cards. For an evidence cockpit, timeline rows must be compact, scannable
+   engineering records. This overrides the previous grid-row behaviour and
+   replaces the oversized vertical spine with small row-local markers. */
+.scenario-evidence-work-grid {
+  align-items: start !important;
+}
+
+.scenario-timeline-evidence,
+.scenario-local-inspector {
+  align-self: start !important;
+  align-content: start !important;
+}
+
+.scenario-timeline-evidence {
+  min-height: 0 !important;
+}
+
+.scenario-timeline-heading {
+  margin-bottom: 2px;
+}
+
+.scenario-lane-filter-row {
+  margin-bottom: 4px;
+}
+
+.scenario-timeline-list {
+  position: relative;
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px !important;
+  align-content: start !important;
+  grid-auto-rows: unset !important;
+  min-height: 0 !important;
+  padding: 0 0 6px !important;
+}
+
+.scenario-timeline-list::before {
+  display: none !important;
+}
+
+.scenario-timeline-row {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 76px 104px minmax(210px, 0.9fr) minmax(260px, 1.1fr) minmax(78px, 0.28fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  min-height: 50px !important;
+  height: 50px !important;
+  max-height: 50px !important;
+  padding: 7px 10px 7px 30px !important;
+  overflow: hidden !important;
+}
+
+.scenario-timeline-row::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 13px;
+  width: 1px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(103, 232, 249, 0.34),
+    rgba(103, 232, 249, 0.08)
+  );
+  content: "";
+}
+
+.scenario-timeline-node {
+  top: 50% !important;
+  left: 9px !important;
+  width: 9px !important;
+  height: 9px !important;
+  border-width: 1px !important;
+  box-shadow: 0 0 10px rgba(103, 232, 249, 0.5) !important;
+  z-index: 1;
+}
+
+.scenario-timeline-time,
+.scenario-timeline-badge,
+.scenario-timeline-row strong,
+.scenario-timeline-detail,
+.scenario-timeline-row small {
+  min-width: 0;
+  align-self: center !important;
+  line-height: 1.15 !important;
+}
+
+.scenario-timeline-time {
+  font-size: 0.66rem !important;
+}
+
+.scenario-timeline-badge {
+  padding: 4px 7px !important;
+  font-size: 0.53rem !important;
+}
+
+.scenario-timeline-row strong,
+.scenario-timeline-detail,
+.scenario-timeline-row small {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.scenario-timeline-row strong {
+  font-size: 0.72rem !important;
+}
+
+.scenario-timeline-detail,
+.scenario-timeline-row small {
+  max-height: none !important;
+  font-size: 0.65rem !important;
+}
+
+/* Keep the right preview useful without forcing the left timeline to stretch. */
+.scenario-local-inspector {
+  max-height: calc(100vh - 162px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.scenario-json-preview pre {
+  max-height: 220px !important;
+}
+
+/* The execution flow must remain visible but never overlap. */
+.scenario-execution-flow-card {
+  overflow: hidden;
+}
+
+.scenario-plan-flow {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 0 2px 8px 0 !important;
+  scrollbar-gutter: stable;
+}
+
+.scenario-plan-step-wrap {
+  flex: 0 0 128px !important;
+  min-width: 128px !important;
+}
+
+.scenario-plan-step {
+  width: 128px !important;
+  min-width: 128px !important;
+  min-height: 74px !important;
+  max-height: 78px !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+}
+
+.scenario-plan-step strong,
+.scenario-plan-step small {
+  display: block;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.scenario-plan-step strong {
+  white-space: nowrap !important;
+}
+
+.scenario-plan-step small {
+  white-space: nowrap !important;
+}
+
+.scenario-plan-summary-strip {
+  margin-top: 2px;
+}
+
+@media (max-width: 1400px) {
+  .scenario-timeline-row {
+    grid-template-columns: 70px 96px minmax(170px, 0.9fr) minmax(220px, 1fr) minmax(70px, 0.25fr) !important;
+  }
+
+  .scenario-plan-step-wrap {
+    flex-basis: 122px !important;
+    min-width: 122px !important;
+  }
+
+  .scenario-plan-step {
+    width: 122px !important;
+    min-width: 122px !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .scenario-timeline-row {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 84px !important;
+    padding-left: 28px !important;
+  }
+
+  .scenario-timeline-row strong,
+  .scenario-timeline-detail,
+  .scenario-timeline-row small {
+    white-space: normal !important;
+  }
+
+  .scenario-local-inspector {
+    max-height: none !important;
+  }
+}
+
+/* Step 10: definitive Scenario Timeline rendering.
+   Use a fresh compact timeline class set so legacy timeline styles appended in
+   previous iterations cannot stretch or hide row content anymore. */
+.scenario-timeline-compact-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 0 8px;
+}
+
+.scenario-timeline-compact-list::before {
+  display: none;
+}
+
+.scenario-timeline-compact-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 108px minmax(180px, 0.85fr) minmax(220px, 1fr) 86px;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.11);
+  border-radius: 13px;
+  padding: 8px 11px 8px 28px;
+  color: #dbeafe;
+  background:
+    linear-gradient(90deg, rgba(103, 232, 249, 0.045), transparent 28%),
+    rgba(15, 23, 42, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.scenario-timeline-compact-row:hover,
+.scenario-timeline-compact-row:focus-visible {
+  border-color: rgba(103, 232, 249, 0.34);
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.18), transparent 42%),
+    rgba(15, 23, 42, 0.52);
+  outline: none;
+}
+
+.scenario-timeline-compact-node {
+  position: absolute;
+  top: 50%;
+  left: 11px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #67e8f9;
+  border-radius: 999px;
+  background: #031525;
+  box-shadow: 0 0 10px rgba(103, 232, 249, 0.48);
+  transform: translateY(-50%);
+}
+
+.scenario-timeline-compact-time,
+.scenario-timeline-compact-badge,
+.scenario-timeline-compact-row strong,
+.scenario-timeline-compact-detail,
+.scenario-timeline-compact-source {
+  min-width: 0;
+  line-height: 1.16;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-timeline-compact-time {
+  color: #93c5fd;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.scenario-timeline-compact-badge {
+  justify-self: start;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.54rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scenario-timeline-compact-badge-commands {
+  color: #bfdbfe;
+  border-color: rgba(96, 165, 250, 0.25);
+  background: rgba(30, 64, 175, 0.22);
+}
+
+.scenario-timeline-compact-badge-events {
+  color: #99f6e4;
+  border-color: rgba(45, 212, 191, 0.23);
+  background: rgba(15, 118, 110, 0.22);
+}
+
+.scenario-timeline-compact-badge-modes {
+  color: #ddd6fe;
+  border-color: rgba(167, 139, 250, 0.23);
+  background: rgba(91, 33, 182, 0.22);
+}
+
+.scenario-timeline-compact-badge-dataFlow {
+  color: #bbf7d0;
+  border-color: rgba(34, 197, 94, 0.24);
+  background: rgba(22, 101, 52, 0.22);
+}
+
+.scenario-timeline-compact-badge-expectations {
+  color: #fde68a;
+  border-color: rgba(245, 158, 11, 0.24);
+  background: rgba(146, 64, 14, 0.22);
+}
+
+.scenario-timeline-compact-row strong {
+  color: #f8fafc;
+  font-size: 0.73rem;
+  font-weight: 900;
+}
+
+.scenario-timeline-compact-detail,
+.scenario-timeline-compact-source {
+  color: #8ba0bf;
+  font-size: 0.66rem;
+}
+
+.scenario-timeline-compact-source {
+  justify-self: end;
+  max-width: 100%;
+}
+
+/* The timeline panel must not inherit the tall-card behaviour from old rules. */
+.scenario-timeline-evidence {
+  min-height: 0 !important;
+  align-content: start !important;
+}
+
+/* Keep the right-side internal inspector independent. */
+.scenario-local-inspector {
+  align-content: start !important;
+  max-height: calc(100vh - 162px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Execution flow: readable, no overlap, deliberately horizontally scrollable. */
+.scenario-plan-flow {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 0 2px 8px 0 !important;
+}
+
+.scenario-plan-step-wrap {
+  flex: 0 0 134px !important;
+  min-width: 134px !important;
+}
+
+.scenario-plan-step {
+  width: 134px !important;
+  min-width: 134px !important;
+  min-height: 78px !important;
+  padding: 9px !important;
+  overflow: hidden !important;
+}
+
+.scenario-plan-step strong,
+.scenario-plan-step small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1280px) {
+  .scenario-timeline-compact-row {
+    grid-template-columns: 66px 100px minmax(150px, 0.8fr) minmax(180px, 1fr) 72px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 980px) {
+  .scenario-timeline-compact-row {
+    grid-template-columns: 1fr;
+    min-height: 94px;
+    padding-left: 28px;
+  }
+
+  .scenario-timeline-compact-detail,
+  .scenario-timeline-compact-source {
+    white-space: normal;
+  }
+
+  .scenario-local-inspector {
+    max-height: none !important;
+  }
+}
+
+/* Step 11: timeline-driven internal inspector. */
+.scenario-timeline-compact-row-selected {
+  border-color: rgba(103, 232, 249, 0.52);
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.26), transparent 48%),
+    rgba(15, 23, 42, 0.62);
+  box-shadow:
+    inset 3px 0 0 rgba(103, 232, 249, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.026);
+}
+
+.scenario-timeline-row-selected {
+  border-color: rgba(103, 232, 249, 0.52);
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.26), transparent 48%),
+    rgba(15, 23, 42, 0.62);
+  box-shadow: inset 3px 0 0 rgba(103, 232, 249, 0.68);
+}
+
+.scenario-selected-record-summary {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 13px;
+  padding: 8px 10px;
+  background:
+    linear-gradient(90deg, rgba(103, 232, 249, 0.08), transparent 50%),
+    rgba(2, 6, 23, 0.32);
+}
+
+.scenario-selected-record-summary span,
+.scenario-selected-record-summary strong,
+.scenario-selected-record-summary em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-selected-record-summary span {
+  color: #93c5fd;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.scenario-selected-record-summary strong {
+  justify-self: start;
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.18);
+  font-size: 0.56rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.scenario-selected-record-summary em {
+  justify-self: end;
+  color: #8ba0bf;
+  font-size: 0.64rem;
+  font-style: normal;
+}
+
+.scenario-local-inspector .scenario-panel-heading h3 {
+  overflow-wrap: anywhere;
+}
+
+.scenario-inspector-fields .scenario-fact strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+/* Step 12: Scenario Catalog + Selected Scenario Overview readability polish.
+   Timeline/Inspector behavior is now correct. This step fixes the remaining
+   top-cockpit readability issues: truncated scenario names, cramped counters,
+   and awkward path wrapping in the selected scenario overview. */
+.scenario-cockpit-main-grid {
+  grid-template-columns: minmax(470px, 0.92fr) minmax(560px, 1.08fr);
+  align-items: stretch;
+}
+
+.scenario-catalog-panel,
+.scenario-selected-overview {
+  min-height: 0;
+  align-content: start;
+}
+
+.scenario-catalog-table {
+  gap: 6px;
+}
+
+.scenario-catalog-row {
+  grid-template-columns:
+    minmax(220px, 1.35fr)
+    74px
+    repeat(5, minmax(36px, 0.2fr))
+    70px;
+  gap: 6px;
+  min-height: 39px;
+  padding: 7px 9px;
+}
+
+.scenario-catalog-row-head {
+  min-height: 28px;
+  padding-top: 0;
+  padding-bottom: 2px;
+}
+
+.scenario-catalog-row strong {
+  display: -webkit-box;
+  color: #e8eefc;
+  font-size: 0.7rem;
+  line-height: 1.18;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.scenario-catalog-row span:not(.scenario-result-pill) {
+  justify-self: center;
+  min-width: 0;
+  color: #9fb2d1;
+  font-size: 0.66rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.scenario-catalog-row span:last-child {
+  justify-self: start;
+  max-width: 100%;
+  color: #7dd3fc;
+  text-align: left;
+}
+
+.scenario-catalog-row-head span:first-child,
+.scenario-catalog-row strong {
+  justify-self: start;
+  text-align: left;
+}
+
+.scenario-result-pill {
+  justify-self: start;
+  min-width: 55px;
+  text-align: center;
+}
+
+.scenario-catalog-row-selected {
+  border-color: rgba(103, 232, 249, 0.48);
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.28), transparent 58%),
+    rgba(15, 23, 42, 0.58);
+  box-shadow:
+    inset 3px 0 0 rgba(103, 232, 249, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.026);
+}
+
+.scenario-selected-overview .scenario-panel-heading {
+  align-items: center;
+}
+
+.scenario-selected-overview .scenario-panel-heading h3 {
+  max-width: 48ch;
+  color: #f8fafc;
+  font-size: 0.96rem;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.scenario-selected-overview .scenario-overview-grid {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 7px;
+}
+
+.scenario-selected-overview .scenario-fact {
+  min-height: 54px;
+  padding: 8px 10px;
+  align-content: center;
+}
+
+.scenario-selected-overview .scenario-fact span {
+  color: #7d8da8;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.scenario-selected-overview .scenario-fact strong {
+  display: -webkit-box;
+  color: #f8fafc;
+  font-size: 0.73rem;
+  line-height: 1.2;
+  white-space: normal;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Long paths get the full width of the overview card. This removes the ugly
+   column-by-column wrapping while keeping values visible and bounded. */
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(2),
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(5) {
+  grid-column: 1 / -1;
+  min-height: 58px;
+}
+
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(2) strong,
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(5) strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.24;
+  -webkit-line-clamp: 2;
+}
+
+/* Result and final mode should read as status, not just database fields. */
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(3),
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(7) {
+  border-color: rgba(103, 232, 249, 0.18);
+  background:
+    linear-gradient(90deg, rgba(103, 232, 249, 0.07), transparent 52%),
+    rgba(15, 23, 42, 0.42);
+}
+
+.scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(3) strong {
+  color: #86efac;
+  letter-spacing: 0.04em;
+}
+
+.scenario-selected-overview .scenario-overview-actions {
+  margin-top: 1px;
+}
+
+@media (max-width: 1500px) {
+  .scenario-cockpit-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-catalog-row {
+    grid-template-columns:
+      minmax(240px, 1.4fr)
+      76px
+      repeat(5, minmax(44px, 0.2fr))
+      76px;
+  }
+}
+
+@media (max-width: 980px) {
+  .scenario-catalog-row {
+    grid-template-columns: minmax(180px, 1fr) 76px;
+  }
+
+  .scenario-catalog-row span:nth-child(n + 3) {
+    display: none;
+  }
+
+  .scenario-selected-overview .scenario-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(2),
+  .scenario-selected-overview .scenario-overview-grid .scenario-fact:nth-child(5) {
+    grid-column: auto;
+  }
+}
+
+/* Step 12b: hard fix for Scenario Catalog column collision.
+   The catalog card is intentionally compact. Showing Report as an eighth
+   visible column makes the grid exceed the available width and causes overlap
+   into the Selected Scenario Overview. Report details remain available in the
+   selected overview and artifact dock, so the catalog keeps the operational
+   summary only. */
+.scenario-catalog-panel {
+  overflow: hidden;
+}
+
+.scenario-catalog-table {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.scenario-catalog-row {
+  width: 100%;
+  grid-template-columns:
+    minmax(0, 1fr)
+    66px
+    34px
+    42px
+    38px
+    48px
+    34px !important;
+  gap: 6px !important;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.scenario-catalog-row > * {
+  min-width: 0;
+}
+
+.scenario-catalog-row span:last-child {
+  display: none !important;
+}
+
+.scenario-catalog-row-head span:last-child {
+  display: none !important;
+}
+
+.scenario-catalog-row strong {
+  display: block !important;
+  max-width: 100%;
+  color: #e8eefc;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  -webkit-line-clamp: unset !important;
+}
+
+.scenario-catalog-row-head {
+  grid-template-columns:
+    minmax(0, 1fr)
+    66px
+    34px
+    42px
+    38px
+    48px
+    34px !important;
+  gap: 6px !important;
+}
+
+.scenario-catalog-row-head span {
+  justify-self: center;
+  color: #7d8da8;
+  font-size: 0.52rem !important;
+  letter-spacing: 0.09em !important;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.scenario-catalog-row-head span:first-child {
+  justify-self: start;
+  text-align: left;
+}
+
+.scenario-catalog-row span:not(.scenario-result-pill) {
+  justify-self: center;
+  color: #9fb2d1;
+  font-size: 0.64rem;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.scenario-result-pill {
+  justify-self: start;
+  min-width: 55px;
+  max-width: 62px;
+  padding-right: 6px;
+  padding-left: 6px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Give the catalog a clean visual boundary so no content can bleed into the
+   selected scenario overview. */
+.scenario-cockpit-main-grid {
+  overflow: hidden;
+}
+
+.scenario-selected-overview {
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1500px) {
+  .scenario-catalog-row,
+  .scenario-catalog-row-head {
+    grid-template-columns:
+      minmax(0, 1fr)
+      66px
+      34px
+      42px
+      38px
+      48px
+      34px !important;
+  }
+}
+
+/* Step 13: Timeline Evidence readability pass.
+   Keep the compact log-like density, but stop treating title/detail/source as
+   competing one-line columns. Each record becomes a compact two-level evidence
+   row: time + badge on the left, title/detail in the middle, source/result on
+   the right. */
+.scenario-timeline-compact-row {
+  display: grid !important;
+  grid-template-columns: 76px 112px minmax(320px, 1fr) minmax(118px, 0.22fr) !important;
+  grid-template-areas:
+    "time badge title source"
+    "time badge detail source" !important;
+  column-gap: 12px !important;
+  row-gap: 3px !important;
+  align-items: center !important;
+  min-height: 58px !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 8px 12px 8px 30px !important;
+}
+
+.scenario-timeline-compact-time {
+  grid-area: time;
+}
+
+.scenario-timeline-compact-badge {
+  grid-area: badge;
+}
+
+.scenario-timeline-compact-row strong {
+  grid-area: title;
+}
+
+.scenario-timeline-compact-detail {
+  grid-area: detail;
+}
+
+.scenario-timeline-compact-source {
+  grid-area: source;
+}
+
+.scenario-timeline-compact-time,
+.scenario-timeline-compact-badge,
+.scenario-timeline-compact-source {
+  align-self: center;
+}
+
+.scenario-timeline-compact-row strong {
+  align-self: end;
+  color: #f8fafc;
+  font-size: 0.75rem !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  overflow-wrap: anywhere;
+  text-overflow: clip !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.scenario-timeline-compact-detail {
+  align-self: start;
+  color: #9fb2d1;
+  font-size: 0.66rem !important;
+  line-height: 1.18 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  overflow-wrap: anywhere;
+  text-overflow: clip !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.scenario-timeline-compact-source {
+  justify-self: end;
+  max-width: 100%;
+  color: #8ba0bf;
+  font-size: 0.64rem !important;
+  line-height: 1.15 !important;
+  text-align: right;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.scenario-timeline-compact-badge {
+  max-width: 106px;
+  text-align: center;
+  white-space: nowrap !important;
+}
+
+.scenario-timeline-compact-row-selected {
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.3), transparent 52%),
+    rgba(15, 23, 42, 0.66);
+}
+
+/* Expectations are usually numerous. Keep them readable without allowing them
+   to visually dominate the entire cockpit. */
+.scenario-timeline-compact-badge-expectations {
+  color: #fde68a;
+}
+
+@media (max-width: 1380px) {
+  .scenario-timeline-compact-row {
+    grid-template-columns: 70px 104px minmax(240px, 1fr) minmax(96px, 0.24fr) !important;
+    column-gap: 9px !important;
+  }
+
+  .scenario-timeline-compact-badge {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .scenario-timeline-compact-row {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+    grid-template-areas:
+      "time badge"
+      "time title"
+      "time detail"
+      "time source" !important;
+    min-height: 92px !important;
+  }
+
+  .scenario-timeline-compact-source {
+    justify-self: start;
+    text-align: left;
+    -webkit-line-clamp: 1;
+  }
+}
+
+/* Step 14: final milestone polish for Scenario Evidence Cockpit.
+   No data model, hydration, routing or behavior changes. This pass makes the
+   Scenario Plan more readable, keeps the Timeline compact without mutilating
+   evidence, and improves the right-side inspector while scrolling long runs. */
+
+/* Scenario Plan / Execution Flow: this is the distinctive scenario surface.
+   Give each step enough room to communicate intent instead of looking crushed. */
+.scenario-execution-flow-card {
+  overflow: hidden;
+  border-color: rgba(103, 232, 249, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.06), transparent 34%),
+    rgba(2, 6, 23, 0.3);
+}
+
+.scenario-plan-flow {
+  position: relative;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 9px !important;
+  align-items: stretch;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 1px 2px 8px 1px !important;
+  scrollbar-gutter: stable;
+}
+
+.scenario-plan-flow::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scenario-plan-flow::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.22);
+  border-radius: 999px;
+}
+
+.scenario-plan-flow::-webkit-scrollbar-thumb {
+  background: rgba(103, 232, 249, 0.18);
+  border-radius: 999px;
+}
+
+.scenario-plan-flow::-webkit-scrollbar-thumb:hover {
+  background: rgba(103, 232, 249, 0.32);
+}
+
+.scenario-plan-step-wrap {
+  flex: 0 0 158px !important;
+  min-width: 158px !important;
+  gap: 7px !important;
+}
+
+.scenario-plan-step {
+  width: 158px !important;
+  min-width: 158px !important;
+  min-height: 88px !important;
+  max-height: none !important;
+  padding: 10px 10px 9px !important;
+  border-color: rgba(103, 232, 249, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.11), transparent 44%),
+    rgba(15, 23, 42, 0.52);
+}
+
+.scenario-plan-step span {
+  font-size: 0.62rem !important;
+}
+
+.scenario-plan-step strong {
+  display: -webkit-box !important;
+  color: #f8fafc;
+  font-size: 0.7rem !important;
+  line-height: 1.14 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.scenario-plan-step small {
+  display: block !important;
+  color: #8ba0bf;
+  font-size: 0.6rem !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.scenario-plan-arrow {
+  align-self: center;
+  color: rgba(103, 232, 249, 0.46);
+  font-size: 0.88rem !important;
+}
+
+.scenario-plan-summary-strip {
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.scenario-mini-metric {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
+/* Timeline: retain the Step 13 two-level record layout but make long runs less
+   visually heavy. The record remains readable and the inspector remains linked. */
+.scenario-evidence-work-grid {
+  grid-template-columns: minmax(0, 1.58fr) minmax(330px, 0.62fr);
+  align-items: start !important;
+}
+
+.scenario-timeline-compact-list {
+  gap: 5px;
+  padding-bottom: 4px;
+}
+
+.scenario-timeline-compact-row {
+  grid-template-columns: 68px 104px minmax(300px, 1fr) minmax(96px, 0.2fr) !important;
+  column-gap: 10px !important;
+  row-gap: 2px !important;
+  min-height: 52px !important;
+  padding: 7px 10px 7px 28px !important;
+  border-radius: 12px;
+}
+
+.scenario-timeline-compact-node {
+  left: 10px;
+  width: 7px;
+  height: 7px;
+}
+
+.scenario-timeline-compact-row strong {
+  font-size: 0.73rem !important;
+  line-height: 1.12 !important;
+}
+
+.scenario-timeline-compact-detail {
+  font-size: 0.64rem !important;
+  line-height: 1.12 !important;
+}
+
+.scenario-timeline-compact-source {
+  font-size: 0.62rem !important;
+  line-height: 1.1 !important;
+  opacity: 0.9;
+}
+
+.scenario-timeline-compact-badge {
+  max-width: 100px;
+  padding: 4px 7px;
+  font-size: 0.52rem !important;
+}
+
+/* Selected records should be visible but not visually louder than the entire
+   timeline. */
+.scenario-timeline-compact-row-selected {
+  border-color: rgba(103, 232, 249, 0.5);
+  background:
+    linear-gradient(90deg, rgba(8, 145, 178, 0.24), transparent 48%),
+    rgba(15, 23, 42, 0.6);
+}
+
+/* Keep the inspector useful during long timeline reviews. */
+.scenario-local-inspector {
+  position: sticky;
+  top: 8px;
+  max-height: calc(100vh - 148px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.scenario-json-preview pre {
+  max-height: 210px !important;
+}
+
+/* The bottom area should remain compact and intentional. */
+.scenario-artifact-dock {
+  margin-top: 1px;
+}
+
+.scenario-artifact-card-row {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.scenario-artifact-card {
+  min-height: 74px;
+  padding: 9px 10px;
+}
+
+.scenario-cockpit-guardrails {
+  padding: 9px 10px;
+}
+
+/* Small display fallback. */
+@media (max-width: 1380px) {
+  .scenario-plan-step-wrap {
+    flex-basis: 148px !important;
+    min-width: 148px !important;
+  }
+
+  .scenario-plan-step {
+    width: 148px !important;
+    min-width: 148px !important;
+  }
+
+  .scenario-timeline-compact-row {
+    grid-template-columns: 64px 98px minmax(240px, 1fr) minmax(84px, 0.22fr) !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .scenario-evidence-work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-local-inspector {
+    position: static;
+    max-height: none !important;
+  }
+
+  .scenario-timeline-compact-row {
+    grid-template-columns: 68px minmax(0, 1fr) !important;
+    grid-template-areas:
+      "time badge"
+      "time title"
+      "time detail"
+      "time source" !important;
+    min-height: 88px !important;
+  }
+
+  .scenario-timeline-compact-source {
+    justify-self: start;
+    text-align: left;
+  }
+}
