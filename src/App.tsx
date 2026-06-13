@@ -231,6 +231,14 @@ function App() {
     });
   }
 
+  function clearSelectedContext() {
+    setSelectedFile(null);
+    setSelectedGeneratedArtifact(null);
+    setSelectedSimulationRecord(null);
+    setSelectedCoreDomainEntity(null);
+    setSelectedDetail(null);
+  }
+
   async function handleOpenWorkspace() {
     setError(null);
     setViewerError(null);
@@ -351,7 +359,7 @@ function App() {
   }
 
   function handleActiveSurfaceChange(surface: ActiveSurface) {
-    setSelectedCoreDomainEntity(null);
+    clearSelectedContext();
     setActiveSurface(surface);
     setActiveNavigationId(defaultNavigationIdBySurface[surface]);
     resetMainContentScroll();
@@ -361,7 +369,7 @@ function App() {
     surface: ActiveSurface,
     navigationId: TargetDomainId,
   ) {
-    setSelectedCoreDomainEntity(null);
+    clearSelectedContext();
     setActiveSurface(surface);
     setActiveNavigationId(navigationId);
     resetMainContentScroll();
@@ -910,6 +918,7 @@ function App() {
         <ShellStatusBar
           workspace={workspace}
           activeSurface={activeSurface}
+          activeNavigationId={activeNavigationId}
           coreResult={coreResult}
         />
       </div>
@@ -1123,9 +1132,7 @@ function InspectorPanel({
       selectedGeneratedArtifact ||
       selectedSimulationRecord ||
       selectedCoreDomainEntity ||
-      selectedDetail ||
-      coreResult ||
-      workspace,
+      selectedDetail,
   );
   const selectedFileIsScenarioSource = Boolean(
     selectedFile &&
@@ -1139,7 +1146,7 @@ function InspectorPanel({
     selectedCoreDomainEntity?.id ??
     selectedFile?.name ??
     selectedDetail?.title ??
-    (workspace ? "Workspace inspection" : "No selection");
+    "No selected context";
 
   const selectedKind =
     selectedSimulationRecord?.kind ??
@@ -1150,13 +1157,12 @@ function InspectorPanel({
         ? "scenario source"
         : selectedFile
           ? "source file"
-          : selectedDetail?.kind ?? "workspace");
+          : selectedDetail?.kind ?? "not selected");
 
   const selectedSource =
     selectedGeneratedArtifact?.relativePath ??
     selectedFile?.path ??
     selectedDetail?.source ??
-    workspace?.selected_path ??
     "not available";
   const showInspectorSafetyBoundary =
     !workspace || activeSurface !== "mission-dashboard";

@@ -317,9 +317,9 @@ export function MissionCockpit({
         <button
           type="button"
           className="mission-target-report-button"
-          onClick={() => onNavigate("reports-logs", "mission")}
+          onClick={() => onNavigate("generated-artifacts", "generated-artifacts")}
         >
-          View Mission Report ↗
+          View Generated Reports ↗
         </button>
       </header>
 
@@ -381,7 +381,7 @@ export function MissionCockpit({
               <strong>{display.lintPassed}</strong>
               <small>Checks Passed</small>
             </div>
-            <em>Validation timestamp: {display.evidence.lastValidation}</em>
+            <em>Validation report: {display.evidence.lastValidation}</em>
           </div>
           <div className="mission-target-load">
             <div className="mission-target-mini-title">
@@ -470,11 +470,11 @@ export function MissionCockpit({
         <WarningsCard
           display={display}
           warnings={missionContent.warnings}
-          onOpen={() => onNavigate("reports-logs", "mission")}
+          onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
         />
         <EvidenceCard
           display={display}
-          onOpen={() => onNavigate("reports-logs", "mission")}
+          onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
         />
       </section>
     </section>
@@ -972,7 +972,7 @@ function WarningsCard({
         </ul>
       </div>
       <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>
-        {hasReportedWarnings ? "View All Warnings →" : "Open Warning Evidence →"}
+        {hasReportedWarnings ? "Review Warning Artifacts →" : "Review Warning Evidence →"}
       </button>
     </article>
   );
@@ -1005,11 +1005,11 @@ function EvidenceCard({ display, onOpen }: { display: ReferenceDisplayModel; onO
         <MetricLine label="Trace Coverage" value={display.evidence.traceCoverage} percent={display.evidence.traceCoveragePercent} />
         <MetricLine label="Relationships Indexed" value={display.evidence.requirements} percent={display.evidence.requirementsPercent} />
         <div className="mission-target-last-validation">
-          <span>Last Validation</span>
+          <span>Validation report</span>
           <strong>{display.evidence.lastValidation}</strong>
         </div>
       </div>
-      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>Open Validation Report +</button>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>Open Generated Reports +</button>
     </article>
   );
 }
