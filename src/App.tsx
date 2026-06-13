@@ -14,6 +14,7 @@ import {
 } from "./GeneratedArtifactExplorer";
 import { GeneratedArtifactsSurface } from "./GeneratedArtifactsSurface";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
+import { CoreReportRunnerSurface } from "./CoreReportRunnerSurface";
 import { MissionCockpit } from "./MissionCockpit";
 import { MissionDataFlowWorkbenchRoute } from "./MissionDataFlowWorkbenchRoute";
 import { SpacecraftDomainSurface } from "./SpacecraftDomainSurface";
@@ -163,7 +164,7 @@ const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
   "mission-dashboard": "mission",
   "mission-data-flow-workbench": "data-flow-workbench",
   "model-inventory": "spacecraft",
-  "core-commands": "mission",
+  "core-commands": "core-report-runner",
   contracts: "spacecraft",
   relationships: "spacecraft",
   "generated-artifacts": "generated-artifacts",
@@ -642,7 +643,7 @@ function App() {
     "mission-dashboard": true,
     "mission-data-flow-workbench": Boolean(workspace),
     "model-inventory": Boolean(workspace && workspace.source_model_files.length > 0),
-    "core-commands": Boolean(workspace?.mission_dir),
+    "core-commands": Boolean(workspace),
     contracts: hasCoreModelSummary || hasCoreEntityIndex,
     relationships: hasCoreRelationshipManifest,
     "generated-artifacts": Boolean(workspace),
@@ -827,7 +828,36 @@ function App() {
     }
 
     if (activeSurface === "core-commands") {
-      return renderLegacyWorkspaceSurface("Core Commands");
+      return (
+        <CoreReportRunnerSurface
+          workspace={workspace}
+          coreExecutable={coreExecutable}
+          coreResult={coreResult}
+          coreError={coreError}
+          isRunningCoreCommand={isRunningCoreCommand}
+          reports={{
+            lintReport,
+            modelSummary,
+            entityIndex,
+            relationshipManifest,
+            dashboardSummary,
+            scenarioRunIndex: coreReportSnapshots.scenarioRunIndex,
+            coverageSummary,
+            simulationReports,
+          }}
+          onCoreExecutableChange={setCoreExecutable}
+          onCoreVersion={handleCoreVersion}
+          onCoreInspectMission={handleCoreInspectMission}
+          onCoreLintMission={handleCoreLintMission}
+          onCoreExportModelSummary={handleCoreExportModelSummary}
+          onCoreExportEntityIndex={handleCoreExportEntityIndex}
+          onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+          onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
+          onCoreExportScenarioRunIndex={handleCoreExportScenarioRunIndex}
+          onCoreExportCoverageSummary={handleCoreExportCoverageSummary}
+          onOpenFile={handleOpenFile}
+        />
+      );
     }
 
     if (activeSurface === "contracts") {
@@ -876,6 +906,7 @@ function App() {
           "workbench-layout",
           activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : "",
           activeSurface === "scenario-evidence" ? "workbench-layout-scenario-evidence" : "",
+          activeSurface === "core-commands" ? "workbench-layout-core-report-runner" : "",
           isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
         ]
@@ -894,6 +925,7 @@ function App() {
           className={[
             "main-surface",
             activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
+            activeSurface === "core-commands" ? "main-surface-core-report-runner" : "",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -902,7 +934,7 @@ function App() {
           {renderActiveSurface()}
         </section>
 
-        {workspace && activeSurface !== "mission-dashboard" ? (
+        {workspace && activeSurface !== "mission-dashboard" && activeSurface !== "core-commands" ? (
           <InspectorPanel
             workspace={workspace}
             activeSurface={activeSurface}

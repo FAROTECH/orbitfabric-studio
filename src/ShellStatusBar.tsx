@@ -83,7 +83,7 @@ function formatActiveSurface(activeSurface: ActiveSurface, activeNavigationId: T
     case "model-inventory":
       return formatModelInventorySurface(activeNavigationId);
     case "core-commands":
-      return "Core";
+      return "Core Report Runner";
     case "contracts":
       return "Contracts";
     case "relationships":

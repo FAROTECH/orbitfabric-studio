@@ -19,6 +19,7 @@ export type NavigationItemStatus =
 
 export type NavigationIconKind =
   | "mission"
+  | "core-report-runner"
   | "validation"
   | "model"
   | "scenario"
@@ -46,6 +47,7 @@ export interface ShellSurfaceItem {
 export type TargetDomainId =
   | "mission"
   | "data-flow-workbench"
+  | "core-report-runner"
   | "spacecraft"
   | "subsystems"
   | "modes"
@@ -81,6 +83,15 @@ export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] 
     targetId: "studio-dashboard",
     icon: "mission",
     caption: "Cockpit entry point",
+  },
+  {
+    id: "core-report-runner",
+    label: "Core Report Runner",
+    status: "available",
+    destinationSurface: "core-commands",
+    targetId: "studio-core-report-runner",
+    icon: "core",
+    caption: "Fixed Core report actions",
   },
   {
     id: "data-flow-workbench",

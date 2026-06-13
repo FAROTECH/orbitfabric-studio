@@ -15,6 +15,7 @@ import "./missionDataFlowWorkbenchTimeline.css";
 import "./generatedArtifactExplorer.css";
 import "./generatedArtifactDeck.css";
 import "./generatedArtifactDeckStabilization.css";
+import "./coreReportRunner.css";
 import "./missionModelAtlas.css";
 import "./releaseHardening.css";
 import "./scenarioTimelineRunner.css";
