@@ -454,3 +454,59 @@ nav.primary-sidebar.reference-sidebar,
 }
 /* Mission shell final sidebar/footer contract v15 END */
 
+
+
+/* Mission shell final polish J
+   Final post-gating visual polish:
+   - Core Report Runner must use the same reserved sidebar column as the other
+     public preview surfaces. Runtime evidence showed it was still resolving to
+     264px + 12px, while the sidebar itself is 264px wide with a 14px left inset.
+   - Mission dashboard content padding is aligned to the public preview standard
+     used by Data Products, Data Flow, Scenarios and Artifacts.
+   - Empty/home workspace fills the remaining shell height now that the status
+     bar is not rendered before a workspace is opened. */
+.workbench-layout.workbench-layout-core-report-runner.workbench-layout-workspace {
+  grid-template-columns: 278px minmax(0, 1fr) !important;
+  column-gap: 12px !important;
+}
+
+.workbench-layout.workbench-layout-core-report-runner.workbench-layout-workspace > .main-surface.main-surface-core-report-runner {
+  grid-column: 2 !important;
+  padding: 12px 14px 10px !important;
+  min-width: 0 !important;
+  max-height: 100% !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-workspace > .main-surface:not(.main-surface-core-report-runner) {
+  padding: 12px 14px 10px !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty {
+  height: calc(100vh - 88px) !important;
+  height: calc(100dvh - 88px) !important;
+  max-height: calc(100vh - 88px) !important;
+  max-height: calc(100dvh - 88px) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  grid-template-columns: 278px minmax(0, 1fr) !important;
+  column-gap: 12px !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty > .main-surface {
+  align-self: stretch !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  padding: 12px 14px 10px !important;
+  overflow: hidden !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty > .reference-sidebar {
+  height: calc(100% - 18px) !important;
+  max-height: calc(100% - 18px) !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+/* Mission shell final polish J END */
+
