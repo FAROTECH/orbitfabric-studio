@@ -1,4 +1,4 @@
-import type { ActiveSurface } from "./navigationModel";
+import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import type { CoreCommandResult, WorkspaceInspection } from "./types/workspace";
 
 import "./shellStatusBar.css";
@@ -6,12 +6,14 @@ import "./shellStatusBar.css";
 export interface ShellStatusBarProps {
   workspace: WorkspaceInspection | null;
   activeSurface: ActiveSurface;
+  activeNavigationId: TargetDomainId;
   coreResult: CoreCommandResult | null;
 }
 
 export function ShellStatusBar({
   workspace,
   activeSurface,
+  activeNavigationId,
   coreResult,
 }: ShellStatusBarProps) {
   const workspacePath = workspace?.selected_path ?? "No workspace";
@@ -46,7 +48,7 @@ export function ShellStatusBar({
 
       <div className="reference-status-item reference-status-surface reference-status-real">
         <span>Surface</span>
-        <strong>{formatActiveSurface(activeSurface)}</strong>
+        <strong>{formatActiveSurface(activeSurface, activeNavigationId)}</strong>
       </div>
 
       <div className="reference-status-item reference-status-cache reference-status-preview-item">
@@ -74,12 +76,12 @@ function PreviewStatusItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function formatActiveSurface(activeSurface: ActiveSurface): string {
+function formatActiveSurface(activeSurface: ActiveSurface, activeNavigationId: TargetDomainId): string {
   switch (activeSurface) {
     case "mission-dashboard":
       return "Mission";
     case "model-inventory":
-      return "Model";
+      return formatModelInventorySurface(activeNavigationId);
     case "core-commands":
       return "Core";
     case "contracts":
@@ -98,5 +100,38 @@ function formatActiveSurface(activeSurface: ActiveSurface): string {
       return "Ground";
     case "raw-output":
       return "Raw";
+  }
+}
+
+function formatModelInventorySurface(activeNavigationId: TargetDomainId): string {
+  switch (activeNavigationId) {
+    case "spacecraft":
+      return "Spacecraft";
+    case "subsystems":
+      return "Subsystems";
+    case "modes":
+      return "Modes";
+    case "telemetry":
+      return "Telemetry";
+    case "commands":
+      return "Commands";
+    case "events":
+      return "Events";
+    case "faults":
+      return "Faults";
+    case "packets":
+      return "Packets";
+    case "payloads":
+      return "Payloads";
+    case "data-products":
+      return "Data Products";
+    case "contacts-downlink":
+      return "Contacts & Downlink";
+    case "commandability":
+      return "Commandability";
+    case "autonomy":
+      return "Autonomy";
+    default:
+      return "Model";
   }
 }
