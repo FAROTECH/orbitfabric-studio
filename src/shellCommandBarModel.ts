@@ -21,58 +21,47 @@ export interface ShellCommandBarAction {
 export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "validate-mission",
-    label: "Validate Mission",
-    shortLabel: "Validate",
+    label: "Inspect Core Reports",
+    shortLabel: "Core",
     icon: "▣",
     targetSurface: "core-commands",
     status: "diagnostic",
     requiredWorkspaceState: "mission",
     description:
-      "Open the controlled Core diagnostic surface for fixed validation and report refresh actions. Studio does not modify Mission Model source files.",
+      "Open the Core Report Runner for fixed Core-owned report actions. Studio does not expose a shell and does not modify Mission Model source files.",
   },
   {
     id: "run-scenarios",
-    label: "Run Scenarios",
+    label: "Inspect Scenario Evidence",
     shortLabel: "Scenarios",
     icon: "▷",
     targetSurface: "scenario-evidence",
     status: "available",
     requiredWorkspaceState: "workspace",
     description:
-      "Open the scenario evidence surface. Scenario execution remains limited to the fixed Core wrapper.",
+      "Open the scenario evidence cockpit. Any scenario execution remains limited to fixed Core wrappers.",
   },
   {
     id: "generate-docs",
-    label: "Generate Docs",
-    shortLabel: "Docs",
+    label: "Inspect Generated Artifacts",
+    shortLabel: "Artifacts",
     icon: "▤",
     targetSurface: "generated-artifacts",
     status: "available",
     requiredWorkspaceState: "workspace",
     description:
-      "Open generated artifacts for documentation output inspection. Studio remains read-only.",
+      "Open generated artifacts for read-only inspection of Core-generated outputs.",
   },
   {
     id: "generate-runtime-skeleton",
-    label: "Generate Runtime Skeleton",
+    label: "Inspect Runtime Artifacts",
     shortLabel: "Runtime",
     icon: "</>",
     targetSurface: "generated-artifacts",
     status: "available",
     requiredWorkspaceState: "workspace",
     description:
-      "Open generated artifacts for runtime skeleton output inspection. Studio remains read-only.",
-  },
-  {
-    id: "generate-ground-artifacts",
-    label: "Generate Ground Artifacts",
-    shortLabel: "Ground",
-    icon: "⌁",
-    targetSurface: "ground-integration",
-    status: "available",
-    requiredWorkspaceState: "workspace",
-    description:
-      "Open ground-facing generated artifacts. Studio remains read-only.",
+      "Open generated artifacts and inspect runtime-facing outputs when Core reports them.",
   },
 ] as const;
 

@@ -163,15 +163,47 @@ const modelInventoryDomainSurfaceComponents: Partial<
 const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
   "mission-dashboard": "mission",
   "mission-data-flow-workbench": "data-flow-workbench",
-  "model-inventory": "spacecraft",
+  "model-inventory": "data-products",
   "core-commands": "core-report-runner",
-  contracts: "spacecraft",
-  relationships: "spacecraft",
+  contracts: "data-products",
+  relationships: "data-products",
   "generated-artifacts": "generated-artifacts",
-  "reports-logs": "mission",
+  "reports-logs": "generated-artifacts",
   "scenario-evidence": "scenarios",
   "ground-integration": "generated-artifacts",
-  "raw-output": "mission",
+  "raw-output": "core-report-runner",
+};
+
+const publicPreviewModelNavigationIds: ReadonlySet<TargetDomainId> = new Set([
+  "data-products",
+]);
+
+const publicPreviewPlaceholderCopy: Partial<Record<ActiveSurface, { title: string; summary: string }>> = {
+  contracts: {
+    title: "Contracts surface in redesign",
+    summary:
+      "Contract inspection remains read-only, but this surface is temporarily gated while it is realigned with the Mission Content First cockpit direction.",
+  },
+  relationships: {
+    title: "Relationships surface in redesign",
+    summary:
+      "Relationship evidence is available through Data Flow Workbench for this public preview. The legacy relationship surface is gated to avoid exposing transitional UI.",
+  },
+  "reports-logs": {
+    title: "Reports and logs surface in redesign",
+    summary:
+      "Core reports are inspected through Core Report Runner and the dedicated cockpit surfaces. The legacy reports/logs surface is not exposed in this public preview.",
+  },
+  "ground-integration": {
+    title: "Ground integration viewer in redesign",
+    summary:
+      "Generated ground-facing artifacts remain read-only, but this viewer is gated until it matches the public preview cockpit standard.",
+  },
+  "raw-output": {
+    title: "Raw Core output moved to Core Report Runner",
+    summary:
+      "Raw process output is now surfaced inside Core Report Runner, next to the fixed Core action that produced it.",
+  },
 };
 
 function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
@@ -644,13 +676,13 @@ function App() {
     "mission-data-flow-workbench": Boolean(workspace),
     "model-inventory": Boolean(workspace && workspace.source_model_files.length > 0),
     "core-commands": Boolean(workspace),
-    contracts: hasCoreModelSummary || hasCoreEntityIndex,
-    relationships: hasCoreRelationshipManifest,
+    contracts: false,
+    relationships: false,
     "generated-artifacts": Boolean(workspace),
-    "reports-logs": Boolean(workspace && workspace.generated_locations.length > 0),
+    "reports-logs": false,
     "scenario-evidence": Boolean(workspace),
-    "ground-integration": Boolean(workspace),
-    "raw-output": Boolean(coreResult),
+    "ground-integration": false,
+    "raw-output": false,
   };
 
   function renderLegacyWorkspaceSurface(surfaceLabel: string) {
@@ -799,15 +831,22 @@ function App() {
     
     if (activeSurface === "ground-integration") {
       return (
-        <GroundIntegrationArtifactViewer
-          workspacePath={workspace.selected_path}
-          generatedDir={workspace.generated_dir}
-          onArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
+        <PublicPreviewPlaceholder
+          {...publicPreviewPlaceholderCopy["ground-integration"]!}
         />
       );
     }
 
     if (activeSurface === "model-inventory") {
+      if (!publicPreviewModelNavigationIds.has(activeNavigationId)) {
+        return (
+          <PublicPreviewPlaceholder
+            title={`${formatNavigationLabel(activeNavigationId)} surface in redesign`}
+            summary="This domain inspection surface is temporarily gated for the Mission Content First public preview. Core data remains authoritative; Studio will not infer missing contract state or expose transitional UI."
+          />
+        );
+      }
+
       const DomainSurfaceComponent =
         modelInventoryDomainSurfaceComponents[activeNavigationId];
 
@@ -824,7 +863,12 @@ function App() {
         );
       }
 
-      return renderLegacyWorkspaceSurface("Model Inventory");
+      return (
+        <PublicPreviewPlaceholder
+          title="Domain surface in redesign"
+          summary="This domain surface is not exposed in the current public preview."
+        />
+      );
     }
 
     if (activeSurface === "core-commands") {
@@ -861,11 +905,11 @@ function App() {
     }
 
     if (activeSurface === "contracts") {
-      return renderLegacyWorkspaceSurface("Contracts");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy.contracts!} />;
     }
 
     if (activeSurface === "relationships") {
-      return renderLegacyWorkspaceSurface("Relationships");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy.relationships!} />;
     }
 
     if (activeSurface === "generated-artifacts") {
@@ -881,11 +925,11 @@ function App() {
     }
 
     if (activeSurface === "reports-logs") {
-      return renderLegacyWorkspaceSurface("Reports and Logs");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy["reports-logs"]!} />;
     }
 
     if (activeSurface === "raw-output") {
-      return renderLegacyWorkspaceSurface("Raw Core Output");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy["raw-output"]!} />;
     }
 
     return null;
@@ -956,6 +1000,49 @@ function App() {
       </div>
     </main>
   );
+}
+
+
+function PublicPreviewPlaceholder({
+  title,
+  summary,
+}: {
+  title: string;
+  summary: string;
+}) {
+  return (
+    <section className="active-surface-frame public-preview-placeholder" aria-label={title}>
+      <div className="file-viewer-header">
+        <div>
+          <span className="surface-section-kicker">Mission Content First Public Preview</span>
+          <h2>{title}</h2>
+          <p>{summary}</p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="READ-ONLY" />
+          <StatusBadge label="IN REDESIGN" />
+          <StatusBadge label="NO PRIVATE INFERENCE" />
+        </div>
+      </div>
+      <div className="placeholder-detail-grid">
+        <article className="placeholder-detail-card">
+          <strong>Available in this preview</strong>
+          <span>Mission Overview, Core Report Runner, Data Flow Workbench, Data Products, Scenario Evidence and Generated Artifacts.</span>
+        </article>
+        <article className="placeholder-detail-card">
+          <strong>Boundary</strong>
+          <span>Studio remains a read-only inspection cockpit over Core-generated evidence.</span>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function formatNavigationLabel(navigationId: TargetDomainId): string {
+  return navigationId
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ").replace(" And ", " & " );
 }
 
 function WorkspaceHeader({

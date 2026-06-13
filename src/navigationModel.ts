@@ -239,16 +239,27 @@ export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] 
   },
 ] as const;
 
+const publicPreviewNavigationIds: ReadonlySet<TargetDomainId> = new Set([
+  "mission",
+  "core-report-runner",
+  "data-flow-workbench",
+  "data-products",
+  "scenarios",
+  "generated-artifacts",
+]);
+
 export const shellSurfaceItems: readonly ShellSurfaceItem[] =
-  targetDomainNavigationItems.map((item) => ({
-    id: item.id,
-    label: item.label,
-    status: item.status,
-    targetId: item.targetId,
-    surface: item.destinationSurface,
-    icon: item.icon,
-    caption: item.caption,
-  }));
+  targetDomainNavigationItems
+    .filter((item) => publicPreviewNavigationIds.has(item.id))
+    .map((item) => ({
+      id: item.id,
+      label: item.label,
+      status: item.status,
+      targetId: item.targetId,
+      surface: item.destinationSurface,
+      icon: item.icon,
+      caption: item.caption,
+    }));
 export interface ReservedSurfaceItem {
   id: string;
   title: string;
