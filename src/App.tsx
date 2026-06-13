@@ -958,7 +958,7 @@ function App() {
           .join(" ")}
       >
         <PrimarySidebar
-          activeNavigationId={activeNavigationId}
+          activeNavigationId={workspace ? activeNavigationId : null}
           surfaceAvailability={surfaceAvailability}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapsed={() => setIsSidebarCollapsed((current) => !current)}
@@ -991,12 +991,14 @@ function App() {
           />
         ) : null}
 
-        <ShellStatusBar
-          workspace={workspace}
-          activeSurface={activeSurface}
-          activeNavigationId={activeNavigationId}
-          coreResult={coreResult}
-        />
+        {workspace ? (
+          <ShellStatusBar
+            workspace={workspace}
+            activeSurface={activeSurface}
+            activeNavigationId={activeNavigationId}
+            coreResult={coreResult}
+          />
+        ) : null}
       </div>
     </main>
   );
@@ -1124,7 +1126,7 @@ function PrimarySidebar({
   onToggleCollapsed,
   onNavigationSelect,
 }: {
-  activeNavigationId: TargetDomainId;
+  activeNavigationId: TargetDomainId | null;
   surfaceAvailability: Record<ActiveSurface, boolean>;
   isCollapsed: boolean;
   onToggleCollapsed: () => void;
@@ -1133,6 +1135,11 @@ function PrimarySidebar({
   const activeItemRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (!activeNavigationId) {
+      activeItemRef.current = null;
+      return;
+    }
+
     activeItemRef.current?.scrollIntoView({
       block: "nearest",
       inline: "nearest",
@@ -1153,7 +1160,7 @@ function PrimarySidebar({
     >
       <ul className="surface-nav-list cockpit-surface-nav-list reference-sidebar-nav">
         {shellSurfaceItems.map((item) => {
-          const isActive = item.id === activeNavigationId;
+          const isActive = activeNavigationId !== null && item.id === activeNavigationId;
           const isEnabled = Boolean(surfaceAvailability[item.surface]);
           const itemClassName = [
             "surface-nav-item",
