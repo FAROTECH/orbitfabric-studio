@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import { DataFlowWorkbenchContextDrawer } from "./DataFlowWorkbenchContextDrawer";
@@ -147,6 +147,24 @@ export function MissionDataFlowWorkbenchSurface({
   const [focusSelection, setFocusSelection] = useState<WorkbenchSelection | null>(null);
   const [expandedScenario, setExpandedScenario] = useState<ScenarioRow | null>(null);
   const selection = selectedItem ?? viewModel.primarySelection;
+  const selectedId = selection?.id ?? null;
+  const expandedScenarioId = expandedScenario?.id ?? null;
+  const selectedPathNodeId = drawerSelection?.id ?? selectedItem?.id ?? selection?.id ?? null;
+
+  useEffect(() => {
+    if (!focusSelection) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      const focusSurface = document.getElementById("studio-data-flow-workbench");
+      focusSurface?.scrollIntoView({ block: "start" });
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [focusSelection]);
+
   const relatedTraceabilityLinks = selection
     ? selectTraceabilityLinksForSelection(snapshot.traceability, selection)
     : [];
@@ -244,7 +262,7 @@ export function MissionDataFlowWorkbenchSurface({
                       className={[
                         "mission-data-flow-stage-item",
                         `mission-data-flow-stage-item-${item.state}`,
-                        item.selected ? "mission-data-flow-stage-item-selected" : "",
+                        item.id === selectedId ? "mission-data-flow-stage-item-selected" : "",
                       ]
                         .filter(Boolean)
                         .join(" ")}
@@ -289,7 +307,13 @@ export function MissionDataFlowWorkbenchSurface({
             </div>
             {viewModel.scenarioRows.map((row) => (
               <button
-                className={`mission-data-flow-scenario-row mission-data-flow-state-${row.state}`}
+                className={[
+                  "mission-data-flow-scenario-row",
+                  `mission-data-flow-state-${row.state}`,
+                  row.id === expandedScenarioId ? "mission-data-flow-scenario-row-selected" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 key={row.id}
                 type="button"
                 onClick={() => {
@@ -333,7 +357,12 @@ export function MissionDataFlowWorkbenchSurface({
             <div className="mission-data-flow-path">
               {viewModel.selectedPath.map((node, index) => (
                 <button
-                  className="mission-data-flow-path-node"
+                  className={[
+                    "mission-data-flow-path-node",
+                    node.id === selectedPathNodeId ? "mission-data-flow-path-node-selected" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   key={node.id}
                   type="button"
                   title={node.detail}

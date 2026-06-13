@@ -689,21 +689,30 @@ async function readPassiveGeneratedEvidence(workspace: WorkspaceInspection): Pro
       continue;
     }
 
-    evidence.modelSummary = evidence.modelSummary ?? matchReportArtifact(artifact.relative_path, generatedReportPaths.modelSummary)
-      ? parseCoreModelSummary(fileContent)
-      : evidence.modelSummary;
-    evidence.entityIndex = evidence.entityIndex ?? matchReportArtifact(artifact.relative_path, generatedReportPaths.entityIndex)
-      ? parseCoreEntityIndex(fileContent)
-      : evidence.entityIndex;
-    evidence.relationshipManifest = evidence.relationshipManifest ?? matchReportArtifact(artifact.relative_path, generatedReportPaths.relationshipManifest)
-      ? parseCoreRelationshipManifest(fileContent)
-      : evidence.relationshipManifest;
-    evidence.scenarioRunIndex = evidence.scenarioRunIndex ?? matchReportArtifact(artifact.relative_path, generatedReportPaths.scenarioRunIndex)
-      ? parseCoreScenarioRunIndex(fileContent)
-      : evidence.scenarioRunIndex;
-    evidence.coverageSummary = evidence.coverageSummary ?? matchReportArtifact(artifact.relative_path, generatedReportPaths.coverageSummary)
-      ? parseCoreCoverageSummary(fileContent)
-      : evidence.coverageSummary;
+    if (matchReportArtifact(artifact.relative_path, generatedReportPaths.modelSummary)) {
+      evidence.modelSummary = evidence.modelSummary ?? parseCoreModelSummary(fileContent);
+      continue;
+    }
+
+    if (matchReportArtifact(artifact.relative_path, generatedReportPaths.entityIndex)) {
+      evidence.entityIndex = evidence.entityIndex ?? parseCoreEntityIndex(fileContent);
+      continue;
+    }
+
+    if (matchReportArtifact(artifact.relative_path, generatedReportPaths.relationshipManifest)) {
+      evidence.relationshipManifest = evidence.relationshipManifest ?? parseCoreRelationshipManifest(fileContent);
+      continue;
+    }
+
+    if (matchReportArtifact(artifact.relative_path, generatedReportPaths.scenarioRunIndex)) {
+      evidence.scenarioRunIndex = evidence.scenarioRunIndex ?? parseCoreScenarioRunIndex(fileContent);
+      continue;
+    }
+
+    if (matchReportArtifact(artifact.relative_path, generatedReportPaths.coverageSummary)) {
+      evidence.coverageSummary = evidence.coverageSummary ?? parseCoreCoverageSummary(fileContent);
+      continue;
+    }
 
     const simulationReport = parseCoreSimulationReport(fileContent);
 

@@ -475,7 +475,7 @@ function ScenarioEvidenceHeader({
           }
         />
         <ScenarioPostureCard
-          label="Simulation reports"
+          label="Generated reports"
           value={
             parsedReportCount === null
               ? selectedReport

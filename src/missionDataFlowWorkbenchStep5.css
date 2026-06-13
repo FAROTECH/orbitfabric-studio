@@ -77,3 +77,32 @@
     max-height: 108px;
   }
 }
+
+/* QA stabilization: selection visibility and safe canvas readability.
+   No new graph semantics, private inference or external rendering library. */
+.mission-data-flow-stage-items {
+  max-height: 188px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.mission-data-flow-stage-item-selected,
+.mission-data-flow-scenario-row-selected,
+.mission-data-flow-path-node-selected {
+  border-color: rgba(125, 211, 252, 0.72);
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.38), 0 18px 42px rgba(14, 165, 233, 0.16);
+}
+
+.mission-data-flow-stage-item-selected {
+  transform: translateY(-1px);
+}
+
+.mission-data-flow-path-node-selected {
+  background: rgba(14, 165, 233, 0.12);
+}
+
+@media (max-height: 820px) {
+  .mission-data-flow-stage-items {
+    max-height: 168px;
+  }
+}

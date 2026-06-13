@@ -358,7 +358,7 @@ export function MissionCockpit({
             title="Contract Completeness"
             value={display.completenessValue}
             subtitle={display.completenessLabel}
-            progress={94}
+            progress={display.completenessValue === "Not reported" ? 0 : 0}
             tone="blue"
           />
           <div className="mission-target-lint">
@@ -381,7 +381,7 @@ export function MissionCockpit({
               <strong>{display.lintPassed}</strong>
               <small>Checks Passed</small>
             </div>
-            <em>Last run: 2 min ago</em>
+            <em>Validation timestamp: {display.evidence.lastValidation}</em>
           </div>
           <div className="mission-target-load">
             <div className="mission-target-mini-title">
