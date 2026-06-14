@@ -951,6 +951,7 @@ function App() {
           activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : "",
           activeSurface === "scenario-evidence" ? "workbench-layout-scenario-evidence" : "",
           activeSurface === "core-commands" ? "workbench-layout-core-report-runner" : "",
+          activeSurface === "generated-artifacts" ? "workbench-layout-generated-artifacts" : "",
           isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
         ]
@@ -970,6 +971,7 @@ function App() {
             "main-surface",
             activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
             activeSurface === "core-commands" ? "main-surface-core-report-runner" : "",
+            activeSurface === "generated-artifacts" ? "main-surface-generated-artifacts" : "",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -978,7 +980,10 @@ function App() {
           {renderActiveSurface()}
         </section>
 
-        {workspace && activeSurface !== "mission-dashboard" && activeSurface !== "core-commands" ? (
+        {workspace &&
+        activeSurface !== "mission-dashboard" &&
+        activeSurface !== "core-commands" &&
+        activeSurface !== "generated-artifacts" ? (
           <InspectorPanel
             workspace={workspace}
             activeSurface={activeSurface}
