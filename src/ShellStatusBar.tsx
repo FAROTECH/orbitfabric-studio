@@ -31,8 +31,8 @@ export function ShellStatusBar({
         <span>{workspacePath}</span>
       </div>
 
-      <PreviewStatusItem label="Model Version" value="Not wired" />
-      <PreviewStatusItem label="Schema" value="Not wired" />
+      <PreviewStatusItem label="Model Version" value="not reported" />
+      <PreviewStatusItem label="Schema" value="not reported" />
 
       <div className="reference-status-item reference-status-preview-item">
         <span aria-hidden="true">⌁</span>
@@ -42,7 +42,7 @@ export function ShellStatusBar({
 
       <div className="reference-status-item reference-status-preview-item">
         <span aria-hidden="true">▣</span>
-        <strong>Auto-save not wired</strong>
+        <strong>Read-only preview</strong>
         <small>Preview</small>
       </div>
 

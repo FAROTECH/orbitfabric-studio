@@ -696,15 +696,14 @@ function App() {
           <div>
             <h2>{surfaceLabel}</h2>
             <p>
-              Temporary legacy surface for the cockpit pivot. This keeps existing
-              read-only workspace, Core command, generated artifact and file viewer
-              behavior available while the UI is split into compact dedicated
-              surfaces.
+              Reserved diagnostic surface for the public baseline. Core-derived
+              inspection remains available without exposing legacy cockpit pivot
+              wording.
             </p>
           </div>
           <div className="badge-row">
             <ProvenanceBadge label="READ-ONLY" />
-            <StatusBadge label="LEGACY SURFACE" />
+            <StatusBadge label="DIAGNOSTIC" />
           </div>
         </div>
 

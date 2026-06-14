@@ -231,7 +231,7 @@ function TimelineTabPanel({
             </button>
           ))}
         </div>
-        <button className="dfw-timeline-filter-button" type="button" disabled title="Filter is not wired in this step">
+        <button className="dfw-timeline-filter-button" type="button" disabled title="Timeline filtering is reserved for a later refinement">
           Filter
         </button>
       </div>

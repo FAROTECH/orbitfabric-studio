@@ -158,7 +158,7 @@ export function CoreReportRunnerSurface({
   });
 
   const focusedAction = actions.find((action) => action.id === focusedActionId) ?? actions[0];
-  const readinessCards = [
+  const executionContextCards = [
     {
       icon: "core" as const,
       label: "Core executable",
@@ -258,8 +258,8 @@ export function CoreReportRunnerSurface({
         </div>
       </section>
 
-      <section className="core-runner-readiness-grid" aria-label="Core readiness posture">
-        {readinessCards.map((card) => (
+      <section className="core-runner-readiness-grid" aria-label="Core execution context">
+        {executionContextCards.map((card) => (
           <div key={card.label} className={`core-runner-readiness-card core-runner-state-${card.state}`}>
             <DashboardIcon kind={card.icon} />
             <span>{card.label}</span>
