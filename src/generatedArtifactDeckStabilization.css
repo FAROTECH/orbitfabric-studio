@@ -1,243 +1,238 @@
-.generated-artifact-deck {
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.44fr);
-  align-items: start;
+/*
+ * Generated Artifacts Lineage Board shell contract and final visible-board polish.
+ *
+ * This patch focuses only on the remaining overflow in:
+ * 3. Evidence Status
+ */
+
+.workbench-layout-workspace.workbench-layout-generated-artifacts {
+  width: 100% !important;
+  max-width: none !important;
+  justify-self: stretch !important;
+  margin-inline: 0 !important;
+  grid-template-columns: 264px minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) 44px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
 
-.generated-artifact-deck > .artifact-deck-hero,
-.generated-artifact-deck > .artifact-deck-command-grid,
-.generated-artifact-deck > .artifact-inventory-status-strip,
-.generated-artifact-deck > .artifact-warning-rail,
-.generated-artifact-deck > .artifact-deck-waiting-state,
-.generated-artifact-deck > .artifact-deck-guardrail-strip,
-.generated-artifact-deck > .empty-text,
-.generated-artifact-deck > .error-text {
-  grid-column: 1 / -1;
+.workbench-layout-workspace.workbench-layout-generated-artifacts > .contextual-inspector,
+.workbench-layout-workspace.workbench-layout-generated-artifacts > .workbench-inspector {
+  display: none !important;
 }
 
-.generated-artifact-deck > .artifact-signal-card-grid-panel {
-  grid-column: 1 / 2;
+.workbench-layout-workspace.workbench-layout-generated-artifacts > .main-surface-generated-artifacts {
+  grid-column: 2 / -1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  justify-self: stretch !important;
+  overflow: hidden !important;
 }
 
-.generated-artifact-deck > .artifact-preview-dock {
-  grid-column: 2 / 3;
-  position: sticky;
-  top: 86px;
+.main-surface-generated-artifacts,
+.main-surface-generated-artifacts > .generated-artifacts-surface,
+.generated-artifact-deck-surface {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  justify-self: stretch !important;
+  overflow: hidden !important;
 }
 
-.artifact-deck-command-grid {
-  align-items: start;
-  grid-template-columns: minmax(0, 1.38fr) minmax(280px, 0.46fr);
+.generated-artifacts-lineage-board {
+  height: 100% !important;
+  max-height: 100% !important;
+  box-sizing: border-box !important;
+  padding-bottom: 72px !important;
+  scroll-padding-bottom: 72px !important;
 }
 
-.artifact-constellation-panel,
-.artifact-class-deck {
-  align-self: start;
+.lineage-board-panel {
+  min-height: 528px !important;
+  overflow: visible !important;
 }
 
-.artifact-constellation-legend {
-  border: 1px solid rgba(56, 189, 248, 0.14);
-  border-radius: 18px;
-  padding: 10px;
-  background: rgba(2, 6, 23, 0.24);
+.lineage-column,
+.lineage-column-body {
+  overflow: visible !important;
 }
 
-.artifact-constellation-legend::before {
-  content: "Map legend";
-  flex-basis: 100%;
-  color: #67e8f9;
-  font-size: 0.64rem;
-  font-weight: 850;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+.lineage-column-body {
+  gap: 10px !important;
 }
 
-.artifact-constellation-legend span {
-  padding: 5px 8px;
-  font-size: 0.68rem;
+.lineage-context-card {
+  min-height: 74px !important;
 }
 
-.artifact-class-deck .artifact-deck-panel-heading {
-  margin-bottom: 12px;
+.lineage-family-card {
+  min-height: 58px !important;
 }
 
-.artifact-class-deck .artifact-deck-panel-heading p {
-  line-height: 1.42;
+.lineage-action-card {
+  min-height: 58px !important;
 }
 
-.artifact-class-card-stack {
-  gap: 7px;
+.lineage-context-card strong,
+.lineage-context-card small,
+.lineage-family-card strong,
+.lineage-action-card strong,
+.lineage-family-card small,
+.lineage-action-card small {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
 }
 
-.artifact-class-card {
-  gap: 5px;
-  border-radius: 15px;
-  padding: 8px 10px;
+.lineage-context-card strong {
+  line-height: 1.22 !important;
 }
 
-.artifact-class-card[aria-current="true"] {
-  padding: 10px 12px;
+.lineage-column:nth-child(2) .lineage-column-body {
+  gap: 8px !important;
 }
 
-.artifact-class-card > div:first-child {
-  align-items: baseline;
+.lineage-column:nth-child(2) .lineage-family-card {
+  min-height: 58px !important;
+  padding-top: 9px !important;
+  padding-bottom: 14px !important;
 }
 
-.artifact-class-card span {
-  overflow: hidden;
-  line-height: 1.12;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.lineage-column:nth-child(2) .lineage-family-icon {
+  width: 32px !important;
+  height: 32px !important;
 }
 
-.artifact-class-card strong {
-  font-size: 1rem;
+.lineage-column:nth-child(2) .lineage-family-card strong {
+  font-size: 0.9rem !important;
+  line-height: 1.12 !important;
 }
 
-.artifact-class-card small {
-  display: block;
-  overflow: hidden;
-  color: #8293aa;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.lineage-column:nth-child(2) .lineage-family-card small {
+  font-size: 0.7rem !important;
+  line-height: 1.18 !important;
 }
 
-.artifact-class-card[aria-current="true"] small {
-  color: #a9bdd7;
+/* Final fit for 3. Evidence Status */
+.lineage-column:nth-child(3) .lineage-column-body {
+  gap: 8px !important;
 }
 
-.artifact-class-card-bars {
-  gap: 3px;
+.lineage-column:nth-child(3) .lineage-evidence-row {
+  min-height: 54px !important;
+  padding-top: 8px !important;
+  padding-bottom: 10px !important;
 }
 
-.artifact-class-card-bars span {
-  height: 3px;
+.lineage-column:nth-child(3) .lineage-evidence-row strong {
+  font-size: 0.88rem !important;
+  line-height: 1.1 !important;
 }
 
-.artifact-signal-card-grid-panel {
-  min-width: 0;
+.lineage-column:nth-child(3) .lineage-evidence-row small,
+.lineage-column:nth-child(3) .lineage-evidence-meta,
+.lineage-column:nth-child(3) .lineage-evidence-value {
+  font-size: 0.72rem !important;
+  line-height: 1.16 !important;
 }
 
-.artifact-signal-card-grid-panel .artifact-deck-panel-heading {
-  margin-bottom: 14px;
+.lineage-column:nth-child(3) .lineage-evidence-row,
+.lineage-column:nth-child(3) .lineage-evidence-row * {
+  overflow: visible !important;
 }
 
-.artifact-signal-card-grid {
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  max-height: 438px;
-  gap: 9px;
+.lineage-inspector-heading {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
 }
 
-.artifact-signal-card {
-  gap: 6px;
-  border-radius: 15px;
-  padding: 10px 11px;
+.lineage-inspector-heading > div:first-child {
+  min-width: 0 !important;
 }
 
-.artifact-signal-card-header {
-  gap: 2px;
+.lineage-inspector-heading h3 {
+  overflow-wrap: anywhere !important;
+  line-height: 1.18 !important;
 }
 
-.artifact-signal-card-header span {
-  font-size: 0.62rem;
+.lineage-inspector-heading .badge-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  min-width: max-content !important;
+  max-width: 108px !important;
 }
 
-.artifact-signal-card-header strong {
-  font-size: 0.86rem;
-  line-height: 1.16;
+.lineage-inspector-field {
+  grid-template-columns: minmax(78px, 0.38fr) minmax(0, 1fr) !important;
+  align-items: start !important;
 }
 
-.artifact-signal-path {
-  font-size: 0.68rem;
+.lineage-inspector-field strong,
+.lineage-inspector-object strong,
+.lineage-inspector-object span {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
 }
 
-.artifact-signal-card-badges {
-  gap: 4px;
+.lineage-inspector-field strong {
+  line-height: 1.32 !important;
+  text-align: right !important;
 }
 
-.artifact-signal-meta {
-  gap: 8px;
+.lineage-inspector-section {
+  overflow: hidden !important;
 }
 
-.artifact-signal-meta span {
-  font-size: 0.66rem;
+.lineage-table-panel {
+  margin-bottom: 34px !important;
+  padding-bottom: 30px !important;
 }
 
-.artifact-signal-card small {
-  display: -webkit-box;
-  overflow: hidden;
-  min-height: 2.34em;
-  line-height: 1.17;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+.lineage-table-shell {
+  margin-bottom: 14px !important;
 }
 
-.artifact-preview-dock {
-  max-height: calc(100vh - 132px);
-  overflow: auto;
-}
-
-.artifact-preview-dock .artifact-deck-panel-heading {
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.artifact-preview-dock .artifact-deck-panel-heading p {
-  line-height: 1.45;
-}
-
-.artifact-preview-selected-strip {
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.artifact-preview-selected-strip .artifact-readout {
-  padding: 9px 10px;
-}
-
-.artifact-preview-dock .monaco-editor,
-.artifact-preview-dock .monaco-editor-background,
-.artifact-preview-dock .monaco-editor .margin {
-  border-radius: 12px;
-}
-
-.artifact-inventory-status-strip .artifact-readout {
-  padding: 10px 11px;
-}
-
-@media (max-width: 1440px) {
-  .generated-artifact-deck {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.4fr);
-  }
-
-  .artifact-signal-card-grid {
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  }
+.lineage-table-footer {
+  padding-bottom: 12px !important;
 }
 
 @media (max-width: 1180px) {
-  .generated-artifact-deck,
-  .artifact-deck-command-grid {
-    grid-template-columns: 1fr;
+  .workbench-layout-workspace.workbench-layout-generated-artifacts {
+    grid-template-columns: 1fr !important;
   }
 
-  .generated-artifact-deck > .artifact-signal-card-grid-panel,
-  .generated-artifact-deck > .artifact-preview-dock {
-    grid-column: 1 / -1;
+  .workbench-layout-workspace.workbench-layout-generated-artifacts > .main-surface-generated-artifacts {
+    grid-column: 1 / -1 !important;
   }
 
-  .generated-artifact-deck > .artifact-preview-dock {
-    position: static;
-    max-height: none;
-  }
-
-  .artifact-preview-selected-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .lineage-board-panel {
+    min-height: auto !important;
   }
 }
 
-@media (max-width: 720px) {
-  .artifact-preview-selected-strip {
-    grid-template-columns: 1fr;
-  }
+
+/* PR1L: make filter-driven autoscroll visible. */
+.lineage-table-panel[data-scroll-focus="true"] {
+  border-color: rgba(56, 189, 248, 0.62) !important;
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.34),
+    0 0 34px rgba(14, 165, 233, 0.22) !important;
 }

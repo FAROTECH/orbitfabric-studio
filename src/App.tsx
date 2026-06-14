@@ -1,4 +1,4 @@
-import { type ComponentType, useRef, useState } from "react";
+import { type ComponentType, useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -14,6 +14,7 @@ import {
 } from "./GeneratedArtifactExplorer";
 import { GeneratedArtifactsSurface } from "./GeneratedArtifactsSurface";
 import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
+import { CoreReportRunnerSurface } from "./CoreReportRunnerSurface";
 import { MissionCockpit } from "./MissionCockpit";
 import { MissionDataFlowWorkbenchRoute } from "./MissionDataFlowWorkbenchRoute";
 import { SpacecraftDomainSurface } from "./SpacecraftDomainSurface";
@@ -41,6 +42,7 @@ import {
 } from "./navigationModel";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+import { hydrateGeneratedReportsFromWorkspace } from "./generatedReportHydration";
 import {
   ScenarioTimelineRunnerSurface,
   type ScenarioTimelineInspectorRecord,
@@ -113,6 +115,7 @@ interface CoreReportSnapshots {
   scenarioRunIndex: CoreScenarioRunIndex | null;
   coverageSummary: CoreCoverageSummary | null;
   simulationReport: CoreSimulationReport | null;
+  simulationReports: CoreSimulationReport[];
 }
 
 type StudioDetailKind =
@@ -160,15 +163,47 @@ const modelInventoryDomainSurfaceComponents: Partial<
 const defaultNavigationIdBySurface: Record<ActiveSurface, TargetDomainId> = {
   "mission-dashboard": "mission",
   "mission-data-flow-workbench": "data-flow-workbench",
-  "model-inventory": "spacecraft",
-  "core-commands": "mission",
-  contracts: "spacecraft",
-  relationships: "spacecraft",
+  "model-inventory": "data-products",
+  "core-commands": "core-report-runner",
+  contracts: "data-products",
+  relationships: "data-products",
   "generated-artifacts": "generated-artifacts",
-  "reports-logs": "mission",
+  "reports-logs": "generated-artifacts",
   "scenario-evidence": "scenarios",
   "ground-integration": "generated-artifacts",
-  "raw-output": "mission",
+  "raw-output": "core-report-runner",
+};
+
+const publicPreviewModelNavigationIds: ReadonlySet<TargetDomainId> = new Set([
+  "data-products",
+]);
+
+const publicPreviewPlaceholderCopy: Partial<Record<ActiveSurface, { title: string; summary: string }>> = {
+  contracts: {
+    title: "Contracts surface in redesign",
+    summary:
+      "Contract inspection remains read-only, but this surface is temporarily gated while it is realigned with the Mission Content First cockpit direction.",
+  },
+  relationships: {
+    title: "Relationships surface in redesign",
+    summary:
+      "Relationship evidence is available through Data Flow Workbench for this public preview. The legacy relationship surface is gated to avoid exposing transitional UI.",
+  },
+  "reports-logs": {
+    title: "Reports and logs surface in redesign",
+    summary:
+      "Core reports are inspected through Core Report Runner and the dedicated cockpit surfaces. The legacy reports/logs surface is not exposed in this public preview.",
+  },
+  "ground-integration": {
+    title: "Ground integration viewer in redesign",
+    summary:
+      "Generated ground-facing artifacts remain read-only, but this viewer is gated until it matches the public preview cockpit standard.",
+  },
+  "raw-output": {
+    title: "Raw Core output moved to Core Report Runner",
+    summary:
+      "Raw process output is now surfaced inside Core Report Runner, next to the fixed Core action that produced it.",
+  },
 };
 
 function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
@@ -181,6 +216,7 @@ function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
     scenarioRunIndex: null,
     coverageSummary: null,
     simulationReport: null,
+    simulationReports: [],
   };
 }
 
@@ -207,6 +243,7 @@ function App() {
     useState<ActiveSurface>("mission-dashboard");
   const [activeNavigationId, setActiveNavigationId] =
     useState<TargetDomainId>("mission");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedDetail, setSelectedDetail] =
     useState<StudioDetailSelection | null>(null);
 
@@ -225,6 +262,14 @@ function App() {
       document.documentElement.scrollTo({ top: 0, left: 0 });
       document.body.scrollTo({ top: 0, left: 0 });
     });
+  }
+
+  function clearSelectedContext() {
+    setSelectedFile(null);
+    setSelectedGeneratedArtifact(null);
+    setSelectedSimulationRecord(null);
+    setSelectedCoreDomainEntity(null);
+    setSelectedDetail(null);
   }
 
   async function handleOpenWorkspace() {
@@ -259,8 +304,12 @@ function App() {
       const inspection = await invoke<WorkspaceInspection>("inspect_workspace", {
         path: selected,
       });
+      const generatedHydration = await hydrateGeneratedReportsFromWorkspace(
+        inspection.selected_path,
+      );
 
       setWorkspace(inspection);
+      setCoreReportSnapshots(generatedHydration.coreReportSnapshots);
       setSelectedDetail({
         kind: "workspace",
         title: "Workspace inspection",
@@ -343,7 +392,7 @@ function App() {
   }
 
   function handleActiveSurfaceChange(surface: ActiveSurface) {
-    setSelectedCoreDomainEntity(null);
+    clearSelectedContext();
     setActiveSurface(surface);
     setActiveNavigationId(defaultNavigationIdBySurface[surface]);
     resetMainContentScroll();
@@ -353,7 +402,7 @@ function App() {
     surface: ActiveSurface,
     navigationId: TargetDomainId,
   ) {
-    setSelectedCoreDomainEntity(null);
+    clearSelectedContext();
     setActiveSurface(surface);
     setActiveNavigationId(navigationId);
     resetMainContentScroll();
@@ -559,7 +608,19 @@ function App() {
       scenarioRunIndex: scenarioRunIndex ?? current.scenarioRunIndex,
       coverageSummary: coverageSummary ?? current.coverageSummary,
       simulationReport: simulationReport ?? current.simulationReport,
+      simulationReports: simulationReport
+        ? upsertSimulationReport(current.simulationReports, simulationReport)
+        : current.simulationReports,
     }));
+  }
+
+  function upsertSimulationReport(
+    reports: CoreSimulationReport[],
+    report: CoreSimulationReport,
+  ): CoreSimulationReport[] {
+    const nextReports = reports.filter((candidate) => candidate.scenario !== report.scenario);
+
+    return [...nextReports, report];
   }
 
   const coreReportContent = coreResult?.json_report_content ?? null;
@@ -578,6 +639,9 @@ function App() {
       : coreReportSnapshots.simulationReport
         ? "latest Core simulation report snapshot"
         : null;
+  const simulationReports = simulationReport
+    ? upsertSimulationReport(coreReportSnapshots.simulationReports, simulationReport)
+    : coreReportSnapshots.simulationReports;
   const coreModelSummary = parseCoreModelSummary(coreReportContent);
   const coreEntityIndex = parseCoreEntityIndex(coreReportContent);
   const coreRelationshipManifest = parseCoreRelationshipManifest(coreReportContent);
@@ -597,7 +661,9 @@ function App() {
     relationshipManifest,
     dashboardSummary,
     lintReport,
+    scenarioRunIndex: coreReportSnapshots.scenarioRunIndex,
     simulationReport,
+    simulationReports,
     coverageSummary,
     generatedArtifactInventory: null,
   });
@@ -609,14 +675,14 @@ function App() {
     "mission-dashboard": true,
     "mission-data-flow-workbench": Boolean(workspace),
     "model-inventory": Boolean(workspace && workspace.source_model_files.length > 0),
-    "core-commands": Boolean(workspace?.mission_dir),
-    contracts: hasCoreModelSummary || hasCoreEntityIndex,
-    relationships: hasCoreRelationshipManifest,
+    "core-commands": Boolean(workspace),
+    contracts: false,
+    relationships: false,
     "generated-artifacts": Boolean(workspace),
-    "reports-logs": Boolean(workspace && workspace.generated_locations.length > 0),
+    "reports-logs": false,
     "scenario-evidence": Boolean(workspace),
-    "ground-integration": Boolean(workspace),
-    "raw-output": Boolean(coreResult),
+    "ground-integration": false,
+    "raw-output": false,
   };
 
   function renderLegacyWorkspaceSurface(surfaceLabel: string) {
@@ -685,10 +751,22 @@ function App() {
               <div>
                 <h1 id="studio-title">OrbitFabric Studio</h1>
                 <div className="cockpit-empty-led-row" aria-label="Initial cockpit state">
-                  <span>WS 0</span>
-                  <span>MISSION 0</span>
-                  <span>CORE N/R</span>
-                  <span>MODEL N/R</span>
+                  <span>
+                    <strong>Workspace</strong>
+                    <em>Not opened</em>
+                  </span>
+                  <span>
+                    <strong>Mission</strong>
+                    <em>Not loaded</em>
+                  </span>
+                  <span>
+                    <strong>Core Evidence</strong>
+                    <em>Not loaded</em>
+                  </span>
+                  <span>
+                    <strong>Model Status</strong>
+                    <em>Not reported</em>
+                  </span>
                 </div>
               </div>
               <button
@@ -713,7 +791,14 @@ function App() {
           coreResult={coreResult}
           coreReportSnapshots={coreReportSnapshots}
           generatedArtifactSummary={generatedArtifactSummary}
-          onActiveSurfaceChange={handleActiveSurfaceChange}
+          onNavigate={(surface, navigationId) => {
+            if (navigationId) {
+              handlePrimaryNavigationSelect(surface, navigationId);
+              return;
+            }
+
+            handleActiveSurfaceChange(surface);
+          }}
         />
       );
     }
@@ -746,15 +831,22 @@ function App() {
     
     if (activeSurface === "ground-integration") {
       return (
-        <GroundIntegrationArtifactViewer
-          workspacePath={workspace.selected_path}
-          generatedDir={workspace.generated_dir}
-          onArtifactSelectionChange={handleGeneratedArtifactSelectionChange}
+        <PublicPreviewPlaceholder
+          {...publicPreviewPlaceholderCopy["ground-integration"]!}
         />
       );
     }
 
     if (activeSurface === "model-inventory") {
+      if (!publicPreviewModelNavigationIds.has(activeNavigationId)) {
+        return (
+          <PublicPreviewPlaceholder
+            title={`${formatNavigationLabel(activeNavigationId)} surface in redesign`}
+            summary="This domain inspection surface is temporarily gated for the Mission Content First public preview. Core data remains authoritative; Studio will not infer missing contract state or expose transitional UI."
+          />
+        );
+      }
+
       const DomainSurfaceComponent =
         modelInventoryDomainSurfaceComponents[activeNavigationId];
 
@@ -771,19 +863,53 @@ function App() {
         );
       }
 
-      return renderLegacyWorkspaceSurface("Model Inventory");
+      return (
+        <PublicPreviewPlaceholder
+          title="Domain surface in redesign"
+          summary="This domain surface is not exposed in the current public preview."
+        />
+      );
     }
 
     if (activeSurface === "core-commands") {
-      return renderLegacyWorkspaceSurface("Core Commands");
+      return (
+        <CoreReportRunnerSurface
+          workspace={workspace}
+          coreExecutable={coreExecutable}
+          coreResult={coreResult}
+          coreError={coreError}
+          isRunningCoreCommand={isRunningCoreCommand}
+          reports={{
+            lintReport,
+            modelSummary,
+            entityIndex,
+            relationshipManifest,
+            dashboardSummary,
+            scenarioRunIndex: coreReportSnapshots.scenarioRunIndex,
+            coverageSummary,
+            simulationReports,
+          }}
+          onCoreExecutableChange={setCoreExecutable}
+          onCoreVersion={handleCoreVersion}
+          onCoreInspectMission={handleCoreInspectMission}
+          onCoreLintMission={handleCoreLintMission}
+          onCoreExportModelSummary={handleCoreExportModelSummary}
+          onCoreExportEntityIndex={handleCoreExportEntityIndex}
+          onCoreExportRelationshipManifest={handleCoreExportRelationshipManifest}
+          onCoreExportDashboardSummary={handleCoreExportDashboardSummary}
+          onCoreExportScenarioRunIndex={handleCoreExportScenarioRunIndex}
+          onCoreExportCoverageSummary={handleCoreExportCoverageSummary}
+          onOpenFile={handleOpenFile}
+        />
+      );
     }
 
     if (activeSurface === "contracts") {
-      return renderLegacyWorkspaceSurface("Contracts");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy.contracts!} />;
     }
 
     if (activeSurface === "relationships") {
-      return renderLegacyWorkspaceSurface("Relationships");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy.relationships!} />;
     }
 
     if (activeSurface === "generated-artifacts") {
@@ -799,11 +925,11 @@ function App() {
     }
 
     if (activeSurface === "reports-logs") {
-      return renderLegacyWorkspaceSurface("Reports and Logs");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy["reports-logs"]!} />;
     }
 
     if (activeSurface === "raw-output") {
-      return renderLegacyWorkspaceSurface("Raw Core Output");
+      return <PublicPreviewPlaceholder {...publicPreviewPlaceholderCopy["raw-output"]!} />;
     }
 
     return null;
@@ -823,22 +949,41 @@ function App() {
         className={[
           "workbench-layout",
           activeSurface === "mission-dashboard" ? "workbench-layout-dashboard" : "",
+          activeSurface === "scenario-evidence" ? "workbench-layout-scenario-evidence" : "",
+          activeSurface === "core-commands" ? "workbench-layout-core-report-runner" : "",
+          activeSurface === "generated-artifacts" ? "workbench-layout-generated-artifacts" : "",
+          isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
         ]
           .filter(Boolean)
           .join(" ")}
       >
         <PrimarySidebar
-          activeNavigationId={activeNavigationId}
+          activeNavigationId={workspace ? activeNavigationId : null}
           surfaceAvailability={surfaceAvailability}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapsed={() => setIsSidebarCollapsed((current) => !current)}
           onNavigationSelect={handlePrimaryNavigationSelect}
         />
 
-        <section className="main-surface" aria-label="Studio main surface">
+        <section
+          className={[
+            "main-surface",
+            activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
+            activeSurface === "core-commands" ? "main-surface-core-report-runner" : "",
+            activeSurface === "generated-artifacts" ? "main-surface-generated-artifacts" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          aria-label="Studio main surface"
+        >
           {renderActiveSurface()}
         </section>
 
-        {workspace && activeSurface !== "mission-dashboard" ? (
+        {workspace &&
+        activeSurface !== "mission-dashboard" &&
+        activeSurface !== "core-commands" &&
+        activeSurface !== "generated-artifacts" ? (
           <InspectorPanel
             workspace={workspace}
             activeSurface={activeSurface}
@@ -851,14 +996,60 @@ function App() {
           />
         ) : null}
 
-        <ShellStatusBar
-          workspace={workspace}
-          activeSurface={activeSurface}
-          coreResult={coreResult}
-        />
+        {workspace ? (
+          <ShellStatusBar
+            workspace={workspace}
+            activeSurface={activeSurface}
+            activeNavigationId={activeNavigationId}
+            coreResult={coreResult}
+          />
+        ) : null}
       </div>
     </main>
   );
+}
+
+
+function PublicPreviewPlaceholder({
+  title,
+  summary,
+}: {
+  title: string;
+  summary: string;
+}) {
+  return (
+    <section className="active-surface-frame public-preview-placeholder" aria-label={title}>
+      <div className="file-viewer-header">
+        <div>
+          <span className="surface-section-kicker">Mission Content First Public Preview</span>
+          <h2>{title}</h2>
+          <p>{summary}</p>
+        </div>
+        <div className="badge-row">
+          <ProvenanceBadge label="READ-ONLY" />
+          <StatusBadge label="IN REDESIGN" />
+          <StatusBadge label="NO PRIVATE INFERENCE" />
+        </div>
+      </div>
+      <div className="placeholder-detail-grid">
+        <article className="placeholder-detail-card">
+          <strong>Available in this preview</strong>
+          <span>Mission Overview, Core Report Runner, Data Flow Workbench, Data Products, Scenario Evidence and Generated Artifacts.</span>
+        </article>
+        <article className="placeholder-detail-card">
+          <strong>Boundary</strong>
+          <span>Studio remains a read-only inspection cockpit over Core-generated evidence.</span>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function formatNavigationLabel(navigationId: TargetDomainId): string {
+  return navigationId
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ").replace(" And ", " & " );
 }
 
 function WorkspaceHeader({
@@ -879,25 +1070,38 @@ function WorkspaceHeader({
     : "No workspace";
 
   return (
-    <header className="workspace-header cockpit-command-bar" aria-label="Workspace command bar">
-      <div className="cockpit-command-identity cockpit-command-identity-compact">
-        <div className="cockpit-command-mark">OF</div>
-        <strong>OrbitFabric Studio</strong>
+    <header
+      className={[
+        "workspace-header",
+        "cockpit-command-bar",
+        "reference-command-bar",
+        !workspace ? "reference-command-bar-empty" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label="Workspace command bar"
+    >
+      <div className="reference-command-left">
+        <div className="reference-product-title" aria-label="OrbitFabric Studio">
+          <strong>OrbitFabric</strong>
+          <span>Studio</span>
+        </div>
       </div>
 
-      <div className="cockpit-command-workspace cockpit-command-workspace-compact" title={workspace?.selected_path ?? undefined}>
-        <span>Workspace</span>
-        <strong>{workspaceName}</strong>
-      </div>
-
-      <button
-        type="button"
-        className="cockpit-workspace-switcher cockpit-workspace-switcher-compact"
-        onClick={onOpenWorkspace}
-        disabled={isOpening}
-      >
-        {isOpening ? "Opening" : workspace ? "Switch" : "Open"}
-      </button>
+      {workspace ? (
+        <button
+          type="button"
+          className="reference-project-switcher"
+          onClick={onOpenWorkspace}
+          disabled={isOpening}
+          title={workspace.selected_path}
+          aria-label="Project workspace switcher"
+        >
+          <span>Project</span>
+          <strong>{isOpening ? "Opening" : workspaceName}</strong>
+          <small aria-hidden="true">⌄</small>
+        </button>
+      ) : null}
 
       <ShellCommandActions
         workspace={workspace}
@@ -905,12 +1109,16 @@ function WorkspaceHeader({
         onActiveSurfaceChange={onActiveSurfaceChange}
       />
 
-      <div className="cockpit-command-safety" aria-label="Studio safety boundary">
-        <span title="Read-only Studio surface">🔒 RO</span>
-        <span title="Core-derived reports and generated artifacts">◆ CORE</span>
-        <span title="No command uplink">⊘ UPLINK</span>
-        <span title="No live telemetry">⊘ LIVE</span>
-        <span title="No private health, completeness or coverage calculation">⊘ PRIVATE</span>
+      <div className="reference-command-icons" aria-label="Studio utilities">
+        <button type="button" className="reference-icon-button" title="Help" aria-label="Help">
+          ?
+        </button>
+        <button type="button" className="reference-icon-button" title="Settings" aria-label="Settings">
+          ⚙
+        </button>
+        <button type="button" className="reference-icon-button" title="Profile" aria-label="Profile">
+          ♙
+        </button>
       </div>
     </header>
   );
@@ -919,37 +1127,52 @@ function WorkspaceHeader({
 function PrimarySidebar({
   activeNavigationId,
   surfaceAvailability,
+  isCollapsed,
+  onToggleCollapsed,
   onNavigationSelect,
 }: {
-  activeNavigationId: TargetDomainId;
+  activeNavigationId: TargetDomainId | null;
   surfaceAvailability: Record<ActiveSurface, boolean>;
+  isCollapsed: boolean;
+  onToggleCollapsed: () => void;
   onNavigationSelect: (surface: ActiveSurface, navigationId: TargetDomainId) => void;
 }) {
+  const activeItemRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!activeNavigationId) {
+      activeItemRef.current = null;
+      return;
+    }
+
+    activeItemRef.current?.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [activeNavigationId]);
+
   return (
-    <nav className="primary-sidebar cockpit-sidebar" aria-label="Studio surfaces">
-      <div className="cockpit-sidebar-brand">
-        <div className="cockpit-sidebar-mark">OF</div>
-        <div>
-          <strong>Studio</strong>
-          <span>Workbench</span>
-        </div>
-      </div>
-
-      <ul className="surface-nav-list cockpit-surface-nav-list">
+    <nav
+      className={[
+        "primary-sidebar",
+        "cockpit-sidebar",
+        "reference-sidebar",
+        isCollapsed ? "reference-sidebar-collapsed" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label="Studio surfaces"
+    >
+      <ul className="surface-nav-list cockpit-surface-nav-list reference-sidebar-nav">
         {shellSurfaceItems.map((item) => {
-          const isActive = item.id === activeNavigationId;
+          const isActive = activeNavigationId !== null && item.id === activeNavigationId;
           const isEnabled = Boolean(surfaceAvailability[item.surface]);
-          const displayedStatus = isActive
-            ? "active"
-            : isEnabled
-              ? item.status
-              : "unavailable";
-
           const itemClassName = [
             "surface-nav-item",
             "cockpit-surface-nav-item",
-            isActive ? "surface-nav-item-active" : "",
-            !isEnabled ? "surface-nav-item-disabled" : "",
+            "reference-sidebar-item",
+            isActive ? "surface-nav-item-active reference-sidebar-item-active" : "",
+            !isEnabled ? "surface-nav-item-disabled reference-sidebar-item-disabled" : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -957,12 +1180,8 @@ function PrimarySidebar({
           const itemContent = (
             <>
               <DashboardIcon kind={item.icon} />
-              <span className="surface-nav-copy">
+              <span className="surface-nav-copy reference-sidebar-copy">
                 <strong>{item.label}</strong>
-                <span>{item.caption}</span>
-              </span>
-              <span className={`surface-status surface-status-${displayedStatus}`}>
-                {displayedStatus}
               </span>
             </>
           );
@@ -971,8 +1190,14 @@ function PrimarySidebar({
             <li key={item.label}>
               {isEnabled ? (
                 <a
+                  ref={(node) => {
+                    if (isActive) {
+                      activeItemRef.current = node;
+                    }
+                  }}
                   className={`${itemClassName} surface-nav-link`}
                   href={`#${item.targetId}`}
+                  title={item.label}
                   aria-current={isActive ? "page" : undefined}
                   onClick={(event) => {
                     event.preventDefault();
@@ -982,7 +1207,16 @@ function PrimarySidebar({
                   {itemContent}
                 </a>
               ) : (
-                <span className={itemClassName} aria-disabled="true">
+                <span
+                  ref={(node) => {
+                    if (isActive) {
+                      activeItemRef.current = node;
+                    }
+                  }}
+                  className={itemClassName}
+                  title={item.label}
+                  aria-disabled="true"
+                >
                   {itemContent}
                 </span>
               )}
@@ -990,6 +1224,17 @@ function PrimarySidebar({
           );
         })}
       </ul>
+
+      <button
+        type="button"
+        className="reference-sidebar-collapse"
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-pressed={isCollapsed}
+        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        onClick={onToggleCollapsed}
+      >
+        {isCollapsed ? "›" : "‹"}
+      </button>
     </nav>
   );
 }
@@ -1018,9 +1263,7 @@ function InspectorPanel({
       selectedGeneratedArtifact ||
       selectedSimulationRecord ||
       selectedCoreDomainEntity ||
-      selectedDetail ||
-      coreResult ||
-      workspace,
+      selectedDetail,
   );
   const selectedFileIsScenarioSource = Boolean(
     selectedFile &&
@@ -1034,7 +1277,7 @@ function InspectorPanel({
     selectedCoreDomainEntity?.id ??
     selectedFile?.name ??
     selectedDetail?.title ??
-    (workspace ? "Workspace inspection" : "No selection");
+    "No selected context";
 
   const selectedKind =
     selectedSimulationRecord?.kind ??
@@ -1045,13 +1288,12 @@ function InspectorPanel({
         ? "scenario source"
         : selectedFile
           ? "source file"
-          : selectedDetail?.kind ?? "workspace");
+          : selectedDetail?.kind ?? "not selected");
 
   const selectedSource =
     selectedGeneratedArtifact?.relativePath ??
     selectedFile?.path ??
     selectedDetail?.source ??
-    workspace?.selected_path ??
     "not available";
   const showInspectorSafetyBoundary =
     !workspace || activeSurface !== "mission-dashboard";

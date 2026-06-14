@@ -1,13 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
-import { StatusBadge } from "./Badges";
-import { DashboardIcon } from "./DashboardIcon";
+import missionOverviewPatch from "./assets/mission/mission-overview-patch.png";
+import spacecraftCardIllustration from "./assets/mission/spacecraft-card-illustration.png";
 import { type GeneratedArtifactDashboardSummary } from "./GeneratedArtifactExplorer";
-import {
-  targetDomainNavigationItems,
-  type ActiveSurface,
-  type TargetDomainId,
-} from "./navigationModel";
+import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import {
   parseCoreCoverageSummary,
   parseCoreDashboardSummary,
@@ -18,271 +15,248 @@ import {
   parseCoreScenarioRunIndex,
   parseCoreSimulationReport,
 } from "./coreReports";
+import {
+  createMissionContentViewModel,
+  type MissionContentDataProductGroup,
+  type MissionContentEntityGroup,
+  type MissionContentGeneratedArtifacts,
+  type MissionContentScenarioGroup,
+  type MissionContentViewModel,
+  type MissionContentWarning,
+} from "./missionContentViewModel";
 import type {
   CoreCommandResult,
-  CoreCoverageRecord,
+  CoreEntityIndex,
   CoreRelationshipManifest,
+  GeneratedArtifactInventory,
   WorkspaceInspection,
 } from "./types/workspace";
-import {
-  createMissionCockpitPostureModel,
-  type CoreReportSnapshots,
-  type MissionCockpitMetricKind,
-  type MissionCockpitMetricState,
-} from "./missionCockpitModel";
-import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+import type { CoreReportSnapshots } from "./missionCockpitModel";
 
-type CockpitSignalState = "reported" | "warning" | "critical" | "idle";
-
-type CockpitDomainTileState =
-  | "indexed"
-  | "present"
-  | "missing"
-  | "reserved"
-  | "not-reported";
-
-type ArtifactDockId = "docs" | "reports" | "logs" | "runtime" | "ground" | "unknown";
-
-interface SourceBusItem {
-  id: string;
-  label: string;
-  value: string;
-  state: CockpitSignalState;
-  title: string;
-}
-
-interface ContractMatrixTile {
-  id: TargetDomainId;
-  label: string;
-  shortLabel: string;
-  icon: Parameters<typeof DashboardIcon>[0]["kind"];
-  value: string;
-  state: CockpitDomainTileState;
-  warning: boolean;
-  surface: ActiveSurface;
-  disabled: boolean;
-  title: string;
-}
-
-interface GaugeModel {
-  label: string;
-  value: string;
-  percent: number | null;
-  title: string;
-}
-
-const domainShortLabels: Partial<Record<TargetDomainId, string>> = {
-  mission: "MSN",
-  "data-flow-workbench": "FLOW",
-  spacecraft: "S/C",
-  subsystems: "SUB",
-  modes: "MODE",
-  telemetry: "TLM",
-  commands: "CMD",
-  events: "EVT",
-  faults: "FLT",
-  packets: "PKT",
-  payloads: "PAY",
-  "data-products": "DATA",
-  "contacts-downlink": "DLNK",
-  commandability: "CMDY",
-  autonomy: "AUTO",
-  scenarios: "SCN",
-  "generated-artifacts": "ART",
-};
-
-const artifactDockItems: readonly {
-  id: ArtifactDockId;
-  label: string;
-  icon: string;
-  locationName: string | null;
-}[] = [
-  { id: "docs", label: "DOCS", icon: "▤", locationName: "docs" },
-  { id: "reports", label: "REPORTS", icon: "▥", locationName: "reports" },
-  { id: "logs", label: "LOGS", icon: "≡", locationName: "logs" },
-  { id: "runtime", label: "RUNTIME", icon: "</>", locationName: "runtime" },
-  { id: "ground", label: "GROUND", icon: "⌁", locationName: "ground" },
-  { id: "unknown", label: "UNKNOWN", icon: "?", locationName: null },
-] as const;
-
-function formatMetricStateLabel(state: MissionCockpitMetricState): string {
-  if (state === "core-reported") {
-    return "CORE";
-  }
-
-  if (state === "not-reported") {
-    return "N/R";
-  }
-
-  return "N/A";
-}
-
-function clampPercent(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
-
-function ratioToPercent(value: number | null | undefined): number | null {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  return clampPercent(value * 100);
-}
-
-function formatPercent(value: number | null): string {
-  return value === null ? "N/R" : `${value}%`;
-}
-
-function formatCompactNumber(value: number | null | undefined): string {
-  return value === null || value === undefined ? "N/R" : String(value);
-}
-
-function signalForAvailability(isAvailable: boolean, isWarning = false): CockpitSignalState {
-  if (isWarning) {
-    return "warning";
-  }
-
-  return isAvailable ? "reported" : "idle";
-}
-
-function selectCoverageRecord(
-  records: Record<string, CoreCoverageRecord> | undefined,
-  candidates: string[],
-): CoreCoverageRecord | null {
-  if (!records) {
-    return null;
-  }
-
-  for (const candidate of candidates) {
-    const record = records[candidate];
-
-    if (record) {
-      return record;
-    }
-  }
-
-  return null;
-}
-
-function aggregateCoverage(
-  records: Record<string, CoreCoverageRecord> | undefined,
-): { total: number; covered: number; uncovered: number; percent: number | null } | null {
-  if (!records) {
-    return null;
-  }
-
-  const values = Object.values(records);
-
-  if (values.length === 0) {
-    return null;
-  }
-
-  const total = values.reduce((sum, record) => sum + record.total, 0);
-  const covered = values.reduce((sum, record) => sum + record.covered, 0);
-  const uncovered = values.reduce((sum, record) => sum + record.uncovered, 0);
-
-  return {
-    total,
-    covered,
-    uncovered,
-    percent: total > 0 ? clampPercent((covered / total) * 100) : null,
+interface ReferenceDisplayModel {
+  missionName: string;
+  description: string;
+  missionId: string;
+  phase: string;
+  owner: string;
+  updated: string;
+  healthValue: string;
+  healthLabel: string;
+  completenessValue: string;
+  completenessLabel: string;
+  lintErrors: string;
+  lintWarnings: string;
+  lintPassed: string;
+  loadDataProducts: string;
+  loadScenarios: string;
+  loadCommands: string;
+  spacecraftCount: string;
+  payloadCount: string;
+  dataProductValue: string;
+  dataProductCoverage: string;
+  scenarioValue: string;
+  scenarioCoverage: string;
+  downlinkWindows: string;
+  contacts: string;
+  commandValue: string;
+  commandCoverage: string;
+  spacecraftRows: Array<[string, string]>;
+  payloadRows: Array<[string, string]>;
+  dataProductRows: {
+    coverage: string;
+    coveragePercent: number;
+    producers: string;
+    producerName: string;
+    targetName: string;
+    targetExtra: string | null;
+    downlink: string;
   };
+  scenarioRows: Array<[string, string, string]>;
+  artifactTiles: Array<[string, string, string]>;
+  warningRows: Array<[string, string, string, string]>;
+  evidence: {
+    status: string;
+    validation: string;
+    passed: string;
+    warning: string;
+    failed: string;
+    traceCoverage: string;
+    traceCoveragePercent: number;
+    requirements: string;
+    requirementsPercent: number;
+    lastValidation: string;
+  };
+  coreLoaded: boolean;
 }
 
-function findStructuralSourceFile(
-  workspace: WorkspaceInspection | null,
-  domainId: TargetDomainId,
-): string | null {
-  if (!workspace) {
-    return null;
-  }
-
-  const candidates = new Set([
-    domainId,
-    domainId.replace(/-/g, "_"),
-    `${domainId}.yaml`,
-    `${domainId.replace(/-/g, "_")}.yaml`,
-  ]);
-
-  if (domainId === "contacts-downlink") {
-    candidates.add("contacts");
-    candidates.add("contacts.yaml");
-    candidates.add("downlink");
-    candidates.add("downlink.yaml");
-  }
-
-  if (domainId === "data-products") {
-    candidates.add("data_products");
-    candidates.add("data_products.yaml");
-  }
-
-  const match = workspace.source_model_files.find((entry) => {
-    const normalized = entry.name.toLowerCase();
-    return [...candidates].some((candidate) => normalized === candidate.toLowerCase());
-  });
-
-  return match?.name ?? null;
+interface ExistingCoreReportContents {
+  lintReport: string | null;
+  modelSummary: string | null;
+  entityIndex: string | null;
+  relationshipManifest: string | null;
+  dashboardSummary: string | null;
+  scenarioRunIndex: string | null;
+  coverageSummary: string | null;
+  simulationReport: string | null;
 }
 
-function buildScenarioDots(
-  scenarioRunIndex: CoreReportSnapshots["scenarioRunIndex"],
-  coverageSummary: CoreReportSnapshots["coverageSummary"],
-): { state: "passed" | "failed" | "idle"; title: string }[] {
-  if (scenarioRunIndex?.runs.length) {
-    return scenarioRunIndex.runs.slice(0, 24).map((run) => ({
-      state: run.result,
-      title: `${run.scenario}: ${run.result}`,
-    }));
-  }
-
-  const scenarioRuns = coverageSummary?.scenario_runs ?? null;
-
-  if (!scenarioRuns) {
-    return [];
-  }
-
-  const dotCount = Math.min(scenarioRuns.total, 24);
-
-  return Array.from({ length: dotCount }, (_, index) => {
-    if (index < scenarioRuns.failed) {
-      return { state: "failed" as const, title: "failed" };
-    }
-
-    if (index < scenarioRuns.failed + scenarioRuns.passed) {
-      return { state: "passed" as const, title: "passed" };
-    }
-
-    return { state: "idle" as const, title: "not reported" };
-  });
+interface GeneratedArtifactClassPresence {
+  docs: boolean;
+  reports: boolean;
+  runtime: boolean;
+  ground: boolean;
 }
 
-function metricInstrumentClass(kind: MissionCockpitMetricKind): string {
-  return kind.replace(/-/g, "_");
-}
+const emptyReferenceDisplay: ReferenceDisplayModel = {
+  coreLoaded: false,
+  missionName: "Mission workspace",
+  description:
+    "Workspace-backed mission overview. Load Core reports to populate mission health, coverage, relationships, and validation evidence.",
+  missionId: "not reported",
+  phase: "not reported",
+  owner: "not reported",
+  updated: "not reported",
+  healthValue: "Not reported",
+  healthLabel: "Core metric not available",
+  completenessValue: "Not reported",
+  completenessLabel: "Core metric not available",
+  lintErrors: "not reported",
+  lintWarnings: "not reported",
+  lintPassed: "not reported",
+  loadDataProducts: "not reported",
+  loadScenarios: "not reported",
+  loadCommands: "not reported",
+  spacecraftCount: "not reported",
+  payloadCount: "not reported",
+  dataProductValue: "not reported",
+  dataProductCoverage: "coverage not reported",
+  scenarioValue: "not reported",
+  scenarioCoverage: "scenario runs not reported",
+  downlinkWindows: "not reported",
+  contacts: "not reported",
+  commandValue: "not reported",
+  commandCoverage: "coverage not reported",
+  spacecraftRows: [
+    ["Bus", "not reported"],
+    ["Configuration", "not reported"],
+    ["Mass", "not reported"],
+    ["Power (EOL)", "not reported"],
+    ["Modes", "not reported"],
+  ],
+  payloadRows: [["Payload inventory", "not loaded"]],
+  dataProductRows: {
+    coverage: "not reported",
+    coveragePercent: 0,
+    producers: "not reported",
+    producerName: "not reported",
+    targetName: "data product not resolved",
+    targetExtra: null,
+    downlink: "not reported",
+  },
+  scenarioRows: [],
+  artifactTiles: [
+    ["Docs", "not reported", "Core artifact inventory not loaded"],
+    ["Reports", "not reported", "Core artifact inventory not loaded"],
+    ["Runtime", "not reported", "Core artifact inventory not loaded"],
+    ["Ground", "not reported", "Core artifact inventory not loaded"],
+    ["Warnings", "not reported", "Core artifact inventory not loaded"],
+  ],
+  warningRows: [["INFO", "No warning evidence loaded", "Load Core reports to verify current warning posture.", "not reported"]],
+  evidence: {
+    status: "Load Core",
+    validation: "not reported",
+    warning: "not reported",
+    failed: "not reported",
+    passed: "not reported",
+    traceCoverage: "not reported",
+    traceCoveragePercent: 0,
+    requirements: "not reported",
+    requirementsPercent: 0,
+    lastValidation: "not reported",
+  },
+};
 
 export function MissionCockpit({
   workspace,
   coreResult,
   coreReportSnapshots,
   generatedArtifactSummary,
-  onActiveSurfaceChange,
+  onNavigate,
 }: {
   workspace: WorkspaceInspection | null;
   coreResult: CoreCommandResult | null;
   coreReportSnapshots: CoreReportSnapshots;
   generatedArtifactSummary: GeneratedArtifactDashboardSummary | null;
-  onActiveSurfaceChange: (surface: ActiveSurface) => void;
+  onNavigate: (surface: ActiveSurface, navigationId?: TargetDomainId) => void;
 }) {
   const currentReportContent = coreResult?.json_report_content ?? null;
   const currentRelationshipManifest = useMemo(
     () => parseCoreRelationshipManifest(currentReportContent),
     [currentReportContent],
   );
+  const [existingReportSnapshots, setExistingReportSnapshots] =
+    useState<CoreReportSnapshots>(() => createEmptyCoreReportSnapshots());
   const [relationshipManifestSnapshot, setRelationshipManifestSnapshot] =
     useState<CoreRelationshipManifest | null>(null);
+  const [observedGeneratedArtifactSummary, setObservedGeneratedArtifactSummary] =
+    useState<GeneratedArtifactDashboardSummary | null>(null);
+  const [observedGeneratedArtifactClasses, setObservedGeneratedArtifactClasses] =
+    useState<GeneratedArtifactClassPresence | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    setExistingReportSnapshots(createEmptyCoreReportSnapshots());
     setRelationshipManifestSnapshot(null);
+    setObservedGeneratedArtifactSummary(null);
+    setObservedGeneratedArtifactClasses(null);
+
+    if (!workspace) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const workspacePath = workspace.selected_path;
+
+    async function loadExistingWorkspaceEvidence() {
+      try {
+        const existingReports = await readExistingCoreReports(workspacePath);
+
+        if (!cancelled) {
+          setExistingReportSnapshots(createCoreReportSnapshotsFromExistingReports(existingReports));
+          setRelationshipManifestSnapshot(parseCoreRelationshipManifest(existingReports.relationshipManifest));
+        }
+      } catch {
+        if (!cancelled) {
+          setExistingReportSnapshots(createEmptyCoreReportSnapshots());
+          setRelationshipManifestSnapshot(null);
+        }
+      }
+
+      try {
+        const inventory = await invoke<GeneratedArtifactInventory>(
+          "inspect_generated_artifacts",
+          { workspacePath },
+        );
+
+        if (!cancelled) {
+          setObservedGeneratedArtifactSummary(toGeneratedArtifactDashboardSummary(inventory));
+          setObservedGeneratedArtifactClasses(toGeneratedArtifactClassPresence(inventory));
+        }
+      } catch {
+        if (!cancelled) {
+          setObservedGeneratedArtifactSummary(null);
+          setObservedGeneratedArtifactClasses(null);
+        }
+      }
+    }
+
+    void loadExistingWorkspaceEvidence();
+
+    return () => {
+      cancelled = true;
+    };
   }, [workspace?.selected_path]);
 
   useEffect(() => {
@@ -292,866 +266,1067 @@ export function MissionCockpit({
   }, [currentRelationshipManifest]);
 
   const lintReport =
-    parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport;
+    parseCoreLintReport(currentReportContent) ?? coreReportSnapshots.lintReport ?? existingReportSnapshots.lintReport;
   const modelSummary =
-    parseCoreModelSummary(currentReportContent) ?? coreReportSnapshots.modelSummary;
+    parseCoreModelSummary(currentReportContent) ?? coreReportSnapshots.modelSummary ?? existingReportSnapshots.modelSummary;
   const entityIndex =
-    parseCoreEntityIndex(currentReportContent) ?? coreReportSnapshots.entityIndex;
-  const relationshipManifest =
-    currentRelationshipManifest ?? relationshipManifestSnapshot;
+    parseCoreEntityIndex(currentReportContent) ?? coreReportSnapshots.entityIndex ?? existingReportSnapshots.entityIndex;
+  const relationshipManifest = currentRelationshipManifest ?? relationshipManifestSnapshot;
   const dashboardSummary =
-    parseCoreDashboardSummary(currentReportContent) ??
-    coreReportSnapshots.dashboardSummary;
+    parseCoreDashboardSummary(currentReportContent) ?? coreReportSnapshots.dashboardSummary ?? existingReportSnapshots.dashboardSummary;
   const scenarioRunIndex =
-    parseCoreScenarioRunIndex(currentReportContent) ??
-    coreReportSnapshots.scenarioRunIndex;
+    parseCoreScenarioRunIndex(currentReportContent) ?? coreReportSnapshots.scenarioRunIndex ?? existingReportSnapshots.scenarioRunIndex;
   const coverageSummary =
-    parseCoreCoverageSummary(currentReportContent) ?? coreReportSnapshots.coverageSummary;
+    parseCoreCoverageSummary(currentReportContent) ?? coreReportSnapshots.coverageSummary ?? existingReportSnapshots.coverageSummary;
   const simulationReport =
-    parseCoreSimulationReport(currentReportContent) ??
-    coreReportSnapshots.simulationReport;
+    parseCoreSimulationReport(currentReportContent) ?? coreReportSnapshots.simulationReport ?? existingReportSnapshots.simulationReport;
+  const effectiveGeneratedArtifactSummary = generatedArtifactSummary ?? observedGeneratedArtifactSummary;
 
-  const effectiveCoreReportSnapshots: CoreReportSnapshots = {
-    lintReport,
-    modelSummary,
-    entityIndex,
-    dashboardSummary,
-    scenarioRunIndex,
-    coverageSummary,
-    simulationReport,
-  };
-
-  const missionCockpitPosture = createMissionCockpitPostureModel({
+  const missionContent = createMissionContentViewModel({
     workspace,
-    snapshots: effectiveCoreReportSnapshots,
-  });
-
-  const missionDataFlowSnapshot = createMissionDataFlowWorkbenchSnapshot({
-    modelSummary,
-    entityIndex,
+    snapshots: {
+      lintReport,
+      modelSummary,
+      entityIndex,
+      dashboardSummary,
+      scenarioRunIndex,
+      coverageSummary,
+      simulationReport,
+    },
     relationshipManifest,
-    dashboardSummary,
-    lintReport,
-    simulationReport,
-    coverageSummary,
-    generatedArtifactInventory: null,
+    generatedArtifactSummary: effectiveGeneratedArtifactSummary,
   });
 
-  const workspaceName = workspace?.selected_path
-    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
-    : "N/R";
-  const dashboardValidation = dashboardSummary?.validation ?? null;
-  const validationResult = lintReport?.result ?? dashboardValidation?.result ?? null;
-  const validationErrors =
-    lintReport?.summary.errors ?? dashboardValidation?.errors ?? null;
-  const validationWarnings =
-    lintReport?.summary.warnings ?? dashboardValidation?.warnings ?? null;
-  const validationInfo = lintReport?.summary.info ?? dashboardValidation?.info ?? null;
-  const validationMax = Math.max(validationErrors ?? 0, validationWarnings ?? 0, validationInfo ?? 0, 1);
-  const validationFindings = lintReport?.findings.slice(0, 3) ?? [];
-  const generatedLocationNames = new Set(
-    (workspace?.generated_locations ?? []).map((entry) => entry.name.toLowerCase()),
-  );
-  const missingSources = workspace?.missing_expected_source_files ?? [];
-  const workspaceWarnings = workspace?.warnings ?? [];
-
-  const sourceBusItems: SourceBusItem[] = [
-    {
-      id: "workspace",
-      label: "WS",
-      value: workspace ? "1" : "0",
-      state: signalForAvailability(Boolean(workspace)),
-      title: workspace?.selected_path ?? "Workspace not selected",
-    },
-    {
-      id: "mission",
-      label: "MISSION",
-      value: workspace?.mission_dir ? "1" : "0",
-      state: workspace?.mission_dir ? "reported" : workspace ? "critical" : "idle",
-      title: workspace?.mission_dir ?? "Mission directory not reported",
-    },
-    {
-      id: "model",
-      label: "MODEL",
-      value: String(workspace?.source_model_files.length ?? 0),
-      state: workspace?.source_model_files.length ? "reported" : workspace ? "warning" : "idle",
-      title: "Workspace source model files",
-    },
-    {
-      id: "scenarios",
-      label: "SCEN",
-      value: String(workspace?.scenario_files.length ?? 0),
-      state: workspace?.scenario_files.length ? "reported" : workspace ? "warning" : "idle",
-      title: "Workspace scenario files",
-    },
-    {
-      id: "generated",
-      label: "GEN",
-      value: String(workspace?.generated_locations.length ?? 0),
-      state: workspace?.generated_locations.length ? "reported" : workspace ? "warning" : "idle",
-      title: "Workspace generated locations",
-    },
-    {
-      id: "core",
-      label: "CORE",
-      value: coreResult ? (coreResult.success ? "OK" : "ERR") : "N/R",
-      state: coreResult ? (coreResult.success ? "reported" : "critical") : "idle",
-      title: coreResult?.command ?? "Core command result not reported",
-    },
-    {
-      id: "entity",
-      label: "ENTITY",
-      value: formatCompactNumber(entityIndex?.counts.total_entities),
-      state: signalForAvailability(Boolean(entityIndex)),
-      title: "Core entity index",
-    },
-    {
-      id: "relations",
-      label: "REL",
-      value: formatCompactNumber(relationshipManifest?.counts.total_relationships),
-      state: signalForAvailability(Boolean(relationshipManifest)),
-      title: "Core relationship manifest",
-    },
-    {
-      id: "dashboard",
-      label: "DASH",
-      value: dashboardSummary ? "1" : "0",
-      state: signalForAvailability(Boolean(dashboardSummary)),
-      title: "Core dashboard summary",
-    },
-    {
-      id: "lint",
-      label: "LINT",
-      value: validationErrors || validationWarnings ? `${validationErrors ?? 0}/${validationWarnings ?? 0}` : validationResult ? "OK" : "N/R",
-      state:
-        validationErrors && validationErrors > 0
-          ? "critical"
-          : validationWarnings && validationWarnings > 0
-            ? "warning"
-            : validationResult
-              ? "reported"
-              : "idle",
-      title: "Core lint report or dashboard validation",
-    },
-    {
-      id: "sim",
-      label: "SIM",
-      value: simulationReport ? simulationReport.result.toUpperCase() : "N/R",
-      state: simulationReport ? (simulationReport.result === "passed" ? "reported" : "critical") : "idle",
-      title: "Core simulation report",
-    },
-    {
-      id: "coverage",
-      label: "COV",
-      value: coverageSummary ? "1" : "0",
-      state: signalForAvailability(Boolean(coverageSummary)),
-      title: "Core coverage summary",
-    },
-    {
-      id: "artifacts",
-      label: "ART",
-      value: formatCompactNumber(generatedArtifactSummary?.totalArtifacts),
-      state: generatedArtifactSummary
-        ? generatedArtifactSummary.warningCount > 0
-          ? "warning"
-          : "reported"
-        : "idle",
-      title: generatedArtifactSummary?.generatedDir ?? "Generated artifact inventory not loaded",
-    },
-  ];
-
-  const dataProductCoverageRecord = selectCoverageRecord(coverageSummary?.entity_coverage, [
-    "data-products",
-    "data_products",
-    "dataProducts",
-    "data_products.yaml",
-  ]);
-  const commandabilityCoverageRecord = selectCoverageRecord(coverageSummary?.entity_coverage, [
-    "commandability",
-    "commands",
-    "commandability.yaml",
-    "commands.yaml",
-  ]);
-  const scenarioCoveragePercent = coverageSummary?.scenario_runs.total
-    ? clampPercent((coverageSummary.scenario_runs.passed / coverageSummary.scenario_runs.total) * 100)
-    : null;
-  const dataProductCoveragePercent = ratioToPercent(dataProductCoverageRecord?.coverage_ratio);
-  const commandabilityCoveragePercent = ratioToPercent(commandabilityCoverageRecord?.coverage_ratio);
-  const entityCoverageAggregate = aggregateCoverage(coverageSummary?.entity_coverage);
-  const expectationCoveragePercent = ratioToPercent(coverageSummary?.expectation_coverage.pass_ratio);
-  const relationshipCoveragePercent = ratioToPercent(
-    coverageSummary?.relationship_coverage.coverage_ratio,
-  );
-  const scenarioDots = buildScenarioDots(scenarioRunIndex, coverageSummary);
-
-  const coverageGauges: GaugeModel[] = [
-    {
-      label: "Entities",
-      value: entityCoverageAggregate
-        ? `${entityCoverageAggregate.covered}/${entityCoverageAggregate.total}`
-        : "N/R",
-      percent: entityCoverageAggregate?.percent ?? null,
-      title: "Core coverage_summary.entity_coverage",
-    },
-    {
-      label: "Relationships",
-      value: coverageSummary
-        ? `${coverageSummary.relationship_coverage.covered_supported_relationships}/${coverageSummary.relationship_coverage.total_supported_relationships}`
-        : "N/R",
-      percent: relationshipCoveragePercent,
-      title: "Core coverage_summary.relationship_coverage",
-    },
-    {
-      label: "Expectations",
-      value: coverageSummary
-        ? `${coverageSummary.expectation_coverage.passed}/${coverageSummary.expectation_coverage.total}`
-        : "N/R",
-      percent: expectationCoveragePercent,
-      title: "Core coverage_summary.expectation_coverage",
-    },
-  ];
-
-  const dashboardDomainMap = new Map(
-    (dashboardSummary?.model_domains.domains ?? []).map((domain) => [domain.id, domain]),
-  );
-  const entityDomainMap = new Map(
-    (entityIndex?.domains ?? []).map((domain) => [domain.id, domain]),
-  );
-  const contractMatrixTiles: ContractMatrixTile[] = targetDomainNavigationItems.map((item) => {
-    if (item.id === "mission") {
-      return {
-        id: item.id,
-        label: item.label,
-        shortLabel: domainShortLabels[item.id] ?? item.label,
-        icon: item.icon,
-        value: workspace?.mission_dir ? "1" : "0",
-        state: workspace?.mission_dir ? "present" : "missing",
-        warning: !workspace?.mission_dir,
-        surface: item.destinationSurface,
-        disabled: !workspace,
-        title: workspace?.mission_dir ?? "Mission directory not reported",
-      };
-    }
-
-    if (item.id === "data-flow-workbench") {
-      const links = missionDataFlowSnapshot.counts.traceabilityLinks;
-
-      return {
-        id: item.id,
-        label: item.label,
-        shortLabel: domainShortLabels[item.id] ?? item.label,
-        icon: item.icon,
-        value: String(links),
-        state: links > 0 ? "present" : "not-reported",
-        warning: false,
-        surface: item.destinationSurface,
-        disabled: !workspace,
-        title: "Traceability links from Core reports and generated artifacts",
-      };
-    }
-
-    if (item.id === "scenarios") {
-      const count = scenarioRunIndex?.summary.total ?? workspace?.scenario_files.length ?? null;
-
-      return {
-        id: item.id,
-        label: item.label,
-        shortLabel: domainShortLabels[item.id] ?? item.label,
-        icon: item.icon,
-        value: formatCompactNumber(count),
-        state: count && count > 0 ? "present" : "not-reported",
-        warning: Boolean(scenarioRunIndex && scenarioRunIndex.summary.failed > 0),
-        surface: item.destinationSurface,
-        disabled: !workspace,
-        title: scenarioRunIndex ? "Core scenario run index" : "Workspace scenario files",
-      };
-    }
-
-    if (item.id === "generated-artifacts") {
-      const count = generatedArtifactSummary?.totalArtifacts ?? workspace?.generated_locations.length ?? null;
-
-      return {
-        id: item.id,
-        label: item.label,
-        shortLabel: domainShortLabels[item.id] ?? item.label,
-        icon: item.icon,
-        value: formatCompactNumber(count),
-        state: count && count > 0 ? "present" : "not-reported",
-        warning: Boolean(generatedArtifactSummary && generatedArtifactSummary.warningCount > 0),
-        surface: item.destinationSurface,
-        disabled: !workspace,
-        title: generatedArtifactSummary ? "Generated artifact inventory" : "Workspace generated locations",
-      };
-    }
-
-    const entityDomain = entityDomainMap.get(item.id);
-    const dashboardDomain = dashboardDomainMap.get(item.id);
-    const structuralSource = findStructuralSourceFile(workspace, item.id);
-    const count = entityDomain?.entity_count ?? dashboardDomain?.count ?? null;
-    const state: CockpitDomainTileState =
-      item.status === "reserved"
-        ? "reserved"
-        : entityDomain
-          ? entityDomain.indexed
-            ? "indexed"
-            : "present"
-          : dashboardDomain
-            ? dashboardDomain.present
-              ? "present"
-              : "missing"
-            : structuralSource
-              ? "present"
-              : "not-reported";
-
-    return {
-      id: item.id,
-      label: item.label,
-      shortLabel: domainShortLabels[item.id] ?? item.label,
-      icon: item.icon,
-      value: count === null ? (structuralSource ? "SRC" : item.status === "reserved" ? "RSV" : "N/R") : String(count),
-      state,
-      warning: state === "missing",
-      surface: item.destinationSurface,
-      disabled: !workspace || item.status === "reserved",
-      title: entityDomain
-        ? `Core entity index: ${entityDomain.source_file}`
-        : dashboardDomain
-          ? `Core dashboard summary: ${dashboardDomain.source_file}`
-          : structuralSource ?? item.caption,
-    };
-  });
-
-  const attentionCounters = [
-    { label: "ERR", value: validationErrors ?? 0, state: validationErrors ? "critical" : "reported" },
-    { label: "WARN", value: validationWarnings ?? 0, state: validationWarnings ? "warning" : "reported" },
-    { label: "MISS", value: missingSources.length, state: missingSources.length ? "critical" : "reported" },
-    {
-      label: "SCN FAIL",
-      value: scenarioRunIndex?.summary.failed ?? coverageSummary?.scenario_runs.failed ?? 0,
-      state:
-        (scenarioRunIndex?.summary.failed ?? coverageSummary?.scenario_runs.failed ?? 0) > 0
-          ? "critical"
-          : "reported",
-    },
-    {
-      label: "UNCOV",
-      value:
-        (entityCoverageAggregate?.uncovered ?? 0) +
-        (coverageSummary?.relationship_coverage.uncovered_supported_relationships ?? 0) +
-        (coverageSummary?.expectation_coverage.failed ?? 0),
-      state:
-        (entityCoverageAggregate?.uncovered ?? 0) +
-          (coverageSummary?.relationship_coverage.uncovered_supported_relationships ?? 0) +
-          (coverageSummary?.expectation_coverage.failed ?? 0) >
-        0
-          ? "warning"
-          : "reported",
-    },
-    {
-      label: "ART WARN",
-      value: generatedArtifactSummary?.warningCount ?? 0,
-      state: generatedArtifactSummary?.warningCount ? "warning" : "reported",
-    },
-  ];
-
-  const attentionChips = [
-    ...validationFindings.map((finding) => ({
-      label: `${finding.severity.toUpperCase()} ${finding.code}`,
-      state: finding.severity.toLowerCase() === "error" ? "critical" : "warning",
-      title: finding.message,
-    })),
-    ...missingSources.slice(0, 2).map((source) => ({
-      label: `MISS ${source}`,
-      state: "critical",
-      title: "Missing expected source file",
-    })),
-    ...workspaceWarnings.slice(0, 2).map((warning) => ({
-      label: "WS WARN",
-      state: "warning",
-      title: warning,
-    })),
-    ...((coverageSummary?.unsupported.entity_domains ?? []).length > 0
-      ? [
-          {
-            label: `UNSUP ENT ${coverageSummary?.unsupported.entity_domains.length ?? 0}`,
-            state: "warning",
-            title: coverageSummary?.unsupported.entity_domains.join(", ") ?? "",
-          },
-        ]
-      : []),
-    ...((coverageSummary?.unsupported.relationship_types ?? []).length > 0
-      ? [
-          {
-            label: `UNSUP REL ${coverageSummary?.unsupported.relationship_types.length ?? 0}`,
-            state: "warning",
-            title: coverageSummary?.unsupported.relationship_types.join(", ") ?? "",
-          },
-        ]
-      : []),
-  ].slice(0, 5);
-
-  const coreReportCount = [
-    lintReport,
-    modelSummary,
+  const display = createReferenceDisplayModel(
+    missionContent,
     entityIndex,
-    relationshipManifest,
-    dashboardSummary,
-    scenarioRunIndex,
-    coverageSummary,
-    simulationReport,
-  ].filter(Boolean).length;
-
-  const evidenceSignalCount = [
-    validationResult,
-    scenarioRunIndex ?? simulationReport,
-    coverageSummary,
-    generatedArtifactSummary,
-  ].filter(Boolean).length;
-
-  const corePipelineStages: {
-    label: string;
-    value: string;
-    state: CockpitSignalState;
-    lanes: { label: string; value: string; state: CockpitSignalState }[];
-  }[] = [
-    {
-      label: "INPUTS",
-      value: `${formatCompactNumber(workspace?.source_model_files.length)} / ${formatCompactNumber(workspace?.scenario_files.length)}`,
-      state: workspace ? "reported" : "idle",
-      lanes: [
-        {
-          label: "MODEL SRC",
-          value: formatCompactNumber(workspace?.source_model_files.length),
-          state: signalForAvailability(Boolean(workspace?.source_model_files.length)),
-        },
-        {
-          label: "SCEN SRC",
-          value: formatCompactNumber(workspace?.scenario_files.length),
-          state: signalForAvailability(Boolean(workspace?.scenario_files.length)),
-        },
-        {
-          label: "GEN PATHS",
-          value: formatCompactNumber(workspace?.generated_locations.length),
-          state: signalForAvailability(Boolean(workspace?.generated_locations.length)),
-        },
-      ],
-    },
-    {
-      label: "CORE REPORTS",
-      value: `${coreReportCount}/8`,
-      state: coreReportCount > 0 ? "reported" : "idle",
-      lanes: [
-        { label: "LINT", value: lintReport ? "DET" : "N/R", state: signalForAvailability(Boolean(lintReport)) },
-        { label: "MODEL", value: modelSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(modelSummary)) },
-        { label: "ENTITY", value: entityIndex ? "DET" : "N/R", state: signalForAvailability(Boolean(entityIndex)) },
-        { label: "REL", value: relationshipManifest ? "DET" : "N/R", state: signalForAvailability(Boolean(relationshipManifest)) },
-        { label: "DASH", value: dashboardSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(dashboardSummary)) },
-        { label: "COV", value: coverageSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(coverageSummary)) },
-      ],
-    },
-    {
-      label: "EVIDENCE",
-      value: `${evidenceSignalCount}/4`,
-      state: evidenceSignalCount > 0 ? "reported" : "idle",
-      lanes: [
-        { label: "VALID", value: validationResult ? validationResult.toUpperCase() : "N/R", state: signalForAvailability(Boolean(validationResult)) },
-        {
-          label: "SCEN",
-          value: formatCompactNumber(scenarioRunIndex?.summary.total ?? coverageSummary?.scenario_runs.total),
-          state: signalForAvailability(Boolean(scenarioRunIndex ?? simulationReport)),
-        },
-        { label: "COVER", value: coverageSummary ? "DET" : "N/R", state: signalForAvailability(Boolean(coverageSummary)) },
-        { label: "SIM", value: simulationReport ? simulationReport.result.toUpperCase() : "N/R", state: signalForAvailability(Boolean(simulationReport)) },
-      ],
-    },
-    {
-      label: "OUTPUTS",
-      value: formatCompactNumber(generatedArtifactSummary?.totalArtifacts),
-      state: generatedArtifactSummary
-        ? generatedArtifactSummary.warningCount > 0
-          ? "warning"
-          : "reported"
-        : "idle",
-      lanes: [
-        { label: "DOCS", value: generatedLocationNames.has("docs") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("docs")) },
-        { label: "REPORTS", value: generatedLocationNames.has("reports") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("reports")) },
-        { label: "RUNTIME", value: generatedLocationNames.has("runtime") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("runtime")) },
-        { label: "GROUND", value: generatedLocationNames.has("ground") ? "DET" : "N/R", state: signalForAvailability(generatedLocationNames.has("ground")) },
-        {
-          label: "UNKNOWN",
-          value: formatCompactNumber(generatedArtifactSummary?.unknownArtifacts),
-          state: generatedArtifactSummary?.unknownArtifacts ? "warning" : "idle",
-        },
-      ],
-    },
-  ];
+    observedGeneratedArtifactClasses,
+  );
 
   return (
     <section
       id="studio-dashboard"
-      className="workspace-dashboard cockpit-dashboard cockpit-instrument-panel"
-      aria-label="Mission cockpit instrument panel"
+      className="mission-target"
+      aria-label="Mission Overview"
     >
-      <div className="cockpit-source-bus" aria-label="Source-of-truth bus">
-        <div className="cockpit-source-bus-title">
-          <span>SOURCE BUS</span>
-          <strong title={workspace?.selected_path ?? undefined}>{workspaceName}</strong>
+      <header className="mission-target-heading">
+        <div className="mission-target-heading-title">
+          <h2>Mission Overview</h2>
+          <span aria-hidden="true">ⓘ</span>
         </div>
-        <div className="cockpit-source-bus-leds">
-          {sourceBusItems.map((item) => (
-            <div
-              className={`cockpit-source-led cockpit-source-led-${item.state}`}
-              key={item.id}
-              title={item.title}
-            >
-              <span aria-hidden="true" />
-              <strong>{item.label}</strong>
-              <em>{item.value}</em>
-            </div>
-          ))}
-        </div>
-      </div>
+        <button
+          type="button"
+          className="mission-target-report-button"
+          onClick={() => onNavigate("generated-artifacts", "generated-artifacts")}
+        >
+          View Generated Reports ↗
+        </button>
+      </header>
 
-      <div className="cockpit-primary-instrument-cluster" aria-label="Primary instrument cluster">
-        {missionCockpitPosture.metrics.map((metric) => {
-          const percent =
-            metric.kind === "scenario-coverage"
-              ? scenarioCoveragePercent
-              : metric.kind === "data-product-coverage"
-                ? dataProductCoveragePercent
-                : metric.kind === "commandability-coverage"
-                  ? commandabilityCoveragePercent
-                  : null;
-
-          return (
-            <article
-              className={`cockpit-instrument cockpit-instrument-${metricInstrumentClass(metric.kind)} cockpit-instrument-${metric.state}`}
-              key={metric.kind}
-              title={`${metric.provenance} · ${metric.source}`}
-            >
-              <div className="cockpit-instrument-header">
-                <DashboardIcon
-                  kind={
-                    metric.kind === "mission-health"
-                      ? "shield"
-                      : metric.kind === "model-completeness"
-                        ? "model"
-                        : metric.kind === "lint-status"
-                          ? "validation"
-                          : metric.kind === "scenario-coverage"
-                            ? "scenario"
-                            : metric.kind === "data-product-coverage"
-                              ? "artifacts"
-                              : "core"
-                  }
-                />
-                <StatusBadge label={formatMetricStateLabel(metric.state)} />
+      <section className="mission-target-hero" aria-label="Mission identity and posture">
+        <div className="mission-target-identity">
+          <MissionPatch />
+          <div className="mission-target-copy">
+            <div className="mission-target-name-line">
+              <div>
+                <h1>{display.missionName}</h1>
+                <p>{display.description}</p>
               </div>
-              <div className="cockpit-instrument-body">
-                <span>{metric.label}</span>
-                {metric.kind === "lint-status" ? (
-                  <div className="cockpit-severity-stack">
-                    <SeverityBar label="ERR" value={validationErrors ?? 0} max={validationMax} state="critical" />
-                    <SeverityBar label="WARN" value={validationWarnings ?? 0} max={validationMax} state="warning" />
-                    <SeverityBar label="INFO" value={validationInfo ?? 0} max={validationMax} state="reported" />
-                  </div>
-                ) : (
-                  <>
-                    <strong>{metric.value.replace("Not reported", "N/R")}</strong>
-                    <div className="cockpit-ring" aria-hidden="true">
-                      <div className="cockpit-ring-core">{formatPercent(percent)}</div>
-                    </div>
-                    <div className="cockpit-mini-gauge">
-                      <span style={{ width: `${percent ?? 0}%` }} />
-                    </div>
-                  </>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </div>
-
-      <div className="cockpit-panel-grid" aria-label="Mission cockpit graphical panels">
-        <section className="cockpit-contract-matrix" aria-label="Mission contract matrix">
-          <div className="cockpit-panel-title-row">
-            <span>CONTRACT MATRIX</span>
-            <StatusBadge label={entityIndex ? "INDEX" : dashboardSummary ? "DASH" : "STRUCT"} />
-          </div>
-          <div className="cockpit-domain-tile-grid">
-            {contractMatrixTiles.map((tile) => (
-              <button
-                type="button"
-                className={`cockpit-domain-tile cockpit-domain-tile-${tile.state}`}
-                key={tile.id}
-                title={tile.title}
-                disabled={tile.disabled}
-                onClick={() => onActiveSurfaceChange(tile.surface)}
-              >
-                <DashboardIcon kind={tile.icon} />
-                <strong>{tile.value}</strong>
-                <span>{tile.shortLabel}</span>
-                <i className={tile.warning ? "cockpit-domain-warning" : ""} aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-
-          <div className="cockpit-matrix-legend" aria-label="Contract matrix legend">
-            <span><i className="cockpit-legend-dot cockpit-legend-present" aria-hidden="true" /> SRC structural source</span>
-            <span><i className="cockpit-legend-dot cockpit-legend-indexed" aria-hidden="true" /> IDX Core indexed</span>
-            <span><i className="cockpit-legend-dot cockpit-legend-reserved" aria-hidden="true" /> RSV reserved</span>
-            <span><i className="cockpit-legend-dot cockpit-legend-idle" aria-hidden="true" /> N/R not reported</span>
-          </div>
-        </section>
-
-        <section className="cockpit-evidence-wall" aria-label="Evidence wall">
-          <div className="cockpit-panel-title-row">
-            <span>EVIDENCE WALL</span>
-            <StatusBadge label={validationResult ? validationResult.toUpperCase() : "N/R"} />
-          </div>
-
-          {!validationResult && !scenarioRunIndex && !coverageSummary ? (
-            <div className="cockpit-evidence-empty-band" aria-label="Evidence availability">
-              <span>AWAITING CORE EVIDENCE</span>
-              <strong>Validation, scenarios and coverage not reported.</strong>
+              <span className="mission-target-health-badge">{display.healthLabel}</span>
             </div>
-          ) : null}
 
-          <div className="cockpit-evidence-block cockpit-evidence-validation">
-            <div className="cockpit-evidence-heading">VALIDATION</div>
-            <SeverityBar label="ERR" value={validationErrors ?? 0} max={validationMax} state="critical" />
-            <SeverityBar label="WARN" value={validationWarnings ?? 0} max={validationMax} state="warning" />
-            <SeverityBar label="INFO" value={validationInfo ?? 0} max={validationMax} state="reported" />
-            <div className="cockpit-finding-chip-row">
-              {validationFindings.length > 0 ? (
-                validationFindings.map((finding) => (
-                  <span
-                    className={`cockpit-finding-chip cockpit-finding-${finding.severity.toLowerCase()}`}
-                    key={`${finding.code}-${finding.object_id ?? finding.message}`}
-                    title={finding.message}
-                  >
-                    {finding.severity.toUpperCase()} {finding.code}
-                  </span>
-                ))
-              ) : (
-                <span className="cockpit-finding-chip cockpit-finding-idle">N/R</span>
-              )}
+            <div className="mission-target-meta">
+              <MetaItem label="Mission ID" value={display.missionId} />
+              <MetaItem label="Phase" value={display.phase} />
+              <MetaItem label="Owner" value={display.owner} />
+              <MetaItem label="Last Updated" value={display.updated} />
             </div>
           </div>
-
-          <div className="cockpit-evidence-block cockpit-evidence-scenarios">
-            <div className="cockpit-evidence-heading">SCENARIOS</div>
-            <div className="cockpit-scenario-led-summary">
-              <strong>{formatCompactNumber(scenarioRunIndex?.summary.passed ?? coverageSummary?.scenario_runs.passed)}</strong>
-              <span>PASS</span>
-              <strong>{formatCompactNumber(scenarioRunIndex?.summary.failed ?? coverageSummary?.scenario_runs.failed)}</strong>
-              <span>FAIL</span>
-              <strong>{formatCompactNumber(scenarioRunIndex?.summary.total ?? coverageSummary?.scenario_runs.total)}</strong>
-              <span>TOTAL</span>
-            </div>
-            <div className="cockpit-run-dot-board" aria-label="Scenario run dots">
-              {scenarioDots.length > 0 ? (
-                scenarioDots.map((dot, index) => (
-                  <span
-                    className={`cockpit-run-dot cockpit-run-dot-${dot.state}`}
-                    key={`${dot.title}-${index}`}
-                    title={dot.title}
-                  />
-                ))
-              ) : (
-                <span className="cockpit-run-dot cockpit-run-dot-idle" title="not reported" />
-              )}
-            </div>
-          </div>
-
-          <div className="cockpit-evidence-block cockpit-evidence-coverage">
-            <div className="cockpit-evidence-heading">COVERAGE</div>
-            {coverageGauges.map((gauge) => (
-              <GaugeRow key={gauge.label} gauge={gauge} />
-            ))}
-          </div>
-        </section>
-
-        <section className="cockpit-traceability-radar" aria-label="Traceability radar">
-          <div className="cockpit-panel-title-row">
-            <span>TRACEABILITY</span>
-            <StatusBadge label={`${missionDataFlowSnapshot.counts.traceabilityLinks} LINKS`} />
-          </div>
-          <div className="cockpit-radar-line">
-            <RadarNode label="MODEL" value={missionDataFlowSnapshot.counts.missionDomains} active={missionDataFlowSnapshot.counts.missionDomains > 0} />
-            <RadarNode label="REL" value={missionDataFlowSnapshot.counts.relationshipRecords} active={missionDataFlowSnapshot.counts.relationshipRecords > 0} />
-            <RadarNode label="SCEN" value={missionDataFlowSnapshot.counts.scenarioDataFlowEvidenceRecords} active={missionDataFlowSnapshot.counts.scenarioDataFlowEvidenceRecords > 0} />
-            <RadarNode label="COV" value={missionDataFlowSnapshot.counts.coverageScopes} active={missionDataFlowSnapshot.counts.coverageScopes > 0} />
-            <RadarNode label="ART" value={generatedArtifactSummary?.totalArtifacts ?? 0} active={Boolean(generatedArtifactSummary?.totalArtifacts)} />
-          </div>
-          <div className="cockpit-radar-counters">
-            <span title="Reported traceability links">REP {missionDataFlowSnapshot.traceability.counts.reportedLinks}</span>
-            <span title="Unavailable traceability links">N/R {missionDataFlowSnapshot.traceability.counts.unavailableLinks}</span>
-            <span title="Relationship types">TYPE {missionDataFlowSnapshot.counts.relationshipTypes}</span>
-          </div>
-        </section>
-
-        <section className="cockpit-artifact-dock" aria-label="Artifact dock">
-          <div className="cockpit-panel-title-row">
-            <span>ARTIFACT DOCK</span>
-            <StatusBadge label={generatedArtifactSummary ? "INV" : "N/R"} />
-          </div>
-          <div className="cockpit-artifact-modules">
-            {artifactDockItems.map((item) => {
-              const detected = item.locationName
-                ? generatedLocationNames.has(item.locationName)
-                : Boolean(generatedArtifactSummary && generatedArtifactSummary.unknownArtifacts > 0);
-              const value =
-                item.id === "unknown"
-                  ? formatCompactNumber(generatedArtifactSummary?.unknownArtifacts)
-                  : detected
-                    ? "DET"
-                    : "N/R";
-              const state =
-                item.id === "unknown" && generatedArtifactSummary?.unknownArtifacts
-                  ? "warning"
-                  : detected
-                    ? "reported"
-                    : "idle";
-
-              return (
-                <div
-                  className={`cockpit-artifact-module cockpit-artifact-module-${state}`}
-                  key={item.id}
-                  title={item.locationName ?? "Generated artifact inventory unknown class"}
-                >
-                  <i>{item.icon}</i>
-                  <span>{item.label}</span>
-                  <strong>{value}</strong>
-                </div>
-              );
-            })}
-          </div>
-          <div className="cockpit-artifact-strip">
-            <span>TOTAL {formatCompactNumber(generatedArtifactSummary?.totalArtifacts)}</span>
-            <span>KNOWN {formatCompactNumber(generatedArtifactSummary?.knownArtifacts)}</span>
-            <span>PREVIEW {formatCompactNumber(generatedArtifactSummary?.previewableArtifacts)}</span>
-            <span>WARN {formatCompactNumber(generatedArtifactSummary?.warningCount)}</span>
-          </div>
-        </section>
-      </div>
-
-      <div className="cockpit-lower-console" aria-label="Core output pipeline and attention rail">
-        <section className="cockpit-core-output-pipeline" aria-label="Core output pipeline">
-        <div className="cockpit-panel-title-row">
-          <span>CORE OUTPUT PIPELINE</span>
-          <StatusBadge label={coreResult ? (coreResult.success ? "CORE OK" : "CORE ERR") : "N/R"} />
         </div>
 
-        <div className="cockpit-pipeline-stage-grid">
-          {corePipelineStages.map((stage) => (
-            <div
-              className={`cockpit-pipeline-stage cockpit-pipeline-stage-${stage.state}`}
-              key={stage.label}
-            >
-              <div className="cockpit-pipeline-stage-header">
-                <span>{stage.label}</span>
-                <strong>{stage.value}</strong>
-              </div>
-
-              <div className="cockpit-pipeline-lanes">
-                {stage.lanes.map((lane) => (
-                  <span
-                    className={`cockpit-pipeline-lane cockpit-pipeline-lane-${lane.state}`}
-                    key={`${stage.label}-${lane.label}`}
-                  >
-                    <i aria-hidden="true" />
-                    <em>{lane.label}</em>
-                    <strong>{lane.value}</strong>
-                  </span>
-                ))}
-              </div>
+        <div className="mission-target-posture">
+          <PostureBlock
+            icon="♡"
+            title="Contract Health"
+            value={display.healthValue}
+            subtitle={display.healthLabel}
+            progress={0}
+            tone="green"
+          />
+          <PostureBlock
+            icon="◎"
+            title="Contract Completeness"
+            value={display.completenessValue}
+            subtitle={display.completenessLabel}
+            progress={display.completenessValue === "Not reported" ? 0 : 0}
+            tone="blue"
+          />
+          <div className="mission-target-lint">
+            <div className="mission-target-mini-title">
+              <span>⚠</span>
+              <strong>Lint Status</strong>
             </div>
-          ))}
+            <div className="mission-target-lint-row mission-target-lint-error">
+              <span>✖</span>
+              <strong>{display.lintErrors}</strong>
+              <small>Errors</small>
+            </div>
+            <div className="mission-target-lint-row mission-target-lint-warning">
+              <span>▲</span>
+              <strong>{display.lintWarnings}</strong>
+              <small>Warnings</small>
+            </div>
+            <div className="mission-target-lint-row mission-target-lint-pass">
+              <span>✔</span>
+              <strong>{display.lintPassed}</strong>
+              <small>Checks Passed</small>
+            </div>
+            <em>Validation report: {display.evidence.lastValidation}</em>
+          </div>
+          <div className="mission-target-load">
+            <div className="mission-target-mini-title">
+              <span>▤</span>
+              <strong>Load Core Posture</strong>
+            </div>
+            <LoadRow label="Data Products" value={display.loadDataProducts} percent={90} />
+            <LoadRow label="Scenarios" value={display.loadScenarios} percent={82} />
+            <LoadRow label="Commands" value={display.loadCommands} percent={88} />
+          </div>
         </div>
       </section>
 
-      <section className="cockpit-attention-strip" aria-label="Attention strip">
-        <div className="cockpit-attention-counters">
-          {attentionCounters.map((item) => (
-            <span
-              className={`cockpit-attention-counter cockpit-attention-${item.state}`}
-              key={item.label}
-            >
-              {item.label} <strong>{item.value}</strong>
-            </span>
-          ))}
-        </div>
-        <div className="cockpit-attention-chips">
-          {attentionChips.length > 0 ? (
-            attentionChips.map((item) => (
-              <span
-                className={`cockpit-attention-chip cockpit-attention-${item.state}`}
-                key={`${item.label}-${item.title}`}
-                title={item.title}
-              >
-                {item.label}
-              </span>
-            ))
-          ) : (
-            <span className="cockpit-attention-chip cockpit-attention-reported">CLEAR</span>
-          )}
+      <section className="mission-target-quick" aria-label="Mission Quick Stats">
+        <h3>Mission Quick Stats</h3>
+        <div className="mission-target-quick-grid">
+          <QuickStat
+            icon="⌘"
+            label="Spacecraft"
+            value={display.spacecraftCount}
+            detail={display.spacecraftCount === "not reported" ? "entity not reported" : "entity loaded"}
+          />
+          <QuickStat
+            icon="▣"
+            label="Payloads"
+            value={display.payloadCount}
+            detail={display.payloadCount === "not reported" ? "inventory not reported" : "payload records loaded"}
+          />
+          <QuickStat
+            icon="▤"
+            label="Data Products"
+            value={display.dataProductValue}
+            detail={display.dataProductCoverage}
+          />
+          <QuickStat
+            icon="∿"
+            label="Scenarios"
+            value={display.scenarioValue}
+            detail={display.scenarioCoverage}
+          />
+          <QuickStat
+            icon="⌁"
+            label="Downlink Windows"
+            value={display.downlinkWindows}
+            detail={display.downlinkWindows === "not reported" ? "downlink not reported" : "windows detected"}
+          />
+          <QuickStat
+            icon="◎"
+            label="Contacts"
+            value={display.contacts}
+            detail={display.contacts === "not reported" ? "contacts not reported" : "contact evidence loaded"}
+          />
+          <QuickStat
+            icon="▷"
+            label="Commands Modeled"
+            value={display.commandValue}
+            detail={display.commandCoverage}
+          />
         </div>
       </section>
-      </div>
+
+      <section className="mission-target-domain-grid" aria-label="Mission domain cards">
+        <SpacecraftCard
+          display={display}
+          onOpen={() => onNavigate("model-inventory", "spacecraft")}
+        />
+        <PayloadsCard
+          display={display}
+          onOpen={() => onNavigate("model-inventory", "payloads")}
+        />
+        <DataProductsCard
+          display={display}
+          onOpen={() => onNavigate("model-inventory", "data-products")}
+        />
+        <ScenariosCard
+          display={display}
+          onOpen={() => onNavigate("scenario-evidence", "scenarios")}
+        />
+      </section>
+
+      <section className="mission-target-bottom-grid" aria-label="Generated artifacts and evidence">
+        <GeneratedArtifactsCard
+          display={display}
+          onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
+        />
+        <WarningsCard
+          display={display}
+          warnings={missionContent.warnings}
+          onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
+        />
+        <EvidenceCard
+          display={display}
+          onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
+        />
+      </section>
     </section>
   );
 }
 
-function SeverityBar({
-  label,
-  value,
-  max,
-  state,
-}: {
-  label: string;
-  value: number;
-  max: number;
-  state: CockpitSignalState;
-}) {
-  const width = max > 0 ? clampPercent((value / max) * 100) : 0;
+function createReferenceDisplayModel(
+  model: MissionContentViewModel,
+  entityIndex: CoreEntityIndex | null,
+  generatedArtifactClasses: GeneratedArtifactClassPresence | null,
+): ReferenceDisplayModel {
+  const coreLoaded = model.evidence.items.some((item) => item.key !== "workspace" && item.available);
+  const workspaceTitle = titleFromWorkspaceName(model.mission.workspaceName);
+  const missionName =
+    model.mission.name && model.mission.name !== "OrbitFabric mission workspace"
+      ? model.mission.name
+      : workspaceTitle;
+  const missionId =
+    model.mission.id && model.mission.id !== model.mission.workspaceName
+      ? model.mission.id
+      : "not reported";
+  const validation = model.support.validation;
+  const lintReported =
+    validation.errors !== null || validation.warnings !== null || validation.info !== null;
+  const dataProductCoverage = model.dataProducts.coverage.percent;
+  const scenarioRunsReported = model.scenarios.passed !== null || model.scenarios.failed !== null;
+  const scenarioPassed = model.scenarios.passed ?? null;
+  const scenarioFailed = model.scenarios.failed ?? null;
+  const scenarioTotal = scenarioRunsReported
+    ? (model.scenarios.passed ?? 0) + (model.scenarios.failed ?? 0)
+    : null;
+  const contactWindows = uniqueContactWindows(model.dataProducts.observedProducts);
+  const downlinkFlows = uniqueDownlinkFlows(model.dataProducts.observedProducts);
+  const spacecraftEntity = model.spacecraft.items[0] ?? null;
+  const downlinkFlowCount = entityDomainCount(entityIndex, ["downlink_flows"]);
+  const contactWindowCount = entityDomainCount(entityIndex, ["contact_windows"]);
+  const commandModeledCount = entityDomainCount(entityIndex, ["commands"]) ?? model.commandability.total;
+  const commandCoverageDetail =
+    model.commandability.covered !== null && model.commandability.total !== null
+      ? `${model.commandability.covered}/${model.commandability.total} covered`
+      : "coverage not reported";
+  const selectedDataProduct = selectDataProductFlowTarget(model.dataProducts);
 
+  return {
+    ...emptyReferenceDisplay,
+    coreLoaded,
+    missionName,
+    description: coreLoaded
+      ? "End-to-end mission data contract overview for payload, downlink, autonomy, generated artifacts, and scenario evidence."
+      : emptyReferenceDisplay.description,
+    missionId,
+    phase: "not reported",
+    owner: "not reported",
+    updated: "not reported",
+    healthValue: "Not reported",
+    healthLabel: "Core metric not available",
+    completenessValue: "Not reported",
+    completenessLabel: "Core metric not available",
+    lintErrors: lintReported ? String(validation.errors ?? 0) : "not reported",
+    lintWarnings: lintReported ? String(validation.warnings ?? 0) : "not reported",
+    lintPassed: lintReported ? String(validation.info ?? 0) : "not reported",
+    loadDataProducts:
+      model.dataProducts.coverage.covered !== null && model.dataProducts.coverage.total !== null
+        ? `${model.dataProducts.coverage.covered} / ${model.dataProducts.coverage.total}`
+        : "not reported",
+    loadScenarios:
+      scenarioTotal !== null && scenarioPassed !== null
+        ? `${scenarioPassed} / ${scenarioTotal}`
+        : "not reported",
+    loadCommands:
+      model.commandability.covered !== null && model.commandability.total !== null
+        ? `${model.commandability.covered} / ${model.commandability.total}`
+        : "not reported",
+    spacecraftCount: entityCountLabel(model.spacecraft),
+    payloadCount: entityCountLabel(model.payloads),
+    dataProductValue:
+      model.dataProducts.coverage.covered !== null && model.dataProducts.coverage.total !== null
+        ? `${model.dataProducts.coverage.covered} / ${model.dataProducts.coverage.total}`
+        : entityCountLabel(model.dataProducts),
+    dataProductCoverage:
+      dataProductCoverage !== null ? `${dataProductCoverage}% Coverage` : "coverage not reported",
+    scenarioValue:
+      scenarioTotal !== null && scenarioPassed !== null
+        ? `${scenarioPassed} / ${scenarioTotal}`
+        : String(model.scenarios.sourceCount),
+    scenarioCoverage:
+      scenarioTotal !== null && scenarioPassed !== null
+        ? `${Math.round((scenarioPassed / Math.max(scenarioTotal, 1)) * 100)}% Covered`
+        : `${model.scenarios.sourceCount} scenario sources`,
+    downlinkWindows:
+      downlinkFlowCount !== null
+        ? String(downlinkFlowCount)
+        : downlinkFlows.length > 0
+          ? String(downlinkFlows.length)
+          : "not reported",
+    contacts:
+      contactWindowCount !== null
+        ? String(contactWindowCount)
+        : contactWindows.length > 0
+          ? String(contactWindows.length)
+          : "not reported",
+    commandValue: commandModeledCount !== null ? String(commandModeledCount) : "not reported",
+    commandCoverage: commandCoverageDetail,
+    spacecraftRows: [
+      ["Bus", spacecraftEntity?.label ?? "not reported"],
+      ["Configuration", spacecraftEntity?.entityType ?? "not reported"],
+      ["Mass", "not reported"],
+      ["Power (EOL)", "not reported"],
+      ["Modes", "not reported"],
+    ],
+    payloadRows:
+      model.payloads.items.length > 0
+        ? model.payloads.items.slice(0, 3).map((item) => [item.label, "MODELED"] as [string, string])
+        : emptyReferenceDisplay.payloadRows,
+    dataProductRows: {
+      coverage: dataProductCoverage !== null ? `${dataProductCoverage}%` : "not reported",
+      coveragePercent: dataProductCoverage ?? 0,
+      producers: formatRelationship(model.dataProducts.producedBy),
+      producerName: model.dataProducts.observedProducts[0]?.producer ?? "not reported",
+      targetName: selectedDataProduct.targetName,
+      targetExtra: selectedDataProduct.targetExtra,
+      downlink: formatRelationship(model.dataProducts.downlinkLinked),
+    },
+    scenarioRows:
+      model.scenarios.items.length > 0
+        ? model.scenarios.items.slice(0, 3).map((item) => [
+            item.label,
+            scenarioStatusLabel(item.result),
+            item.reportFile ? "reported" : "source only",
+          ] as [string, string, string])
+        : emptyReferenceDisplay.scenarioRows,
+    artifactTiles: [
+      ["Docs", artifactPresenceLabel(generatedArtifactClasses?.docs, model.generatedArtifacts.docs), "Generated docs"],
+      ["Reports", artifactPresenceLabel(generatedArtifactClasses?.reports, model.generatedArtifacts.reports), "Generated reports"],
+      ["Runtime", artifactPresenceLabel(generatedArtifactClasses?.runtime, model.generatedArtifacts.runtime), "C++17 runtime"],
+      ["Ground", artifactPresenceLabel(generatedArtifactClasses?.ground, model.generatedArtifacts.ground), "Ground artifacts"],
+      ["Warnings", formatNullableNumber(model.generatedArtifacts.warnings), "Artifact warnings"],
+    ],
+    warningRows:
+      model.warnings.length > 0
+        ? model.warnings.slice(0, 3).map((warning, index) => [
+            warning.severity === "critical" ? "HIGH" : index === 0 ? "MEDIUM" : "LOW",
+            warning.title,
+            warning.detail,
+            warning.source,
+          ] as [string, string, string, string])
+        : emptyReferenceDisplay.warningRows,
+    evidence: {
+      status: coreLoaded ? (model.warnings.length > 0 ? "Review" : "Good") : "Load Core",
+      validation: validation.result ?? "not reported",
+      passed: lintReported ? `${validation.info ?? 0} Info` : "not reported",
+      warning: lintReported ? `${validation.warnings ?? 0} Warnings` : "not reported",
+      failed: lintReported ? `${validation.errors ?? 0} Errors` : "not reported",
+      traceCoverage:
+        model.support.expectationCoverage.percent !== null
+          ? `${model.support.expectationCoverage.percent}%`
+          : "not reported",
+      traceCoveragePercent: model.support.expectationCoverage.percent ?? 0,
+      requirements:
+        model.support.relationships.total !== null
+          ? `${model.support.relationships.total} relationships`
+          : "not reported",
+      requirementsPercent: model.support.relationships.total !== null ? 100 : 0,
+      lastValidation: coreLoaded ? "loaded" : "not reported",
+    },
+  };
+}
+
+function MissionPatch() {
   return (
-    <div className={`cockpit-severity-row cockpit-severity-${state}`}>
-      <span>{label}</span>
-      <div aria-hidden="true">
-        <i style={{ width: `${width}%` }} />
+    <div className="mission-target-patch" aria-label="Reference mission patch">
+      <img
+        src={missionOverviewPatch}
+        alt="Reference mission patch"
+        className="mission-target-patch-image"
+      />
+    </div>
+  );
+}
+
+function PostureBlock({
+  icon,
+  title,
+  value,
+  subtitle,
+  progress,
+  tone,
+}: {
+  icon: string;
+  title: string;
+  value: string;
+  subtitle: string;
+  progress: number;
+  tone: "green" | "blue";
+}) {
+  return (
+    <article className={`mission-target-posture-block mission-target-posture-${tone}`}>
+      <div className="mission-target-posture-title">
+        <span>{icon}</span>
+        <strong>{title}</strong>
       </div>
+      <b>{value}</b>
+      <small>{subtitle}</small>
+      <Progress percent={progress} />
+    </article>
+  );
+}
+
+function LoadRow({ label, value, percent }: { label: string; value: string; percent: number }) {
+  return (
+    <div className="mission-target-load-row">
+      <span>{label}</span>
+      <Progress percent={percent} />
       <strong>{value}</strong>
     </div>
   );
 }
 
-function GaugeRow({ gauge }: { gauge: GaugeModel }) {
+function QuickStat({ icon, label, value, detail }: { icon: string; label: string; value: string; detail: string }) {
+  const isUnavailable =
+    value.toLowerCase().includes("not reported") || detail.toLowerCase().includes("not reported");
+  const hasEvidence = !isUnavailable && !value.toLowerCase().includes("not loaded");
+
   return (
-    <div className="cockpit-gauge-row" title={gauge.title}>
-      <span>{gauge.label}</span>
-      <div aria-hidden="true">
-        <i style={{ width: `${gauge.percent ?? 0}%` }} />
+    <article
+      className={[
+        "mission-target-quick-stat",
+        isUnavailable ? "mission-target-quick-stat-muted" : "",
+        hasEvidence ? "mission-target-quick-stat-evidence" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <span className="mission-target-quick-icon" aria-hidden="true">{icon}</span>
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+        <small>{detail}</small>
       </div>
-      <strong>{gauge.value}</strong>
+    </article>
+  );
+}
+
+function TargetCard({
+  title,
+  value,
+  action,
+  onOpen,
+  children,
+  className,
+}: {
+  title: string;
+  value?: string;
+  action?: string;
+  onOpen?: () => void;
+  children: ReactNode;
+  className?: string;
+}) {
+  const isValueUnavailable = value?.toLowerCase().includes("not reported") ?? false;
+
+  return (
+    <article className={["mission-target-card", className].filter(Boolean).join(" ")}>
+      <header className="mission-target-card-header">
+        <h3>{title}</h3>
+        <div title={action}>
+          {value ? (
+            <strong className={isValueUnavailable ? "mission-target-card-status-muted" : undefined}>
+              {value}
+            </strong>
+          ) : null}
+        </div>
+      </header>
+      {children}
+    </article>
+  );
+}
+
+function SpacecraftCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  return (
+    <TargetCard
+      title="Spacecraft"
+      value={display.spacecraftCount}
+      action="View Spacecraft"
+      onOpen={onOpen}
+      className="mission-target-spacecraft-card"
+    >
+      <div className="mission-target-card-body">
+        <div className="mission-target-spacecraft-body">
+          <dl className="mission-target-detail-list">
+            {display.spacecraftRows.map(([label, value]) => (
+              <MetaDefinition label={label} value={value} key={label} />
+            ))}
+          </dl>
+          <div
+            aria-hidden="true"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flex: "0 0 152px",
+              minWidth: "152px",
+              paddingInlineStart: "12px",
+            }}
+          >
+            <img
+              src={spacecraftCardIllustration}
+              alt=""
+              style={{
+                display: "block",
+                width: "132px",
+                maxWidth: "100%",
+                height: "auto",
+                objectFit: "contain",
+                opacity: 0.96,
+                filter: "drop-shadow(0 10px 22px rgba(0, 209, 255, 0.18))",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Spacecraft</button>
+    </TargetCard>
+  );
+}
+
+function PayloadsCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  const inventoryUnavailable =
+    display.payloadRows.length === 1 &&
+    display.payloadRows[0][1].toLowerCase().includes("not");
+
+  return (
+    <TargetCard
+      title="Payloads"
+      value={display.payloadCount}
+      action="View Payloads"
+      onOpen={onOpen}
+      className="mission-target-payloads-card"
+    >
+      <div className="mission-target-card-body">
+        {inventoryUnavailable ? (
+          <div className="mission-target-empty-state mission-target-payload-empty">
+            <span aria-hidden="true">▣</span>
+            <div>
+              <strong>Payload inventory not loaded</strong>
+              <small>Load Core evidence to inspect modeled payload records.</small>
+            </div>
+          </div>
+        ) : (
+          <ul className="mission-target-payload-list">
+            {display.payloadRows.map(([name, status]) => (
+              <li key={name}>
+                <span>{name}</span>
+                <strong>{status}</strong>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Payloads</button>
+    </TargetCard>
+  );
+}
+
+function DataProductsCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  return (
+    <TargetCard
+      title="Data Products"
+      value={display.dataProductValue}
+      action="View Data Products"
+      onOpen={onOpen}
+      className="mission-target-data-products-card"
+    >
+      <div className="mission-target-card-body">
+        <MetricLine label="Coverage" value={display.dataProductRows.coverage} percent={display.dataProductRows.coveragePercent} />
+        <div className="mission-target-data-product-grid">
+          <div>
+            <span>Producers</span>
+            <strong>{display.dataProductRows.producers}</strong>
+          </div>
+          <div>
+            <span>Downlink Linkage</span>
+            <strong>{display.dataProductRows.downlink}</strong>
+          </div>
+        </div>
+        <div className="mission-target-flow">
+          <span>{display.dataProductRows.producerName}</span>
+          <i aria-hidden="true">→</i>
+          <strong>{display.dataProductRows.targetName}</strong>
+          {display.dataProductRows.targetExtra ? <small>{display.dataProductRows.targetExtra}</small> : null}
+        </div>
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Data Products</button>
+    </TargetCard>
+  );
+}
+
+function ScenariosCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  const runEvidenceReported = display.scenarioCoverage.toLowerCase().includes("covered");
+  const sourceSummary = runEvidenceReported ? display.scenarioValue : display.scenarioCoverage;
+  const runSummary = runEvidenceReported ? display.scenarioCoverage : "run evidence not reported";
+
+  return (
+    <TargetCard
+      title="Scenarios"
+      value={display.scenarioValue}
+      action="View Scenarios"
+      onOpen={onOpen}
+      className="mission-target-scenarios-card"
+    >
+      <div className="mission-target-card-body">
+        <div className="mission-target-scenario-metadata">
+          <span>Sources</span>
+          <strong>{sourceSummary}</strong>
+          <span>Run Evidence</span>
+          <strong>{runSummary}</strong>
+        </div>
+        <ul className="mission-target-scenario-list">
+          {display.scenarioRows.map(([name, status, time]) => (
+            <li key={name}>
+              <span>{name}</span>
+              <strong className={`mission-target-scenario-status mission-target-scenario-status-${status.toLowerCase().replace(/\s+/g, "-")}`}>
+                {status}
+              </strong>
+              <small>{time}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>View Scenarios</button>
+    </TargetCard>
+  );
+}
+
+function GeneratedArtifactsCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  return (
+    <article className="mission-target-card mission-target-artifacts">
+      <header className="mission-target-card-header">
+        <h3>Generated Artifacts</h3>
+      </header>
+      <div className="mission-target-card-body">
+        <div className="mission-target-artifact-grid">
+          {display.artifactTiles.map(([label, value, detail]) => (
+            <div key={label}>
+              <i aria-hidden="true">{artifactIcon(label)}</i>
+              <span>{label}</span>
+              <strong>{value}</strong>
+              <small>{detail}</small>
+            </div>
+          ))}
+        </div>
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>Open Artifacts Folder</button>
+    </article>
+  );
+}
+
+function WarningsCard({
+  display,
+  warnings,
+  onOpen,
+}: {
+  display: ReferenceDisplayModel;
+  warnings: MissionContentWarning[];
+  onOpen: () => void;
+}) {
+  const warningCount = warnings.length;
+  const hasReportedWarnings = warningCount > 0;
+
+  return (
+    <article
+      className={[
+        "mission-target-card",
+        "mission-target-warnings",
+        hasReportedWarnings ? "" : "mission-target-warnings-empty",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <header className="mission-target-card-header">
+        <h3>Warnings</h3>
+        <strong>{hasReportedWarnings ? String(warningCount) : "Load Core"}</strong>
+      </header>
+      <div className="mission-target-card-body">
+        <ul>
+          {display.warningRows.map(([level, title, detail, time]) => (
+            <li key={`${level}:${title}`}>
+              <small>{level}</small>
+              <div>
+                <strong>{title}</strong>
+                <span>{detail}</span>
+              </div>
+              <em>{time}</em>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>
+        {hasReportedWarnings ? "Review Warning Artifacts →" : "Review Warning Evidence →"}
+      </button>
+    </article>
+  );
+}
+
+function EvidenceCard({ display, onOpen }: { display: ReferenceDisplayModel; onOpen: () => void }) {
+  const evidenceUnavailable = display.evidence.status.toLowerCase().includes("load");
+
+  return (
+    <article
+      className={[
+        "mission-target-card",
+        "mission-target-evidence",
+        evidenceUnavailable ? "mission-target-evidence-empty" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <header className="mission-target-card-header">
+        <h3>Evidence Posture</h3>
+        <strong>{display.evidence.status}</strong>
+      </header>
+      <div className="mission-target-card-body">
+        <div className="mission-target-evidence-validation">
+          <span>Validation</span>
+          <strong>{display.evidence.validation}</strong>
+          <small>{display.evidence.warning}</small>
+          <em>{display.evidence.failed}</em>
+        </div>
+        <MetricLine label="Trace Coverage" value={display.evidence.traceCoverage} percent={display.evidence.traceCoveragePercent} />
+        <MetricLine label="Relationships Indexed" value={display.evidence.requirements} percent={display.evidence.requirementsPercent} />
+        <div className="mission-target-last-validation">
+          <span>Validation report</span>
+          <strong>{display.evidence.lastValidation}</strong>
+        </div>
+      </div>
+      <button type="button" className="mission-target-card-footer-button" onClick={onOpen}>Open Generated Reports +</button>
+    </article>
+  );
+}
+
+function MetricLine({ label, value, percent }: { label: string; value: string; percent: number }) {
+  return (
+    <div className="mission-target-metric-line">
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <Progress percent={percent} />
     </div>
   );
 }
 
-function RadarNode({
-  label,
-  value,
-  active,
-}: {
-  label: string;
-  value: number;
-  active: boolean;
-}) {
+function Progress({ percent }: { percent: number }) {
   return (
-    <div className={`cockpit-radar-node ${active ? "cockpit-radar-node-active" : ""}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <div className="mission-target-progress" aria-hidden="true">
+      <span style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
     </div>
   );
+}
+
+function MetaDefinition({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  );
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <article>
+      <span>{label}</span>
+      <strong title={value}>{value}</strong>
+    </article>
+  );
+}
+
+
+function titleFromWorkspaceName(workspaceName: string): string {
+  if (!workspaceName || workspaceName === "No workspace") {
+    return "Mission workspace";
+  }
+
+  return workspaceName
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => {
+      if (/^\d+u$/i.test(part)) {
+        return part.toUpperCase();
+      }
+
+      if (part.toLowerCase() === "eo") {
+        return "EO";
+      }
+
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    })
+    .join(" ");
+}
+
+function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
+  return {
+    lintReport: null,
+    modelSummary: null,
+    entityIndex: null,
+    dashboardSummary: null,
+    scenarioRunIndex: null,
+    coverageSummary: null,
+    simulationReport: null,
+  };
+}
+
+async function readExistingCoreReports(workspacePath: string): Promise<ExistingCoreReportContents> {
+  const readFirstAvailableReport = async (relativePaths: string[]): Promise<string | null> => {
+    for (const relativePath of relativePaths) {
+      try {
+        const file = await invoke<{ content: string }>("read_text_file", {
+          workspacePath,
+          filePath: joinWorkspacePath(workspacePath, "generated", "reports", ...relativePath.split("/")),
+        });
+
+        return file.content;
+      } catch {
+        continue;
+      }
+    }
+
+    return null;
+  };
+
+  return {
+    lintReport: await readFirstAvailableReport([
+      "lint_report.json",
+      "orbitfabric_studio_lint_report.json",
+    ]),
+    modelSummary: await readFirstAvailableReport([
+      "model_summary.json",
+      "orbitfabric_studio_model_summary.json",
+    ]),
+    entityIndex: await readFirstAvailableReport([
+      "entity_index.json",
+      "orbitfabric_studio_entity_index.json",
+    ]),
+    relationshipManifest: await readFirstAvailableReport([
+      "relationship_manifest.json",
+      "orbitfabric_studio_relationship_manifest.json",
+    ]),
+    dashboardSummary: await readFirstAvailableReport([
+      "dashboard_summary.json",
+      "orbitfabric_studio_dashboard_summary.json",
+    ]),
+    scenarioRunIndex: await readFirstAvailableReport([
+      "scenario_run_index.json",
+      "orbitfabric_studio_scenario_run_index.json",
+    ]),
+    coverageSummary: await readFirstAvailableReport([
+      "coverage_summary.json",
+      "orbitfabric_studio_coverage_summary.json",
+    ]),
+    simulationReport: await readFirstAvailableReport([
+      "nominal_payload_acquisition_report.json",
+      "delayed_sband_downlink_backlog_pending_report.json",
+      "eclipse_low_power_payload_suspension_report.json",
+      "adcs_degraded_pointing_payload_inhibit_report.json",
+    ]),
+  };
+}
+
+function createCoreReportSnapshotsFromExistingReports(
+  reports: ExistingCoreReportContents,
+): CoreReportSnapshots {
+  return {
+    lintReport: parseCoreLintReport(reports.lintReport),
+    modelSummary: parseCoreModelSummary(reports.modelSummary),
+    entityIndex: parseCoreEntityIndex(reports.entityIndex),
+    dashboardSummary: parseCoreDashboardSummary(reports.dashboardSummary),
+    scenarioRunIndex: parseCoreScenarioRunIndex(reports.scenarioRunIndex),
+    coverageSummary: parseCoreCoverageSummary(reports.coverageSummary),
+    simulationReport: parseCoreSimulationReport(reports.simulationReport),
+  };
+}
+
+function joinWorkspacePath(basePath: string, ...segments: string[]): string {
+  const separator = basePath.includes("\\") ? "\\" : "/";
+  const normalizedBase = basePath.replace(/[\\/]+$/, "");
+  const normalizedSegments = segments.map((segment) => segment.replace(/^[\\/]+|[\\/]+$/g, ""));
+
+  return [normalizedBase, ...normalizedSegments].filter(Boolean).join(separator);
+}
+
+function toGeneratedArtifactDashboardSummary(
+  inventory: GeneratedArtifactInventory,
+): GeneratedArtifactDashboardSummary {
+  return {
+    generatedDir: inventory.generated_dir,
+    totalArtifacts: inventory.counts.total_artifacts,
+    knownArtifacts: inventory.counts.known_artifacts,
+    unknownArtifacts: inventory.counts.unknown_artifacts,
+    previewableArtifacts: inventory.counts.previewable_artifacts,
+    notPreviewableArtifacts: inventory.counts.not_previewable_artifacts,
+    warningCount: inventory.warnings.length,
+  };
+}
+
+function toGeneratedArtifactClassPresence(
+  inventory: GeneratedArtifactInventory,
+): GeneratedArtifactClassPresence {
+  return {
+    docs: inventory.artifacts.some((artifact) => artifact.artifact_class === "docs"),
+    reports: inventory.artifacts.some((artifact) => artifact.artifact_class === "reports"),
+    runtime: inventory.artifacts.some((artifact) => artifact.artifact_class === "runtime"),
+    ground: inventory.artifacts.some((artifact) => artifact.artifact_class === "ground"),
+  };
+}
+
+function entityDomainCount(entityIndex: CoreEntityIndex | null, domainIds: string[]): number | null {
+  if (!entityIndex) {
+    return null;
+  }
+
+  for (const domainId of domainIds) {
+    const count = entityIndex.counts.domains[domainId];
+
+    if (typeof count === "number") {
+      return count;
+    }
+  }
+
+  return null;
+}
+
+function artifactPresenceLabel(
+  detectedByInventory: boolean | undefined,
+  detectedByWorkspace: number | null,
+): string {
+  if (detectedByInventory || detectedByWorkspace !== null) {
+    return "detected";
+  }
+
+  return "not reported";
+}
+
+function entityCountLabel(group: MissionContentEntityGroup): string {
+  return group.items.length > 0 ? String(group.items.length) : "not reported";
+}
+
+
+function selectDataProductFlowTarget(dataProducts: MissionContentDataProductGroup): {
+  targetName: string;
+  targetExtra: string | null;
+} {
+  const observedId = dataProducts.observedProducts[0]?.id ?? null;
+  const matchingObservedEntity = observedId
+    ? dataProducts.items.find((item) => item.id === observedId)
+    : null;
+  const targetName =
+    matchingObservedEntity?.label ??
+    observedId ??
+    dataProducts.items[0]?.label ??
+    "data product not resolved";
+
+  const totalProducts =
+    dataProducts.coverage.total ??
+    dataProducts.count ??
+    dataProducts.items.length;
+  const targetResolved = targetName !== "data product not resolved";
+  const remainingProducts = targetResolved
+    ? Math.max(0, totalProducts - 1)
+    : 0;
+
+  return {
+    targetName,
+    targetExtra: remainingProducts > 0 ? `+${remainingProducts}` : null,
+  };
+}
+
+function uniqueContactWindows(products: MissionContentDataProductGroup["observedProducts"]): string[] {
+  return [...new Set(products.flatMap((product) => product.contactWindows))];
+}
+
+function uniqueDownlinkFlows(products: MissionContentDataProductGroup["observedProducts"]): string[] {
+  return [...new Set(products.flatMap((product) => product.downlinkFlows))];
+}
+
+function formatRelationship(value: { covered: number | null; total: number | null }): string {
+  if (value.covered !== null && value.total !== null) {
+    return `${value.covered} / ${value.total}`;
+  }
+
+  if (value.total !== null) {
+    return String(value.total);
+  }
+
+  return "not reported";
+}
+
+function scenarioStatusLabel(result: string): string {
+  const normalized = result.toLowerCase().replace(/[_-]+/g, " ");
+
+  if (normalized.includes("not") && normalized.includes("run")) {
+    return "NOT RUN";
+  }
+
+  if (normalized.includes("source")) {
+    return "SOURCE";
+  }
+
+  if (normalized.includes("pass")) {
+    return "PASSED";
+  }
+
+  if (normalized.includes("fail")) {
+    return "FAILED";
+  }
+
+  if (normalized.includes("running") || normalized.includes("progress")) {
+    return "RUNNING";
+  }
+
+  return "NOT RUN";
+}
+
+function artifactLocationLabel(value: number | null): string {
+  if (value === null) {
+    return "not reported";
+  }
+
+  return value > 0 ? "detected" : "not detected";
+}
+
+function formatNullableNumber(value: number | null): string {
+  return value === null ? "not reported" : String(value);
+}
+
+function artifactIcon(label: string): string {
+  switch (label) {
+    case "Docs":
+      return "▤";
+    case "Reports":
+      return "▥";
+    case "Runtime":
+      return "</>";
+    case "Ground":
+      return "⌁";
+    case "Warnings":
+      return "⚠";
+    default:
+      return "•";
+  }
+}
+
+
+function formatDisplayNumber(value: number | string): string {
+  return String(value);
 }

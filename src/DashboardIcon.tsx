@@ -13,6 +13,7 @@ export function DashboardIcon({ kind }: { kind: DashboardIconKind }) {
     evidence: "M5 5h14v10H8l-3 3z M8 9h8 M8 12h6",
     shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z",
     core: "M8 9h8 M8 15h8 M5 6h14v12H5z",
+    "core-report-runner": "M5 5h14v14H5V5z M8 9l3 3-3 3 M13 15h4",
     contracts: "M7 4h10v16H7z M9 8h6 M9 12h6 M9 16h4",
     relationships: "M6 7a2 2 0 1 0 0.1 0 M18 7a2 2 0 1 0 0.1 0 M12 17a2 2 0 1 0 0.1 0 M8 8l3 7 M16 8l-3 7 M8 7h8",
     reports: "M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5",

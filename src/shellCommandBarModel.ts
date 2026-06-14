@@ -2,15 +2,16 @@ import type { ActiveSurface, NavigationItemStatus } from "./navigationModel";
 
 export type ShellCommandBarActionId =
   | "validate-mission"
-  | "inspect-data-flow"
-  | "inspect-scenarios"
-  | "inspect-artifacts"
-  | "inspect-model";
+  | "run-scenarios"
+  | "generate-docs"
+  | "generate-runtime-skeleton"
+  | "generate-ground-artifacts";
 
 export interface ShellCommandBarAction {
   id: ShellCommandBarActionId;
   label: string;
   shortLabel: string;
+  icon: string;
   targetSurface: ActiveSurface;
   status: NavigationItemStatus;
   requiredWorkspaceState: "workspace" | "mission";
@@ -20,53 +21,47 @@ export interface ShellCommandBarAction {
 export const shellCommandBarActions: readonly ShellCommandBarAction[] = [
   {
     id: "validate-mission",
-    label: "Refresh Core-derived Reports",
-    shortLabel: "Refresh Core",
+    label: "Inspect Core Reports",
+    shortLabel: "Core",
+    icon: "▣",
     targetSurface: "core-commands",
     status: "diagnostic",
     requiredWorkspaceState: "mission",
     description:
-      "Open the controlled Core diagnostic surface for fixed validation and report refresh actions. Studio does not modify Mission Model source files.",
+      "Open the Core Report Runner for fixed Core-owned report actions. Studio does not expose a shell and does not modify Mission Model source files.",
   },
   {
-    id: "inspect-data-flow",
-    label: "Inspect Data Flow",
-    shortLabel: "Data Flow",
-    targetSurface: "mission-data-flow-workbench",
-    status: "available",
-    requiredWorkspaceState: "workspace",
-    description:
-      "Open the read-only Mission Data Flow Workbench. Studio renders Core-reported relationships and evidence without private inference.",
-  },
-  {
-    id: "inspect-scenarios",
-    label: "Inspect Scenarios",
+    id: "run-scenarios",
+    label: "Inspect Scenario Evidence",
     shortLabel: "Scenarios",
+    icon: "▷",
     targetSurface: "scenario-evidence",
     status: "available",
     requiredWorkspaceState: "workspace",
     description:
-      "Open the scenario evidence surface. Scenario execution remains limited to the fixed Core wrapper.",
+      "Open the scenario evidence cockpit. Any scenario execution remains limited to fixed Core wrappers.",
   },
   {
-    id: "inspect-artifacts",
-    label: "Inspect Artifacts",
+    id: "generate-docs",
+    label: "Inspect Generated Artifacts",
     shortLabel: "Artifacts",
+    icon: "▤",
     targetSurface: "generated-artifacts",
     status: "available",
     requiredWorkspaceState: "workspace",
     description:
-      "Open the generated artifact explorer for read-only generated output inspection.",
+      "Open generated artifacts for read-only inspection of Core-generated outputs.",
   },
   {
-    id: "inspect-model",
-    label: "Inspect Model",
-    shortLabel: "Model",
-    targetSurface: "model-inventory",
+    id: "generate-runtime-skeleton",
+    label: "Inspect Runtime Artifacts",
+    shortLabel: "Runtime",
+    icon: "</>",
+    targetSurface: "generated-artifacts",
     status: "available",
     requiredWorkspaceState: "workspace",
     description:
-      "Open the structural model inventory. Studio does not parse Mission Model YAML semantically.",
+      "Open generated artifacts and inspect runtime-facing outputs when Core reports them.",
   },
 ] as const;
 

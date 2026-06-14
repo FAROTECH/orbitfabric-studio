@@ -1,4 +1,4 @@
-import type { ActiveSurface } from "./navigationModel";
+import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import type { CoreCommandResult, WorkspaceInspection } from "./types/workspace";
 
 import "./shellStatusBar.css";
@@ -6,86 +6,132 @@ import "./shellStatusBar.css";
 export interface ShellStatusBarProps {
   workspace: WorkspaceInspection | null;
   activeSurface: ActiveSurface;
+  activeNavigationId: TargetDomainId;
   coreResult: CoreCommandResult | null;
 }
 
 export function ShellStatusBar({
   workspace,
   activeSurface,
+  activeNavigationId,
   coreResult,
 }: ShellStatusBarProps) {
-  const workspaceName = workspace?.selected_path
-    ? workspace.selected_path.split(/[\\/]/).filter(Boolean).slice(-1)[0]
-    : "No workspace";
-
-  const missionState = workspace?.mission_dir ? "mission detected" : "mission unavailable";
-  const generatedLocations = workspace?.generated_locations.length ?? 0;
-  const sourceFiles = workspace?.source_model_files.length ?? 0;
-  const scenarioSources = workspace?.scenario_files.length ?? 0;
-  const lastCoreResult = coreResult
+  const workspacePath = workspace?.selected_path ?? "No workspace";
+  const coreCommandState = coreResult
     ? coreResult.success
-      ? "last Core command succeeded"
-      : "last Core command failed"
-    : "no Core command run";
+      ? "OK"
+      : "FAIL"
+    : "Idle";
 
   return (
-    <footer className="shell-status-bar" aria-label="Studio shell status bar">
-      <div className="shell-status-primary">
-        <span className="shell-status-kicker">Mission shell</span>
-        <strong>{workspaceName}</strong>
+    <footer className="shell-status-bar reference-status-bar" aria-label="Studio shell status bar">
+      <div className="reference-status-workspace reference-status-real" title={workspacePath}>
+        <span className="reference-status-dot reference-status-dot-real" aria-hidden="true" />
+        <strong>Workspace</strong>
+        <span>{workspacePath}</span>
       </div>
 
-      <div className="shell-status-strip" aria-label="Workspace status">
-        <ShellStatusItem label="Surface" value={formatActiveSurface(activeSurface)} />
-        <ShellStatusItem label="Mission" value={missionState} />
-        <ShellStatusItem label="Sources" value={`${sourceFiles} source files`} />
-        <ShellStatusItem label="Scenarios" value={`${scenarioSources} scenario files`} />
-        <ShellStatusItem label="Generated" value={`${generatedLocations} locations`} />
-        <ShellStatusItem label="Core" value={lastCoreResult} />
+      <PreviewStatusItem label="Model Version" value="Not wired" />
+      <PreviewStatusItem label="Schema" value="Not wired" />
+
+      <div className="reference-status-item reference-status-preview-item">
+        <span aria-hidden="true">⌁</span>
+        <strong>main</strong>
+        <small>Preview</small>
       </div>
 
-      <div className="shell-status-boundary" aria-label="Studio safety boundary">
-        <span>read-only</span>
-        <span>Core-derived</span>
-        <span>no uplink</span>
-        <span>no live telemetry</span>
+      <div className="reference-status-item reference-status-preview-item">
+        <span aria-hidden="true">▣</span>
+        <strong>Auto-save not wired</strong>
+        <small>Preview</small>
+      </div>
+
+      <div className="reference-status-item reference-status-surface reference-status-real">
+        <span>Surface</span>
+        <strong>{formatActiveSurface(activeSurface, activeNavigationId)}</strong>
+      </div>
+
+      <div className="reference-status-item reference-status-cache reference-status-preview-item">
+        <span aria-hidden="true">▤</span>
+        <strong>Local Cache</strong>
+        <small>Preview</small>
+        <em>{coreCommandState}</em>
+      </div>
+
+      <div className="reference-status-bell reference-status-preview-item" aria-label="Notifications preview">
+        ♢
+        <small>Preview</small>
       </div>
     </footer>
   );
 }
 
-function ShellStatusItem({ label, value }: { label: string; value: string }) {
+function PreviewStatusItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="shell-status-item">
+    <div className="reference-status-item reference-status-preview-item">
       <span>{label}</span>
       <strong>{value}</strong>
+      <small>Preview</small>
     </div>
   );
 }
 
-function formatActiveSurface(activeSurface: ActiveSurface): string {
+function formatActiveSurface(activeSurface: ActiveSurface, activeNavigationId: TargetDomainId): string {
   switch (activeSurface) {
     case "mission-dashboard":
       return "Mission";
     case "model-inventory":
-      return "Model inventory";
+      return formatModelInventorySurface(activeNavigationId);
     case "core-commands":
-      return "Core commands";
+      return "Core Report Runner";
     case "contracts":
       return "Contracts";
     case "relationships":
       return "Relationships";
     case "mission-data-flow-workbench":
-      return "Data Flow Workbench";
+      return "Data Flow";
     case "generated-artifacts":
-      return "Generated artifacts";
+      return "Artifacts";
     case "reports-logs":
-      return "Reports and logs";
+      return "Reports";
     case "scenario-evidence":
       return "Scenarios";
     case "ground-integration":
-      return "Ground artifacts";
+      return "Ground";
     case "raw-output":
-      return "Raw output";
+      return "Raw";
+  }
+}
+
+function formatModelInventorySurface(activeNavigationId: TargetDomainId): string {
+  switch (activeNavigationId) {
+    case "spacecraft":
+      return "Spacecraft";
+    case "subsystems":
+      return "Subsystems";
+    case "modes":
+      return "Modes";
+    case "telemetry":
+      return "Telemetry";
+    case "commands":
+      return "Commands";
+    case "events":
+      return "Events";
+    case "faults":
+      return "Faults";
+    case "packets":
+      return "Packets";
+    case "payloads":
+      return "Payloads";
+    case "data-products":
+      return "Data Products";
+    case "contacts-downlink":
+      return "Contacts & Downlink";
+    case "commandability":
+      return "Commandability";
+    case "autonomy":
+      return "Autonomy";
+    default:
+      return "Model";
   }
 }

@@ -13,13 +13,17 @@ export function ShellCommandActions({
   activeSurface,
   onActiveSurfaceChange,
 }: ShellCommandActionsProps) {
+  if (!workspace) {
+    return null;
+  }
+
   const availability = {
     workspaceAvailable: Boolean(workspace),
     missionAvailable: Boolean(workspace?.mission_dir),
   };
 
   return (
-    <div className="cockpit-command-actions" aria-label="Controlled shell actions">
+    <div className="cockpit-command-actions reference-command-actions" aria-label="Controlled shell actions">
       {shellCommandBarActions.map((action) => {
         const isActive = activeSurface === action.targetSurface;
         const isEnabled =
@@ -30,8 +34,8 @@ export function ShellCommandActions({
         return (
           <button
             type="button"
-            className={`cockpit-command-chip cockpit-command-button ${
-              isActive ? "cockpit-command-button-active" : ""
+            className={`cockpit-command-chip cockpit-command-button reference-command-action ${
+              isActive ? "cockpit-command-button-active reference-command-action-active" : ""
             }`}
             disabled={!isEnabled}
             key={action.id}
@@ -39,6 +43,7 @@ export function ShellCommandActions({
             aria-current={isActive ? "page" : undefined}
             title={action.description}
           >
+            <span aria-hidden="true">{action.icon}</span>
             {action.shortLabel}
           </button>
         );

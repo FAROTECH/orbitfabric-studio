@@ -163,3 +163,350 @@
     min-width: calc(var(--radar-columns) * 128px);
   }
 }
+
+/* Mission shell final sidebar footer clearance pass v13.
+   This file is imported last by main.tsx, so this override wins over the
+   accumulated sidebar rules in missionContentCockpit.css.
+
+   Goal: the visual sidebar must stop above the fixed status bar in both
+   pre-open and post-open states. */
+nav.primary-sidebar.reference-sidebar,
+.workbench-layout-workspace > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+.reference-sidebar {
+  align-self: start !important;
+  height: calc(100vh - 106px) !important;
+  height: calc(100dvh - 106px) !important;
+  max-height: calc(100vh - 106px) !important;
+  max-height: calc(100dvh - 106px) !important;
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
+  overflow: hidden !important;
+}
+
+.reference-sidebar.reference-sidebar-collapsed,
+.workbench-layout-sidebar-collapsed > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-sidebar-collapsed .reference-sidebar {
+  height: calc(100vh - 106px) !important;
+  height: calc(100dvh - 106px) !important;
+  max-height: calc(100vh - 106px) !important;
+  max-height: calc(100dvh - 106px) !important;
+}
+
+.reference-sidebar-nav {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  padding-bottom: 92px !important;
+}
+
+.workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+.workbench-layout-empty .reference-sidebar .reference-sidebar-collapse,
+.reference-sidebar .reference-sidebar-collapse {
+  position: fixed !important;
+  bottom: 43px !important;
+  z-index: 1200 !important;
+}
+
+/* Fallback visual mask: if a browser/viewport still stretches the grid item,
+   hide the sidebar tail behind the fixed status bar without touching the
+   status bar itself. */
+.studio-app-shell::after {
+  content: "" !important;
+  position: fixed !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 292px !important;
+  height: 34px !important;
+  z-index: 990 !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(180deg, rgba(2, 9, 20, 0), rgba(2, 9, 20, 0.98) 34%, rgba(2, 9, 20, 0.98)) !important;
+}
+
+@media (max-width: 1500px), (max-height: 850px) {
+  nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-workspace > nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+  .reference-sidebar,
+  .reference-sidebar.reference-sidebar-collapsed,
+  .workbench-layout-sidebar-collapsed > nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-sidebar-collapsed .reference-sidebar {
+    height: calc(100vh - 102px) !important;
+    height: calc(100dvh - 102px) !important;
+    max-height: calc(100vh - 102px) !important;
+    max-height: calc(100dvh - 102px) !important;
+  }
+
+  .reference-sidebar-nav {
+    padding-bottom: 88px !important;
+  }
+
+  .workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+  .workbench-layout-empty .reference-sidebar .reference-sidebar-collapse,
+  .reference-sidebar .reference-sidebar-collapse {
+    bottom: 39px !important;
+  }
+
+  .studio-app-shell::after {
+    width: 292px !important;
+    height: 31px !important;
+  }
+}
+
+.workbench-layout-sidebar-collapsed .studio-app-shell::after,
+.studio-app-shell:has(.reference-sidebar-collapsed)::after {
+  width: 96px !important;
+}
+
+/* Mission shell final sidebar footer clearance pass v14.
+   Adds a little more air between the sidebar and the fixed status bar. */
+nav.primary-sidebar.reference-sidebar,
+.workbench-layout-workspace > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+.reference-sidebar {
+  height: calc(100vh - 116px) !important;
+  height: calc(100dvh - 116px) !important;
+  max-height: calc(100vh - 116px) !important;
+  max-height: calc(100dvh - 116px) !important;
+}
+
+.reference-sidebar.reference-sidebar-collapsed,
+.workbench-layout-sidebar-collapsed > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-sidebar-collapsed .reference-sidebar {
+  height: calc(100vh - 116px) !important;
+  height: calc(100dvh - 116px) !important;
+  max-height: calc(100vh - 116px) !important;
+  max-height: calc(100dvh - 116px) !important;
+}
+
+.reference-sidebar-nav {
+  padding-bottom: 100px !important;
+}
+
+.workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+.workbench-layout-empty .reference-sidebar .reference-sidebar-collapse,
+.reference-sidebar .reference-sidebar-collapse {
+  bottom: 50px !important;
+}
+
+.studio-app-shell::after {
+  height: 42px !important;
+}
+
+@media (max-width: 1500px), (max-height: 850px) {
+  nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-workspace > nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+  .reference-sidebar,
+  .reference-sidebar.reference-sidebar-collapsed,
+  .workbench-layout-sidebar-collapsed > nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-sidebar-collapsed .reference-sidebar {
+    height: calc(100vh - 112px) !important;
+    height: calc(100dvh - 112px) !important;
+    max-height: calc(100vh - 112px) !important;
+    max-height: calc(100dvh - 112px) !important;
+  }
+
+  .reference-sidebar-nav {
+    padding-bottom: 96px !important;
+  }
+
+  .workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+  .workbench-layout-empty .reference-sidebar .reference-sidebar-collapse,
+  .reference-sidebar .reference-sidebar-collapse {
+    bottom: 46px !important;
+  }
+
+  .studio-app-shell::after {
+    height: 38px !important;
+  }
+}
+
+
+/* Mission shell final sidebar/footer contract v15
+   Imported last. This supersedes the older viewport-based sidebar clearance
+   rules above. The sidebar is now bounded by the workspace row, not by 100vh.
+   It also removes the old pseudo-element bottom mask, which produced the dark
+   bar visible on the empty/home state. */
+.studio-app-shell::after,
+.studio-app-shell:has(.reference-sidebar-collapsed)::after {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.workbench-layout-workspace {
+  height: calc(100vh - 126px) !important;
+  height: calc(100dvh - 126px) !important;
+  max-height: calc(100vh - 126px) !important;
+  max-height: calc(100dvh - 126px) !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  column-gap: 12px !important;
+  grid-template-columns: 278px minmax(0, 1fr) !important;
+}
+
+.workbench-layout-workspace:not(.workbench-layout-dashboard):not(.workbench-layout-core-report-runner) {
+  grid-template-columns: 278px minmax(0, 1fr) minmax(320px, 360px) !important;
+  column-gap: 12px !important;
+}
+
+.workbench-layout-dashboard,
+.workbench-layout-core-report-runner {
+  grid-template-columns: 278px minmax(0, 1fr) !important;
+  column-gap: 12px !important;
+}
+
+.workbench-layout-workspace > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-workspace > .reference-sidebar {
+  grid-column: 1 !important;
+  width: 264px !important;
+  height: calc(100% - 10px) !important;
+  max-height: calc(100% - 10px) !important;
+  min-height: 0 !important;
+  margin: 10px 0 0 14px !important;
+  padding: 10px 0 78px !important;
+  bottom: auto !important;
+  top: auto !important;
+  transform: none !important;
+  align-self: start !important;
+  overflow: hidden !important;
+}
+
+.workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-empty > .reference-sidebar {
+  width: 264px !important;
+  height: calc(100% - 18px) !important;
+  max-height: calc(100% - 18px) !important;
+  min-height: 0 !important;
+  margin: 10px 0 0 14px !important;
+  bottom: auto !important;
+  top: auto !important;
+  transform: none !important;
+  align-self: start !important;
+  overflow: hidden !important;
+}
+
+.reference-sidebar.reference-sidebar-collapsed,
+.workbench-layout-sidebar-collapsed > nav.primary-sidebar.reference-sidebar,
+.workbench-layout-sidebar-collapsed .reference-sidebar {
+  height: calc(100% - 10px) !important;
+  max-height: calc(100% - 10px) !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+.workbench-layout-workspace > .main-surface {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+}
+
+.workbench-layout-workspace:not(.workbench-layout-dashboard):not(.workbench-layout-core-report-runner) > .contextual-inspector,
+.workbench-layout-workspace:not(.workbench-layout-dashboard):not(.workbench-layout-core-report-runner) > .workbench-inspector {
+  grid-column: 3 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+}
+
+.reference-sidebar-nav {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  padding-bottom: 86px !important;
+}
+
+.workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+.workbench-layout-empty .reference-sidebar .reference-sidebar-collapse,
+.reference-sidebar .reference-sidebar-collapse {
+  position: absolute !important;
+  right: 18px !important;
+  bottom: 18px !important;
+  z-index: 20 !important;
+}
+
+@media (max-width: 900px) {
+  .workbench-layout-workspace {
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    grid-template-columns: 1fr !important;
+    column-gap: 0 !important;
+  }
+
+  .workbench-layout-workspace > nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-workspace > .reference-sidebar,
+  .workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+  .workbench-layout-empty > .reference-sidebar {
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    bottom: auto !important;
+  }
+}
+/* Mission shell final sidebar/footer contract v15 END */
+
+
+
+/* Mission shell final polish J
+   Final post-gating visual polish:
+   - Core Report Runner must use the same reserved sidebar column as the other
+     public preview surfaces. Runtime evidence showed it was still resolving to
+     264px + 12px, while the sidebar itself is 264px wide with a 14px left inset.
+   - Mission dashboard content padding is aligned to the public preview standard
+     used by Data Products, Data Flow, Scenarios and Artifacts.
+   - Empty/home workspace fills the remaining shell height now that the status
+     bar is not rendered before a workspace is opened. */
+.workbench-layout.workbench-layout-core-report-runner.workbench-layout-workspace {
+  grid-template-columns: 278px minmax(0, 1fr) !important;
+  column-gap: 12px !important;
+}
+
+.workbench-layout.workbench-layout-core-report-runner.workbench-layout-workspace > .main-surface.main-surface-core-report-runner {
+  grid-column: 2 !important;
+  padding: 12px 14px 10px !important;
+  min-width: 0 !important;
+  max-height: 100% !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-workspace > .main-surface:not(.main-surface-core-report-runner) {
+  padding: 12px 14px 10px !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty {
+  height: calc(100vh - 88px) !important;
+  height: calc(100dvh - 88px) !important;
+  max-height: calc(100vh - 88px) !important;
+  max-height: calc(100dvh - 88px) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  grid-template-columns: 278px minmax(0, 1fr) !important;
+  column-gap: 12px !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty > .main-surface {
+  align-self: stretch !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  padding: 12px 14px 10px !important;
+  overflow: hidden !important;
+}
+
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty > nav.primary-sidebar.reference-sidebar,
+.workbench-layout.workbench-layout-dashboard.workbench-layout-empty > .reference-sidebar {
+  height: calc(100% - 18px) !important;
+  max-height: calc(100% - 18px) !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+/* Mission shell final polish J END */
+
