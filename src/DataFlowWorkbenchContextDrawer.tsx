@@ -91,7 +91,7 @@ export function DataFlowWorkbenchContextDrawer({
             <button type="button" onClick={onOpenFocusMode} title="Open the read-only route workspace for this data-flow path.">
               Open focus mode
             </button>
-            <button type="button" disabled title="Copy ID is not wired in this step.">
+            <button type="button" disabled title="Copy ID is reserved for a later utility refinement.">
               Copy ID
             </button>
             <button type="button" aria-label="Close context drawer" onClick={onClose}>
@@ -131,7 +131,7 @@ export function DataFlowWorkbenchContextDrawer({
           {activeTab === "coverage" ? (
             <DrawerDeferredPanel
               title="Coverage detail"
-              detail="Coverage-specific drawer expansion is not wired in this step. Use the Workbench coverage column for the Core-derived summary."
+              detail="Coverage-specific drawer expansion is reserved. Use the Workbench coverage column for the Core-derived summary."
             />
           ) : null}
 

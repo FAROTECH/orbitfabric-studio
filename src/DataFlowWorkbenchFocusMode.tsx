@@ -166,7 +166,7 @@ export function DataFlowWorkbenchFocusMode({
             </div>
             <div className="mission-data-flow-focus-graph-actions">
               <button type="button" disabled title="Static fit is used in this step.">Fit</button>
-              <button type="button" disabled title="Pan and zoom are not wired in this step.">Pan / zoom</button>
+              <button type="button" disabled title="Pan and zoom are reserved for a later graph refinement.">Pan / zoom</button>
             </div>
           </header>
 

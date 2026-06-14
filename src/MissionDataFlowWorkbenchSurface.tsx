@@ -203,7 +203,7 @@ export function MissionDataFlowWorkbenchSurface({
           <span className="cockpit-eyebrow">MISSION DATA FABRIC</span>
           <h2>Data Flow Workbench</h2>
           <p>
-            Core-derived operational cockpit for relationships, scenario evidence,
+            Core-derived inspection cockpit for relationships, scenario evidence,
             coverage and generated outputs.
           </p>
         </div>
@@ -219,7 +219,7 @@ export function MissionDataFlowWorkbenchSurface({
           <button
             className={`mission-data-flow-kpi mission-data-flow-state-${kpi.state}`}
             key={kpi.id}
-            title={`${kpi.detail}. Navigation not wired in this step.`}
+            title={`${kpi.detail}. Drill-down navigation is reserved for a later refinement.`}
             type="button"
             disabled
           >
