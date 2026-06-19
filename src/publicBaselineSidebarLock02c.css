@@ -1,0 +1,205 @@
+﻿/*
+ * Public Baseline 02c, cross-platform sidebar lock.
+ *
+ * Purpose:
+ * - stabilize the left navigation on Windows/DPI/font rendering;
+ * - prevent icon/label overlap introduced by previous compressed sidebar rules;
+ * - keep this as a shell-only override loaded after the accumulated cockpit CSS.
+ */
+
+:root {
+  --of-sidebar-row-height-02c: 46px;
+  --of-sidebar-icon-size-02c: 28px;
+  --of-sidebar-icon-column-02c: 40px;
+}
+
+.reference-sidebar,
+.workbench-layout-workspace > .primary-sidebar,
+.workbench-layout-empty > .primary-sidebar {
+  min-width: 264px !important;
+  width: 264px !important;
+  overflow: hidden !important;
+}
+
+.reference-sidebar-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  padding: 24px 12px 68px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.reference-sidebar-nav > li {
+  display: block !important;
+  height: var(--of-sidebar-row-height-02c) !important;
+  min-height: var(--of-sidebar-row-height-02c) !important;
+  max-height: var(--of-sidebar-row-height-02c) !important;
+}
+
+.reference-sidebar-item,
+.reference-sidebar-item.surface-nav-link,
+.reference-sidebar span.reference-sidebar-item,
+.surface-nav-link.reference-sidebar-item,
+.cockpit-surface-nav-item.reference-sidebar-item,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item.surface-nav-link,
+.reference-sidebar:not(.reference-sidebar-collapsed) span.reference-sidebar-item {
+  display: grid !important;
+  grid-template-columns: var(--of-sidebar-icon-column-02c) minmax(0, 1fr) !important;
+  grid-template-rows: 1fr !important;
+  align-items: center !important;
+  justify-items: stretch !important;
+  column-gap: 12px !important;
+  height: var(--of-sidebar-row-height-02c) !important;
+  min-height: var(--of-sidebar-row-height-02c) !important;
+  max-height: var(--of-sidebar-row-height-02c) !important;
+  padding: 0 14px 0 12px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.reference-sidebar-item > .dashboard-icon,
+.reference-sidebar-item .dashboard-icon,
+.reference-sidebar-item > svg,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item > .dashboard-icon,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item .dashboard-icon,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item > svg {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  justify-self: center !important;
+  align-self: center !important;
+  width: var(--of-sidebar-icon-size-02c) !important;
+  min-width: var(--of-sidebar-icon-size-02c) !important;
+  max-width: var(--of-sidebar-icon-size-02c) !important;
+  height: var(--of-sidebar-icon-size-02c) !important;
+  min-height: var(--of-sidebar-icon-size-02c) !important;
+  max-height: var(--of-sidebar-icon-size-02c) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+.reference-sidebar-item > .dashboard-icon > svg,
+.reference-sidebar-item .dashboard-icon > svg,
+.reference-sidebar-item .dashboard-icon svg,
+.reference-sidebar-item > svg > svg,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item .dashboard-icon > svg,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item .dashboard-icon svg {
+  width: 16px !important;
+  min-width: 16px !important;
+  max-width: 16px !important;
+  height: 16px !important;
+  min-height: 16px !important;
+  max-height: 16px !important;
+  margin: 0 !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+.reference-sidebar-copy,
+.surface-nav-copy.reference-sidebar-copy,
+.reference-sidebar-item .reference-sidebar-copy,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-copy,
+.reference-sidebar:not(.reference-sidebar-collapsed) .surface-nav-copy.reference-sidebar-copy {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  overflow: hidden !important;
+  text-align: left !important;
+  line-height: 1 !important;
+}
+
+.reference-sidebar-copy strong,
+.surface-nav-copy.reference-sidebar-copy strong,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-copy strong,
+.reference-sidebar:not(.reference-sidebar-collapsed) .surface-nav-copy.reference-sidebar-copy strong {
+  display: block !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 2.4em !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: static !important;
+  transform: none !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  line-height: 1.14 !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0.01em !important;
+}
+
+.reference-sidebar-copy span,
+.reference-sidebar-item .surface-status,
+.reference-sidebar-copy .surface-status,
+.surface-nav-copy.reference-sidebar-copy span {
+  display: none !important;
+}
+
+.reference-sidebar-item::before,
+.reference-sidebar-item::after,
+.reference-sidebar:not(.reference-sidebar-collapsed) .surface-nav-item-active.reference-sidebar-item::before,
+.reference-sidebar:not(.reference-sidebar-collapsed) .surface-nav-link.surface-nav-item-active.reference-sidebar-item::before,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-item.surface-nav-item-active.reference-sidebar-item::before,
+.reference-sidebar:not(.reference-sidebar-collapsed) span.surface-nav-item-active.reference-sidebar-item::before {
+  max-height: calc(var(--of-sidebar-row-height-02c) - 16px) !important;
+  transform: translateY(-50%) !important;
+}
+
+.reference-sidebar-collapsed .reference-sidebar-item,
+.workbench-layout-sidebar-collapsed .reference-sidebar-item,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item {
+  grid-template-columns: 1fr !important;
+  justify-items: center !important;
+  padding: 0 !important;
+}
+
+.reference-sidebar-collapsed .reference-sidebar-copy,
+.workbench-layout-sidebar-collapsed .reference-sidebar-copy,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-copy {
+  display: none !important;
+}
+
+@media (max-width: 1500px), (max-height: 850px) {
+  :root {
+    --of-sidebar-row-height-02c: 44px;
+    --of-sidebar-icon-size-02c: 27px;
+    --of-sidebar-icon-column-02c: 38px;
+  }
+
+  .reference-sidebar-nav {
+    gap: 9px !important;
+    padding-top: 22px !important;
+    padding-bottom: 64px !important;
+  }
+
+  .reference-sidebar-copy strong,
+  .surface-nav-copy.reference-sidebar-copy strong {
+    font-size: 0.72rem !important;
+    line-height: 1.12 !important;
+  }
+}

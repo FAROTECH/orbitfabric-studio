@@ -80,6 +80,8 @@ import type {
   WorkspaceInspection,
 } from "./types/workspace";
 
+import "./publicBaselineShellFix02b.css";
+
 const nonGoalItems = [
   "No editing",
   "No artifact generation",
@@ -951,6 +953,7 @@ function App() {
           activeSurface === "scenario-evidence" ? "workbench-layout-scenario-evidence" : "",
           activeSurface === "core-commands" ? "workbench-layout-core-report-runner" : "",
           activeSurface === "generated-artifacts" ? "workbench-layout-generated-artifacts" : "",
+          activeSurface === "model-inventory" && activeNavigationId === "data-products" ? "workbench-layout-data-products" : "",
           isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
         ]
@@ -971,6 +974,7 @@ function App() {
             activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
             activeSurface === "core-commands" ? "main-surface-core-report-runner" : "",
             activeSurface === "generated-artifacts" ? "main-surface-generated-artifacts" : "",
+            activeSurface === "model-inventory" && activeNavigationId === "data-products" ? "main-surface-data-products" : "",
           ]
             .filter(Boolean)
             .join(" ")}
