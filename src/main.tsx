@@ -24,16 +24,17 @@ import "./scenarioRunwayTargetBay.css";
 import "./scenarioRunwayOverflow.css";
 import "./publicBaselineLayout1440.css";
 import "./publicBaselineSidebarLock02c.css";
+import "./publicBaselineSidebarCollapse02d.css";
+import "./publicBaselineSidebarOptical02e.css";
+import "./publicBaselineSidebarCollapsedRail02f.css";
+import "./publicBaselineSidebarSelected02g.css";
+import "./publicBaselineSidebarContract02h.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
 );
-import "./publicBaselineSidebarCollapse02d.css";
-import "./publicBaselineSidebarOptical02e.css";
-import "./publicBaselineSidebarCollapsedRail02f.css";
-import "./publicBaselineSidebarSelected02g.css";
 
 
 
