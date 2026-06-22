@@ -80,7 +80,6 @@ import type {
   WorkspaceInspection,
 } from "./types/workspace";
 
-import "./publicBaselineShellFix02b.css";
 
 const nonGoalItems = [
   "No editing",
