@@ -256,14 +256,20 @@ function App() {
   const [isRunningCoreCommand, setIsRunningCoreCommand] = useState(false);
 
   const mainContentRef = useRef<HTMLElement | null>(null);
+  const surfaceContentRef = useRef<HTMLElement | null>(null);
 
   function resetMainContentScroll() {
     requestAnimationFrame(() => {
+      surfaceContentRef.current?.scrollTo({ top: 0, left: 0 });
       mainContentRef.current?.scrollTo({ top: 0, left: 0 });
       document.documentElement.scrollTo({ top: 0, left: 0 });
       document.body.scrollTo({ top: 0, left: 0 });
     });
   }
+
+  useEffect(() => {
+    resetMainContentScroll();
+  }, [activeSurface, activeNavigationId]);
 
   function clearSelectedContext() {
     setSelectedFile(null);
@@ -968,6 +974,7 @@ function App() {
         />
 
         <section
+          ref={surfaceContentRef}
           className={[
             "main-surface",
             activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
