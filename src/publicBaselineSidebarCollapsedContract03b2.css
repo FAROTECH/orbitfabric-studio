@@ -1,0 +1,181 @@
+/* OrbitFabric Studio Responsive Capability Review.
+ * Patch B2, Sidebar Collapsed Contract 03b2.
+ *
+ * Scope:
+ * - make the collapsed sidebar rail use the desktop shell collapsed width;
+ * - remove the legacy 96px rail mismatch introduced by older sidebar layers;
+ * - keep the sidebar bounded inside the workbench content row;
+ * - keep the collapse button visible inside the sidebar footer row;
+ * - do not change surface content, Core data, navigation semantics or public copy.
+ */
+
+:root {
+  /* Keep legacy sidebar layers aligned with the 03a desktop shell contract. */
+  --of-sidebar-collapsed-width: var(--of-desktop-sidebar-collapsed-width);
+}
+
+/* Collapsed grid contract. The grid column and the physical sidebar width must match. */
+.studio-app-shell > .workbench-layout-sidebar-collapsed.workbench-layout-workspace,
+.studio-app-shell > .workbench-layout-sidebar-collapsed.workbench-layout-empty,
+.studio-app-shell > .workbench-layout-sidebar-collapsed.workbench-layout-dashboard {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-collapsed-width), var(--of-desktop-sidebar-collapsed-width))
+    minmax(0, 1fr) !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed.workbench-layout-workspace:not(.workbench-layout-dashboard):not(.workbench-layout-core-report-runner):not(.workbench-layout-data-products):not(.workbench-layout-scenario-evidence):not(.workbench-layout-generated-artifacts):has(> .workbench-inspector) {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-collapsed-width), var(--of-desktop-sidebar-collapsed-width))
+    minmax(0, 1fr)
+    minmax(var(--of-desktop-inspector-width), var(--of-desktop-inspector-width)) !important;
+}
+
+/* Validated two-column cockpit surfaces keep their bounded two-column contract. */
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-dashboard.workbench-layout-sidebar-collapsed,
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-core-report-runner.workbench-layout-sidebar-collapsed,
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-data-products.workbench-layout-sidebar-collapsed,
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed,
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-generated-artifacts.workbench-layout-sidebar-collapsed {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-collapsed-width), var(--of-desktop-sidebar-collapsed-width))
+    minmax(0, 1fr) !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .primary-sidebar.reference-sidebar,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar,
+.studio-app-shell .primary-sidebar.reference-sidebar.reference-sidebar-collapsed,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed {
+  grid-column: 1 !important;
+  grid-row: 1 / 2 !important;
+  width: var(--of-desktop-sidebar-collapsed-width) !important;
+  min-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  max-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, var(--of-desktop-sidebar-collapsed-width)) !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  justify-items: center !important;
+  align-items: stretch !important;
+  padding: 20px 0 14px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  transform: none !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .reference-sidebar-nav,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .surface-nav-list.reference-sidebar-nav,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .cockpit-surface-nav-list.reference-sidebar-nav,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .reference-sidebar-nav,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .surface-nav-list.reference-sidebar-nav,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .cockpit-surface-nav-list.reference-sidebar-nav {
+  grid-column: 1 !important;
+  grid-row: 1 / 2 !important;
+  width: var(--of-desktop-sidebar-collapsed-width) !important;
+  min-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  max-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 0 10px !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  transform: none !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .reference-sidebar-nav > li,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .surface-nav-list.reference-sidebar-nav > li,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .cockpit-surface-nav-list.reference-sidebar-nav > li,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .reference-sidebar-nav > li,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .surface-nav-list.reference-sidebar-nav > li,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .cockpit-surface-nav-list.reference-sidebar-nav > li {
+  width: var(--of-desktop-sidebar-collapsed-width) !important;
+  min-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  max-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, var(--of-desktop-sidebar-collapsed-width)) !important;
+  grid-template-rows: 44px !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar .reference-sidebar-item,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar .reference-sidebar-item.surface-nav-link,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar span.reference-sidebar-item,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item.surface-nav-link,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed span.reference-sidebar-item {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  justify-self: center !important;
+  align-self: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar .reference-sidebar-copy,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar .surface-nav-copy.reference-sidebar-copy,
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar .cockpit-surface-nav-copy,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-copy,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .surface-nav-copy.reference-sidebar-copy,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .cockpit-surface-nav-copy {
+  display: none !important;
+}
+
+.studio-app-shell > .workbench-layout-sidebar-collapsed > .reference-sidebar > .reference-sidebar-collapse,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed > .reference-sidebar-collapse {
+  grid-column: 1 !important;
+  grid-row: 2 / 3 !important;
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  justify-self: center !important;
+  align-self: end !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  margin: 10px 0 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  z-index: 80 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+/* Scenario Evidence keeps the B1 bounded scroll owner and only receives the B2 collapsed rail width. */
+body.scenario-evidence-scroll-active .workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed > .reference-sidebar,
+body.scenario-evidence-scroll-active .workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed > nav.primary-sidebar.reference-sidebar {
+  width: var(--of-desktop-sidebar-collapsed-width) !important;
+  min-width: var(--of-desktop-sidebar-collapsed-width) !important;
+  max-width: var(--of-desktop-sidebar-collapsed-width) !important;
+}

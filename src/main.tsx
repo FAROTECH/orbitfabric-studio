@@ -36,6 +36,7 @@ import "./publicBaselineMissionCompactGutter03aR3.css";
 import "./publicBaselineScenarioEvidenceShellClamp03b1R3.css";
 import "./publicBaselineDataProductsScroll03b1R4.css";
 import "./publicBaselineGeneratedArtifactsScroll03b1R5.css";
+import "./publicBaselineSidebarCollapsedContract03b2.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
