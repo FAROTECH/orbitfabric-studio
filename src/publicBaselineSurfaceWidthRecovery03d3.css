@@ -1,0 +1,106 @@
+/* OrbitFabric Studio D3-R2 surface width recovery.
+ * Scope:
+ * - Data Products and Scenarios only;
+ * - recover the unused right gutter at the 1240 px desktop minimum;
+ * - keep Generated Artifacts unchanged;
+ * - do not change Core data, routing, commands or generated evidence.
+ *
+ * R2 note:
+ * D3-R1 stretched the content roots, but the observed gutter was still present
+ * because the remaining dead rail came from the workbench/main-surface right
+ * padding at the surface envelope level. R2 moves the right edge of these two
+ * dense surfaces to the real viewport edge while preserving the left/sidebar
+ * spacing contract.
+ */
+
+/* These two surfaces have their own dense cockpit/scroll contract and must use
+ * the full content column. Reassert the two-column surface shell after older
+ * surface-specific rules.
+ */
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-data-products,
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence,
+body.scenario-evidence-scroll-active .studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-expanded-width), var(--of-desktop-sidebar-expanded-width))
+    minmax(0, 1fr) !important;
+}
+
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-data-products.workbench-layout-sidebar-collapsed,
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed,
+body.scenario-evidence-scroll-active .studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-collapsed-width), var(--of-desktop-sidebar-collapsed-width))
+    minmax(0, 1fr) !important;
+}
+
+/* The global inspector is not part of these two cockpit surfaces. */
+.studio-app-shell > .workbench-layout-data-products > .workbench-inspector,
+.studio-app-shell > .workbench-layout-data-products > .contextual-inspector,
+.studio-app-shell > .workbench-layout-scenario-evidence > .workbench-inspector,
+.studio-app-shell > .workbench-layout-scenario-evidence > .contextual-inspector {
+  display: none !important;
+}
+
+/* The remaining visible gap is the surface envelope right rail. Keep the left
+ * shell/sidebar gutter unchanged, but let these dense surfaces reach the right
+ * edge of the desktop body.
+ */
+.studio-app-shell > .workbench-layout-data-products,
+.studio-app-shell > .workbench-layout-scenario-evidence,
+body.scenario-evidence-scroll-active .studio-app-shell > .workbench-layout-scenario-evidence {
+  padding-right: 0 !important;
+}
+
+/* Main surfaces own the full body column and should not leave a dead right rail. */
+.studio-app-shell > .workbench-layout-data-products > .main-surface,
+.studio-app-shell > .workbench-layout-data-products > .main-surface-data-products,
+.studio-app-shell .main-surface.main-surface-data-products,
+body.scenario-evidence-scroll-active .workbench-layout-scenario-evidence > .main-surface,
+body.scenario-evidence-scroll-active .workbench-layout-scenario-evidence > .main-surface-scenario-evidence,
+.studio-app-shell > .workbench-layout-scenario-evidence > .main-surface,
+.studio-app-shell > .workbench-layout-scenario-evidence > .main-surface-scenario-evidence {
+  grid-row: 1 / 2 !important;
+  grid-column: 2 / -1 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  justify-self: stretch !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* Content roots must stretch to the same width as their scroll owner. */
+.studio-app-shell .main-surface-data-products > .data-products-cockpit-surface,
+.studio-app-shell .data-products-cockpit-surface,
+body.scenario-evidence-scroll-active .main-surface-scenario-evidence > .scenario-evidence-cockpit,
+body.scenario-evidence-scroll-active #studio-evidence.scenario-evidence-cockpit,
+body.scenario-evidence-scroll-active .scenario-evidence-cockpit {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  justify-self: stretch !important;
+  margin-right: 0 !important;
+}
+
+/* Data Products already uses the main surface as vertical scroll owner in B1.
+ * Keep the cockpit content-height, but remove its old self-reserved right gutter.
+ */
+.studio-app-shell .main-surface-data-products > .data-products-cockpit-surface,
+.studio-app-shell .data-products-cockpit-surface {
+  padding-right: 0 !important;
+  scrollbar-gutter: auto !important;
+}
+
+/* Scenario Evidence had legacy inline/stylesheet self-scroll behavior. Keep the
+ * B1 shell clamp, but prevent an internal self-scroll gutter from narrowing the
+ * visible cockpit body.
+ */
+body.scenario-evidence-scroll-active .main-surface-scenario-evidence > .scenario-evidence-cockpit,
+body.scenario-evidence-scroll-active #studio-evidence.scenario-evidence-cockpit,
+body.scenario-evidence-scroll-active .scenario-evidence-cockpit {
+  overflow: visible !important;
+  scrollbar-gutter: auto !important;
+}

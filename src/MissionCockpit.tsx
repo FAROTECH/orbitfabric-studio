@@ -769,28 +769,13 @@ function SpacecraftCard({ display, onOpen }: { display: ReferenceDisplayModel; o
             ))}
           </dl>
           <div
+            className="mission-target-spacecraft-illustration"
             aria-hidden="true"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: "0 0 152px",
-              minWidth: "152px",
-              paddingInlineStart: "12px",
-            }}
           >
             <img
               src={spacecraftCardIllustration}
               alt=""
-              style={{
-                display: "block",
-                width: "132px",
-                maxWidth: "100%",
-                height: "auto",
-                objectFit: "contain",
-                opacity: 0.96,
-                filter: "drop-shadow(0 10px 22px rgba(0, 209, 255, 0.18))",
-              }}
+              className="mission-target-spacecraft-illustration-image"
             />
           </div>
         </div>
