@@ -32,6 +32,7 @@ import type {
   WorkspaceInspection,
 } from "./types/workspace";
 import type { CoreReportSnapshots } from "./missionCockpitModel";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 
 interface ReferenceDisplayModel {
   missionName: string;
@@ -304,10 +305,12 @@ export function MissionCockpit({
   );
 
   return (
-    <section
+    <DesktopSurface
       id="studio-dashboard"
-      className="mission-target"
-      aria-label="Mission Overview"
+      label="Mission Overview"
+      className="mission-target mission-overview-desktop-surface"
+      width="full"
+      density="compact"
     >
       <header className="mission-target-heading">
         <div className="mission-target-heading-title">
@@ -477,7 +480,7 @@ export function MissionCockpit({
           onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
         />
       </section>
-    </section>
+    </DesktopSurface>
   );
 }
 
@@ -769,28 +772,13 @@ function SpacecraftCard({ display, onOpen }: { display: ReferenceDisplayModel; o
             ))}
           </dl>
           <div
+            className="mission-target-spacecraft-illustration"
             aria-hidden="true"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: "0 0 152px",
-              minWidth: "152px",
-              paddingInlineStart: "12px",
-            }}
           >
             <img
               src={spacecraftCardIllustration}
               alt=""
-              style={{
-                display: "block",
-                width: "132px",
-                maxWidth: "100%",
-                height: "auto",
-                objectFit: "contain",
-                opacity: 0.96,
-                filter: "drop-shadow(0 10px 22px rgba(0, 209, 255, 0.18))",
-              }}
+              className="mission-target-spacecraft-illustration-image"
             />
           </div>
         </div>

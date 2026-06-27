@@ -1,5 +1,6 @@
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -7,6 +8,7 @@ use std::process::Command;
 const MAX_TEXT_FILE_BYTES: u64 = 1_048_576;
 const MAX_GENERATED_ARTIFACTS: usize = 1_000;
 const MAX_GENERATED_ARTIFACT_DEPTH: usize = 8;
+const MAX_DEV_CAPTURE_DATA_URL_BYTES: usize = 96_000_000;
 
 const EXPECTED_MISSION_FILES: &[&str] = &[
     "spacecraft.yaml",
@@ -113,6 +115,11 @@ struct CoreCommandResult {
     json_report_content: Option<String>,
     log_path: Option<String>,
     log_available: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct DevCaptureSaveResult {
+    path: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -310,6 +317,28 @@ fn read_text_file(workspace_path: String, file_path: String) -> Result<FileConte
         language: language_for_path(&file),
         content,
         size_bytes: metadata.len(),
+    })
+}
+
+#[tauri::command]
+fn save_dev_capture_png(filename: String, data_url: String) -> Result<DevCaptureSaveResult, String> {
+    if data_url.len() > MAX_DEV_CAPTURE_DATA_URL_BYTES {
+        return Err("Dev capture PNG is too large to save.".to_string());
+    }
+
+    let safe_filename = sanitize_capture_filename(&filename);
+    let output_dir = dev_capture_output_dir()?;
+    fs::create_dir_all(&output_dir)
+        .map_err(|error| format!("Unable to create dev capture output directory: {error}"))?;
+
+    let output_path = output_dir.join(safe_filename);
+    let png_bytes = decode_png_data_url(&data_url)?;
+
+    fs::write(&output_path, png_bytes)
+        .map_err(|error| format!("Unable to write dev capture PNG: {error}"))?;
+
+    Ok(DevCaptureSaveResult {
+        path: display_path(&output_path),
     })
 }
 
@@ -1116,6 +1145,101 @@ fn clone_category(category: &EntryCategory) -> EntryCategory {
     }
 }
 
+fn dev_capture_output_dir() -> Result<PathBuf, String> {
+    let Some(home) = env::var_os("HOME") else {
+        return Err("Unable to resolve HOME for dev capture output.".to_string());
+    };
+
+    Ok(PathBuf::from(home)
+        .join("Downloads")
+        .join("OrbitFabric Studio QA Captures"))
+}
+
+fn sanitize_capture_filename(filename: &str) -> String {
+    let sanitized: String = filename
+        .chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric()
+                || character == '-'
+                || character == '_'
+                || character == '.'
+            {
+                character
+            } else {
+                '_'
+            }
+        })
+        .collect();
+
+    let trimmed = sanitized.trim_matches('_');
+    let mut safe = if trimmed.is_empty() {
+        "of-studio-qa-capture.png".to_string()
+    } else {
+        trimmed.to_string()
+    };
+
+    if !safe.ends_with(".png") {
+        safe.push_str(".png");
+    }
+
+    safe
+}
+
+fn decode_png_data_url(data_url: &str) -> Result<Vec<u8>, String> {
+    const PREFIX: &str = "data:image/png;base64,";
+
+    if !data_url.starts_with(PREFIX) {
+        return Err("Dev capture did not produce a PNG data URL.".to_string());
+    }
+
+    let bytes = decode_base64(&data_url[PREFIX.len()..])?;
+    let png_signature = [137, 80, 78, 71, 13, 10, 26, 10];
+
+    if !bytes.starts_with(&png_signature) {
+        return Err("Dev capture payload is not a valid PNG.".to_string());
+    }
+
+    Ok(bytes)
+}
+
+fn decode_base64(input: &str) -> Result<Vec<u8>, String> {
+    let mut output = Vec::with_capacity(input.len() * 3 / 4);
+    let mut buffer: u32 = 0;
+    let mut bits: u8 = 0;
+
+    for byte in input.bytes() {
+        if byte == b'=' {
+            break;
+        }
+
+        if matches!(byte, b'\r' | b'\n' | b' ' | b'\t') {
+            continue;
+        }
+
+        let value = base64_value(byte)?;
+        buffer = (buffer << 6) | u32::from(value);
+        bits += 6;
+
+        if bits >= 8 {
+            bits -= 8;
+            output.push(((buffer >> bits) & 0xff) as u8);
+        }
+    }
+
+    Ok(output)
+}
+
+fn base64_value(byte: u8) -> Result<u8, String> {
+    match byte {
+        b'A'..=b'Z' => Ok(byte - b'A'),
+        b'a'..=b'z' => Ok(byte - b'a' + 26),
+        b'0'..=b'9' => Ok(byte - b'0' + 52),
+        b'+' => Ok(62),
+        b'/' => Ok(63),
+        _ => Err("Dev capture payload contains invalid base64.".to_string()),
+    }
+}
+
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().to_string()
 }
@@ -1128,6 +1252,7 @@ pub fn run() {
             inspect_workspace,
             inspect_generated_artifacts,
             read_text_file,
+            save_dev_capture_png,
             run_core_version,
             run_core_inspect_mission,
             run_core_lint_mission,

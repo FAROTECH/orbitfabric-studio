@@ -1,0 +1,118 @@
+/* Dev-only QA capture controls. Rendered only when VITE_OF_DEV_CAPTURE=1. */
+.reference-status-bar:has(.reference-status-capture) {
+  grid-template-columns:
+    minmax(240px, 1.25fr)
+    minmax(116px, 0.46fr)
+    minmax(118px, 0.44fr)
+    minmax(250px, 0.86fr) !important;
+}
+
+.reference-status-readonly em {
+  margin-left: auto !important;
+  overflow: hidden !important;
+  color: #8fa3ba !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.reference-status-capture {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  border-right: 0 !important;
+  padding: 0 9px !important;
+  gap: 7px !important;
+}
+
+.reference-status-capture-label {
+  color: #67e8f9 !important;
+  font-size: 0.58rem !important;
+  font-weight: 860 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+.reference-status-capture button {
+  height: 20px !important;
+  border: 1px solid rgba(103, 232, 249, 0.36) !important;
+  border-radius: 999px !important;
+  padding: 0 9px !important;
+  color: #cffafe !important;
+  background: rgba(8, 145, 178, 0.16) !important;
+  font-size: 0.55rem !important;
+  font-weight: 840 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+}
+
+.reference-status-capture button:hover,
+.reference-status-capture button:focus-visible {
+  border-color: rgba(103, 232, 249, 0.68) !important;
+  background: rgba(8, 145, 178, 0.28) !important;
+  outline: none !important;
+}
+
+.reference-status-capture button:disabled {
+  cursor: wait !important;
+  opacity: 0.58 !important;
+}
+
+
+.reference-status-capture em {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: #8fa3ba !important;
+  font-size: 0.54rem !important;
+  font-style: normal !important;
+  font-weight: 760 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.reference-status-capture-capturing .reference-status-capture-label,
+.reference-status-capture-capturing em {
+  color: #fbbf24 !important;
+}
+
+.reference-status-capture-saved .reference-status-capture-label,
+.reference-status-capture-saved em {
+  color: #86efac !important;
+}
+
+.reference-status-capture-failed .reference-status-capture-label,
+.reference-status-capture-failed em {
+  color: #fca5a5 !important;
+}
+
+@media (max-width: 1500px) {
+  .reference-status-bar:has(.reference-status-capture) {
+    grid-template-columns:
+      minmax(190px, 1fr)
+      minmax(96px, 0.36fr)
+      minmax(92px, 0.34fr)
+      minmax(190px, 1.05fr) !important;
+  }
+
+  .reference-status-capture {
+    padding: 0 7px !important;
+    gap: 5px !important;
+  }
+
+  .reference-status-capture button {
+    height: 18px !important;
+    padding: 0 7px !important;
+    font-size: 0.5rem !important;
+  }
+
+  .reference-status-capture em {
+    display: none !important;
+  }
+}

@@ -1,0 +1,116 @@
+/* OrbitFabric Studio public baseline hardening 02h.
+ * Shell/sidebar layout contract.
+ *
+ * Scope:
+ * - stop positioning the collapse control with viewport-fixed coordinates;
+ * - make the sidebar a real two-row container: nav area + collapse control;
+ * - keep expanded/collapsed behavior inside the sidebar box;
+ * - do not change surface content, Core data, navigation semantics or public copy.
+ */
+
+.studio-app-shell {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 14px !important;
+  min-height: 0 !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.studio-app-shell > .workspace-header {
+  grid-row: 1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.studio-app-shell > .workbench-layout {
+  grid-row: 2 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.studio-app-shell .reference-sidebar,
+.studio-app-shell .primary-sidebar.reference-sidebar,
+.studio-app-shell .workbench-layout-sidebar-collapsed .reference-sidebar,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed {
+  position: relative !important;
+  top: auto !important;
+  align-self: stretch !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  overflow: hidden !important;
+  padding-bottom: 14px !important;
+}
+
+.studio-app-shell .reference-sidebar .reference-sidebar-nav,
+.studio-app-shell .reference-sidebar .surface-nav-list.reference-sidebar-nav,
+.studio-app-shell .reference-sidebar .cockpit-surface-nav-list.reference-sidebar-nav,
+.studio-app-shell .workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-nav,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-nav {
+  grid-row: 1 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-bottom: 12px !important;
+  scrollbar-gutter: stable !important;
+}
+
+.studio-app-shell .reference-sidebar .reference-sidebar-collapse,
+.studio-app-shell .workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+.studio-app-shell .workbench-layout-empty .reference-sidebar .reference-sidebar-collapse,
+.studio-app-shell .workbench-layout-dashboard .reference-sidebar .reference-sidebar-collapse,
+.studio-app-shell .workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-collapse,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-collapse {
+  grid-row: 2 !important;
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  z-index: 5 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  margin: 10px 0 0 auto !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.studio-app-shell .workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-collapse,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-collapse {
+  justify-self: center !important;
+  margin-right: auto !important;
+  margin-left: auto !important;
+}
+
+.studio-app-shell .workbench-layout-sidebar-collapsed .reference-sidebar,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed {
+  justify-items: center !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.studio-app-shell .workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-nav,
+.studio-app-shell .reference-sidebar.reference-sidebar-collapsed .reference-sidebar-nav {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  align-items: center !important;
+}

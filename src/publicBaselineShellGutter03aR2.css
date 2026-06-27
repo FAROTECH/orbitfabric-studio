@@ -1,0 +1,59 @@
+/*
+ * Patch 03a-r2, Shell Gutter Compatibility.
+ *
+ * Scope:
+ * - keep Patch 03a viewport ownership intact;
+ * - add a governed desktop gutter between the sidebar rail and the main surface;
+ * - prevent validated dashboard content from bleeding back under the sidebar;
+ * - avoid touching semantic rendering, Core-derived data, or surface logic.
+ */
+
+:root {
+  --of-desktop-sidebar-main-gutter: clamp(14px, 1.15vw, 22px);
+  --of-desktop-sidebar-main-gutter-collapsed: clamp(12px, 1vw, 18px);
+}
+
+@media (min-width: 1180px) {
+  .studio-app-shell > .workbench-layout-workspace > .main-surface,
+  .studio-app-shell > .workbench-layout-empty > .main-surface {
+    margin-inline-start: var(--of-desktop-sidebar-main-gutter) !important;
+    min-width: 0 !important;
+    max-width: calc(100% - var(--of-desktop-sidebar-main-gutter)) !important;
+  }
+
+  .studio-app-shell > .workbench-layout-sidebar-collapsed > .main-surface {
+    margin-inline-start: var(--of-desktop-sidebar-main-gutter-collapsed) !important;
+    max-width: calc(100% - var(--of-desktop-sidebar-main-gutter-collapsed)) !important;
+  }
+
+  .studio-app-shell > .workbench-layout-dashboard > .main-surface {
+    overflow-x: hidden !important;
+  }
+
+  .studio-app-shell > .workbench-layout-dashboard .cockpit-dashboard,
+  .studio-app-shell > .workbench-layout-dashboard .mission-target,
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-hero,
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-quick,
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-domain-grid,
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-bottom-grid,
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-card {
+    max-width: 100% !important;
+    margin-inline-start: 0 !important;
+    margin-left: 0 !important;
+    transform: none !important;
+  }
+}
+
+@media (min-width: 1180px) and (max-width: 1500px) {
+  :root {
+    --of-desktop-sidebar-main-gutter: 18px;
+  }
+}
+
+@media (max-width: 1179px) {
+  .studio-app-shell > .workbench-layout-workspace > .main-surface,
+  .studio-app-shell > .workbench-layout-empty > .main-surface {
+    margin-inline-start: 0 !important;
+    max-width: 100% !important;
+  }
+}

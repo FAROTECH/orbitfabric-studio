@@ -1,0 +1,200 @@
+﻿/* OrbitFabric Studio public baseline hardening 02d.
+ * Scope: sidebar collapsed geometry and cross-platform row alignment only.
+ * Intent:
+ * - collapsed sidebar must really collapse, not remain a wide empty panel;
+ * - expanded sidebar rows must keep icon and label on the same optical axis;
+ * - no mission/model/core semantics are changed.
+ */
+
+:root {
+  --of-sidebar-expanded-width: 264px;
+  --of-sidebar-collapsed-width: 96px;
+  --of-sidebar-row-height: 44px;
+  --of-sidebar-icon-size: 30px;
+}
+
+/* Expanded workspace geometry. */
+.workbench-layout-workspace:not(.workbench-layout-sidebar-collapsed),
+.workbench-layout-empty:not(.workbench-layout-sidebar-collapsed) {
+  grid-template-columns: var(--of-sidebar-expanded-width) minmax(0, 1fr) !important;
+}
+
+.workbench-layout-workspace:not(.workbench-layout-sidebar-collapsed):not(.workbench-layout-dashboard):has(> .workbench-inspector),
+.workbench-layout-empty:not(.workbench-layout-sidebar-collapsed):not(.workbench-layout-dashboard):has(> .workbench-inspector) {
+  grid-template-columns: var(--of-sidebar-expanded-width) minmax(0, 1fr) minmax(320px, 360px) !important;
+}
+
+/* Collapsed workspace geometry. This is the critical Windows fix. */
+.workbench-layout-sidebar-collapsed.workbench-layout-workspace,
+.workbench-layout-sidebar-collapsed.workbench-layout-empty {
+  grid-template-columns: var(--of-sidebar-collapsed-width) minmax(0, 1fr) !important;
+}
+
+.workbench-layout-sidebar-collapsed.workbench-layout-workspace:not(.workbench-layout-dashboard):has(> .workbench-inspector),
+.workbench-layout-sidebar-collapsed.workbench-layout-empty:not(.workbench-layout-dashboard):has(> .workbench-inspector) {
+  grid-template-columns: var(--of-sidebar-collapsed-width) minmax(0, 1fr) minmax(320px, 360px) !important;
+}
+
+.reference-sidebar {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.workbench-layout-sidebar-collapsed .reference-sidebar,
+.reference-sidebar.reference-sidebar-collapsed {
+  width: var(--of-sidebar-collapsed-width) !important;
+  min-width: var(--of-sidebar-collapsed-width) !important;
+  max-width: var(--of-sidebar-collapsed-width) !important;
+  padding-inline: 16px !important;
+  box-sizing: border-box !important;
+}
+
+/* Expanded row lock. */
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-nav,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-list {
+  display: grid !important;
+  gap: 10px !important;
+  align-content: start !important;
+}
+
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item.surface-nav-link,
+.reference-sidebar:not(.reference-sidebar-collapsed) span.reference-sidebar-item,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-item {
+  display: grid !important;
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+  column-gap: 12px !important;
+  align-items: center !important;
+  justify-items: start !important;
+  min-height: var(--of-sidebar-row-height) !important;
+  height: var(--of-sidebar-row-height) !important;
+  max-height: var(--of-sidebar-row-height) !important;
+  padding: 0 14px !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+}
+
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item > .dashboard-icon,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item > svg,
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-item .dashboard-icon,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-item > .dashboard-icon,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-item > svg {
+  grid-column: 1 !important;
+  width: var(--of-sidebar-icon-size) !important;
+  min-width: var(--of-sidebar-icon-size) !important;
+  max-width: var(--of-sidebar-icon-size) !important;
+  height: var(--of-sidebar-icon-size) !important;
+  min-height: var(--of-sidebar-icon-size) !important;
+  max-height: var(--of-sidebar-icon-size) !important;
+  align-self: center !important;
+  justify-self: center !important;
+  margin: 0 !important;
+}
+
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-copy,
+.reference-sidebar:not(.reference-sidebar-collapsed) .surface-nav-copy.reference-sidebar-copy,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-copy {
+  grid-column: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.reference-sidebar:not(.reference-sidebar-collapsed) .reference-sidebar-copy strong,
+.reference-sidebar:not(.reference-sidebar-collapsed) .surface-nav-copy.reference-sidebar-copy strong,
+.reference-sidebar:not(.reference-sidebar-collapsed) .cockpit-surface-nav-copy strong {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1.12 !important;
+  margin: 0 !important;
+}
+
+/* Collapsed row lock. */
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-nav,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-nav,
+.workbench-layout-sidebar-collapsed .reference-sidebar .cockpit-surface-nav-list,
+.reference-sidebar.reference-sidebar-collapsed .cockpit-surface-nav-list {
+  display: grid !important;
+  gap: 10px !important;
+  justify-items: center !important;
+  align-content: start !important;
+}
+
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-item,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item,
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-item.surface-nav-link,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item.surface-nav-link,
+.workbench-layout-sidebar-collapsed .reference-sidebar span.reference-sidebar-item,
+.reference-sidebar.reference-sidebar-collapsed span.reference-sidebar-item,
+.workbench-layout-sidebar-collapsed .reference-sidebar .cockpit-surface-nav-item,
+.reference-sidebar.reference-sidebar-collapsed .cockpit-surface-nav-item {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  place-items: center !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 !important;
+  margin-inline: auto !important;
+  overflow: hidden !important;
+}
+
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-copy,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-copy,
+.workbench-layout-sidebar-collapsed .reference-sidebar .surface-nav-copy,
+.reference-sidebar.reference-sidebar-collapsed .surface-nav-copy,
+.workbench-layout-sidebar-collapsed .reference-sidebar .cockpit-surface-nav-copy,
+.reference-sidebar.reference-sidebar-collapsed .cockpit-surface-nav-copy {
+  display: none !important;
+}
+
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-item > .dashboard-icon,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item > .dashboard-icon,
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-item > svg,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item > svg,
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-item .dashboard-icon,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-item .dashboard-icon,
+.workbench-layout-sidebar-collapsed .reference-sidebar .cockpit-surface-nav-item > .dashboard-icon,
+.reference-sidebar.reference-sidebar-collapsed .cockpit-surface-nav-item > .dashboard-icon,
+.workbench-layout-sidebar-collapsed .reference-sidebar .cockpit-surface-nav-item > svg,
+.reference-sidebar.reference-sidebar-collapsed .cockpit-surface-nav-item > svg {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  margin: 0 !important;
+  align-self: center !important;
+  justify-self: center !important;
+}
+
+/* Keep collapse/expand control inside the visual sidebar box. */
+.reference-sidebar .reference-sidebar-collapse,
+.workbench-layout-workspace .reference-sidebar .reference-sidebar-collapse,
+.workbench-layout-empty .reference-sidebar .reference-sidebar-collapse {
+  position: absolute !important;
+  right: 14px !important;
+  bottom: 18px !important;
+  left: auto !important;
+}
+
+.workbench-layout-sidebar-collapsed .reference-sidebar .reference-sidebar-collapse,
+.reference-sidebar.reference-sidebar-collapsed .reference-sidebar-collapse {
+  right: 50% !important;
+  transform: translateX(50%) !important;
+}

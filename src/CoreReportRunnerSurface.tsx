@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { DashboardIcon } from "./DashboardIcon";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import type {
   CoreCommandResult,
   CoreCoverageSummary,
@@ -225,25 +226,24 @@ export function CoreReportRunnerSurface({
   }
 
   return (
-    <section
+    <DesktopSurface
       id="studio-core-report-runner"
-      className="core-report-runner-surface"
-      aria-label="Core Report Runner"
+      label="Core Report Runner"
+      className="core-report-runner-surface core-report-runner-desktop-surface"
+      width="full"
+      density="compact"
     >
       <section className="core-runner-hero" aria-labelledby="core-runner-title">
         <div className="core-runner-hero-copy">
-          <span className="core-runner-eyebrow">Mission Content First Public Preview</span>
+          <span className="core-runner-eyebrow">Mission Evidence Control</span>
           <h1 id="core-runner-title">Core Report Runner</h1>
           <p className="core-runner-lead">
-            Fixed OrbitFabric Core actions for refreshing mission evidence.
-          </p>
-          <p className="core-runner-summary">
-            Predefined wrappers only. Core-generated reports are displayed as evidence. No YAML editor, no arbitrary shell, no command uplink.
+            Run fixed Core wrappers and inspect generated mission reports.
           </p>
           <div className="badge-row core-runner-badge-row">
             <ProvenanceBadge label="READ-ONLY" />
             <ProvenanceBadge label="CORE-OWNED" />
-            <StatusBadge label="FIXED ACTIONS" />
+            <StatusBadge label="FIXED WRAPPERS" />
             <StatusBadge label="NO YAML EDITOR" />
             <StatusBadge label="NO COMMAND UPLINK" />
           </div>
@@ -485,7 +485,7 @@ export function CoreReportRunnerSurface({
         </aside>
       </div>
 
-    </section>
+    </DesktopSurface>
   );
 }
 

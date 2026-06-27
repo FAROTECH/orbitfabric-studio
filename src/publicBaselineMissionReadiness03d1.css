@@ -1,0 +1,169 @@
+/* OrbitFabric Studio Responsive Capability Review.
+ * Patch D1, Mission Overview Readiness 03d1.
+ *
+ * Scope:
+ * - finish the full-screen Mission Overview surface with three visual refinements;
+ * - keep the spacecraft illustration inside its card visual bounds;
+ * - improve quick-stat secondary text fit without changing reported data;
+ * - improve warning-row readability in the bottom Warnings card;
+ * - do not touch Core data, routing, reference mission, generated evidence, or other surfaces.
+ */
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-spacecraft-body {
+  grid-template-columns: minmax(0, 1fr) 116px !important;
+  gap: 8px !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-spacecraft-illustration {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 116px !important;
+  min-width: 116px !important;
+  max-width: 116px !important;
+  min-height: 0 !important;
+  padding-inline-start: 0 !important;
+  transform: translateX(-14px) !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-spacecraft-illustration-image {
+  display: block !important;
+  width: 124px !important;
+  max-width: none !important;
+  height: auto !important;
+  object-fit: contain !important;
+  opacity: 0.96 !important;
+  filter: drop-shadow(0 10px 22px rgba(0, 209, 255, 0.18)) !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat {
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat > div {
+  min-width: 0 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat small {
+  display: -webkit-box !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--target-muted) !important;
+  font-size: 0.7rem !important;
+  line-height: 1.18 !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-warnings li {
+  grid-template-columns: 66px minmax(0, 1fr) minmax(72px, 0.28fr) !important;
+  gap: 9px !important;
+  align-items: start !important;
+  padding: 7px 0 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-warnings li > div {
+  min-width: 0 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-warnings li small {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-self: start !important;
+  min-width: 58px !important;
+  box-sizing: border-box !important;
+  padding: 3px 9px !important;
+  font-size: 0.6rem !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-warnings li strong {
+  font-size: 0.8rem !important;
+  line-height: 1.15 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-warnings li span {
+  display: -webkit-box !important;
+  overflow: hidden !important;
+  font-size: 0.71rem !important;
+  line-height: 1.22 !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-warnings li em {
+  display: -webkit-box !important;
+  overflow: hidden !important;
+  color: var(--target-muted) !important;
+  font-size: 0.64rem !important;
+  line-height: 1.18 !important;
+  text-align: right !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+@media (max-height: 860px) {
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-spacecraft-illustration {
+    transform: translateX(-12px) !important;
+  }
+
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-spacecraft-illustration-image {
+    width: 118px !important;
+  }
+
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat {
+    padding: 9px 11px !important;
+  }
+
+  .studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat small {
+    font-size: 0.68rem !important;
+  }
+}
+
+/* D1-R4, Mission value accent. */
+:root {
+  --of-mission-value-accent-03d1: #facc15;
+  --of-mission-value-accent-soft-03d1: rgba(250, 204, 21, 0.2);
+}
+
+/* Highlight data values only. Labels and semantic status chips keep their original colors. */
+.studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-card-header > strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-card-header div > strong:not(.mission-target-card-status-muted),
+.studio-app-shell > .workbench-layout-dashboard .mission-target-artifact-grid strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-data-product-grid strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-metric-line strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-scenario-metadata strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-load-row strong {
+  color: var(--of-mission-value-accent-03d1) !important;
+  text-shadow: 0 0 14px var(--of-mission-value-accent-soft-03d1) !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-quick-stat strong {
+  font-weight: 920 !important;
+}
+
+.studio-app-shell > .workbench-layout-dashboard .mission-target-artifact-grid strong {
+  font-weight: 880 !important;
+}
+
+/* Preserve explicit semantic states. */
+.studio-app-shell > .workbench-layout-dashboard .mission-target-payload-list strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-scenario-status,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-evidence-validation strong,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-evidence-validation small,
+.studio-app-shell > .workbench-layout-dashboard .mission-target-evidence-validation em {
+  text-shadow: none !important;
+}
