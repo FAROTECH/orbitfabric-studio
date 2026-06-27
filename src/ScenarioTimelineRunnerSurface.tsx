@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import type { GeneratedEvidenceArtifactSummary } from "./GeneratedArtifactExplorer";
 import {
   hydrateGeneratedReportsFromWorkspace,
@@ -346,10 +347,12 @@ export function ScenarioTimelineRunnerSurface({
   );
 
   return (
-    <section
+    <DesktopSurface
       id="studio-evidence"
-      className="scenario-evidence-cockpit"
-      aria-label="Scenario Evidence Cockpit"
+      label="Scenario Evidence Cockpit"
+      className="scenario-evidence-cockpit scenario-evidence-desktop-surface"
+      width="full"
+      density="compact"
     >
       <ScenarioEvidenceHeader
         scenarioFiles={scenarioFiles}
@@ -423,7 +426,7 @@ export function ScenarioTimelineRunnerSurface({
       <ScenarioArtifactDock artifacts={selectedArtifacts} onOpenFile={onOpenFile} />
 
       <ScenarioGuardrailStrip />
-    </section>
+    </DesktopSurface>
   );
 }
 

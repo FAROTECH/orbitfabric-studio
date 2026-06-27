@@ -1,0 +1,176 @@
+/*
+ * E9 Scenario Evidence desktop envelope bridge.
+ *
+ * Scenario Evidence is a tall evidence cockpit. This bridge only promotes the
+ * surface root to the shared DesktopSurface contract and keeps the existing
+ * cockpit composition, read-only behavior and scroll model intact.
+ */
+
+.main-surface-scenario-evidence {
+  min-width: 0;
+}
+
+.scenario-evidence-cockpit.scenario-evidence-desktop-surface {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+  min-height: 0;
+  align-content: start;
+}
+
+.scenario-evidence-cockpit.scenario-evidence-desktop-surface.of-desktop-surface {
+  gap: 12px;
+}
+
+.scenario-evidence-cockpit.scenario-evidence-desktop-surface > * {
+  min-width: 0;
+}
+
+/* E9 reference desktop bridge.
+   Keep the 1440/1400 desktop-reference profile desktop-oriented without
+   redesigning the evidence cockpit. */
+@media (min-width: 1240px) and (max-width: 1580px) {
+  .scenario-evidence-desktop-surface .scenario-evidence-header {
+    grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.18fr);
+    grid-template-areas:
+      "title posture"
+      "boundaries boundaries";
+    align-items: start;
+  }
+
+  .scenario-evidence-desktop-surface .scenario-evidence-title-block {
+    grid-area: title;
+  }
+
+  .scenario-evidence-desktop-surface .scenario-posture-grid {
+    grid-area: posture;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .scenario-evidence-desktop-surface .scenario-boundary-row {
+    grid-area: boundaries;
+    justify-content: flex-start;
+  }
+
+  .scenario-evidence-desktop-surface .scenario-cockpit-main-grid {
+    grid-template-columns: minmax(360px, 0.92fr) minmax(0, 1.08fr);
+  }
+
+  .scenario-evidence-desktop-surface .scenario-construction-grid {
+    grid-template-columns: minmax(320px, 0.52fr) minmax(0, 1fr);
+  }
+
+  .scenario-evidence-desktop-surface .scenario-evidence-work-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.5fr);
+  }
+
+  .scenario-evidence-desktop-surface .scenario-catalog-row {
+    grid-template-columns:
+      minmax(160px, 1fr)
+      70px
+      repeat(5, minmax(50px, 0.22fr))
+      minmax(68px, 0.28fr);
+    gap: 5px;
+  }
+
+  .scenario-evidence-desktop-surface .scenario-timeline-row {
+    grid-template-columns:
+      64px
+      86px
+      minmax(120px, 0.52fr)
+      minmax(180px, 1fr)
+      minmax(70px, 0.3fr);
+    gap: 7px;
+  }
+
+  .scenario-evidence-desktop-surface .scenario-artifact-card-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* E9.1 scenario desktop-reference grid hardening.
+   The Scenario Evidence cockpit is dense, but the supported 1440/1400 desktop
+   profile must not collapse into a mobile-like single column. These overrides
+   intentionally use higher specificity and !important because the legacy
+   scenario cockpit CSS contains late media rules and scroll hardening. */
+@media (min-width: 1240px) and (max-width: 1580px) {
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-evidence-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) !important;
+    grid-template-areas:
+      "title posture"
+      "boundaries boundaries" !important;
+    gap: 10px !important;
+    align-items: start !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-evidence-title-block {
+    grid-area: title !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-posture-grid {
+    grid-area: posture !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-boundary-row {
+    grid-area: boundaries !important;
+    justify-content: flex-start !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-cockpit-main-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) !important;
+    gap: 10px !important;
+    align-items: start !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-construction-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.48fr) minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: start !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-evidence-work-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.44fr) !important;
+    gap: 10px !important;
+    align-items: start !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-catalog-row {
+    grid-template-columns:
+      minmax(118px, 1fr)
+      58px
+      repeat(5, minmax(34px, 0.18fr))
+      minmax(44px, 0.24fr) !important;
+    gap: 4px !important;
+    padding-inline: 6px !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-catalog-row-head {
+    font-size: 0.52rem !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-result-pill {
+    padding-inline: 5px !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-timeline-row {
+    grid-template-columns:
+      58px
+      78px
+      minmax(112px, 0.52fr)
+      minmax(0, 1fr)
+      minmax(56px, 0.26fr) !important;
+    gap: 6px !important;
+    padding-right: 7px !important;
+  }
+
+  .scenario-evidence-cockpit.scenario-evidence-desktop-surface .scenario-artifact-card-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
