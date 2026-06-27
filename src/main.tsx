@@ -40,6 +40,7 @@ import "./publicBaselineSidebarCollapsedContract03b2.css";
 import "./publicBaselineMissionReadiness03d1.css";
 import "./publicBaselineCoreRunnerReadiness03d2.css";
 import "./publicBaselineSurfaceWidthRecovery03d3.css";
+import "./desktopEnvelopePrimitives.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
