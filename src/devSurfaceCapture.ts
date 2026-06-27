@@ -1,20 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import {
+  DEV_SURFACE_CAPTURE_TARGETS,
+  type DevSurfaceCaptureMode,
+  type DevSurfaceCaptureTargetSpec,
+} from "./devSurfaceCaptureManifest";
 import type { ActiveSurface, TargetDomainId } from "./navigationModel";
-
-export type DevSurfaceCaptureMode = "current-window" | "fullscreen";
 
 export interface DevSurfaceCaptureContext {
   activeSurface: ActiveSurface;
   activeNavigationId: TargetDomainId;
-}
-
-interface DevSurfaceCaptureTargetSpec {
-  label: string;
-  activeSurface: ActiveSurface;
-  activeNavigationId?: TargetDomainId;
-  shellSelector: string;
-  targetSelector: string;
 }
 
 interface ResolvedCaptureTarget {
@@ -43,45 +38,6 @@ interface DevCaptureSaveResult {
   path: string;
 }
 
-const CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[] = [
-  {
-    label: "Mission Overview",
-    activeSurface: "mission-dashboard",
-    shellSelector: ".main-surface",
-    targetSelector: ".mission-target",
-  },
-  {
-    label: "Data Flow Workbench",
-    activeSurface: "mission-data-flow-workbench",
-    shellSelector: ".main-surface",
-    targetSelector: ".mission-data-flow-workbench",
-  },
-  {
-    label: "Core Report Runner",
-    activeSurface: "core-commands",
-    shellSelector: ".main-surface-core-report-runner",
-    targetSelector: ".core-report-runner-surface",
-  },
-  {
-    label: "Data Products",
-    activeSurface: "model-inventory",
-    activeNavigationId: "data-products",
-    shellSelector: ".main-surface-data-products",
-    targetSelector: ".data-products-cockpit-surface",
-  },
-  {
-    label: "Scenarios",
-    activeSurface: "scenario-evidence",
-    shellSelector: ".main-surface-scenario-evidence",
-    targetSelector: ".scenario-evidence-cockpit",
-  },
-  {
-    label: "Generated Artifacts",
-    activeSurface: "generated-artifacts",
-    shellSelector: ".main-surface-generated-artifacts",
-    targetSelector: ".generated-artifacts-surface",
-  },
-];
 
 export function isDevSurfaceCaptureEnabled(): boolean {
   return import.meta.env.VITE_OF_DEV_CAPTURE === "1";
@@ -173,7 +129,7 @@ export async function captureActiveSurface(
 }
 
 function resolveCaptureTarget(context: DevSurfaceCaptureContext): ResolvedCaptureTarget {
-  const targetSpec = CAPTURE_TARGETS.find((candidate) => {
+  const targetSpec = DEV_SURFACE_CAPTURE_TARGETS.find((candidate: DevSurfaceCaptureTargetSpec) => {
     if (candidate.activeSurface !== context.activeSurface) {
       return false;
     }
