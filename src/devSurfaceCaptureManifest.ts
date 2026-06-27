@@ -84,8 +84,8 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     activeSurface: "scenario-evidence",
     shellSelector: ".main-surface-scenario-evidence",
     targetSelector: ".scenario-evidence-cockpit",
-    requiredProfiles: ["desktop-fullscreen"],
-    notes: "Long vertical evidence surface; current length is structural, not a shell fallback failure.",
+    requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
+    notes: "Desktop-envelope migrated in E9; validate reference and fullscreen evidence cockpit profiles.",
   },
   {
     label: "Generated Artifacts",
