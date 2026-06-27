@@ -93,8 +93,8 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     activeSurface: "generated-artifacts",
     shellSelector: ".main-surface-generated-artifacts",
     targetSelector: ".generated-artifacts-surface",
-    requiredProfiles: ["desktop-fullscreen"],
-    notes: "Validate both empty and populated inventory states when available.",
+    requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
+    notes: "Desktop-envelope migrated in E8; validate empty and populated inventory states when available.",
   },
   {
     label: "Data Flow Workbench",

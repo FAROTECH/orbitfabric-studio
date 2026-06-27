@@ -44,6 +44,7 @@ import "./desktopEnvelopePrimitives.css";
 import "./missionOverviewDesktopEnvelope.css";
 import "./coreReportRunnerDesktopEnvelope.css";
 import "./dataProductsDesktopEnvelope.css";
+import "./generatedArtifactsDesktopEnvelope.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
