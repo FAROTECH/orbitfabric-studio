@@ -43,6 +43,7 @@ import "./publicBaselineSurfaceWidthRecovery03d3.css";
 import "./desktopEnvelopePrimitives.css";
 import "./missionOverviewDesktopEnvelope.css";
 import "./coreReportRunnerDesktopEnvelope.css";
+import "./dataProductsDesktopEnvelope.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

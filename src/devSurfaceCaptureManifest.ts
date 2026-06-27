@@ -75,8 +75,8 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     activeNavigationId: "data-products",
     shellSelector: ".main-surface-data-products",
     targetSelector: ".data-products-cockpit-surface",
-    requiredProfiles: ["desktop-fullscreen"],
-    notes: "Coherent fullscreen baseline; not migrated to desktop envelope yet.",
+    requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
+    notes: "Desktop-envelope migrated in E7; validate reference and fullscreen cockpit profiles.",
   },
   {
     label: "Scenarios",
