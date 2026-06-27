@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 import "./dataProductsCockpit.css";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import {
   parseCoreCoverageSummary,
@@ -263,10 +264,12 @@ export function DataProductsDomainSurface({
   }
 
   return (
-    <section
+    <DesktopSurface
       id="studio-model"
-      className="data-products-cockpit-surface"
-      aria-label="Data Products Cockpit"
+      label="Data Products Cockpit"
+      className="data-products-cockpit-surface data-products-desktop-surface"
+      width="full"
+      density="compact"
     >
       <header className="data-products-cockpit-hero">
         <div>
@@ -557,7 +560,7 @@ export function DataProductsDomainSurface({
           ))}
         </section>
       ) : null}
-    </section>
+    </DesktopSurface>
   );
 }
 
