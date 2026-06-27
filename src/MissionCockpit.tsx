@@ -32,6 +32,7 @@ import type {
   WorkspaceInspection,
 } from "./types/workspace";
 import type { CoreReportSnapshots } from "./missionCockpitModel";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 
 interface ReferenceDisplayModel {
   missionName: string;
@@ -304,10 +305,12 @@ export function MissionCockpit({
   );
 
   return (
-    <section
+    <DesktopSurface
       id="studio-dashboard"
-      className="mission-target"
-      aria-label="Mission Overview"
+      label="Mission Overview"
+      className="mission-target mission-overview-desktop-surface"
+      width="full"
+      density="compact"
     >
       <header className="mission-target-heading">
         <div className="mission-target-heading-title">
@@ -477,7 +480,7 @@ export function MissionCockpit({
           onOpen={() => onNavigate("generated-artifacts", "generated-artifacts")}
         />
       </section>
-    </section>
+    </DesktopSurface>
   );
 }
 
