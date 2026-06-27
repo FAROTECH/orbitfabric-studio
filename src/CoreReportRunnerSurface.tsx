@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { DashboardIcon } from "./DashboardIcon";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import type {
   CoreCommandResult,
   CoreCoverageSummary,
@@ -225,10 +226,12 @@ export function CoreReportRunnerSurface({
   }
 
   return (
-    <section
+    <DesktopSurface
       id="studio-core-report-runner"
-      className="core-report-runner-surface"
-      aria-label="Core Report Runner"
+      label="Core Report Runner"
+      className="core-report-runner-surface core-report-runner-desktop-surface"
+      width="full"
+      density="compact"
     >
       <section className="core-runner-hero" aria-labelledby="core-runner-title">
         <div className="core-runner-hero-copy">
@@ -482,7 +485,7 @@ export function CoreReportRunnerSurface({
         </aside>
       </div>
 
-    </section>
+    </DesktopSurface>
   );
 }
 
