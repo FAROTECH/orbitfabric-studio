@@ -11,7 +11,8 @@
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "qa:visual-checklist": "node tools/dev/generate-visual-qa-checklist.mjs --write"
+    "qa:visual-checklist": "node tools/dev/generate-visual-qa-checklist.mjs --write",
+    "qa:desktop-envelope-audit": "node tools/dev/check-desktop-envelope-audit.mjs --write"
   },
   "dependencies": {
     "@monaco-editor/react": "4.7.0",
