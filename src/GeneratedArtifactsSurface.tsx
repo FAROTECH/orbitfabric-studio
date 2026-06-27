@@ -1,4 +1,5 @@
 import { GeneratedArtifactExplorerPanel } from "./GeneratedArtifactExplorer";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import type {
   GeneratedArtifactDashboardSummary,
   GeneratedArtifactInspectorItem,
@@ -26,9 +27,11 @@ export function GeneratedArtifactsSurface({
   ) => void;
 }) {
   return (
-    <section
-      className="active-surface-frame generated-artifacts-surface generated-artifact-deck-surface"
-      aria-label="Generated Artifact Constellation Deck"
+    <DesktopSurface
+      label="Generated Artifact Constellation Deck"
+      className="active-surface-frame generated-artifacts-surface generated-artifact-deck-surface generated-artifacts-desktop-surface"
+      width="full"
+      density="compact"
     >
       <GeneratedArtifactExplorerPanel
         workspacePath={workspace.selected_path}
@@ -37,6 +40,6 @@ export function GeneratedArtifactsSurface({
         onArtifactSelectionChange={onArtifactSelectionChange}
         onEvidenceArtifactSummaryChange={onEvidenceArtifactSummaryChange}
       />
-    </section>
+    </DesktopSurface>
   );
 }
