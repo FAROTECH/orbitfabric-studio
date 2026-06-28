@@ -13,7 +13,8 @@
     "tauri:build": "tauri build",
     "qa:visual-checklist": "node tools/dev/generate-visual-qa-checklist.mjs --write",
     "qa:desktop-envelope-audit": "node tools/dev/check-desktop-envelope-audit.mjs --write",
-    "qa:data-flow-workbench-audit": "node tools/dev/check-data-flow-workbench-audit.mjs --write"
+    "qa:data-flow-workbench-audit": "node tools/dev/check-data-flow-workbench-audit.mjs --write",
+    "qa:studio-visual-token-contract": "node tools/dev/check-studio-visual-token-contract.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "4.7.0",

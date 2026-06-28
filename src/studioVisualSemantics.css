@@ -1,0 +1,91 @@
+/*
+ * OrbitFabric Studio visual semantics.
+ *
+ * E14 introduces a semantic token contract only. These variables are intentionally
+ * additive and must not migrate, override, or restyle existing surfaces by
+ * themselves. Future visual harmonization slices may consume these tokens through
+ * narrow, reviewed PRs.
+ */
+
+:root {
+  /* Surface grammar */
+  --of-visual-surface-bg: #020817;
+  --of-visual-panel-bg: var(--of-desktop-panel-bg);
+  --of-visual-card-bg: var(--of-desktop-panel-bg);
+  --of-visual-raised-bg:
+    linear-gradient(180deg, rgba(4, 22, 42, 0.94), rgba(2, 10, 24, 0.96)),
+    rgba(2, 8, 23, 0.92);
+
+  /* Borders and dividers */
+  --of-visual-border-soft: rgba(64, 135, 179, 0.28);
+  --of-visual-border: rgba(64, 135, 179, 0.38);
+  --of-visual-border-strong: rgba(103, 232, 249, 0.48);
+  --of-visual-divider: rgba(148, 163, 184, 0.16);
+
+  /* Text hierarchy */
+  --of-visual-text-primary: var(--of-desktop-heading-color);
+  --of-visual-text-secondary: #c7d7e8;
+  --of-visual-text-muted: var(--of-desktop-muted-color);
+  --of-visual-text-faint: rgba(158, 179, 202, 0.68);
+  --of-visual-text-inverse: #020817;
+
+  /* Brand/accent */
+  --of-visual-accent: #67e8f9;
+  --of-visual-accent-muted: rgba(103, 232, 249, 0.16);
+  --of-visual-accent-border: rgba(103, 232, 249, 0.38);
+
+  /* Semantic states */
+  --of-visual-status-success: #34d399;
+  --of-visual-status-success-bg: rgba(52, 211, 153, 0.14);
+  --of-visual-status-success-border: rgba(52, 211, 153, 0.34);
+
+  --of-visual-status-warning: #fbbf24;
+  --of-visual-status-warning-bg: rgba(251, 191, 36, 0.14);
+  --of-visual-status-warning-border: rgba(251, 191, 36, 0.34);
+
+  --of-visual-status-danger: #fb7185;
+  --of-visual-status-danger-bg: rgba(251, 113, 133, 0.14);
+  --of-visual-status-danger-border: rgba(251, 113, 133, 0.34);
+
+  --of-visual-status-info: #60a5fa;
+  --of-visual-status-info-bg: rgba(96, 165, 250, 0.14);
+  --of-visual-status-info-border: rgba(96, 165, 250, 0.34);
+
+  --of-visual-status-neutral: #94a3b8;
+  --of-visual-status-neutral-bg: rgba(148, 163, 184, 0.12);
+  --of-visual-status-neutral-border: rgba(148, 163, 184, 0.26);
+
+  /* Provenance / evidence */
+  --of-visual-provenance-bg: rgba(14, 165, 233, 0.12);
+  --of-visual-provenance-border: rgba(14, 165, 233, 0.32);
+  --of-visual-provenance-text: #bae6fd;
+
+  --of-visual-evidence-bg: rgba(45, 212, 191, 0.12);
+  --of-visual-evidence-border: rgba(45, 212, 191, 0.32);
+  --of-visual-evidence-text: #ccfbf1;
+
+  /* Interaction semantics */
+  --of-visual-action-bg: rgba(103, 232, 249, 0.12);
+  --of-visual-action-border: rgba(103, 232, 249, 0.32);
+  --of-visual-action-text: #cffafe;
+  --of-visual-action-hover-bg: rgba(103, 232, 249, 0.2);
+  --of-visual-action-hover-border: rgba(103, 232, 249, 0.52);
+
+  --of-visual-selected-bg: rgba(103, 232, 249, 0.18);
+  --of-visual-selected-border: rgba(103, 232, 249, 0.58);
+  --of-visual-selected-text: #ecfeff;
+
+  --of-visual-focus-ring: 0 0 0 3px rgba(103, 232, 249, 0.34);
+  --of-visual-disabled-opacity: 0.48;
+
+  /* Raw/code/output blocks */
+  --of-visual-raw-bg: rgba(1, 8, 20, 0.76);
+  --of-visual-raw-border: rgba(148, 163, 184, 0.2);
+  --of-visual-raw-text: #dbeafe;
+
+  /* Shape semantics */
+  --of-visual-radius-panel: var(--of-desktop-panel-radius);
+  --of-visual-radius-card: 16px;
+  --of-visual-radius-control: 12px;
+  --of-visual-radius-pill: 999px;
+}
