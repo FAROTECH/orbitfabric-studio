@@ -1,0 +1,147 @@
+/*
+ * OrbitFabric Studio hero/header harmonization.
+ *
+ * E15 is intentionally CSS-only. It consumes the E14 --of-visual-* token
+ * contract to align the visible hero/header grammar of stabilized desktop
+ * surfaces without touching runtime behavior, data semantics, layout envelope,
+ * Data Flow focus/drawer, or OrbitFabric Core/reference mission assets.
+ */
+
+/* Shared hero/header frame across stabilized desktop surfaces. */
+.mission-overview-desktop-surface .mission-target-heading,
+.core-report-runner-desktop-surface .core-runner-hero,
+.data-products-desktop-surface .data-products-cockpit-hero,
+.generated-artifacts-desktop-surface .lineage-header,
+.scenario-evidence-desktop-surface .scenario-evidence-header {
+  border: 1px solid var(--of-visual-border);
+  border-radius: var(--of-visual-radius-panel);
+  background: var(--of-visual-raised-bg);
+  box-shadow: var(--of-desktop-panel-shadow);
+}
+
+/* Header spacing and two-column rhythm. */
+.mission-overview-desktop-surface .mission-target-heading,
+.core-report-runner-desktop-surface .core-runner-hero,
+.data-products-desktop-surface .data-products-cockpit-hero,
+.generated-artifacts-desktop-surface .lineage-header,
+.scenario-evidence-desktop-surface .scenario-evidence-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: start;
+}
+
+/*
+ * Mission Overview already has a separate identity hero below its compact
+ * surface heading. Keep the heading compact, and align the identity hero with
+ * the same token language without changing its layout contract.
+ */
+.mission-overview-desktop-surface .mission-target-heading {
+  padding: 16px 18px;
+}
+
+.mission-overview-desktop-surface .mission-target-hero {
+  border-color: var(--of-visual-border);
+  border-radius: var(--of-visual-radius-panel);
+  background: var(--of-visual-panel-bg);
+}
+
+/* Common title block rhythm. */
+.core-report-runner-desktop-surface .core-runner-hero-copy,
+.data-products-desktop-surface .data-products-cockpit-hero > div:first-child,
+.generated-artifacts-desktop-surface .lineage-title-block,
+.scenario-evidence-desktop-surface .scenario-evidence-title-block {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* Common kicker/eyebrow grammar. */
+.core-report-runner-desktop-surface .core-runner-eyebrow,
+.data-products-desktop-surface .data-products-cockpit-hero .cockpit-eyebrow,
+.scenario-evidence-desktop-surface .scenario-evidence-title-block .cockpit-eyebrow {
+  color: var(--of-visual-accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Common primary title grammar. */
+.mission-overview-desktop-surface .mission-target-heading-title h2,
+.core-report-runner-desktop-surface #core-runner-title,
+.data-products-desktop-surface .data-products-cockpit-hero h2,
+.generated-artifacts-desktop-surface .lineage-title-row h2,
+.scenario-evidence-desktop-surface .scenario-evidence-title-block h2 {
+  margin: 0;
+  color: var(--of-visual-text-primary);
+  font-size: clamp(1.45rem, 2vw, 2.08rem);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+/* Mission identity title remains a hero title but uses the same text tokens. */
+.mission-overview-desktop-surface .mission-target-name-line h1 {
+  color: var(--of-visual-text-primary);
+  letter-spacing: -0.045em;
+}
+
+/* Common summary/lead grammar. */
+.core-report-runner-desktop-surface .core-runner-lead,
+.data-products-desktop-surface .data-products-cockpit-hero p,
+.generated-artifacts-desktop-surface .lineage-title-block p,
+.scenario-evidence-desktop-surface .scenario-evidence-title-block p,
+.mission-overview-desktop-surface .mission-target-name-line p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--of-visual-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* Generated Artifacts has a secondary heading line; normalize it as subhead. */
+.generated-artifacts-desktop-surface .lineage-title-block strong {
+  color: var(--of-visual-text-secondary);
+  font-size: 0.88rem;
+  letter-spacing: 0.03em;
+}
+
+/* Common hero aside/posture rhythm. */
+.core-report-runner-desktop-surface .core-runner-generated-strip,
+.data-products-desktop-surface .data-products-cockpit-hero-side,
+.generated-artifacts-desktop-surface .lineage-stat-grid,
+.scenario-evidence-desktop-surface .scenario-posture-grid {
+  align-self: stretch;
+  min-width: 0;
+}
+
+/* Keep badge/action rows legible and aligned in header side areas. */
+.data-products-desktop-surface .data-products-cockpit-hero-side,
+.core-report-runner-desktop-surface .core-runner-badge-row,
+.generated-artifacts-desktop-surface .lineage-title-row {
+  gap: 8px;
+}
+
+/* Header actions should read as actions, not passive badges. */
+.mission-overview-desktop-surface .mission-target-report-button {
+  border-color: var(--of-visual-action-border);
+  background: var(--of-visual-action-bg);
+  color: var(--of-visual-action-text);
+}
+
+.mission-overview-desktop-surface .mission-target-report-button:hover {
+  border-color: var(--of-visual-action-hover-border);
+  background: var(--of-visual-action-hover-bg);
+}
+
+/* Desktop-only tightening at the reference profile, without mobile expansion. */
+@media (min-width: 1240px) {
+  .core-report-runner-desktop-surface .core-runner-hero,
+  .data-products-desktop-surface .data-products-cockpit-hero,
+  .generated-artifacts-desktop-surface .lineage-header,
+  .scenario-evidence-desktop-surface .scenario-evidence-header {
+    padding: 22px 24px;
+  }
+}

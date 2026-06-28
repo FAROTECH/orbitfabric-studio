@@ -48,6 +48,7 @@ import "./dataProductsDesktopEnvelope.css";
 import "./generatedArtifactsDesktopEnvelope.css";
 import "./scenarioEvidenceDesktopEnvelope.css";
 import "./dataFlowWorkbenchDesktopEnvelope.css";
+import "./studioHeroHeaderHarmonization.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
