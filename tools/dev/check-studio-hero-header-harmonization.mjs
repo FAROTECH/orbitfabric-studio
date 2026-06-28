@@ -5,6 +5,8 @@ const files = {
   main: "src/main.tsx",
   pkg: "package.json",
   doc: "docs/qa/e15-hero-header-harmonization.md",
+  mission: "src/MissionCockpit.tsx",
+  navigation: "src/navigationModel.ts",
 };
 
 function read(path) {
@@ -33,10 +35,20 @@ function requireIncludes(label, content, needle) {
   }
 }
 
+function requireExcludes(label, content, needle) {
+  if (!content.includes(needle)) {
+    pass(label);
+  } else {
+    fail(label, `Unexpected: ${needle}`);
+  }
+}
+
 const css = read(files.css);
 const main = read(files.main);
 const pkg = JSON.parse(read(files.pkg));
 const doc = read(files.doc);
+const mission = read(files.mission);
+const navigation = read(files.navigation);
 
 const requiredSurfaceSelectors = [
   ".mission-overview-desktop-surface",
@@ -59,8 +71,6 @@ const requiredTokenReferences = [
   "var(--of-visual-text-primary)",
   "var(--of-visual-text-secondary)",
   "var(--of-visual-text-muted)",
-  "var(--of-visual-action-bg)",
-  "var(--of-visual-action-hover-bg)",
   "var(--of-visual-status-neutral-bg)",
 ];
 
@@ -70,11 +80,13 @@ for (const token of requiredTokenReferences) {
 
 requireIncludes("visible top accent line", css, "::before");
 requireIncludes("accent line inset to avoid bleed", css, "left: 12px;");
-requireIncludes("Mission Overview stacked integration", css, "border-bottom-left-radius: 0;");
-requireIncludes("Mission Overview stacked integration margin", css, "margin-top: -1px;");
-requireIncludes("Mission Overview edge spacing", css, "padding: 14px 22px;");
-requireIncludes("Data Products metadata readable", css, "overflow: visible;");
-requireIncludes("Scenario posture section title", css, "Surface posture");
+requireIncludes("Mission Overview single hero selector", css, ".mission-overview-desktop-surface .mission-target-hero");
+requireIncludes("Mission Overview stale top bar safety", css, ".mission-overview-desktop-surface .mission-target-heading");
+
+requireExcludes("Mission Overview top bar markup removed", mission, 'className="mission-target-heading"');
+requireExcludes("Mission Overview top CTA removed", mission, "View Generated Reports");
+requireIncludes("sidebar label renamed", navigation, 'label: "Mission Overview"');
+requireExcludes("old sidebar label removed", navigation, 'label: "Mission",');
 
 const forbiddenCssFragments = [
   "mission-data-flow",
@@ -113,7 +125,8 @@ if (pkg.scripts?.["qa:studio-hero-header-harmonization"] === "node tools/dev/che
 
 requireIncludes("doc title", doc, "# E15 — Hero/Header Harmonization");
 requireIncludes("doc explicit target style", doc, "Studio Command Header");
-requireIncludes("doc Mission Overview refinement", doc, "integrated stacked command-header family");
+requireIncludes("doc Mission Overview single hero", doc, "single-hero entry");
+requireIncludes("doc sidebar rename", doc, "sidebar label reads Mission Overview");
 requireIncludes("doc current state", doc, "## 2. Current state by surface");
 requireIncludes("doc expected visual result", doc, "## 3. Expected visual result by surface");
 requireIncludes("doc visual QA acceptance", doc, "## 9. Visual QA acceptance");

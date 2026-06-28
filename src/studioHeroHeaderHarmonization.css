@@ -1,23 +1,23 @@
 /*
  * OrbitFabric Studio hero/header harmonization.
  *
- * E15.3 refines the explicit "Studio Command Header" contract introduced in
- * E15.2. It keeps the same intent but fixes the weakest targeted cases:
+ * E15.4 defines the visible "Studio Command Header" contract and removes the
+ * redundant Mission Overview top bar from the Mission surface. The Mission
+ * sidebar label now carries the page-level navigation context, while the
+ * mission identity hero becomes the first and only hero block for that surface.
  *
- * - Mission Overview top surface bar and identity hero now read as one
- *   integrated command-header stack rather than two unrelated blocks.
- * - Data Products right-side metadata remains readable without over-aggressive
- *   truncation.
- * - Scenario Evidence right-side posture/badge area is more visually unified.
- *
- * Runtime scope remains CSS-only for stabilized desktop surfaces.
+ * Runtime scope remains deliberately narrow:
+ * - no OrbitFabric Core changes
+ * - no reference mission changes
+ * - no generated data changes
+ * - no command/scenario/artifact behavior changes
+ * - no Data Flow Workbench/drawer/focus changes
  */
 
 /* -------------------------------------------------------------------------- */
 /* Studio Command Header: shared contract                                      */
 /* -------------------------------------------------------------------------- */
 
-.mission-overview-desktop-surface .mission-target-heading,
 .mission-overview-desktop-surface .mission-target-hero,
 .core-report-runner-desktop-surface .core-runner-hero,
 .data-products-desktop-surface .data-products-cockpit-hero,
@@ -38,7 +38,6 @@
     0 0 0 1px rgba(103, 232, 249, 0.05);
 }
 
-.mission-overview-desktop-surface .mission-target-heading::before,
 .mission-overview-desktop-surface .mission-target-hero::before,
 .core-report-runner-desktop-surface .core-runner-hero::before,
 .data-products-desktop-surface .data-products-cockpit-hero::before,
@@ -61,6 +60,14 @@
   opacity: 0.95;
 }
 
+.mission-overview-desktop-surface .mission-target-hero,
+.core-report-runner-desktop-surface .core-runner-hero,
+.data-products-desktop-surface .data-products-cockpit-hero,
+.generated-artifacts-desktop-surface .lineage-header,
+.scenario-evidence-desktop-surface .scenario-evidence-header {
+  padding: 24px;
+}
+
 .core-report-runner-desktop-surface .core-runner-hero,
 .data-products-desktop-surface .data-products-cockpit-hero,
 .generated-artifacts-desktop-surface .lineage-header,
@@ -69,80 +76,14 @@
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
   gap: 22px;
   align-items: start;
-  padding: 24px;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Mission Overview: integrated stacked hero                                   */
+/* Mission Overview: single hero entry                                         */
 /* -------------------------------------------------------------------------- */
-
-.mission-overview-desktop-surface .mission-target-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: center;
-  padding: 14px 22px;
-  margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-color: rgba(103, 232, 249, 0.22);
-  background:
-    linear-gradient(180deg, rgba(6, 18, 38, 0.96), rgba(4, 12, 28, 0.96)),
-    var(--of-visual-panel-bg);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 10px 24px rgba(0, 0, 0, 0.16);
-}
-
-.mission-overview-desktop-surface .mission-target-heading::before {
-  left: 14px;
-  right: 14px;
-}
 
 .mission-overview-desktop-surface .mission-target-hero {
-  padding: 24px;
-  margin-top: -1px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-color: rgba(103, 232, 249, 0.18);
-}
-
-.mission-overview-desktop-surface .mission-target-heading-title {
-  padding-left: 2px;
-}
-
-.mission-overview-desktop-surface .mission-target-heading-title h2 {
-  margin: 0;
-  color: var(--of-visual-text-primary);
-  font-size: clamp(1.08rem, 1.32vw, 1.26rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-}
-
-.mission-overview-desktop-surface .mission-target-heading-actions,
-.mission-overview-desktop-surface .mission-target-heading > div:last-child {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 0;
-}
-
-.mission-overview-desktop-surface .mission-target-report-button {
-  min-height: 40px;
-  padding: 0 16px;
-  border-color: var(--of-visual-action-border);
-  background:
-    linear-gradient(180deg, rgba(103, 232, 249, 0.18), rgba(8, 47, 73, 0.58)),
-    var(--of-visual-action-bg);
-  color: var(--of-visual-action-text);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(103, 232, 249, 0.06);
-}
-
-.mission-overview-desktop-surface .mission-target-report-button:hover {
-  border-color: var(--of-visual-action-hover-border);
-  background: var(--of-visual-action-hover-bg);
+  margin-top: 0;
 }
 
 .mission-overview-desktop-surface .mission-target-copy {
@@ -172,6 +113,11 @@
   border-color: var(--of-visual-border-strong);
   background: var(--of-visual-status-neutral-bg);
   color: var(--of-visual-text-secondary);
+}
+
+/* Safety: the removed top bar must not consume space if stale markup appears. */
+.mission-overview-desktop-surface .mission-target-heading {
+  display: none;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -250,7 +196,7 @@
   padding: 10px;
 }
 
-/* Data Products: keep the right-side useful, not empty and not over-truncated. */
+/* Data Products: keep right-side metadata readable and non-fragile. */
 .data-products-desktop-surface .data-products-cockpit-hero-side {
   display: grid;
   gap: 12px;
@@ -279,7 +225,7 @@
   align-items: center;
 }
 
-/* Scenario Evidence: unify badge row and posture area visually. */
+/* Scenario Evidence: keep posture area visually contained. */
 .scenario-evidence-desktop-surface .scenario-evidence-header {
   grid-template-columns: minmax(0, 1fr) minmax(420px, 0.88fr);
 }
@@ -297,29 +243,6 @@
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-.scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-evidence-badges,
-.scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-runner-badges,
-.scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-badge-row {
-  justify-self: end;
-  margin-top: 10px;
-}
-
-@media (min-width: 1240px) {
-  .scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-evidence-badges,
-  .scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-runner-badges,
-  .scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-badge-row {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
-  }
-
-  .scenario-evidence-desktop-surface .scenario-posture-grid {
-    grid-column: 2;
-    grid-row: 1;
-    padding-top: 48px;
-  }
 }
 
 /* -------------------------------------------------------------------------- */

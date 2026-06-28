@@ -77,12 +77,12 @@ export interface TargetDomainNavigationItem {
 export const targetDomainNavigationItems: readonly TargetDomainNavigationItem[] = [
   {
     id: "mission",
-    label: "Mission",
+    label: "Mission Overview",
     status: "available",
     destinationSurface: "mission-dashboard",
     targetId: "studio-dashboard",
     icon: "mission",
-    caption: "Cockpit entry point",
+    caption: "Mission cockpit entry point",
   },
   {
     id: "core-report-runner",

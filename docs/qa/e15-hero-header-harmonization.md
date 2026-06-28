@@ -20,17 +20,19 @@ contained right-side posture/stat area.
 
 E15 must produce a visible result. It is not a silent token normalization pass.
 
-E15.3 adds an explicit refinement for Mission Overview: the former top surface
-bar and the mission identity hero must read as one integrated stacked header.
+E15.4 changes the Mission Overview decision: the redundant top surface bar is
+removed. The sidebar label now carries the page-level context as `Mission
+Overview`, and the mission identity hero becomes the first visual block.
 
 ## 2. Current state by surface
 
-### Mission Overview today
+### Mission Overview before E15.4
 
-- Compact top toolbar: `Mission Overview` plus report action.
-- Main identity hero lives below the toolbar.
-- Visual grammar differs from the other command surfaces.
-- The top bar previously looked detached and cramped at the edges.
+- Sidebar label was `Mission`.
+- The surface contained a redundant top bar: `Mission Overview` plus `View
+  Generated Reports`.
+- The real content hero below was already more representative than the top bar.
+- The top bar duplicated navigation context and weakened the page opening.
 
 ### Core Report Runner today
 
@@ -54,7 +56,6 @@ bar and the mission identity hero must read as one integrated stacked header.
 
 - Kicker, title, summary and posture cards already exist.
 - Header is compact and readable but flatter than Core Report Runner.
-- Badge/posture relationship needs a more unified right-side treatment.
 
 ### Data Flow Workbench today
 
@@ -64,12 +65,14 @@ bar and the mission identity hero must read as one integrated stacked header.
 
 ## 3. Expected visual result by surface
 
-### Mission Overview after E15
+### Mission Overview after E15.4
 
-- The top bar and identity hero belong to the same stacked command-header family.
-- The top bar has real padding and does not pin title/button to the edges.
-- The identity hero keeps the mission-dashboard identity.
-- The luminous accent line no longer bleeds awkwardly at the left edge.
+- Sidebar reads `Mission Overview`.
+- No redundant `Mission Overview` top bar appears inside the surface.
+- No `View Generated Reports` CTA appears in the top of Mission Overview.
+- The mission identity hero is the first visual block.
+- Generated Artifacts remains accessible from the sidebar and contextual cards.
+- Quick Stats and downstream dashboard sections are unchanged.
 
 ### Core Report Runner after E15
 
@@ -97,7 +100,6 @@ bar and the mission identity hero must read as one integrated stacked header.
 - Header gains the same raised command-header treatment.
 - Kicker/title/summary and posture cards align with the Core/Data Products
   rhythm.
-- Right-side badge/posture treatment reads as one contained area.
 - Timeline, catalog, inspector and artifact dock remain unchanged.
 
 ### Data Flow Workbench after E15
@@ -125,6 +127,8 @@ E15 introduces or updates:
 - `src/studioHeroHeaderHarmonization.css`
 - `docs/qa/e15-hero-header-harmonization.md`
 - `tools/dev/check-studio-hero-header-harmonization.mjs`
+- `src/MissionCockpit.tsx`
+- `src/navigationModel.ts`
 - `src/main.tsx`
 - `package.json`
 
@@ -132,9 +136,9 @@ E15 introduces or updates:
 
 E15 must remain:
 
-- CSS-only for runtime surfaces
 - additive relative to the E14 `--of-visual-*` token contract
 - scoped to existing stabilized desktop surface root classes
+- limited to targeted Mission Overview markup cleanup and sidebar label copy
 - free from OrbitFabric Core changes
 - free from reference mission changes
 - free from generated data changes
@@ -163,8 +167,7 @@ E15 aligns:
 - primary title treatment
 - summary/lead treatment
 - header side/posture/stat containment
-- Mission Overview stacked top-bar + hero treatment
-- Mission Overview report action affordance
+- Mission Overview single-hero entry
 
 E15 does not align:
 
@@ -193,13 +196,13 @@ Before merge, capture or inspect:
 Accept only if:
 
 - the five targeted headers visibly belong to the same visual family
-- Mission Overview top bar and identity hero feel intentionally integrated
-- Mission Overview title/button no longer touch the edges visually
-- Mission Overview accent line does not bleed awkwardly at the left edge
+- Mission Overview starts directly with the mission identity hero
+- the redundant Mission Overview top bar is absent
+- the View Generated Reports top CTA is absent from Mission Overview
+- the sidebar label reads Mission Overview
 - Core Report Runner is not degraded
 - Data Products metadata remains readable
 - Generated Artifacts no longer feels like a separate header dialect
-- Scenario Evidence right-side is more unified
 - Data Flow remains unchanged
 - no horizontal overflow appears at the desktop reference profile
 
@@ -229,7 +232,8 @@ E15 is acceptable when:
 - the CSS consumes E14 `--of-visual-*` tokens
 - the CSS declares the Studio Command Header treatment
 - the CSS includes a visible top accent line
-- the CSS includes the Mission Overview integrated stacked-header treatment
+- Mission Overview has no redundant top bar markup
+- sidebar label is `Mission Overview`
 - the CSS is scoped to the five stabilized non-Data-Flow surface root classes
 - no Data Flow Workbench, drawer or focus selectors are targeted
 - `src/main.tsx` imports the harmonization CSS after the desktop envelope bridge CSS
