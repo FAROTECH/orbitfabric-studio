@@ -41,6 +41,7 @@ import "./publicBaselineMissionReadiness03d1.css";
 import "./publicBaselineCoreRunnerReadiness03d2.css";
 import "./publicBaselineSurfaceWidthRecovery03d3.css";
 import "./desktopEnvelopePrimitives.css";
+import "./studioVisualSemantics.css";
 import "./missionOverviewDesktopEnvelope.css";
 import "./coreReportRunnerDesktopEnvelope.css";
 import "./dataProductsDesktopEnvelope.css";
