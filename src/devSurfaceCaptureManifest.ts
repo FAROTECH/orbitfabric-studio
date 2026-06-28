@@ -102,7 +102,7 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     activeSurface: "mission-data-flow-workbench",
     shellSelector: ".main-surface",
     targetSelector: ".mission-data-flow-workbench",
-    requiredProfiles: ["desktop-fullscreen"],
-    notes: "Recognized target, but remains a special-case width surface until a later migration.",
+    requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
+    notes: "Desktop-contract migrated in E12; validate reference and fullscreen workbench profiles.",
   },
 ];

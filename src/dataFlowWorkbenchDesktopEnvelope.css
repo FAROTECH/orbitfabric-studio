@@ -1,0 +1,492 @@
+/*
+ * E12 Data Flow Workbench desktop contract bridge.
+ *
+ * Data Flow is a mini-application-like workbench surface. This stylesheet keeps
+ * the existing read-only data-flow semantics and interaction model intact while
+ * giving the surface the same desktop-envelope ownership guarantees as the
+ * normal public Studio surfaces.
+ */
+
+.mission-data-flow-route-frame {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+}
+
+.mission-data-flow-workbench.data-flow-workbench-desktop-surface {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  box-sizing: border-box;
+  align-content: start;
+  overflow: visible;
+}
+
+.mission-data-flow-workbench.data-flow-workbench-desktop-surface.of-desktop-surface {
+  gap: 12px;
+}
+
+.data-flow-workbench-desktop-surface > * {
+  min-width: 0;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header,
+.data-flow-workbench-desktop-surface .mission-data-flow-main-grid,
+.data-flow-workbench-desktop-surface .mission-data-flow-bottom-deck,
+.data-flow-workbench-desktop-surface .mission-data-flow-stage-grid,
+.data-flow-workbench-desktop-surface .mission-data-flow-source-strip,
+.data-flow-workbench-desktop-surface .mission-data-flow-kpi-strip {
+  min-width: 0;
+}
+
+@media (min-width: 1240px) and (max-width: 1580px) {
+  .data-flow-workbench-desktop-surface {
+    padding: 12px;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header h2 {
+    font-size: 1.28rem;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi:nth-child(n + 4) {
+    border-top: 1px solid rgba(51, 65, 85, 0.82);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-main-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid {
+    grid-template-columns: repeat(5, minmax(112px, 1fr));
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-gutter: stable;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage {
+    min-height: 252px;
+    padding: 8px;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage header strong {
+    font-size: 0.76rem;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item {
+    padding: 7px;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector {
+    padding: 10px;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-bottom-deck {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.48fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-path-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1240px) and (max-width: 1420px) {
+  .data-flow-workbench-desktop-surface .mission-data-flow-main-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.4fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid {
+    grid-template-columns: repeat(5, minmax(104px, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-property-grid {
+    grid-template-columns: minmax(76px, 0.38fr) minmax(0, 1fr);
+  }
+}
+
+/* E12.1 Data Flow reference-width stabilization: start */
+/*
+   The Data Flow Workbench is a mini-application surface. At the desktop
+   reference viewport with the sidebar expanded, the capture target is much
+   narrower than the fullscreen target. Do not let the 5-stage canvas and the
+   inspector compete horizontally in that envelope.
+*/
+.data-flow-workbench-desktop-surface .mission-data-flow-source-node strong {
+  min-width: 2.2ch;
+  text-align: right;
+}
+
+@media (max-width: 1500px) {
+  .data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header {
+    align-items: stretch;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-boundary-badges {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-rail {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid::before {
+    display: none;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage {
+    min-height: 0;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector {
+    max-height: none;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-bottom-deck {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.52fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-path-card {
+    grid-column: 1 / -1;
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-raw-block {
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid,
+  .data-flow-workbench-desktop-surface .mission-data-flow-bottom-deck {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-strip,
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* E12.1 Data Flow reference-width stabilization: end */
+
+/* E12.2 Data Flow body layout stabilization: start */
+/*
+   Body-level stabilization for the Workbench contract.
+   The browser viewport can be wide while the actual shell target is still
+   relatively narrow because the sidebar and right detail rail are present.
+   Prefer readable workbench sections over side-by-side density.
+*/
+.data-flow-workbench-desktop-surface .mission-data-flow-stage-grid {
+  overflow-x: clip;
+  overflow-y: visible;
+  padding-bottom: 0;
+  scrollbar-gutter: auto;
+  scrollbar-width: none;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-stage-grid::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-source-node strong {
+  min-width: 2.8ch;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+@media (max-width: 2100px) {
+  .data-flow-workbench-desktop-surface .mission-data-flow-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector {
+    max-height: none;
+  }
+}
+
+@media (max-width: 1500px) {
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-header,
+  .data-flow-workbench-desktop-surface .dfw-timeline-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-header-actions,
+  .data-flow-workbench-desktop-surface .dfw-timeline-layer-toggles {
+    flex-wrap: wrap;
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-tabs {
+    overflow-x: visible;
+    flex-wrap: wrap;
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-table {
+    border-right: 0;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.64);
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-table-head,
+  .data-flow-workbench-desktop-surface .dfw-timeline-row {
+    grid-template-columns: 48px 76px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-canvas-shell,
+  .data-flow-workbench-desktop-surface .dfw-timeline-canvas {
+    min-height: 420px;
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-canvas-shell {
+    border-top: 1px solid rgba(51, 65, 85, 0.64);
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-state-rail {
+    display: none;
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-floating-label {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-grid,
+  .data-flow-workbench-desktop-surface .mission-data-flow-bottom-deck,
+  .data-flow-workbench-desktop-surface .dfw-timeline-record-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-flow-workbench-desktop-surface .dfw-timeline-canvas-shell,
+  .data-flow-workbench-desktop-surface .dfw-timeline-canvas {
+    min-height: 360px;
+  }
+}
+/* E12.2 Data Flow body layout stabilization: end */
+
+/* E12.3: remove the legacy route connector hairline inside the Core Route Canvas.
+   The stage cards already provide explicit order and state; the old pseudo-element
+   reads as an accidental horizontal artefact in both 1400 and fullscreen captures. */
+.data-flow-workbench-desktop-surface .mission-data-flow-stage-grid::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* E12.4 selected flow path connector cleanup */
+/* The selected path is represented by explicit route chips. Any residual
+   pseudo-element connector line behind the chips reads as a rendering artifact
+   after the responsive Data Flow body contract, so keep only the per-chip arrow. */
+.data-flow-workbench-desktop-surface .mission-data-flow-path,
+.data-flow-workbench-desktop-surface .mission-data-flow-path-card {
+  background-image: none !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-path::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-path::after,
+.data-flow-workbench-desktop-surface .mission-data-flow-path-card::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-path-card::after,
+.data-flow-workbench-desktop-surface .mission-data-flow-path-node::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-path-node::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* E12.5: Data Flow focus-mode capture and responsive contract.
+   Focus mode is part of the Data Flow Workbench contract, so the QA target
+   must remain .main-surface .mission-data-flow-workbench even after the
+   Workbench switches into its dedicated focus workspace. CSS only: no Core
+   semantics, data-flow semantics, graph behavior, or inference changes. */
+.mission-data-flow-route-frame:has(.mission-data-flow-focus-mode) {
+  display: block !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding-bottom: 40px !important;
+}
+
+#studio-data-flow-workbench.mission-data-flow-focus-mode {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  height: auto !important;
+  min-height: max-content !important;
+  overflow: visible !important;
+}
+
+#studio-data-flow-workbench.mission-data-flow-focus-mode,
+#studio-data-flow-workbench.mission-data-flow-focus-mode * {
+  min-width: 0;
+}
+
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-layout {
+  width: 100%;
+  min-width: 0;
+}
+
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-graph-panel,
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-details-panel,
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-inspector {
+  max-height: none !important;
+}
+
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-route-graph,
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-tab-body,
+#studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-inspector {
+  overflow: visible;
+}
+
+@media (min-width: 1501px) {
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-layout {
+    grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.35fr) minmax(280px, 0.72fr);
+  }
+}
+
+@media (max-width: 1500px) {
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-header {
+    display: grid;
+    gap: 14px;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-actions {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-flow-grid,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-coverage-tab-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-tabs {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-route-graph {
+    align-items: stretch;
+    justify-content: start;
+    padding: 14px;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-route-node {
+    width: 100%;
+    max-width: none;
+  }
+
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-property-grid {
+    grid-template-columns: minmax(120px, 0.42fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-property-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* E12.6: focus route graph top alignment */
+/* Keep the dedicated focus route graph anchored to the top of its panel.
+   This avoids the graph being visually centered across a long evidence-details page
+   while preserving the read-only route semantics and all node/edge interactions. */
+.mission-data-flow-focus-mode .mission-data-flow-focus-graph-panel > header > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mission-data-flow-focus-mode .mission-data-flow-focus-graph-panel > header > div > strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-data-flow-focus-mode .mission-data-flow-focus-route-graph {
+  justify-content: flex-start !important;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.mission-data-flow-focus-mode .mission-data-flow-focus-route-step {
+  flex: 0 0 auto;
+}
+
+.mission-data-flow-focus-mode .mission-data-flow-focus-route-node {
+  width: min(100%, 320px);
+}
+
+@media (min-width: 1501px) {
+  .mission-data-flow-focus-mode .mission-data-flow-focus-route-graph {
+    padding-top: 18px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .mission-data-flow-focus-mode .mission-data-flow-focus-route-graph {
+    padding-top: 14px;
+  }
+}
+

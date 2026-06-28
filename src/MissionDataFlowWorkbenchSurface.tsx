@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import { DataFlowWorkbenchContextDrawer } from "./DataFlowWorkbenchContextDrawer";
 import { DataFlowWorkbenchFocusMode } from "./DataFlowWorkbenchFocusMode";
 import { DataFlowWorkbenchScenarioTimeline } from "./DataFlowWorkbenchScenarioTimeline";
@@ -193,10 +194,12 @@ export function MissionDataFlowWorkbenchSurface({
   }
 
   return (
-    <section
+    <DesktopSurface
       id="studio-data-flow-workbench"
-      className="entry-section mission-data-flow-workbench mission-data-flow-cockpit"
-      aria-label="Mission Data Flow Workbench"
+      label="Mission Data Flow Workbench"
+      className="entry-section mission-data-flow-workbench mission-data-flow-cockpit data-flow-workbench-desktop-surface"
+      width="full"
+      density="compact"
     >
       <header className="mission-data-flow-cockpit-header">
         <div>
@@ -418,7 +421,7 @@ export function MissionDataFlowWorkbenchSurface({
           }}
         />
       ) : null}
-    </section>
+    </DesktopSurface>
   );
 }
 
