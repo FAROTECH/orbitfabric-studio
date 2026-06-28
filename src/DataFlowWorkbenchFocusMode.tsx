@@ -132,7 +132,7 @@ export function DataFlowWorkbenchFocusMode({
   return (
     <section
       id="studio-data-flow-workbench"
-      className="entry-section mission-data-flow-focus-mode"
+      className="entry-section mission-data-flow-workbench mission-data-flow-focus-mode"
       aria-label="Data Flow Workbench focus mode"
     >
       <header className="mission-data-flow-focus-header">

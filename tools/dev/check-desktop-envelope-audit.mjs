@@ -61,20 +61,20 @@ const migratedSurfaces = [
     targetSelector: ".scenario-evidence-cockpit",
     profiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
   },
-];
-
-const specialCaseSurfaces = [
   {
     label: "Data Flow Workbench",
     checklistLabel: "Data Flow Workbench",
     slug: "data-flow-workbench",
-    status: "special-case",
-    reason: "mini-app/workbench canvas kept out of the normal envelope migration sequence",
+    source: "src/MissionDataFlowWorkbenchSurface.tsx",
+    bridgeCss: "src/dataFlowWorkbenchDesktopEnvelope.css",
+    bridgeClass: "data-flow-workbench-desktop-surface",
     shellSelector: ".main-surface",
     targetSelector: ".mission-data-flow-workbench",
-    profiles: ["desktop-fullscreen"],
+    profiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
   },
 ];
+
+const specialCaseSurfaces = [];
 
 function readFile(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");
