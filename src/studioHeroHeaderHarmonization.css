@@ -1,10 +1,16 @@
 /*
  * OrbitFabric Studio hero/header harmonization.
  *
- * E15.2 applies an explicit "Studio Command Header" visual contract to the
- * stabilized desktop surfaces. This is intentionally CSS-only for runtime
- * surfaces: no React/TSX surface migration, no data semantics, no Core behavior,
- * no Data Flow drawer/focus work, and no layout envelope ownership changes.
+ * E15.3 refines the explicit "Studio Command Header" contract introduced in
+ * E15.2. It keeps the same intent but fixes the weakest targeted cases:
+ *
+ * - Mission Overview top surface bar and identity hero now read as one
+ *   integrated command-header stack rather than two unrelated blocks.
+ * - Data Products right-side metadata remains readable without over-aggressive
+ *   truncation.
+ * - Scenario Evidence right-side posture/badge area is more visually unified.
+ *
+ * Runtime scope remains CSS-only for stabilized desktop surfaces.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -40,9 +46,12 @@
 .scenario-evidence-desktop-surface .scenario-evidence-header::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
+  left: 12px;
+  right: 12px;
+  top: 0;
   z-index: -1;
-  height: 3px;
+  height: 2px;
+  border-radius: 999px;
   background: linear-gradient(
     90deg,
     var(--of-visual-accent),
@@ -63,17 +72,106 @@
   padding: 24px;
 }
 
-/* Mission Overview has a compact toolbar plus a dedicated identity hero. */
+/* -------------------------------------------------------------------------- */
+/* Mission Overview: integrated stacked hero                                   */
+/* -------------------------------------------------------------------------- */
+
 .mission-overview-desktop-surface .mission-target-heading {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: 18px;
   align-items: center;
-  padding: 14px 18px;
+  padding: 14px 22px;
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: rgba(103, 232, 249, 0.22);
+  background:
+    linear-gradient(180deg, rgba(6, 18, 38, 0.96), rgba(4, 12, 28, 0.96)),
+    var(--of-visual-panel-bg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.mission-overview-desktop-surface .mission-target-heading::before {
+  left: 14px;
+  right: 14px;
 }
 
 .mission-overview-desktop-surface .mission-target-hero {
   padding: 24px;
+  margin-top: -1px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-color: rgba(103, 232, 249, 0.18);
+}
+
+.mission-overview-desktop-surface .mission-target-heading-title {
+  padding-left: 2px;
+}
+
+.mission-overview-desktop-surface .mission-target-heading-title h2 {
+  margin: 0;
+  color: var(--of-visual-text-primary);
+  font-size: clamp(1.08rem, 1.32vw, 1.26rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.mission-overview-desktop-surface .mission-target-heading-actions,
+.mission-overview-desktop-surface .mission-target-heading > div:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.mission-overview-desktop-surface .mission-target-report-button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-color: var(--of-visual-action-border);
+  background:
+    linear-gradient(180deg, rgba(103, 232, 249, 0.18), rgba(8, 47, 73, 0.58)),
+    var(--of-visual-action-bg);
+  color: var(--of-visual-action-text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(103, 232, 249, 0.06);
+}
+
+.mission-overview-desktop-surface .mission-target-report-button:hover {
+  border-color: var(--of-visual-action-hover-border);
+  background: var(--of-visual-action-hover-bg);
+}
+
+.mission-overview-desktop-surface .mission-target-copy {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  min-width: 0;
+}
+
+.mission-overview-desktop-surface .mission-target-name-line h1 {
+  margin: 0;
+  color: var(--of-visual-text-primary);
+  font-size: clamp(1.64rem, 2.45vw, 2.3rem);
+  line-height: 1.02;
+  letter-spacing: -0.058em;
+}
+
+.mission-overview-desktop-surface .mission-target-name-line p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--of-visual-text-muted);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.mission-overview-desktop-surface .mission-target-health-badge {
+  border-color: var(--of-visual-border-strong);
+  background: var(--of-visual-status-neutral-bg);
+  color: var(--of-visual-text-secondary);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -83,8 +181,7 @@
 .core-report-runner-desktop-surface .core-runner-hero-copy,
 .data-products-desktop-surface .data-products-cockpit-hero > div:first-child,
 .generated-artifacts-desktop-surface .lineage-title-block,
-.scenario-evidence-desktop-surface .scenario-evidence-title-block,
-.mission-overview-desktop-surface .mission-target-copy {
+.scenario-evidence-desktop-surface .scenario-evidence-title-block {
   display: grid;
   gap: 9px;
   align-content: start;
@@ -103,7 +200,6 @@
   text-shadow: 0 0 18px rgba(103, 232, 249, 0.22);
 }
 
-.mission-overview-desktop-surface .mission-target-heading-title h2,
 .core-report-runner-desktop-surface #core-runner-title,
 .data-products-desktop-surface .data-products-cockpit-hero h2,
 .generated-artifacts-desktop-surface .lineage-title-row h2,
@@ -115,23 +211,10 @@
   letter-spacing: -0.058em;
 }
 
-.mission-overview-desktop-surface .mission-target-heading-title h2 {
-  font-size: clamp(1.05rem, 1.28vw, 1.22rem);
-  letter-spacing: -0.035em;
-}
-
-.mission-overview-desktop-surface .mission-target-name-line h1 {
-  color: var(--of-visual-text-primary);
-  font-size: clamp(1.58rem, 2.35vw, 2.25rem);
-  line-height: 1.02;
-  letter-spacing: -0.058em;
-}
-
 .core-report-runner-desktop-surface .core-runner-lead,
 .data-products-desktop-surface .data-products-cockpit-hero p,
 .generated-artifacts-desktop-surface .lineage-title-block p,
-.scenario-evidence-desktop-surface .scenario-evidence-title-block p,
-.mission-overview-desktop-surface .mission-target-name-line p {
+.scenario-evidence-desktop-surface .scenario-evidence-title-block p {
   max-width: 760px;
   margin: 0;
   color: var(--of-visual-text-muted);
@@ -167,30 +250,28 @@
   padding: 10px;
 }
 
+/* Data Products: keep the right-side useful, not empty and not over-truncated. */
 .data-products-desktop-surface .data-products-cockpit-hero-side {
   display: grid;
   gap: 12px;
-  justify-items: end;
   align-content: start;
+  justify-items: end;
   padding: 14px;
   text-align: right;
 }
 
-.generated-artifacts-desktop-surface .lineage-stat-grid,
-.scenario-evidence-desktop-surface .scenario-posture-grid {
+.data-products-desktop-surface .data-products-cockpit-hero-side > strong {
+  max-width: none;
+  color: var(--of-visual-text-primary);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.generated-artifacts-desktop-surface .lineage-stat-grid {
   padding: 12px;
 }
 
-/* Keep Data Products metadata readable; never allow of-rm-1 to split badly. */
-.data-products-desktop-surface .data-products-cockpit-hero-side > strong {
-  max-width: 360px;
-  color: var(--of-visual-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Generated Artifacts title row behaves like a Studio command-title row. */
 .generated-artifacts-desktop-surface .lineage-title-row {
   display: flex;
   flex-wrap: wrap;
@@ -198,31 +279,47 @@
   align-items: center;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Header action grammar                                                       */
-/* -------------------------------------------------------------------------- */
-
-.mission-overview-desktop-surface .mission-target-report-button {
-  border-color: var(--of-visual-action-border);
-  background:
-    linear-gradient(180deg, rgba(103, 232, 249, 0.18), rgba(8, 47, 73, 0.58)),
-    var(--of-visual-action-bg);
-  color: var(--of-visual-action-text);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(103, 232, 249, 0.06);
+/* Scenario Evidence: unify badge row and posture area visually. */
+.scenario-evidence-desktop-surface .scenario-evidence-header {
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.88fr);
 }
 
-.mission-overview-desktop-surface .mission-target-report-button:hover {
-  border-color: var(--of-visual-action-hover-border);
-  background: var(--of-visual-action-hover-bg);
+.scenario-evidence-desktop-surface .scenario-posture-grid {
+  padding: 12px;
 }
 
-/* Mission Overview health badge becomes part of the same command header tone. */
-.mission-overview-desktop-surface .mission-target-health-badge {
-  border-color: var(--of-visual-border-strong);
-  background: var(--of-visual-status-neutral-bg);
-  color: var(--of-visual-text-secondary);
+.scenario-evidence-desktop-surface .scenario-posture-grid::before {
+  content: "Surface posture";
+  display: block;
+  margin-bottom: 10px;
+  color: var(--of-visual-text-faint);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-evidence-badges,
+.scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-runner-badges,
+.scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-badge-row {
+  justify-self: end;
+  margin-top: 10px;
+}
+
+@media (min-width: 1240px) {
+  .scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-evidence-badges,
+  .scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-runner-badges,
+  .scenario-evidence-desktop-surface .scenario-evidence-header > .scenario-badge-row {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .scenario-evidence-desktop-surface .scenario-posture-grid {
+    grid-column: 2;
+    grid-row: 1;
+    padding-top: 48px;
+  }
 }
 
 /* -------------------------------------------------------------------------- */

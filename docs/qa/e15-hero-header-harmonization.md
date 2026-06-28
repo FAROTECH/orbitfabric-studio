@@ -20,6 +20,9 @@ contained right-side posture/stat area.
 
 E15 must produce a visible result. It is not a silent token normalization pass.
 
+E15.3 adds an explicit refinement for Mission Overview: the former top surface
+bar and the mission identity hero must read as one integrated stacked header.
+
 ## 2. Current state by surface
 
 ### Mission Overview today
@@ -27,8 +30,7 @@ E15 must produce a visible result. It is not a silent token normalization pass.
 - Compact top toolbar: `Mission Overview` plus report action.
 - Main identity hero lives below the toolbar.
 - Visual grammar differs from the other command surfaces.
-- Mission title and posture content are readable, but the header family is not
-  clearly the same as Core Report Runner, Data Products or Scenario Evidence.
+- The top bar previously looked detached and cramped at the edges.
 
 ### Core Report Runner today
 
@@ -39,7 +41,7 @@ E15 must produce a visible result. It is not a silent token normalization pass.
 ### Data Products today
 
 - Large title and right-side badge/meta group.
-- Right-side metadata is fragile: `Mission: of-rm-1` can wrap badly.
+- Right-side metadata must remain readable.
 - Header looks less solid than Core Report Runner.
 
 ### Generated Artifacts today
@@ -52,6 +54,7 @@ E15 must produce a visible result. It is not a silent token normalization pass.
 
 - Kicker, title, summary and posture cards already exist.
 - Header is compact and readable but flatter than Core Report Runner.
+- Badge/posture relationship needs a more unified right-side treatment.
 
 ### Data Flow Workbench today
 
@@ -63,12 +66,10 @@ E15 must produce a visible result. It is not a silent token normalization pass.
 
 ### Mission Overview after E15
 
-- Toolbar and identity hero both read as part of the Studio Command Header
-  family.
-- The identity hero gets the raised dark material, cyan/blue border and top
-  accent line.
-- Mission title remains the focal point.
-- The report action reads as a deliberate command action, not a detached button.
+- The top bar and identity hero belong to the same stacked command-header family.
+- The top bar has real padding and does not pin title/button to the edges.
+- The identity hero keeps the mission-dashboard identity.
+- The luminous accent line no longer bleeds awkwardly at the left edge.
 
 ### Core Report Runner after E15
 
@@ -80,7 +81,7 @@ E15 must produce a visible result. It is not a silent token normalization pass.
 ### Data Products after E15
 
 - Header matches the command-header family.
-- Right-side metadata is contained and cannot wrap `of-rm-1` badly.
+- Right-side metadata stays readable.
 - Badge/meta group is visually contained inside a right-side posture panel.
 - No catalog, selected product, bridge output or evidence behavior changes.
 
@@ -96,6 +97,7 @@ E15 must produce a visible result. It is not a silent token normalization pass.
 - Header gains the same raised command-header treatment.
 - Kicker/title/summary and posture cards align with the Core/Data Products
   rhythm.
+- Right-side badge/posture treatment reads as one contained area.
 - Timeline, catalog, inspector and artifact dock remain unchanged.
 
 ### Data Flow Workbench after E15
@@ -148,13 +150,6 @@ E15 must remain:
 `studioHeroHeaderHarmonization.css` is imported after the desktop envelope bridge
 CSS files.
 
-Reason:
-
-- E14 tokens are available first
-- E2-E12 desktop envelope contracts remain in force
-- E15 can harmonize hero/header appearance without changing lower-level
-  envelope primitives or bridge CSS
-
 ## 8. Harmonization contract
 
 E15 aligns:
@@ -168,6 +163,7 @@ E15 aligns:
 - primary title treatment
 - summary/lead treatment
 - header side/posture/stat containment
+- Mission Overview stacked top-bar + hero treatment
 - Mission Overview report action affordance
 
 E15 does not align:
@@ -183,8 +179,6 @@ E15 does not align:
 - Data Flow focus mode
 - graph/canvas visuals
 
-Those remain future slices.
-
 ## 9. Visual QA acceptance
 
 Before merge, capture or inspect:
@@ -199,11 +193,13 @@ Before merge, capture or inspect:
 Accept only if:
 
 - the five targeted headers visibly belong to the same visual family
+- Mission Overview top bar and identity hero feel intentionally integrated
+- Mission Overview title/button no longer touch the edges visually
+- Mission Overview accent line does not bleed awkwardly at the left edge
 - Core Report Runner is not degraded
-- Data Products metadata does not wrap badly
+- Data Products metadata remains readable
 - Generated Artifacts no longer feels like a separate header dialect
-- Scenario Evidence gains the same command-header material
-- Mission Overview still preserves its mission-dashboard identity
+- Scenario Evidence right-side is more unified
 - Data Flow remains unchanged
 - no horizontal overflow appears at the desktop reference profile
 
@@ -233,6 +229,7 @@ E15 is acceptable when:
 - the CSS consumes E14 `--of-visual-*` tokens
 - the CSS declares the Studio Command Header treatment
 - the CSS includes a visible top accent line
+- the CSS includes the Mission Overview integrated stacked-header treatment
 - the CSS is scoped to the five stabilized non-Data-Flow surface root classes
 - no Data Flow Workbench, drawer or focus selectors are targeted
 - `src/main.tsx` imports the harmonization CSS after the desktop envelope bridge CSS

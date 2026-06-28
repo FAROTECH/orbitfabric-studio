@@ -69,10 +69,12 @@ for (const token of requiredTokenReferences) {
 }
 
 requireIncludes("visible top accent line", css, "::before");
-requireIncludes("visible accent gradient", css, "linear-gradient(");
-requireIncludes("Data Products metadata no-wrap", css, "white-space: nowrap");
-requireIncludes("Data Products metadata ellipsis", css, "text-overflow: ellipsis");
-requireIncludes("command header right-side containment", css, ".scenario-evidence-desktop-surface .scenario-posture-grid");
+requireIncludes("accent line inset to avoid bleed", css, "left: 12px;");
+requireIncludes("Mission Overview stacked integration", css, "border-bottom-left-radius: 0;");
+requireIncludes("Mission Overview stacked integration margin", css, "margin-top: -1px;");
+requireIncludes("Mission Overview edge spacing", css, "padding: 14px 22px;");
+requireIncludes("Data Products metadata readable", css, "overflow: visible;");
+requireIncludes("Scenario posture section title", css, "Surface posture");
 
 const forbiddenCssFragments = [
   "mission-data-flow",
@@ -111,9 +113,9 @@ if (pkg.scripts?.["qa:studio-hero-header-harmonization"] === "node tools/dev/che
 
 requireIncludes("doc title", doc, "# E15 — Hero/Header Harmonization");
 requireIncludes("doc explicit target style", doc, "Studio Command Header");
+requireIncludes("doc Mission Overview refinement", doc, "integrated stacked command-header family");
 requireIncludes("doc current state", doc, "## 2. Current state by surface");
 requireIncludes("doc expected visual result", doc, "## 3. Expected visual result by surface");
-requireIncludes("doc Data Flow exclusion", doc, "does not target Data Flow Workbench");
 requireIncludes("doc visual QA acceptance", doc, "## 9. Visual QA acceptance");
 requireIncludes("doc acceptance criteria", doc, "## 11. Acceptance criteria");
 
