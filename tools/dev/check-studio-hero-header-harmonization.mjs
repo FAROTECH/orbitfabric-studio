@@ -51,19 +51,28 @@ for (const selector of requiredSurfaceSelectors) {
 }
 
 const requiredTokenReferences = [
-  "var(--of-visual-border)",
+  "var(--of-visual-border-strong)",
+  "var(--of-visual-border-soft)",
   "var(--of-visual-radius-panel)",
-  "var(--of-visual-raised-bg)",
+  "var(--of-visual-panel-bg)",
   "var(--of-visual-accent)",
   "var(--of-visual-text-primary)",
+  "var(--of-visual-text-secondary)",
   "var(--of-visual-text-muted)",
   "var(--of-visual-action-bg)",
   "var(--of-visual-action-hover-bg)",
+  "var(--of-visual-status-neutral-bg)",
 ];
 
 for (const token of requiredTokenReferences) {
   requireIncludes(`token reference ${token}`, css, token);
 }
+
+requireIncludes("visible top accent line", css, "::before");
+requireIncludes("visible accent gradient", css, "linear-gradient(");
+requireIncludes("Data Products metadata no-wrap", css, "white-space: nowrap");
+requireIncludes("Data Products metadata ellipsis", css, "text-overflow: ellipsis");
+requireIncludes("command header right-side containment", css, ".scenario-evidence-desktop-surface .scenario-posture-grid");
 
 const forbiddenCssFragments = [
   "mission-data-flow",
@@ -101,9 +110,12 @@ if (pkg.scripts?.["qa:studio-hero-header-harmonization"] === "node tools/dev/che
 }
 
 requireIncludes("doc title", doc, "# E15 — Hero/Header Harmonization");
-requireIncludes("doc scope", doc, "## 2. Scope");
+requireIncludes("doc explicit target style", doc, "Studio Command Header");
+requireIncludes("doc current state", doc, "## 2. Current state by surface");
+requireIncludes("doc expected visual result", doc, "## 3. Expected visual result by surface");
 requireIncludes("doc Data Flow exclusion", doc, "does not target Data Flow Workbench");
-requireIncludes("doc acceptance criteria", doc, "## 8. Acceptance criteria");
+requireIncludes("doc visual QA acceptance", doc, "## 9. Visual QA acceptance");
+requireIncludes("doc acceptance criteria", doc, "## 11. Acceptance criteria");
 
 if (failed) {
   process.exit(1);
