@@ -455,12 +455,10 @@ function ScenarioEvidenceHeader({
   return (
     <header className="scenario-evidence-header">
       <div className="scenario-evidence-title-block">
-        <span className="cockpit-eyebrow">Scenario Evidence Cockpit</span>
-        <h2>Scenario construction and Core exercise evidence</h2>
+        <span className="cockpit-eyebrow">Scenario Evidence</span>
+        <h2>Scenarios</h2>
         <p>
-          Inspect what the scenario source is, what it is intended to exercise, and what
-          OrbitFabric Core actually reported during simulation. Studio remains read-only
-          and does not infer runtime behavior from YAML or logs.
+          Inspect scenario sources, Core simulation reports, and generated evidence.
         </p>
       </div>
 

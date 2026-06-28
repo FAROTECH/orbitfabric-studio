@@ -7,6 +7,9 @@ const files = {
   doc: "docs/qa/e15-hero-header-harmonization.md",
   mission: "src/MissionCockpit.tsx",
   navigation: "src/navigationModel.ts",
+  dataProducts: "src/DataProductsDomainSurface.tsx",
+  generatedArtifacts: "src/GeneratedArtifactExplorer.tsx",
+  scenarios: "src/ScenarioTimelineRunnerSurface.tsx",
 };
 
 function read(path) {
@@ -49,6 +52,9 @@ const pkg = JSON.parse(read(files.pkg));
 const doc = read(files.doc);
 const mission = read(files.mission);
 const navigation = read(files.navigation);
+const dataProducts = read(files.dataProducts);
+const generatedArtifacts = read(files.generatedArtifacts);
+const scenarios = read(files.scenarios);
 
 const requiredSurfaceSelectors = [
   ".mission-overview-desktop-surface",
@@ -80,13 +86,29 @@ for (const token of requiredTokenReferences) {
 
 requireIncludes("visible top accent line", css, "::before");
 requireIncludes("accent line inset to avoid bleed", css, "left: 12px;");
-requireIncludes("Mission Overview single hero selector", css, ".mission-overview-desktop-surface .mission-target-hero");
-requireIncludes("Mission Overview stale top bar safety", css, ".mission-overview-desktop-surface .mission-target-heading");
+requireIncludes("operational compact clamp", css, "-webkit-line-clamp: 2");
+requireIncludes("Mission variable summary clamp", css, "-webkit-line-clamp: 3");
+requireIncludes("Mission Overview eyebrow CSS", css, ".mission-target-eyebrow");
+requireIncludes("neutral static hero values", css, "Static hero values default to neutral");
 
 requireExcludes("Mission Overview top bar markup removed", mission, 'className="mission-target-heading"');
 requireExcludes("Mission Overview top CTA removed", mission, "View Generated Reports");
+requireIncludes("Mission Overview eyebrow markup", mission, 'className="mission-target-eyebrow"');
 requireIncludes("sidebar label renamed", navigation, 'label: "Mission Overview"');
 requireExcludes("old sidebar label removed", navigation, 'label: "Mission",');
+
+requireIncludes("Data Products eyebrow", dataProducts, '<span className="cockpit-eyebrow">Data Products</span>');
+requireIncludes("Data Products short title", dataProducts, "<h2>Data Products</h2>");
+requireIncludes("Data Products compact summary", dataProducts, "Cross-check declared products against Core evidence and generated bridge outputs.");
+requireExcludes("Data Products long title removed", dataProducts, "Cross-check mission model contract, Core evidence and bridge outputs");
+
+requireIncludes("Generated Artifacts eyebrow", generatedArtifacts, '<span className="cockpit-eyebrow">Generated Outputs</span>');
+requireIncludes("Generated Artifacts compact summary", generatedArtifacts, "Review generated files by family, evidence status, and downstream use.");
+
+requireIncludes("Scenario Evidence eyebrow", scenarios, '<span className="cockpit-eyebrow">Scenario Evidence</span>');
+requireIncludes("Scenario Evidence short title", scenarios, "<h2>Scenarios</h2>");
+requireIncludes("Scenario Evidence compact summary", scenarios, "Inspect scenario sources, Core simulation reports, and generated evidence.");
+requireExcludes("Scenario Evidence long title removed", scenarios, "Scenario construction and Core exercise evidence");
 
 const forbiddenCssFragments = [
   "mission-data-flow",
@@ -124,13 +146,11 @@ if (pkg.scripts?.["qa:studio-hero-header-harmonization"] === "node tools/dev/che
 }
 
 requireIncludes("doc title", doc, "# E15 — Hero/Header Harmonization");
-requireIncludes("doc explicit target style", doc, "Studio Command Header");
-requireIncludes("doc Mission Overview single hero", doc, "single-hero entry");
-requireIncludes("doc sidebar rename", doc, "sidebar label reads Mission Overview");
-requireIncludes("doc current state", doc, "## 2. Current state by surface");
-requireIncludes("doc expected visual result", doc, "## 3. Expected visual result by surface");
-requireIncludes("doc visual QA acceptance", doc, "## 9. Visual QA acceptance");
-requireIncludes("doc acceptance criteria", doc, "## 11. Acceptance criteria");
+requireIncludes("doc hero information contract", doc, "## 2. Hero information contract");
+requireIncludes("doc compactness contract", doc, "## 5. Compactness contract");
+requireIncludes("doc semantic value contract", doc, "## 6. Semantic value contract");
+requireIncludes("doc clickability contract", doc, "## 7. Clickability contract");
+requireIncludes("doc acceptance criteria", doc, "## 13. Acceptance criteria");
 
 if (failed) {
   process.exit(1);

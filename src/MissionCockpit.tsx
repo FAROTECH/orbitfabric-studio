@@ -316,6 +316,7 @@ export function MissionCockpit({
         <div className="mission-target-identity">
           <MissionPatch />
           <div className="mission-target-copy">
+            <span className="mission-target-eyebrow">Mission Overview</span>
             <div className="mission-target-name-line">
               <div>
                 <h1>{display.missionName}</h1>

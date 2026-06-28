@@ -314,14 +314,14 @@ export function GeneratedArtifactExplorerPanel({
     >
       <header className="lineage-header">
         <div className="lineage-title-block">
+          <span className="cockpit-eyebrow">Generated Outputs</span>
           <div className="lineage-title-row">
             <h2>Generated Artifacts</h2>
             <StatusBadge label="PUBLIC PREVIEW" />
           </div>
           <strong>Artifact Lineage Board</strong>
           <p>
-            Track how generated files are present in the workspace, how Studio classifies them
-            conservatively, and which outputs should be reviewed first.
+            Review generated files by family, evidence status, and downstream use.
           </p>
         </div>
 

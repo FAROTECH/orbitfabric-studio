@@ -14,100 +14,169 @@ The target style is explicit:
 Studio Command Header
 ```
 
-This style is a dark raised cockpit header with a cyan/blue border, a subtle
-top accent line, stronger title hierarchy, consistent summary rhythm and a
-contained right-side posture/stat area.
+This style is a compact dark raised cockpit header with:
 
-E15 must produce a visible result. It is not a silent token normalization pass.
+- a short eyebrow/domain line
+- a short title/surface line
+- a short summary/promise line
+- a contained right-side widget area
+- neutral static values by default
+- semantic color reserved for real state
 
-E15.4 changes the Mission Overview decision: the redundant top surface bar is
-removed. The sidebar label now carries the page-level context as `Mission
-Overview`, and the mission identity hero becomes the first visual block.
+E15.5 defines the hero information architecture contract. It is not just a
+border/padding pass.
 
-## 2. Current state by surface
+## 2. Hero information contract
 
-### Mission Overview before E15.4
+Every operational hero must expose the same three information levels:
 
-- Sidebar label was `Mission`.
-- The surface contained a redundant top bar: `Mission Overview` plus `View
-  Generated Reports`.
-- The real content hero below was already more representative than the top bar.
-- The top bar duplicated navigation context and weakened the page opening.
+```text
+EYEBROW / DOMAIN
+TITLE / SURFACE
+PROMISE / SUMMARY
+```
 
-### Core Report Runner today
+Definitions:
 
-- Closest existing match to the target direction.
-- Strong kicker, title, summary, badges and generated inventory strip.
-- It is the baseline reference for E15.
+- eyebrow/domain: where this surface sits in the workflow
+- title/surface: what the user is looking at
+- promise/summary: what the surface lets the user do
 
-### Data Products today
+Operational hero limits:
 
-- Large title and right-side badge/meta group.
-- Right-side metadata must remain readable.
-- Header looks less solid than Core Report Runner.
+- eyebrow: short uppercase phrase
+- title: noun phrase, not a sentence
+- summary: one compact sentence, normally two visual lines maximum
+- right widgets: useful state, not decorative filler
 
-### Generated Artifacts today
+Mission Overview is the exception because it is the home and uses workspace
+content. It may be richer, but its variable title and description must be
+protected from long workspace strings.
 
-- Clean lineage-board header.
-- Title, status badge, subtitle and stat cards use a different grammar.
-- Missing the same command-header material feel used elsewhere.
+## 3. Current state by surface
 
-### Scenario Evidence today
+### Mission Overview before E15.5
 
-- Kicker, title, summary and posture cards already exist.
-- Header is compact and readable but flatter than Core Report Runner.
+- Sidebar now reads `Mission Overview`.
+- The redundant top bar was removed in E15.4.
+- The hero title and description are workspace-driven, so their length is not
+  fully controlled by Studio.
 
-### Data Flow Workbench today
+### Core Report Runner before E15.5
 
-- Special mini-app style.
+- Already has a clean three-level pattern:
+  - `MISSION EVIDENCE CONTROL`
+  - `Core Report Runner`
+  - `Run fixed Core wrappers and inspect generated mission reports.`
+- It remains the baseline for the operational hero pattern.
+
+### Data Products before E15.5
+
+- The previous title was too long:
+  `Cross-check mission model contract, Core evidence and bridge outputs`.
+- That text was a summary, not a title.
+
+### Generated Artifacts before E15.5
+
+- The title was strong, but the hero lacked the same explicit eyebrow/domain
+  layer as the other operational surfaces.
+
+### Scenario Evidence before E15.5
+
+- The previous title was too descriptive:
+  `Scenario construction and Core exercise evidence`.
+- The summary was also too long for an operational hero.
+
+### Data Flow Workbench
+
 - Out of E15 scope.
 - Must remain visually unchanged by E15.
 
-## 3. Expected visual result by surface
+## 4. Expected hero content after E15.5
 
-### Mission Overview after E15.4
+### Mission Overview
 
-- Sidebar reads `Mission Overview`.
-- No redundant `Mission Overview` top bar appears inside the surface.
-- No `View Generated Reports` CTA appears in the top of Mission Overview.
-- The mission identity hero is the first visual block.
-- Generated Artifacts remains accessible from the sidebar and contextual cards.
-- Quick Stats and downstream dashboard sections are unchanged.
+```text
+EYEBROW: Mission Overview
+TITLE: workspace mission name
+SUMMARY: workspace mission description
+```
 
-### Core Report Runner after E15
+Mission title and summary are variable. CSS protects them with wrapping and
+line-clamping so the home remains stable.
 
-- Remains the baseline.
-- Header becomes slightly more intentional: raised material, top accent line and
-  consistent side-strip containment.
-- No command card, executable binding or process-output behavior changes.
+### Core Report Runner
 
-### Data Products after E15
+```text
+EYEBROW: MISSION EVIDENCE CONTROL
+TITLE: Core Report Runner
+SUMMARY: Run fixed Core wrappers and inspect generated mission reports.
+```
 
-- Header matches the command-header family.
-- Right-side metadata stays readable.
-- Badge/meta group is visually contained inside a right-side posture panel.
-- No catalog, selected product, bridge output or evidence behavior changes.
+### Data Products
 
-### Generated Artifacts after E15
+```text
+EYEBROW: DATA PRODUCTS
+TITLE: Data Products
+SUMMARY: Cross-check declared products against Core evidence and generated bridge outputs.
+```
 
-- Header no longer looks like a separate page dialect.
-- Title row, subtitle, description and stat cards sit inside the same raised
-  command-header material.
-- Waiting panel, inspector and artifact actions remain unchanged.
+### Generated Artifacts
 
-### Scenario Evidence after E15
+```text
+EYEBROW: GENERATED OUTPUTS
+TITLE: Generated Artifacts
+SUMMARY: Review generated files by family, evidence status, and downstream use.
+```
 
-- Header gains the same raised command-header treatment.
-- Kicker/title/summary and posture cards align with the Core/Data Products
-  rhythm.
-- Timeline, catalog, inspector and artifact dock remain unchanged.
+### Scenario Evidence
 
-### Data Flow Workbench after E15
+```text
+EYEBROW: SCENARIO EVIDENCE
+TITLE: Scenarios
+SUMMARY: Inspect scenario sources, Core simulation reports, and generated evidence.
+```
 
-- No visible change.
-- Used as a negative control during visual QA.
+## 5. Compactness contract
 
-## 4. Scope
+Mission Overview may be larger because it is the home and carries the loaded
+workspace identity.
+
+Operational surfaces must stay compact. Their hero must not consume a large
+fraction of the viewport height just for page description.
+
+Operational summaries are clamped to two visual lines. Mission Overview summary
+is clamped to three visual lines.
+
+## 6. Semantic value contract
+
+Hero values must not default to yellow.
+
+Default static values use neutral primary text. Color is reserved for actual
+semantic state:
+
+- green: positive/success
+- yellow: warning/attention
+- red: danger/blocking
+- blue/cyan: accent/navigation/provenance
+- white/neutral: ordinary static data
+
+E16 will refine badge/status/provenance semantics further. E15.5 only prevents
+hero values from looking like warnings by default.
+
+## 7. Clickability contract
+
+E15.5 does not fully solve clickability across Studio, but the rule is now
+explicit:
+
+- clickable actions must look like actions
+- static badges must not look like buttons
+- static values must not look like links
+- selected/selectable elements require a dedicated later slice
+
+Clickability is expected to be finalized in a dedicated follow-up slice.
+
+## 8. Scope
 
 E15 targets only the visible hero/header regions of these stabilized surfaces:
 
@@ -120,7 +189,7 @@ E15 targets only the visible hero/header regions of these stabilized surfaces:
 E15 intentionally does not target Data Flow Workbench, Data Flow drawer or Data
 Flow focus mode.
 
-## 5. Files
+## 9. Files
 
 E15 introduces or updates:
 
@@ -128,17 +197,20 @@ E15 introduces or updates:
 - `docs/qa/e15-hero-header-harmonization.md`
 - `tools/dev/check-studio-hero-header-harmonization.mjs`
 - `src/MissionCockpit.tsx`
+- `src/DataProductsDomainSurface.tsx`
+- `src/GeneratedArtifactExplorer.tsx`
+- `src/ScenarioTimelineRunnerSurface.tsx`
 - `src/navigationModel.ts`
 - `src/main.tsx`
 - `package.json`
 
-## 6. Design constraints
+## 10. Design constraints
 
 E15 must remain:
 
 - additive relative to the E14 `--of-visual-*` token contract
 - scoped to existing stabilized desktop surface root classes
-- limited to targeted Mission Overview markup cleanup and sidebar label copy
+- limited to targeted hero content/markup cleanup and sidebar label copy
 - free from OrbitFabric Core changes
 - free from reference mission changes
 - free from generated data changes
@@ -149,40 +221,7 @@ E15 must remain:
 - free from private inference changes
 - free from mobile/tablet scope expansion
 
-## 7. Import position
-
-`studioHeroHeaderHarmonization.css` is imported after the desktop envelope bridge
-CSS files.
-
-## 8. Harmonization contract
-
-E15 aligns:
-
-- command-header frame
-- raised dark material
-- cyan/blue border
-- top accent line
-- title block rhythm
-- kicker/eyebrow treatment
-- primary title treatment
-- summary/lead treatment
-- header side/posture/stat containment
-- Mission Overview single-hero entry
-
-E15 does not align:
-
-- cards outside hero/header
-- tables
-- lists
-- selected states
-- status badge semantics
-- provenance badge semantics
-- raw/code blocks
-- Data Flow drawer
-- Data Flow focus mode
-- graph/canvas visuals
-
-## 9. Visual QA acceptance
+## 11. Visual QA acceptance
 
 Before merge, capture or inspect:
 
@@ -196,17 +235,17 @@ Before merge, capture or inspect:
 Accept only if:
 
 - the five targeted headers visibly belong to the same visual family
-- Mission Overview starts directly with the mission identity hero
-- the redundant Mission Overview top bar is absent
-- the View Generated Reports top CTA is absent from Mission Overview
-- the sidebar label reads Mission Overview
-- Core Report Runner is not degraded
-- Data Products metadata remains readable
-- Generated Artifacts no longer feels like a separate header dialect
+- every targeted hero has an eyebrow/title/summary pattern
+- Data Products title is `Data Products`, not a long sentence
+- Scenario Evidence title is `Scenarios`, not a long sentence
+- Generated Artifacts has the `Generated Outputs` eyebrow
+- Mission Overview tolerates variable workspace title/description length
+- operational heroes are compact
+- static values do not read as warnings by default
 - Data Flow remains unchanged
 - no horizontal overflow appears at the desktop reference profile
 
-## 10. Validation
+## 12. Validation
 
 Required local validation:
 
@@ -224,7 +263,7 @@ git status --short
 If generated QA documents change only their `Generated at` timestamp, those
 changes should not be committed.
 
-## 11. Acceptance criteria
+## 13. Acceptance criteria
 
 E15 is acceptable when:
 
@@ -234,7 +273,9 @@ E15 is acceptable when:
 - the CSS includes a visible top accent line
 - Mission Overview has no redundant top bar markup
 - sidebar label is `Mission Overview`
-- the CSS is scoped to the five stabilized non-Data-Flow surface root classes
+- every targeted operational hero uses eyebrow/title/summary
+- operational summaries are compact
+- Mission Overview variable title/summary are protected
 - no Data Flow Workbench, drawer or focus selectors are targeted
 - `src/main.tsx` imports the harmonization CSS after the desktop envelope bridge CSS
 - `package.json` exposes `qa:studio-hero-header-harmonization`
