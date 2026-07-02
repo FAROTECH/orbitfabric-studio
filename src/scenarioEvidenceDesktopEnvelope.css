@@ -174,3 +174,242 @@
   }
 }
 
+/* E27 scenario final parity lock */
+/*
+   Final Scenarios shell parity lock.
+
+   Scenarios has a dense internal scroll model, but the shell must be optically
+   identical to the other public-preview routes:
+   - same visible expanded sidebar width;
+   - same expanded sidebar left/right inset;
+   - same collapse-button position;
+   - same status-bar vertical position;
+   - route-local scrolling confined to the main surface.
+*/
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-workspace.workbench-layout-scenario-evidence {
+  grid-template-rows: minmax(0, 1fr) var(--of-desktop-status-height) !important;
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-expanded-width), var(--of-desktop-sidebar-expanded-width))
+    minmax(0, 1fr) !important;
+  height: calc(100vh - 96px) !important;
+  max-height: calc(100vh - 96px) !important;
+  min-height: 0 !important;
+  padding:
+    var(--of-desktop-shell-padding-top)
+    0
+    var(--of-desktop-shell-padding-bottom)
+    var(--of-desktop-shell-padding-x) !important;
+  gap: var(--of-desktop-workbench-gap) !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-workspace.workbench-layout-scenario-evidence.workbench-layout-sidebar-collapsed {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-collapsed-width), var(--of-desktop-sidebar-collapsed-width))
+    minmax(0, 1fr) !important;
+}
+
+.studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar,
+.studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .reference-sidebar:not(.reference-sidebar-collapsed),
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .reference-sidebar:not(.reference-sidebar-collapsed) {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  justify-self: start !important;
+  align-self: stretch !important;
+  width: calc(100% - 24px) !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 24px) !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  margin-left: 14px !important;
+  margin-right: 10px !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  overflow: hidden !important;
+}
+
+.studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar
+  .reference-sidebar-collapse,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar
+  .reference-sidebar-collapse {
+  margin-right: 0 !important;
+}
+
+.studio-app-shell > .workbench-layout-scenario-evidence > .main-surface,
+.studio-app-shell > .workbench-layout-scenario-evidence > .main-surface-scenario-evidence,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .main-surface,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .main-surface-scenario-evidence {
+  grid-column: 2 / -1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  justify-self: stretch !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  padding-bottom: calc(var(--of-desktop-status-height) + 96px) !important;
+}
+
+.studio-app-shell > .workbench-layout-scenario-evidence > .shell-status-bar,
+.studio-app-shell > .workbench-layout-scenario-evidence > .reference-status-bar,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .shell-status-bar,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .reference-status-bar {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  visibility: visible !important;
+  align-self: stretch !important;
+}
+
+/* E27 scenario bottom parity lock */
+/*
+   Final optical correction after screenshot comparison:
+   Scenarios must keep the same workbench height and collapse-control geometry
+   as Generated Artifacts/Core/Data Products. The route may scroll only inside
+   the main surface; it must not shorten the shell body or enlarge the collapse
+   control.
+*/
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-workspace.workbench-layout-scenario-evidence {
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+}
+
+.studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar
+  .reference-sidebar-collapse,
+.studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .reference-sidebar:not(.reference-sidebar-collapsed)
+  .reference-sidebar-collapse,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar
+  .reference-sidebar-collapse,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .reference-sidebar:not(.reference-sidebar-collapsed)
+  .reference-sidebar-collapse {
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 10px 0 0 auto !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  box-sizing: border-box !important;
+}
+
+.studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar
+  .reference-sidebar-collapse
+  .studio-icon,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence:not(.workbench-layout-sidebar-collapsed)
+  > .primary-sidebar.reference-sidebar
+  .reference-sidebar-collapse
+  .studio-icon {
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
+}
+
+.studio-app-shell > .workbench-layout-scenario-evidence > .shell-status-bar,
+.studio-app-shell > .workbench-layout-scenario-evidence > .reference-status-bar,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .shell-status-bar,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .reference-status-bar {
+  min-height: var(--of-desktop-status-height) !important;
+  height: var(--of-desktop-status-height) !important;
+  max-height: var(--of-desktop-status-height) !important;
+  margin: 0 !important;
+}
+
+/* E27 scenario workbench height parity */
+/*
+   Screenshot parity check showed Scenarios status row 28px lower than Generated
+   Artifacts. Keep the collapse button geometry from the bottom parity lock, but
+   restore the same effective workbench body height used by the other routes.
+*/
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-scenario-evidence,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-workspace.workbench-layout-scenario-evidence {
+  height: calc(100vh - 96px) !important;
+  max-height: calc(100vh - 96px) !important;
+  min-height: 0 !important;
+}
+
+.studio-app-shell > .workbench-layout-scenario-evidence > .main-surface,
+.studio-app-shell > .workbench-layout-scenario-evidence > .main-surface-scenario-evidence,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .main-surface,
+body.scenario-evidence-scroll-active
+  .studio-app-shell
+  > .workbench-layout-scenario-evidence
+  > .main-surface-scenario-evidence {
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+}

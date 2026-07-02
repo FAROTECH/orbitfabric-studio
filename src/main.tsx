@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import App from "./App";
 import "./styles.css";
+import "./studioIcons.css";
 import "./missionCockpitVisualHierarchy.css";
 import "./missionContentCockpit.css";
 import "./missionWorkspaceTopbarHeroFix.css";

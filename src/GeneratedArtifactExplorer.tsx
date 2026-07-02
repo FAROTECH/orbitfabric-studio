@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useMemo, useState, useRef } from "react"
 import { invoke } from "@tauri-apps/api/core";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { StudioIcon, type StudioIconKind } from "./StudioIcon";
 import {
   clearGeneratedArtifactInventory,
   getGeneratedArtifactInventorySnapshot,
@@ -546,9 +547,10 @@ function ArtifactLineageBoard({
             key={stat.artifactClass}
             onClick={() => onFamilySelect(stat.artifactClass)}
           >
-            <span className={`lineage-family-icon lineage-family-${stat.artifactClass}`}>
-              {artifactFamilyIcon(stat.artifactClass)}
-            </span>
+            <StudioIcon
+              kind={artifactFamilyIcon(stat.artifactClass)}
+              className={`lineage-family-icon lineage-family-${stat.artifactClass}`}
+            />
             <span>
               <strong>{stat.label}</strong>
               <small>{stat.count} artifacts</small>
@@ -648,7 +650,7 @@ function LineageActionCard({
         <strong>{title}</strong>
         <small>{value}</small>
       </span>
-      <i aria-hidden="true">›</i>
+      <StudioIcon kind="open-detail" className="lineage-action-card-icon" />
     </button>
   );
 }
@@ -1165,20 +1167,20 @@ function artifactTypeLabel(artifact: ClassifiedGeneratedArtifactEntry): string {
   return "Generated artifact";
 }
 
-function artifactFamilyIcon(artifactClass: GeneratedArtifactClass): string {
+function artifactFamilyIcon(artifactClass: GeneratedArtifactClass): StudioIconKind {
   switch (artifactClass) {
     case "reports":
-      return "▣";
+      return "reports";
     case "docs":
-      return "▤";
+      return "docs";
     case "runtime":
-      return "◇";
+      return "runtime";
     case "ground":
-      return "◎";
+      return "ground";
     case "logs":
-      return "◫";
+      return "reports";
     case "unknown":
-      return "?";
+      return "unknown";
   }
 }
 

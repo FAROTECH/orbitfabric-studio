@@ -165,28 +165,8 @@ export function ScenarioTimelineRunnerSurface({
     const animationFrame = requestAnimationFrame(() => {
       const surface = document.getElementById("studio-evidence");
       const mainSurface = surface?.closest(".main-surface");
-      const layout = surface?.closest(".workbench-layout");
-      const appShell = surface?.closest(".studio-app-shell");
-      const inspector = layout?.querySelector(".workbench-inspector");
-      const sidebar = layout?.querySelector(".primary-sidebar");
-      const layoutHeight = "calc(100vh - 116px)";
 
       document.body.classList.add("scenario-evidence-scroll-active");
-
-      applyInlineStyles(appShell, {
-        height: "100vh",
-        maxHeight: "100vh",
-        minHeight: "0",
-        overflow: "hidden",
-      });
-
-      applyInlineStyles(layout, {
-        height: layoutHeight,
-        maxHeight: layoutHeight,
-        minHeight: "0",
-        overflow: "hidden",
-        alignItems: "stretch",
-      });
 
       applyInlineStyles(mainSurface, {
         height: "100%",
@@ -205,24 +185,6 @@ export function ScenarioTimelineRunnerSurface({
         minHeight: "0",
         overflow: "visible",
         paddingBottom: "120px",
-      });
-
-      applyInlineStyles(inspector, {
-        height: "100%",
-        maxHeight: "100%",
-        minHeight: "0",
-        overflowX: "hidden",
-        overflowY: "auto",
-        overscrollBehavior: "contain",
-      });
-
-      applyInlineStyles(sidebar, {
-        height: "100%",
-        maxHeight: "100%",
-        minHeight: "0",
-        overflowX: "hidden",
-        overflowY: "auto",
-        overscrollBehavior: "contain",
       });
 
       cleanupAppliedStyles = () => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { StudioIcon } from "./StudioIcon";
 import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import { DataFlowWorkbenchContextDrawer } from "./DataFlowWorkbenchContextDrawer";
 import { DataFlowWorkbenchFocusMode } from "./DataFlowWorkbenchFocusMode";
@@ -351,9 +352,25 @@ export function MissionDataFlowWorkbenchSurface({
         </article>
 
         <article className="mission-data-flow-deck-card mission-data-flow-path-card">
-          <header>
-            <span className="cockpit-eyebrow">Selected flow path</span>
-            <strong>{viewModel.selectedPath.length > 0 ? "reported" : "not reported"}</strong>
+          <header className="mission-data-flow-path-header">
+            <div>
+              <span className="cockpit-eyebrow">Selected flow path</span>
+              <strong>{viewModel.selectedPath.length > 0 ? "reported" : "not reported"}</strong>
+            </div>
+            {selection ? (
+              <button
+                className="mission-data-flow-path-focus-action"
+                type="button"
+                onClick={() => {
+                  setFocusSelection(selection);
+                  setSelectedItem(selection);
+                  setDrawerSelection(null);
+                }}
+              >
+                <span>Open focus mode</span>
+                <StudioIcon kind="open-detail" />
+              </button>
+            ) : null}
           </header>
           {viewModel.selectedPath.length > 0 ? (
             <div className="mission-data-flow-path">

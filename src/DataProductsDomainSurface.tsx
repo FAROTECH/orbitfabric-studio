@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import "./dataProductsCockpit.css";
 import { DesktopSurface } from "./desktopEnvelopePrimitives";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
+import { StudioIcon } from "./StudioIcon";
 import {
   parseCoreCoverageSummary,
   parseCoreEntityIndex,
@@ -380,7 +381,7 @@ export function DataProductsDomainSurface({
             <>
               <section className="data-products-selected-card" aria-label="Selected data product">
                 <div className="data-products-selected-title-row">
-                  <div className="data-products-selected-icon" aria-hidden="true">◇</div>
+                  <StudioIcon kind="data-products" className="data-products-selected-icon" />
                   <div>
                     <h3>{selectedProduct.id}</h3>
                     <span>{selectedProduct.bridge?.description ?? "No generated description reported."}</span>
@@ -416,7 +417,7 @@ export function DataProductsDomainSurface({
                           <strong>{node.value}</strong>
                           <span>{node.label}</span>
                         </article>
-                        {index < selectedRoute.length - 1 ? <span className="data-products-route-arrow">→</span> : null}
+                        {index < selectedRoute.length - 1 ? <span className="data-products-route-arrow"><StudioIcon kind="open-detail" /></span> : null}
                       </div>
                     ))}
                   </div>
