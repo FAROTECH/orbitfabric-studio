@@ -422,3 +422,80 @@
     transform: translateY(-1px) !important;
   }
 }
+
+/* E25 status bar contract */
+/*
+   Status bar shows only real runtime state:
+   workspace, read-only/Core-owned boundary, latest Core action state,
+   active surface and an always-available surface capture utility.
+   Preview placeholders are intentionally removed.
+*/
+.reference-status-bar.reference-status-bar-runtime {
+  grid-template-columns:
+    minmax(260px, 1.35fr)
+    minmax(112px, 0.44fr)
+    minmax(82px, 0.30fr)
+    minmax(140px, 0.46fr)
+    minmax(238px, 0.82fr) !important;
+}
+
+.reference-status-preview-item,
+.reference-status-cache,
+.reference-status-bell {
+  display: none !important;
+}
+
+.reference-status-readonly em,
+.reference-status-core em {
+  margin-left: auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #8fa3ba !important;
+  font-style: normal !important;
+  font-weight: 840 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.reference-status-core-idle em {
+  color: #94a3b8 !important;
+}
+
+.reference-status-core-ok em {
+  color: #86efac !important;
+}
+
+.reference-status-core-fail em {
+  color: #fca5a5 !important;
+}
+
+.reference-status-core-ok > span:first-child {
+  color: #86efac !important;
+}
+
+.reference-status-core-fail > span:first-child {
+  color: #fca5a5 !important;
+}
+
+.reference-status-surface strong {
+  color: #67e8f9 !important;
+}
+
+.reference-status-bar-runtime .reference-status-capture {
+  border-right: 0 !important;
+}
+
+.reference-status-bar-runtime .reference-status-capture-label {
+  color: #67e8f9 !important;
+}
+
+@media (max-width: 1500px) {
+  .reference-status-bar.reference-status-bar-runtime {
+    grid-template-columns:
+      minmax(190px, 1.1fr)
+      minmax(92px, 0.34fr)
+      minmax(66px, 0.24fr)
+      minmax(102px, 0.32fr)
+      minmax(184px, 0.94fr) !important;
+  }
+}

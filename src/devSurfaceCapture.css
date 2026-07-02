@@ -1,4 +1,4 @@
-/* Dev-only QA capture controls. Rendered only when VITE_OF_DEV_CAPTURE=1. */
+/* Surface capture controls. Available in runtime and dev builds. */
 .reference-status-bar:has(.reference-status-capture) {
   grid-template-columns:
     minmax(240px, 1.25fr)
@@ -114,5 +114,26 @@
 
   .reference-status-capture em {
     display: none !important;
+  }
+}
+
+/* E25 surface capture status bar columns */
+.reference-status-bar.reference-status-bar-runtime:has(.reference-status-capture) {
+  grid-template-columns:
+    minmax(260px, 1.35fr)
+    minmax(112px, 0.44fr)
+    minmax(82px, 0.30fr)
+    minmax(140px, 0.46fr)
+    minmax(238px, 0.82fr) !important;
+}
+
+@media (max-width: 1500px) {
+  .reference-status-bar.reference-status-bar-runtime:has(.reference-status-capture) {
+    grid-template-columns:
+      minmax(190px, 1.1fr)
+      minmax(92px, 0.34fr)
+      minmax(66px, 0.24fr)
+      minmax(102px, 0.32fr)
+      minmax(184px, 0.94fr) !important;
   }
 }

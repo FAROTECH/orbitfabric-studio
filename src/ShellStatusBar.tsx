@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   captureActiveSurface,
-  isDevSurfaceCaptureEnabled,
 } from "./devSurfaceCapture";
 import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import type { CoreCommandResult, WorkspaceInspection } from "./types/workspace";
@@ -31,7 +30,6 @@ export function ShellStatusBar({
       ? "OK"
       : "FAIL"
     : "Idle";
-  const devCaptureEnabled = isDevSurfaceCaptureEnabled();
   const [captureState, setCaptureState] = useState<DevCaptureState>("idle");
   const [captureMessage, setCaptureMessage] = useState("Ready");
 
@@ -72,10 +70,6 @@ export function ShellStatusBar({
   );
 
   useEffect(() => {
-    if (!devCaptureEnabled) {
-      return undefined;
-    }
-
     function onKeyDown(event: KeyboardEvent) {
       if (event.key.toLowerCase() !== "c" || event.metaKey) {
         return;
@@ -90,72 +84,49 @@ export function ShellStatusBar({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [devCaptureEnabled, handleCapture]);
+  }, [handleCapture]);
 
   return (
-    <footer className="shell-status-bar reference-status-bar" aria-label="Studio shell status bar">
+    <footer
+      className="shell-status-bar reference-status-bar reference-status-bar-runtime"
+      aria-label="Studio shell status bar"
+    >
       <div className="reference-status-workspace reference-status-real" title={workspacePath}>
         <span className="reference-status-dot reference-status-dot-real" aria-hidden="true" />
         <strong>Workspace</strong>
         <span>{workspacePath}</span>
       </div>
 
-      {devCaptureEnabled ? (
-        <div className="reference-status-item reference-status-readonly reference-status-real">
-          <span aria-hidden="true">▣</span>
-          <strong>Read-only</strong>
-          <em>Core-owned</em>
-        </div>
-      ) : (
-        <>
-          <PreviewStatusItem label="Model Version" value="not reported" />
-          <PreviewStatusItem label="Schema" value="not reported" />
+      <div className="reference-status-item reference-status-readonly reference-status-real">
+        <span aria-hidden="true">▣</span>
+        <strong>Read-only</strong>
+        <em>Core-owned</em>
+      </div>
 
-          <div className="reference-status-item reference-status-preview-item">
-            <span aria-hidden="true">⌁</span>
-            <strong>main</strong>
-            <small>Preview</small>
-          </div>
-
-          <div className="reference-status-item reference-status-preview-item">
-            <span aria-hidden="true">▣</span>
-            <strong>Read-only preview</strong>
-            <small>Preview</small>
-          </div>
-        </>
-      )}
+      <div
+        className={`reference-status-item reference-status-core reference-status-real reference-status-core-${coreCommandState.toLowerCase()}`}
+        title={coreResult ? "Latest Core action result" : "No Core action in this session"}
+      >
+        <span aria-hidden="true">◉</span>
+        <strong>Core</strong>
+        <em>{coreCommandState}</em>
+      </div>
 
       <div className="reference-status-item reference-status-surface reference-status-real">
         <span>Surface</span>
         <strong>{formatActiveSurface(activeSurface, activeNavigationId)}</strong>
       </div>
 
-      {devCaptureEnabled ? (
-        <DevCaptureControls
-          captureState={captureState}
-          message={captureMessage}
-          onCapture={handleCapture}
-        />
-      ) : (
-        <>
-          <div className="reference-status-item reference-status-cache reference-status-preview-item">
-            <span aria-hidden="true">▤</span>
-            <strong>Local Cache</strong>
-            <small>Preview</small>
-            <em>{coreCommandState}</em>
-          </div>
-
-          <div className="reference-status-bell reference-status-preview-item" aria-label="Notifications preview">
-            ♢
-            <small>Preview</small>
-          </div>
-        </>
-      )}
+      <SurfaceCaptureControls
+        captureState={captureState}
+        message={captureMessage}
+        onCapture={handleCapture}
+      />
     </footer>
   );
 }
 
-function DevCaptureControls({
+function SurfaceCaptureControls({
   captureState,
   message,
   onCapture,
@@ -171,14 +142,14 @@ function DevCaptureControls({
       className={["reference-status-capture", `reference-status-capture-${captureState}`]
         .filter(Boolean)
         .join(" ")}
-      aria-label="Dev QA capture controls"
+      aria-label="Surface capture controls"
     >
-      <strong className="reference-status-capture-label">QA Capture</strong>
+      <strong className="reference-status-capture-label">Capture</strong>
       <button
         type="button"
         onClick={onCapture}
         disabled={isCapturing}
-        title="Capture active surface in the current window. Shortcut: Option+Shift+C"
+        title="Capture active Studio surface as PNG. Shortcut: Option+Shift+C"
       >
         Surface
       </button>
@@ -187,15 +158,6 @@ function DevCaptureControls({
   );
 }
 
-function PreviewStatusItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="reference-status-item reference-status-preview-item">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>Preview</small>
-    </div>
-  );
-}
 
 function formatActiveSurface(activeSurface: ActiveSurface, activeNavigationId: TargetDomainId): string {
   switch (activeSurface) {
