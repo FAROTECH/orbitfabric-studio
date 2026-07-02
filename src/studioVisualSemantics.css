@@ -804,3 +804,185 @@
   background: var(--of-interaction-selected-bg) !important;
   box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.18) inset !important;
 }
+
+/* E20 cards/panels/tables/raw blocks contract */
+:root {
+  --of-content-panel-bg:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.055), transparent 26rem),
+    rgba(3, 12, 26, 0.54);
+  --of-content-card-bg: rgba(2, 8, 23, 0.42);
+  --of-content-field-bg: rgba(2, 8, 23, 0.34);
+  --of-content-row-bg: rgba(15, 23, 42, 0.28);
+  --of-content-row-hover-bg: rgba(8, 145, 178, 0.13);
+  --of-content-border: rgba(148, 163, 184, 0.14);
+  --of-content-border-strong: rgba(103, 232, 249, 0.22);
+  --of-content-divider: rgba(148, 163, 184, 0.13);
+  --of-content-label: #8fa2ba;
+  --of-content-value: #dbeafe;
+  --of-content-heading: #f8fafc;
+  --of-content-raw-bg: rgba(1, 7, 18, 0.72);
+  --of-content-raw-border: rgba(129, 140, 248, 0.18);
+  --of-content-raw-text: #c7d2fe;
+}
+
+/* Panel internals: same density and divider grammar inside all operational surfaces. */
+:where(
+  .core-runner-card-header,
+  .data-products-panel-heading,
+  .data-products-subpanel-heading,
+  .data-products-selected-title-row,
+  .data-products-inspector-section > header,
+  .lineage-inspector-heading,
+  .lineage-column-heading,
+  .scenario-panel-heading,
+  .scenario-source-card-header
+) {
+  border-bottom: 1px solid var(--of-content-divider) !important;
+  padding-bottom: 9px !important;
+}
+
+:where(
+  .core-runner-card-header,
+  .data-products-panel-heading,
+  .data-products-subpanel-heading,
+  .data-products-selected-title-row,
+  .data-products-inspector-section > header,
+  .lineage-inspector-heading,
+  .lineage-column-heading,
+  .scenario-panel-heading,
+  .scenario-source-card-header
+) :where(h2, h3, h4, strong) {
+  color: var(--of-content-heading) !important;
+}
+
+/* Field/fact cards: label/value blocks share one visual grammar. */
+:where(
+  .core-runner-detail,
+  .data-products-inspector-field,
+  .data-products-route-node,
+  .data-products-evidence-table article,
+  .scenario-fact,
+  .scenario-mini-metric,
+  .scenario-source-contract-card,
+  .scenario-execution-flow-card,
+  .lineage-inspector-field,
+  .lineage-inspector-object,
+  .lineage-context-card,
+  .lineage-action-card
+) {
+  border-color: var(--of-content-border) !important;
+  background: var(--of-content-field-bg) !important;
+}
+
+:where(
+  .core-runner-detail,
+  .data-products-inspector-field,
+  .scenario-fact,
+  .scenario-mini-metric,
+  .lineage-inspector-field
+) :where(span, small) {
+  color: var(--of-content-label) !important;
+}
+
+:where(
+  .core-runner-detail,
+  .data-products-inspector-field,
+  .scenario-fact,
+  .scenario-mini-metric,
+  .lineage-inspector-field
+) strong {
+  color: var(--of-content-value) !important;
+}
+
+/* Table/list shells: table containers, rows and headers align across Generated/Data Products/Scenario. */
+:where(
+  .lineage-table-shell,
+  .data-products-evidence-table,
+  .data-products-relationship-table,
+  .scenario-catalog-table,
+  .scenario-timeline-list
+) {
+  border-color: var(--of-content-border) !important;
+}
+
+:where(
+  .lineage-artifact-table th,
+  .data-products-evidence-table header,
+  .scenario-catalog-row-head
+) {
+  color: var(--of-content-label) !important;
+  font-size: 0.64rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.085em !important;
+  text-transform: uppercase !important;
+}
+
+:where(
+  .lineage-artifact-table td,
+  .data-products-evidence-table article,
+  .scenario-catalog-row,
+  .scenario-timeline-row
+) {
+  border-color: var(--of-content-border) !important;
+}
+
+.lineage-artifact-table tbody tr {
+  background: transparent !important;
+}
+
+.lineage-artifact-table tbody tr:hover,
+.lineage-artifact-table tbody tr[aria-current="true"] {
+  background: var(--of-content-row-hover-bg) !important;
+}
+
+/* Raw/code blocks: JSON, YAML, stdout/stderr and source previews share one substrate. */
+:where(
+  .core-runner-process-output,
+  .data-products-json-block,
+  .lineage-preview-block,
+  .scenario-source-lines,
+  .scenario-source-line,
+  .scenario-inspector-json-preview,
+  .scenario-raw-json-preview
+) {
+  border-color: var(--of-content-raw-border) !important;
+  background: var(--of-content-raw-bg) !important;
+  color: var(--of-content-raw-text) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+:where(
+  .core-runner-process-output,
+  .data-products-json-block,
+  .lineage-preview-block,
+  .scenario-source-lines
+) {
+  line-height: 1.48 !important;
+}
+
+/* Empty/dashed states are informative containers, not disabled controls. */
+:where(
+  .data-products-empty-state,
+  .lineage-inspector-empty,
+  .lineage-waiting-panel,
+  .scenario-empty-state
+) {
+  border-style: dashed !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: rgba(2, 8, 23, 0.26) !important;
+  color: var(--of-content-label) !important;
+}
+
+/* Keep selected/active states above the E20 base content grammar. */
+:where(
+  .data-products-catalog-card-active,
+  .data-products-catalog-card-selected,
+  .scenario-catalog-row-selected,
+  .lineage-artifact-table tbody tr[aria-current="true"]
+) {
+  border-color: var(--of-interaction-selected-border) !important;
+  background:
+    linear-gradient(90deg, var(--of-interaction-selected-bg), transparent 62%),
+    rgba(15, 23, 42, 0.52) !important;
+  box-shadow: var(--of-interaction-selected-shadow) !important;
+}
