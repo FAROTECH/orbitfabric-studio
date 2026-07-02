@@ -5,6 +5,7 @@ import {
 } from "./devSurfaceCapture";
 import type { ActiveSurface, TargetDomainId } from "./navigationModel";
 import type { CoreCommandResult, WorkspaceInspection } from "./types/workspace";
+import { StudioIcon } from "./StudioIcon";
 
 import "./shellStatusBar.css";
 import "./devSurfaceCapture.css";
@@ -98,7 +99,7 @@ export function ShellStatusBar({
       </div>
 
       <div className="reference-status-item reference-status-readonly reference-status-real">
-        <span aria-hidden="true">▣</span>
+        <StudioIcon kind="status-readonly" className="reference-status-glyph" />
         <strong>Read-only</strong>
         <em>Core-owned</em>
       </div>
@@ -107,7 +108,7 @@ export function ShellStatusBar({
         className={`reference-status-item reference-status-core reference-status-real reference-status-core-${coreCommandState.toLowerCase()}`}
         title={coreResult ? "Latest Core action result" : "No Core action in this session"}
       >
-        <span aria-hidden="true">◉</span>
+        <StudioIcon kind="status-core" className="reference-status-glyph" />
         <strong>Core</strong>
         <em>{coreCommandState}</em>
       </div>
@@ -151,6 +152,7 @@ function SurfaceCaptureControls({
         disabled={isCapturing}
         title="Capture active Studio surface as PNG. Shortcut: Option+Shift+C"
       >
+        <StudioIcon kind="capture" />
         Surface
       </button>
       <em>{message}</em>

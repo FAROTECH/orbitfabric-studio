@@ -937,3 +937,48 @@
   border-color: var(--of-content-border) !important;
   box-shadow: none !important;
 }
+
+/* E27 Data Flow direct focus affordance */
+.data-flow-workbench-desktop-surface .mission-data-flow-path-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-path-header > div {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-path-focus-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  gap: 7px !important;
+  min-height: 28px !important;
+  border: 1px solid rgba(103, 232, 249, 0.34) !important;
+  border-radius: 999px !important;
+  padding: 0 11px !important;
+  color: #cffafe !important;
+  background: rgba(8, 145, 178, 0.14) !important;
+  font-size: 0.6rem !important;
+  font-weight: 860 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-path-focus-action:hover,
+.data-flow-workbench-desktop-surface .mission-data-flow-path-focus-action:focus-visible {
+  border-color: rgba(103, 232, 249, 0.68) !important;
+  background: rgba(8, 145, 178, 0.24) !important;
+  outline: none !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-path-focus-action .studio-icon {
+  width: 13px !important;
+  height: 13px !important;
+}

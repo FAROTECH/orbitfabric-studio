@@ -33,6 +33,7 @@ import { AutonomyReservedSurface } from "./AutonomyReservedSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandActions } from "./ShellCommandActions";
 import { DashboardIcon } from "./DashboardIcon";
+import { StudioIcon } from "./StudioIcon";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 import {
   shellSurfaceItems,
@@ -1111,7 +1112,7 @@ function WorkspaceHeader({
         >
           <span>Project</span>
           <strong>{isOpening ? "Opening" : workspaceName}</strong>
-          <small aria-hidden="true">⌄</small>
+          <StudioIcon kind="chevron-down" className="reference-project-switcher-icon" />
         </button>
       ) : null}
 
@@ -1123,13 +1124,13 @@ function WorkspaceHeader({
 
       <div className="reference-command-icons" aria-label="Studio utilities">
         <button type="button" className="reference-icon-button" title="Help" aria-label="Help">
-          ?
+          <StudioIcon kind="help" />
         </button>
         <button type="button" className="reference-icon-button" title="Settings" aria-label="Settings">
-          ⚙
+          <StudioIcon kind="settings" />
         </button>
         <button type="button" className="reference-icon-button" title="Profile" aria-label="Profile">
-          ♙
+          <StudioIcon kind="profile" />
         </button>
       </div>
     </header>
@@ -1245,7 +1246,7 @@ function PrimarySidebar({
         title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={onToggleCollapsed}
       >
-        {isCollapsed ? "›" : "‹"}
+        <StudioIcon kind={isCollapsed ? "collapse-right" : "collapse-left"} />
       </button>
     </nav>
   );
