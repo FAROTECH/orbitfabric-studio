@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { ProvenanceBadge, StatusBadge } from "./Badges";
 import {
   clearGeneratedArtifactInventory,
+  getGeneratedArtifactInventorySnapshot,
   publishGeneratedArtifactInventory,
 } from "./generatedArtifactInventoryStore";
 import type {
@@ -103,6 +104,10 @@ interface GeneratedArtifactExplorerPanelProps {
   onEvidenceArtifactSummaryChange?: (summary: GeneratedEvidenceArtifactSummary | null) => void;
 }
 
+interface InspectGeneratedArtifactsOptions {
+  preserveExistingInventory?: boolean;
+}
+
 type ClassifiedGeneratedArtifactEntry = GeneratedArtifactEntry & {
   known_status: GeneratedArtifactKnownStatus;
   classification_reason: string;
@@ -134,7 +139,11 @@ export function GeneratedArtifactExplorerPanel({
   onArtifactSelectionChange,
   onEvidenceArtifactSummaryChange,
 }: GeneratedArtifactExplorerPanelProps) {
-  const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(null);
+  const [inventory, setInventory] = useState<GeneratedArtifactInventory | null>(() => {
+    const cached = getGeneratedArtifactInventorySnapshot();
+
+    return cached.workspacePath === workspacePath ? cached.inventory : null;
+  });
   const [selectedArtifact, setSelectedArtifact] = useState<ClassifiedGeneratedArtifactEntry | null>(null);
   const [selectedArtifactFile, setSelectedArtifactFile] = useState<FileContent | null>(null);
   const [activeQueue, setActiveQueue] = useState<ArtifactQueue>("all");
@@ -163,6 +172,7 @@ export function GeneratedArtifactExplorerPanel({
   const familyCount = classStats.filter((stat) => stat.count > 0).length;
   const warnings = inventory?.warnings ?? [];
   const lineageBoardRef = useRef<HTMLElement | null>(null);
+  const hydratedWorkspaceRef = useRef<string | null>(null);
 
   function scrollArtifactListIntoView() {
     window.requestAnimationFrame(() => {
@@ -213,20 +223,82 @@ export function GeneratedArtifactExplorerPanel({
   );
 
   useEffect(() => {
-    if (refreshToken > 0) {
-      void handleInspectGeneratedArtifacts();
+    if (hydratedWorkspaceRef.current === workspacePath) {
+      return;
     }
-  }, [refreshToken]);
 
-  async function handleInspectGeneratedArtifacts() {
+    hydratedWorkspaceRef.current = workspacePath;
     setError(null);
     setPreviewError(null);
     setSelectedArtifactFile(null);
     setSelectedArtifact(null);
-    clearGeneratedArtifactInventory(workspacePath);
-    onDashboardSummaryChange?.(null);
     onArtifactSelectionChange?.(null);
+
+    const cached = getGeneratedArtifactInventorySnapshot();
+
+    if (cached.workspacePath === workspacePath && cached.inventory) {
+      applyGeneratedArtifactInventory(cached.inventory);
+      return;
+    }
+
+    setInventory(null);
+    onDashboardSummaryChange?.(null);
     onEvidenceArtifactSummaryChange?.(null);
+    void handleInspectGeneratedArtifacts({ preserveExistingInventory: true });
+  }, [workspacePath]);
+
+  useEffect(() => {
+    if (refreshToken > 0) {
+      void handleInspectGeneratedArtifacts({ preserveExistingInventory: true });
+    }
+  }, [refreshToken]);
+
+  function applyGeneratedArtifactInventory(nextInventory: GeneratedArtifactInventory) {
+    const classified = classifyGeneratedArtifacts(nextInventory.artifacts);
+    const nextKnown = classified.filter((artifact) => artifact.known_status === "known").length;
+    const linkedInventory: GeneratedArtifactInventory = {
+      ...nextInventory,
+      artifacts: classified,
+      counts: {
+        ...nextInventory.counts,
+        known_artifacts: nextKnown,
+        unknown_artifacts: classified.length - nextKnown,
+      },
+    };
+
+    setInventory(linkedInventory);
+    publishGeneratedArtifactInventory(workspacePath, linkedInventory);
+
+    onDashboardSummaryChange?.({
+      generatedDir: linkedInventory.generated_dir,
+      totalArtifacts: linkedInventory.counts.total_artifacts,
+      knownArtifacts: nextKnown,
+      unknownArtifacts: classified.length - nextKnown,
+      previewableArtifacts: linkedInventory.counts.previewable_artifacts,
+      notPreviewableArtifacts: linkedInventory.counts.not_previewable_artifacts,
+      warningCount: linkedInventory.warnings.length,
+    });
+    onEvidenceArtifactSummaryChange?.(buildEvidenceSummary(classified));
+  }
+
+  async function handleInspectGeneratedArtifacts(
+    options: InspectGeneratedArtifactsOptions = {},
+  ) {
+    const preserveExistingInventory = options.preserveExistingInventory ?? false;
+
+    setError(null);
+    setPreviewError(null);
+    setSelectedArtifactFile(null);
+    setSelectedArtifact(null);
+    onArtifactSelectionChange?.(null);
+
+    if (!preserveExistingInventory) {
+      clearGeneratedArtifactInventory(workspacePath);
+      setInventory(null);
+      onDashboardSummaryChange?.(null);
+      onEvidenceArtifactSummaryChange?.(null);
+    }
+
     setIsInspecting(true);
 
     try {
@@ -234,36 +306,17 @@ export function GeneratedArtifactExplorerPanel({
         "inspect_generated_artifacts",
         { workspacePath },
       );
-      const classified = classifyGeneratedArtifacts(result.artifacts);
-      const nextKnown = classified.filter((artifact) => artifact.known_status === "known").length;
-      const linkedInventory: GeneratedArtifactInventory = {
-        ...result,
-        artifacts: classified,
-        counts: {
-          ...result.counts,
-          known_artifacts: nextKnown,
-          unknown_artifacts: classified.length - nextKnown,
-        },
-      };
 
-      setInventory(linkedInventory);
-      publishGeneratedArtifactInventory(workspacePath, linkedInventory);
-
-      onDashboardSummaryChange?.({
-        generatedDir: linkedInventory.generated_dir,
-        totalArtifacts: linkedInventory.counts.total_artifacts,
-        knownArtifacts: nextKnown,
-        unknownArtifacts: classified.length - nextKnown,
-        previewableArtifacts: linkedInventory.counts.previewable_artifacts,
-        notPreviewableArtifacts: linkedInventory.counts.not_previewable_artifacts,
-        warningCount: linkedInventory.warnings.length,
-      });
-      onEvidenceArtifactSummaryChange?.(buildEvidenceSummary(classified));
+      applyGeneratedArtifactInventory(result);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
-      clearGeneratedArtifactInventory(workspacePath);
-      onDashboardSummaryChange?.(null);
-      onEvidenceArtifactSummaryChange?.(null);
+
+      if (!preserveExistingInventory) {
+        clearGeneratedArtifactInventory(workspacePath);
+        setInventory(null);
+        onDashboardSummaryChange?.(null);
+        onEvidenceArtifactSummaryChange?.(null);
+      }
     } finally {
       setIsInspecting(false);
     }
@@ -345,7 +398,9 @@ export function GeneratedArtifactExplorerPanel({
       {isInspecting ? <p className="empty-text lineage-board-status">Inspecting generated artifact inventory...</p> : null}
 
       {!inventory && !isInspecting ? (
-        <ArtifactLineageWaitingPanel onInspect={handleInspectGeneratedArtifacts} />
+        <ArtifactLineageWaitingPanel
+          onInspect={() => void handleInspectGeneratedArtifacts()}
+        />
       ) : null}
 
       {inventory ? (
@@ -432,12 +487,12 @@ function ArtifactLineageWaitingPanel({ onInspect }: { onInspect: () => void }) {
         <span className="cockpit-eyebrow">Inventory not loaded</span>
         <h3>No generated artifact inventory yet</h3>
         <p>
-          Run generated artifact inspection to populate the board. Until inventory is reported,
-          Studio does not infer artifact evidence, lineage or review status.
+          Studio automatically inspects generated artifacts when this surface opens.
+          Use the action only to retry if inventory is still unavailable.
         </p>
       </div>
       <button className="lineage-primary-action" type="button" onClick={onInspect}>
-        Inspect generated artifacts
+        Retry generated artifact inspection
       </button>
     </section>
   );

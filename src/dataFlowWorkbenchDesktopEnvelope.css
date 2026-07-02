@@ -924,3 +924,16 @@
     --of-data-flow-right-edge-guard: 18px;
   }
 }
+
+/* E24 Data Flow readiness read-only affordance */
+.data-flow-workbench-desktop-surface .mission-data-flow-kpi,
+.data-flow-workbench-desktop-surface .mission-data-flow-source-node {
+  cursor: default !important;
+  pointer-events: auto !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-kpi:hover,
+.data-flow-workbench-desktop-surface .mission-data-flow-source-node:hover {
+  border-color: var(--of-content-border) !important;
+  box-shadow: none !important;
+}
