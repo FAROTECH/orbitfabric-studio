@@ -958,6 +958,7 @@ function App() {
           activeSurface === "scenario-evidence" ? "workbench-layout-scenario-evidence" : "",
           activeSurface === "core-commands" ? "workbench-layout-core-report-runner" : "",
           activeSurface === "generated-artifacts" ? "workbench-layout-generated-artifacts" : "",
+          activeSurface === "mission-data-flow-workbench" ? "workbench-layout-data-flow-workbench" : "",
           activeSurface === "model-inventory" && activeNavigationId === "data-products" ? "workbench-layout-data-products" : "",
           isSidebarCollapsed ? "workbench-layout-sidebar-collapsed" : "",
           workspace ? "workbench-layout-workspace" : "workbench-layout-empty",
@@ -980,6 +981,7 @@ function App() {
             activeSurface === "scenario-evidence" ? "main-surface-scenario-evidence" : "",
             activeSurface === "core-commands" ? "main-surface-core-report-runner" : "",
             activeSurface === "generated-artifacts" ? "main-surface-generated-artifacts" : "",
+            activeSurface === "mission-data-flow-workbench" ? "main-surface-data-flow-workbench" : "",
             activeSurface === "model-inventory" && activeNavigationId === "data-products" ? "main-surface-data-products" : "",
           ]
             .filter(Boolean)
@@ -992,7 +994,8 @@ function App() {
         {workspace &&
         activeSurface !== "mission-dashboard" &&
         activeSurface !== "core-commands" &&
-        activeSurface !== "generated-artifacts" ? (
+        activeSurface !== "generated-artifacts" &&
+        activeSurface !== "mission-data-flow-workbench" ? (
           <InspectorPanel
             workspace={workspace}
             activeSurface={activeSurface}
