@@ -606,3 +606,201 @@
 .core-report-runner-desktop-surface .core-runner-detail-value strong {
   color: var(--of-sem-value-accent) !important;
 }
+
+/* E19 clickability/selected/focus contract */
+:root {
+  --of-interaction-clickable-border: rgba(103, 232, 249, 0.34);
+  --of-interaction-clickable-bg: rgba(8, 145, 178, 0.10);
+  --of-interaction-hover-border: rgba(103, 232, 249, 0.58);
+  --of-interaction-hover-bg: rgba(8, 145, 178, 0.18);
+  --of-interaction-focus-ring: 0 0 0 2px rgba(103, 232, 249, 0.34);
+  --of-interaction-focus-ring-outer: 0 0 0 1px rgba(103, 232, 249, 0.48), 0 0 0 4px rgba(103, 232, 249, 0.14);
+  --of-interaction-selected-border: rgba(103, 232, 249, 0.78);
+  --of-interaction-selected-bg: rgba(8, 145, 178, 0.24);
+  --of-interaction-selected-shadow: 0 0 0 1px rgba(103, 232, 249, 0.24) inset, 0 14px 36px rgba(8, 145, 178, 0.13);
+  --of-interaction-disabled-opacity: 0.46;
+}
+
+/* Informational panels/cards must not imply clickability. */
+:where(
+  .mission-target-hero,
+  .mission-target-quick,
+  .mission-target-card,
+  .mission-target-posture-block,
+  .mission-target-lint,
+  .mission-target-load,
+  .core-runner-readiness-card,
+  .core-runner-action-card,
+  .core-runner-detail,
+  .core-runner-preview-card,
+  .core-runner-output-card,
+  .data-products-summary-card,
+  .data-products-selected-card,
+  .data-products-route-panel,
+  .data-products-coverage-panel,
+  .data-products-inspector-section,
+  .lineage-stat-card,
+  .lineage-context-card,
+  .lineage-inspector-object,
+  .lineage-inspector-section,
+  .scenario-posture-card,
+  .scenario-fact,
+  .scenario-mini-metric,
+  .scenario-artifact-card
+) {
+  cursor: default !important;
+}
+
+/* Clickable targets: cursor + motionless hover language. */
+:where(
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  .reference-command-action:not(:disabled),
+  .primary-action:not(:disabled),
+  .inline-link-button:not(:disabled),
+  .entry-button:not(:disabled),
+  .scenario-primary-button:not(:disabled),
+  .scenario-secondary-button:not(:disabled),
+  .scenario-catalog-row-button,
+  .scenario-timeline-row,
+  .scenario-plan-step:not(:disabled),
+  .scenario-lane-filter,
+  .data-products-catalog-card,
+  .lineage-family-card,
+  .lineage-action-card
+) {
+  cursor: pointer !important;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease !important;
+}
+
+/* Hover means actionable; no translate/resize to avoid layout drift. */
+:where(
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  .reference-command-action:not(:disabled),
+  .primary-action:not(:disabled),
+  .inline-link-button:not(:disabled),
+  .entry-button:not(:disabled),
+  .scenario-primary-button:not(:disabled),
+  .scenario-secondary-button:not(:disabled),
+  .scenario-catalog-row-button,
+  .scenario-timeline-row,
+  .scenario-plan-step:not(:disabled),
+  .scenario-lane-filter,
+  .data-products-catalog-card,
+  .lineage-family-card,
+  .lineage-action-card
+):hover {
+  border-color: var(--of-interaction-hover-border) !important;
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.12) inset !important;
+}
+
+/* Keyboard focus must be stronger than hover and shared across surfaces. */
+:where(
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  .reference-command-action,
+  .primary-action,
+  .inline-link-button,
+  .entry-button,
+  .scenario-primary-button,
+  .scenario-secondary-button,
+  .scenario-catalog-row-button,
+  .scenario-timeline-row,
+  .scenario-plan-step,
+  .scenario-lane-filter,
+  .data-products-catalog-card,
+  .lineage-family-card,
+  .lineage-action-card
+):focus-visible {
+  outline: none !important;
+  border-color: var(--of-interaction-selected-border) !important;
+  box-shadow: var(--of-interaction-focus-ring-outer) !important;
+}
+
+/* Selected/current item: persistent cyan state, not success/warning/failure. */
+:where(
+  .data-products-catalog-card-active,
+  .data-products-catalog-card-selected,
+  .scenario-catalog-row-selected,
+  .scenario-lane-filter-active,
+  .core-runner-action-card-focused,
+  .lineage-family-card-active,
+  .lineage-action-card-active,
+  .lineage-review-state-selected,
+  .status-badge-selected
+) {
+  border-color: var(--of-interaction-selected-border) !important;
+  background:
+    linear-gradient(90deg, var(--of-interaction-selected-bg), transparent 62%),
+    rgba(15, 23, 42, 0.52) !important;
+  box-shadow: var(--of-interaction-selected-shadow) !important;
+}
+
+/* Selected badges stay compact and semantic. */
+:where(
+  .lineage-review-state-selected,
+  .status-badge-selected
+) {
+  color: var(--of-interaction-selected-border) !important;
+}
+
+/* Disabled/unavailable controls: no hover semantics, no active affordance. */
+:where(
+  button:disabled,
+  [aria-disabled="true"],
+  .reference-command-action:disabled,
+  .primary-action:disabled,
+  .entry-button:disabled,
+  .scenario-primary-button:disabled,
+  .scenario-secondary-button:disabled
+) {
+  cursor: not-allowed !important;
+  opacity: var(--of-interaction-disabled-opacity) !important;
+  box-shadow: none !important;
+  filter: saturate(0.72) !important;
+}
+
+:where(
+  button:disabled,
+  [aria-disabled="true"],
+  .reference-command-action:disabled,
+  .primary-action:disabled,
+  .entry-button:disabled,
+  .scenario-primary-button:disabled,
+  .scenario-secondary-button:disabled
+):hover {
+  border-color: inherit !important;
+  background: inherit !important;
+  box-shadow: none !important;
+}
+
+/* Link-like buttons remain visibly text actions, not filled pills. */
+:where(.inline-link-button, .entry-button) {
+  box-shadow: none !important;
+}
+
+:where(.inline-link-button, .entry-button):hover,
+:where(.inline-link-button, .entry-button):focus-visible {
+  color: var(--of-visual-accent) !important;
+  text-decoration-thickness: 2px !important;
+}
+
+/* Tab/list filters: selected tab uses same focus/selection language. */
+:where(
+  .core-runner-output-tabs button[aria-selected="true"],
+  .scenario-lane-filter-active
+) {
+  border-color: var(--of-interaction-selected-border) !important;
+  color: var(--of-visual-selected-text) !important;
+  background: var(--of-interaction-selected-bg) !important;
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.18) inset !important;
+}
