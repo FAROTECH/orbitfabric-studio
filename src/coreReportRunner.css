@@ -1205,7 +1205,6 @@
   gap: 18px !important;
   align-items: center !important;
   padding: 15px 22px !important;
-  border-radius: 20px !important;
 }
 
 .core-runner-eyebrow {
@@ -1248,7 +1247,6 @@
   justify-self: end !important;
   width: min(100%, 500px) !important;
   padding: 8px !important;
-  border-radius: 16px !important;
 }
 
 .core-runner-inventory-pill {
@@ -1277,7 +1275,6 @@
 .core-runner-readiness-card {
   min-height: 48px !important;
   padding: 8px 10px !important;
-  border-radius: 14px !important;
   column-gap: 8px !important;
 }
 
@@ -1300,7 +1297,6 @@
   grid-template-columns: minmax(0, 1fr) minmax(220px, 310px) !important;
   align-items: center !important;
   padding: 9px 14px !important;
-  border-radius: 16px !important;
   gap: 12px !important;
 }
 
@@ -1319,7 +1315,6 @@
 
 .core-runner-executable-field input {
   padding: 8px 10px !important;
-  border-radius: 11px !important;
   font-size: 0.86rem !important;
 }
 
@@ -1356,7 +1351,6 @@
 .core-runner-output-card,
 .core-runner-failure-card {
   padding: 10px !important;
-  border-radius: 17px !important;
 }
 
 .core-runner-group-heading,
@@ -1400,7 +1394,6 @@
   min-height: 116px !important;
   gap: 6px !important;
   padding: 9px !important;
-  border-radius: 14px !important;
 }
 
 .core-runner-action-title {
@@ -1456,7 +1449,6 @@
 .core-runner-output-tabs button {
   padding: 5px 8px !important;
   font-size: 0.66rem !important;
-  border-radius: 8px !important;
 }
 
 .core-runner-side-column,
@@ -1483,7 +1475,6 @@
 .core-runner-preview-context {
   margin-bottom: 8px !important;
   padding: 7px 8px !important;
-  border-radius: 10px !important;
   font-size: 0.68rem !important;
   line-height: 1.28 !important;
 }
@@ -1495,7 +1486,6 @@
 
 .core-runner-detail {
   padding: 6px 7px !important;
-  border-radius: 10px !important;
 }
 
 .core-runner-detail strong {
@@ -1522,7 +1512,6 @@
   padding: 3px 6px !important;
   font-size: 0.6rem !important;
   line-height: 1.16 !important;
-  border-radius: 10px !important;
   max-width: none !important;
   white-space: normal !important;
   overflow: visible !important;
@@ -1550,7 +1539,6 @@
   min-height: 145px !important;
   max-height: 260px !important;
   padding: 10px !important;
-  border-radius: 13px !important;
   font-size: 0.66rem !important;
   line-height: 1.32 !important;
 }
@@ -1558,7 +1546,6 @@
 .core-runner-output-tabs {
   margin-bottom: 7px !important;
   padding: 4px !important;
-  border-radius: 11px !important;
 }
 
 .core-runner-failure-card ul {
@@ -1631,7 +1618,6 @@
   align-items: center !important;
   gap: 24px !important;
   padding: 24px 30px !important;
-  border-radius: 24px !important;
   border-color: rgba(56, 189, 248, 0.28) !important;
   background:
     radial-gradient(circle at 8% 20%, rgba(34, 211, 238, 0.22), transparent 22rem),
@@ -1682,7 +1668,6 @@
   justify-self: end !important;
   width: min(100%, 540px) !important;
   padding: 11px !important;
-  border-radius: 18px !important;
   border-color: rgba(125, 211, 252, 0.22) !important;
   background:
     linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(2, 6, 23, 0.62)),
@@ -1726,7 +1711,6 @@
 .core-runner-readiness-card {
   min-height: 58px !important;
   padding: 10px 12px !important;
-  border-radius: 16px !important;
   column-gap: 10px !important;
 }
 
@@ -1742,7 +1726,6 @@
   grid-template-columns: minmax(0, 1fr) minmax(250px, 360px) !important;
   align-items: center !important;
   padding: 12px 16px !important;
-  border-radius: 18px !important;
   border-color: rgba(125, 211, 252, 0.2) !important;
 }
 
@@ -1838,7 +1821,6 @@
 .core-runner-output-card,
 .core-runner-failure-card {
   padding: 13px !important;
-  border-radius: 19px !important;
 }
 
 .core-runner-group-heading,
@@ -1860,7 +1842,6 @@
   min-height: 136px !important;
   gap: 8px !important;
   padding: 11px !important;
-  border-radius: 15px !important;
   border-color: rgba(148, 163, 184, 0.17) !important;
 }
 
@@ -1998,7 +1979,6 @@
   min-height: 208px !important;
   padding: 22px 30px !important;
   gap: 24px !important;
-  border-radius: 24px !important;
   border-color: rgba(56, 189, 248, 0.24) !important;
   background:
     linear-gradient(135deg, rgba(13, 39, 61, 0.72), rgba(2, 6, 23, 0.92) 56%, rgba(3, 7, 18, 0.98)),
@@ -2078,7 +2058,6 @@
   position: relative !important;
   overflow: hidden !important;
   padding: 13px !important;
-  border-radius: 19px !important;
   border-color: rgba(var(--core-runner-accent, 56, 189, 248), 0.22) !important;
   background:
     linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.82)),
@@ -2191,7 +2170,6 @@
 .core-runner-preview-files div span,
 .core-runner-companion-evidence div span,
 .core-runner-consumer-list div span {
-  border-radius: 10px !important;
   background: rgba(15, 23, 42, 0.56) !important;
 }
 
@@ -2323,7 +2301,6 @@
   min-height: 118px !important;
   height: auto !important;
   max-height: none !important;
-  border-radius: var(--of-visual-radius-panel) !important;
   padding: 12px 16px !important;
   overflow: hidden !important;
   background:
@@ -2393,7 +2370,6 @@
 #studio-core-report-runner.core-report-runner-surface .core-runner-generated-strip {
   align-self: center !important;
   border: 1px solid var(--of-visual-border-soft) !important;
-  border-radius: 12px !important;
   padding: 7px !important;
   background: rgba(2, 6, 23, 0.48) !important;
 }
