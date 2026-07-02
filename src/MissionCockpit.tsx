@@ -312,20 +312,6 @@ export function MissionCockpit({
       width="full"
       density="compact"
     >
-      <header className="mission-target-heading">
-        <div className="mission-target-heading-title">
-          <h2>Mission Overview</h2>
-          <span aria-hidden="true">ⓘ</span>
-        </div>
-        <button
-          type="button"
-          className="mission-target-report-button"
-          onClick={() => onNavigate("generated-artifacts", "generated-artifacts")}
-        >
-          View Generated Reports ↗
-        </button>
-      </header>
-
       <section className="mission-target-hero" aria-label="Mission identity and posture">
         <div className="mission-target-identity">
           <MissionPatch />

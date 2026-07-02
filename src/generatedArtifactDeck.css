@@ -50,10 +50,10 @@
   grid-area: header;
   display: grid;
   grid-template-columns: minmax(240px, 0.52fr) minmax(420px, 1fr);
-  gap: 18px;
+  gap: 16px;
   align-items: start;
-  border-radius: 24px;
-  padding: 18px 20px;
+  border-radius: var(--of-visual-radius-panel);
+  padding: 14px 16px;
 }
 
 .lineage-title-row {
@@ -73,9 +73,9 @@
 
 .lineage-title-block strong {
   display: block;
-  margin-top: 10px;
-  color: #f8fafc;
-  font-size: 0.88rem;
+  margin-top: 6px;
+  color: var(--of-visual-text-primary);
+  font-size: 0.84rem;
 }
 
 .lineage-title-block p,
@@ -83,10 +83,10 @@
 .lineage-inspector-empty p,
 .lineage-inspector-section p,
 .lineage-table-footer {
-  margin: 8px 0 0;
-  color: #9fb2cc;
-  line-height: 1.5;
-  font-size: 0.9rem;
+  margin: 6px 0 0;
+  color: var(--of-visual-text-secondary);
+  line-height: 1.45;
+  font-size: 0.86rem;
 }
 
 .lineage-stat-grid {
@@ -112,7 +112,7 @@
   display: grid;
   gap: 3px;
   border-radius: 14px;
-  padding: 11px 12px;
+  padding: 9px 10px;
 }
 
 .lineage-stat-card span,
@@ -151,12 +151,12 @@
 .lineage-waiting-panel {
   grid-area: board;
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr) auto;
-  gap: 22px;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: 18px;
   align-items: center;
-  min-height: 190px;
-  border-radius: 22px;
-  padding: 20px;
+  min-height: 168px;
+  border-radius: var(--of-visual-radius-panel);
+  padding: 16px;
 }
 
 .lineage-waiting-panel h3 {
@@ -166,8 +166,8 @@
 
 .lineage-waiting-orbit {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 124px;
+  height: 124px;
   border: 1px dashed rgba(125, 211, 252, 0.42);
   border-radius: 999px;
   background: radial-gradient(circle, rgba(14, 165, 233, 0.18), transparent 62%);

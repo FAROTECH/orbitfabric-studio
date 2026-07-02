@@ -44,10 +44,10 @@
 
 .scenario-evidence-header {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) minmax(520px, 1.35fr) auto;
+  grid-template-columns: minmax(320px, 1fr) minmax(520px, 1.35fr) auto;
   gap: 12px;
   align-items: stretch;
-  padding: 12px;
+  padding: 14px 16px;
 }
 
 .scenario-evidence-title-block {
@@ -64,14 +64,16 @@
 }
 
 .scenario-evidence-title-block h2 {
-  font-size: 1.02rem;
+  color: var(--of-visual-text-primary);
+  font-size: clamp(1.18rem, 1.45vw, 1.55rem);
+  letter-spacing: -0.035em;
 }
 
 .scenario-evidence-title-block p,
 .scenario-panel-heading p {
-  margin: 7px 0 0;
-  color: #8ba0bf;
-  font-size: 0.74rem;
+  margin: 6px 0 0;
+  color: var(--of-visual-text-secondary);
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
@@ -2511,4 +2513,13 @@ body.scenario-evidence-scroll-active .main-surface-scenario-evidence {
     justify-self: start;
     text-align: left;
   }
+}
+
+/* E16.3 scenario surface frame alignment: Scenario Evidence must not add a second full-surface frame. */
+.scenario-evidence-cockpit {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }

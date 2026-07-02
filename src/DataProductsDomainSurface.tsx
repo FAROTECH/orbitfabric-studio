@@ -273,11 +273,11 @@ export function DataProductsDomainSurface({
     >
       <header className="data-products-cockpit-hero">
         <div>
-          <span className="cockpit-eyebrow">Data Products Cockpit</span>
-          <h2>Cross-check mission model contract, Core evidence and bridge outputs</h2>
+          <span className="cockpit-eyebrow">Mission Data Contract</span>
+          <h2>Data Products</h2>
           <p>
-            Review declared data products, Core-reported evidence, coverage status and generated
-            bridge artifacts without editing source files or inferring private runtime behavior.
+            Cross-check mission model contract, Core evidence, coverage status and generated bridge
+            outputs without editing source files or inferring private runtime behavior.
           </p>
         </div>
         <div className="data-products-cockpit-hero-side">

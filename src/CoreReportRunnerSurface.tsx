@@ -240,7 +240,7 @@ export function CoreReportRunnerSurface({
           <p className="core-runner-lead">
             Run fixed Core wrappers and inspect generated mission reports.
           </p>
-          <div className="badge-row core-runner-badge-row">
+          <div className="badge-row core-runner-badge-row core-runner-boundary-row">
             <ProvenanceBadge label="READ-ONLY" />
             <ProvenanceBadge label="CORE-OWNED" />
             <StatusBadge label="FIXED WRAPPERS" />
