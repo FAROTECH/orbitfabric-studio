@@ -40,17 +40,13 @@ interface DevCaptureSaveResult {
 
 
 export function isDevSurfaceCaptureEnabled(): boolean {
-  return import.meta.env.VITE_OF_DEV_CAPTURE === "1";
+  return true;
 }
 
 export async function captureActiveSurface(
   context: DevSurfaceCaptureContext,
   mode: DevSurfaceCaptureMode,
 ): Promise<string> {
-  if (!isDevSurfaceCaptureEnabled()) {
-    throw new Error("Dev surface capture is disabled. Set VITE_OF_DEV_CAPTURE=1.");
-  }
-
   const enteredFullscreen = mode === "fullscreen" ? await enterFullscreenForCapture() : false;
 
   try {
@@ -274,7 +270,7 @@ function applyTemporaryStyles(
 
 function createMetadataOverlay(metadata: CaptureMetadata): HTMLElement {
   const overlay = document.createElement("section");
-  overlay.setAttribute("aria-label", "OrbitFabric Studio QA capture metadata");
+  overlay.setAttribute("aria-label", "OrbitFabric Studio surface capture metadata");
   overlay.dataset.ofDevCaptureOverlay = "true";
   overlay.style.cssText = [
     "display:grid",
@@ -295,7 +291,7 @@ function createMetadataOverlay(metadata: CaptureMetadata): HTMLElement {
   ].join(";");
 
   const title = document.createElement("strong");
-  title.textContent = "OrbitFabric Studio QA Capture";
+  title.textContent = "OrbitFabric Studio Surface Capture";
   title.style.cssText = "color:#67e8f9;font-size:12px;letter-spacing:0.08em;text-transform:uppercase";
   overlay.appendChild(title);
 
@@ -352,7 +348,7 @@ function selectorForElement(element: HTMLElement): string {
 
 function buildFilename(metadata: CaptureMetadata): string {
   return [
-    "of-studio-qa",
+    "of-studio-capture",
     slug(metadata.label),
     slug(metadata.mode),
     `viewport-${metadata.viewportWidth}x${metadata.viewportHeight}`,
