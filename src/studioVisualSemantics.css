@@ -89,3 +89,98 @@
   --of-visual-radius-control: 12px;
   --of-visual-radius-pill: 999px;
 }
+
+/* E17 geometry/radius contract: normalize Studio primary surface geometry. */
+:where(
+  .mission-target-hero,
+  .mission-target-quick,
+  .mission-target-card,
+  .core-runner-hero,
+  .core-runner-executable-card,
+  .core-runner-action-group,
+  .core-runner-latest-card,
+  .core-runner-preview-card,
+  .core-runner-output-card,
+  .core-runner-failure-card,
+  .data-products-cockpit-hero,
+  .data-products-summary-card,
+  .data-products-layer,
+  .data-products-selected-card,
+  .data-products-route-panel,
+  .data-products-coverage-panel,
+  .data-products-inspector-section,
+  .data-products-guardrail-strip,
+  .data-products-warning-strip,
+  .lineage-header,
+  .lineage-board-panel,
+  .lineage-review-path,
+  .lineage-table-panel,
+  .lineage-inspector,
+  .lineage-warning-rail,
+  .lineage-waiting-panel,
+  .scenario-evidence-header,
+  .scenario-panel,
+  .scenario-cockpit-guardrails
+) {
+  border-radius: var(--of-visual-radius-panel) !important;
+}
+
+:where(
+  .cockpit-kpi-card,
+  .cockpit-panel,
+  .mission-target-posture-block,
+  .mission-target-lint,
+  .mission-target-load,
+  .core-runner-readiness-card,
+  .core-runner-action-card,
+  .core-runner-detail,
+  .data-products-catalog-card,
+  .data-products-route-node,
+  .data-products-entity-coverage,
+  .lineage-stat-card,
+  .lineage-context-card,
+  .lineage-family-card,
+  .lineage-evidence-row,
+  .lineage-action-card,
+  .lineage-inspector-object,
+  .lineage-inspector-section,
+  .scenario-posture-card,
+  .scenario-fact,
+  .scenario-mini-metric,
+  .scenario-artifact-card,
+  .scenario-catalog-row
+) {
+  border-radius: var(--of-visual-radius-card) !important;
+}
+
+:where(
+  .reference-command-action,
+  .mission-target-report-button,
+  .core-runner-action-footer button,
+  .core-runner-latest-actions button,
+  .core-runner-output-tabs button,
+  .core-runner-executable-field input,
+  .data-products-filter-row input,
+  .data-products-filter-row select,
+  .lineage-table-toolbar input,
+  .lineage-table-toolbar select,
+  .scenario-primary-button,
+  .scenario-secondary-button
+) {
+  border-radius: var(--of-visual-radius-control) !important;
+}
+
+:where(
+  .provenance-badge,
+  .status-badge,
+  .severity-badge,
+  .scenario-result-pill,
+  .mission-target-health-badge,
+  .mission-target-progress,
+  .data-products-priority-pill,
+  .data-products-coverage-label,
+  .lineage-review-state,
+  .lineage-artifact-kind
+) {
+  border-radius: var(--of-visual-radius-pill) !important;
+}
