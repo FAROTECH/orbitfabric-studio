@@ -490,3 +490,437 @@
   }
 }
 
+/* E21 Data Flow Workbench integration contract */
+/*
+   Integrates Data Flow Workbench with the Studio visual contracts from E16-E20.
+   CSS only: no graph semantics, no React Flow migration, no Core execution,
+   no scenario/artifact generation, no private inference.
+*/
+#studio-data-flow-workbench.mission-data-flow-cockpit,
+.data-flow-workbench-desktop-surface.mission-data-flow-cockpit {
+  gap: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Header: same operational hero grammar as the other Studio surfaces. */
+.data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header {
+  align-items: center !important;
+  border-color: var(--of-visual-border-soft) !important;
+  border-radius: var(--of-visual-radius-panel) !important;
+  padding: 10px 16px !important;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 32rem),
+    linear-gradient(180deg, rgba(10, 22, 38, 0.94), rgba(3, 11, 23, 0.86)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 18px 42px rgba(0, 0, 0, 0.2) !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header::after {
+  content: none !important;
+  display: none !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header h2 {
+  margin: 0 !important;
+  color: var(--of-visual-text-primary) !important;
+  font-size: clamp(1.24rem, 1.55vw, 1.72rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.043em !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header p {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: var(--of-visual-text-secondary) !important;
+  font-size: 0.84rem !important;
+  line-height: 1.42 !important;
+}
+
+/* Boundary guardrails: constraints/provenance stay neutral, not success or warning. */
+.data-flow-workbench-desktop-surface .mission-data-flow-boundary-badges :where(.provenance-badge, .status-badge, span, strong) {
+  color: var(--of-sem-boundary-text) !important;
+  border-color: var(--of-sem-boundary-border) !important;
+  background: var(--of-sem-boundary-bg) !important;
+  box-shadow: none !important;
+}
+
+/* Geometry: reuse the Studio panel/card/control tiers. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-cockpit-header,
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi-strip,
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-rail,
+  .data-flow-workbench-desktop-surface .mission-data-flow-canvas-panel,
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector,
+  .data-flow-workbench-desktop-surface .mission-data-flow-deck-card,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-header,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-graph-panel,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-details-panel,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-inspector
+) {
+  border-radius: var(--of-visual-radius-panel) !important;
+}
+
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item,
+  .data-flow-workbench-desktop-surface .mission-data-flow-property-grid,
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector-note,
+  .data-flow-workbench-desktop-surface .mission-data-flow-empty,
+  .data-flow-workbench-desktop-surface .mission-data-flow-related-link,
+  .data-flow-workbench-desktop-surface .mission-data-flow-scenario-row,
+  .data-flow-workbench-desktop-surface .mission-data-flow-path-node,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-route-node,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-property-grid,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-tab-body
+) {
+  border-radius: var(--of-visual-radius-card) !important;
+}
+
+/* Content panels/cards: same substrate used by E20. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-canvas-panel,
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector,
+  .data-flow-workbench-desktop-surface .mission-data-flow-deck-card
+) {
+  border-color: var(--of-content-border-strong) !important;
+  background: var(--of-content-panel-bg) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item,
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-node,
+  .data-flow-workbench-desktop-surface .mission-data-flow-property-grid,
+  .data-flow-workbench-desktop-surface .mission-data-flow-related-link,
+  .data-flow-workbench-desktop-surface .mission-data-flow-scenario-row,
+  .data-flow-workbench-desktop-surface .mission-data-flow-path-node
+) {
+  border-color: var(--of-content-border) !important;
+  background: var(--of-content-field-bg) !important;
+}
+
+/* Headers and dividers follow E20. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-canvas-title,
+  .data-flow-workbench-desktop-surface .mission-data-flow-inspector > header,
+  .data-flow-workbench-desktop-surface .mission-data-flow-deck-card > header
+) {
+  border-bottom-color: var(--of-content-divider) !important;
+}
+
+.data-flow-workbench-desktop-surface .mission-data-flow-inspector > header {
+  margin: 0 !important;
+  padding: 0 0 9px !important;
+  background: transparent !important;
+}
+
+/* Availability semantics: reported/available is availability, not validation success. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-state-reported strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-reported strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-reported header strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item-reported strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-related-link strong
+) {
+  color: var(--of-sem-availability-text) !important;
+}
+
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-state-not-reported strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-state-unavailable strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-not-reported strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-unavailable strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-not-reported header strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-unavailable header strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item-not-reported strong,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item-unavailable strong
+) {
+  color: var(--of-sem-availability-muted-text) !important;
+}
+
+/* Preserve domain route/focus selection as cyan, not green. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item-selected,
+  .data-flow-workbench-desktop-surface .mission-data-flow-path-node:focus-visible,
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item:focus-visible,
+  .data-flow-workbench-desktop-surface button.mission-data-flow-scenario-row:focus-visible
+) {
+  border-color: var(--of-interaction-selected-border) !important;
+  background:
+    linear-gradient(90deg, var(--of-interaction-selected-bg), transparent 62%),
+    rgba(15, 23, 42, 0.52) !important;
+  box-shadow: var(--of-interaction-selected-shadow) !important;
+  outline: none !important;
+}
+
+/* Clickability: no layout motion on hover; E19 governs affordance. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item:hover:not(:disabled),
+  .data-flow-workbench-desktop-surface .mission-data-flow-path-node:hover,
+  .data-flow-workbench-desktop-surface button.mission-data-flow-scenario-row:hover
+) {
+  transform: none !important;
+  border-color: var(--of-interaction-hover-border) !important;
+  background: var(--of-content-row-hover-bg) !important;
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.12) inset !important;
+}
+
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-stage-item:disabled,
+  .data-flow-workbench-desktop-surface .mission-data-flow-source-node:disabled,
+  .data-flow-workbench-desktop-surface .mission-data-flow-kpi:disabled
+) {
+  cursor: not-allowed !important;
+  opacity: var(--of-interaction-disabled-opacity) !important;
+  filter: saturate(0.72) !important;
+}
+
+/* Raw/code blocks align with E20. */
+:where(
+  .data-flow-workbench-desktop-surface .mission-data-flow-raw-block,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode .mission-data-flow-focus-raw-block,
+  #studio-data-flow-workbench.mission-data-flow-focus-mode pre
+) {
+  border: 1px solid var(--of-content-raw-border) !important;
+  background: var(--of-content-raw-bg) !important;
+  color: var(--of-content-raw-text) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  line-height: 1.48 !important;
+}
+
+/* Remove leftover decorative connector accents that read as artifacts after integration. */
+.data-flow-workbench-desktop-surface .mission-data-flow-canvas-panel::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-inspector::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-deck-card::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-stage::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Keep the stage ordering visible through cards and item state, not through a background rail. */
+.data-flow-workbench-desktop-surface .mission-data-flow-stage-grid::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-path::before,
+.data-flow-workbench-desktop-surface .mission-data-flow-path::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* E21.1 Data Flow full-width surface integration */
+/*
+   Data Flow now owns its own inspector/read-only evidence rail. The legacy Studio
+   right inspector is removed for this surface so the Workbench uses the same
+   primary surface width as Mission, Core, Data Products, Generated Artifacts and
+   Scenario Evidence.
+*/
+.workbench-layout-data-flow-workbench > .main-surface,
+.workbench-layout-data-flow-workbench > .main-surface-data-flow-workbench {
+  grid-column: 2 / -1 !important;
+  min-width: 0 !important;
+}
+
+.workbench-layout-data-flow-workbench > .workbench-inspector {
+  display: none !important;
+}
+
+.main-surface-data-flow-workbench {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-right: 8px !important;
+  padding-bottom: 72px !important;
+  scroll-padding-bottom: 72px !important;
+  scrollbar-gutter: stable !important;
+}
+
+.main-surface-data-flow-workbench .mission-data-flow-route-frame,
+.main-surface-data-flow-workbench #studio-data-flow-workbench,
+.main-surface-data-flow-workbench .mission-data-flow-workbench {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.main-surface-data-flow-workbench .mission-data-flow-route-frame {
+  max-height: none !important;
+  overflow: visible !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.main-surface-data-flow-workbench .mission-data-flow-cockpit-header {
+  padding: 14px 16px !important;
+}
+
+/* E21.2 Data Flow scroll owner and full-width recovery */
+/*
+   Data Flow has its own internal Inspector section, so the generic Studio
+   contextual inspector remains excluded for this surface. Recover the same
+   dense two-column shell used by Data Products and Scenario Evidence, and make
+   the main surface the scroll owner again.
+*/
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-data-flow-workbench {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-expanded-width), var(--of-desktop-sidebar-expanded-width))
+    minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) var(--of-desktop-status-height, 22px) !important;
+  align-items: stretch !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  padding-right: 0 !important;
+}
+
+.studio-app-shell > .workbench-layout-workspace.workbench-layout-data-flow-workbench.workbench-layout-sidebar-collapsed {
+  grid-template-columns:
+    minmax(var(--of-desktop-sidebar-collapsed-width), var(--of-desktop-sidebar-collapsed-width))
+    minmax(0, 1fr) !important;
+}
+
+.studio-app-shell > .workbench-layout-data-flow-workbench > .contextual-inspector,
+.studio-app-shell > .workbench-layout-data-flow-workbench > .workbench-inspector {
+  display: none !important;
+}
+
+.studio-app-shell > .workbench-layout-data-flow-workbench > .main-surface,
+.studio-app-shell > .workbench-layout-data-flow-workbench > .main-surface-data-flow-workbench,
+.studio-app-shell .main-surface.main-surface-data-flow-workbench {
+  grid-row: 1 / 2 !important;
+  grid-column: 2 / -1 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  justify-self: stretch !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  scroll-padding-bottom: 96px !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench > .mission-data-flow-route-frame,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-route-frame,
+.studio-app-shell .main-surface-data-flow-workbench > .mission-data-flow-workbench,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-workbench,
+.studio-app-shell .main-surface-data-flow-workbench #studio-data-flow-workbench {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  justify-self: stretch !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  overflow: visible !important;
+  scrollbar-gutter: auto !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench > .mission-data-flow-route-frame,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-route-frame {
+  padding-bottom: 96px !important;
+}
+
+.studio-app-shell > .workbench-layout-data-flow-workbench > .shell-status-bar,
+.studio-app-shell > .workbench-layout-data-flow-workbench > .reference-status-bar {
+  grid-row: 2 / 3 !important;
+  grid-column: 1 / -1 !important;
+  align-self: stretch !important;
+}
+
+/* E21.3 Data Flow right-edge containment */
+/*
+   Keep the Data Flow Workbench dense/full-width, but reserve the same safe
+   right edge used by the other integrated cockpit surfaces. The generic external
+   inspector remains hidden because Data Flow already exposes its own internal
+   inspector, related evidence and raw preview.
+*/
+:root {
+  --of-data-flow-right-edge-guard: clamp(32px, 2.4vw, 48px);
+}
+
+.studio-app-shell > .workbench-layout-data-flow-workbench > .main-surface,
+.studio-app-shell > .workbench-layout-data-flow-workbench > .main-surface-data-flow-workbench,
+.studio-app-shell .main-surface.main-surface-data-flow-workbench {
+  padding-right: var(--of-data-flow-right-edge-guard) !important;
+  overflow-x: hidden !important;
+  scrollbar-gutter: stable !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench > .mission-data-flow-route-frame,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-route-frame,
+.studio-app-shell .main-surface-data-flow-workbench > .mission-data-flow-workbench,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-workbench,
+.studio-app-shell .main-surface-data-flow-workbench #studio-data-flow-workbench {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-workbench > *,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-route-frame > *,
+.studio-app-shell .main-surface-data-flow-workbench #studio-data-flow-workbench > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-kpi-strip,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-source-strip,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-main-grid,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-stage-grid,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-bottom-deck,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-path {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-stage {
+  min-width: 0 !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-stage-item,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-source-node,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-path-node,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-related-link {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-stage-item span,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-stage-item strong,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-source-node span,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-source-node strong,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-path-node span,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-path-node strong,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-related-link span,
+.studio-app-shell .main-surface-data-flow-workbench .mission-data-flow-related-link strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+@media (max-width: 1500px) {
+  :root {
+    --of-data-flow-right-edge-guard: 32px;
+  }
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --of-data-flow-right-edge-guard: 18px;
+  }
+}
