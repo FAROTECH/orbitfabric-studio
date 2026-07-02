@@ -219,17 +219,16 @@ export function MissionDataFlowWorkbenchSurface({
 
       <section className="mission-data-flow-kpi-strip" aria-label="Workbench KPI strip">
         {viewModel.kpis.map((kpi) => (
-          <button
+          <article
             className={`mission-data-flow-kpi mission-data-flow-state-${kpi.state}`}
             key={kpi.id}
-            title={`${kpi.detail}. Drill-down navigation is reserved for a later refinement.`}
-            type="button"
-            disabled
+            title={`${kpi.label}: ${kpi.value}. ${kpi.detail}.`}
+            aria-label={`${kpi.label}: ${kpi.value}. ${kpi.detail}.`}
           >
             <span>{kpi.label}</span>
             <strong>{kpi.value}</strong>
             <small>{kpi.detail}</small>
-          </button>
+          </article>
         ))}
       </section>
 
@@ -435,17 +434,16 @@ function MissionDataFlowWorkbenchSourceRail({
       <span className="mission-data-flow-source-rail-label">SOURCE READINESS</span>
       <div className="mission-data-flow-source-strip">
         {sources.map((source) => (
-          <button
+          <div
             className={`mission-data-flow-source-node mission-data-flow-source-${source.state}`}
             key={source.id}
             title={`${source.label}: ${source.detail}`}
-            type="button"
-            disabled
+            aria-label={`${source.label}: ${formatSourceState(source.state)}. ${source.detail}.`}
           >
             <i aria-hidden="true" />
             <span>{source.shortLabel}</span>
             <strong>{formatSourceState(source.state)}</strong>
-          </button>
+          </div>
         ))}
       </div>
     </section>
