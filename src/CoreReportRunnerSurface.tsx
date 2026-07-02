@@ -569,13 +569,52 @@ function RunnerDetail({
   title?: string;
 }) {
   const renderedValue = value === null || value === undefined || value === "" ? "not reported" : String(value);
+  const semanticClass = resolveRunnerDetailSemantic(renderedValue);
 
   return (
-    <div className="core-runner-detail" title={title ?? renderedValue}>
+    <div className={`core-runner-detail core-runner-detail-${semanticClass}`} title={title ?? renderedValue}>
       <span>{label}</span>
       <strong>{renderedValue}</strong>
     </div>
   );
+}
+
+function resolveRunnerDetailSemantic(value: string): "available" | "failed" | "missing" | "positive" | "value" | "neutral" {
+  const normalized = value.trim().toLowerCase();
+
+  if (
+    normalized === "not reported" ||
+    normalized === "not available" ||
+    normalized === "not produced" ||
+    normalized === "waiting for first run" ||
+    normalized.startsWith("not ")
+  ) {
+    return "missing";
+  }
+
+  if (normalized === "failed" || normalized === "failure" || normalized === "error") {
+    return "failed";
+  }
+
+  if (normalized === "completed" || normalized === "passed" || normalized === "yes") {
+    return "positive";
+  }
+
+  if (
+    normalized === "available" ||
+    normalized === "loaded" ||
+    normalized === "ready" ||
+    normalized === "reported" ||
+    normalized === "raw only"
+  ) {
+    return "available";
+  }
+
+  if (/^[0-9]+$/.test(normalized)) {
+    return "value";
+  }
+
+  return "neutral";
 }
 
 function buildCoreActions({

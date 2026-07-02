@@ -184,3 +184,425 @@
 ) {
   border-radius: var(--of-visual-radius-pill) !important;
 }
+
+/* E18 badge/value/color semantic contract */
+:root {
+  --of-sem-boundary-text: #cbd5e1;
+  --of-sem-boundary-bg: rgba(100, 116, 139, 0.14);
+  --of-sem-boundary-border: rgba(148, 163, 184, 0.28);
+
+  --of-sem-provenance-text: #bae6fd;
+  --of-sem-provenance-bg: rgba(14, 165, 233, 0.13);
+  --of-sem-provenance-border: rgba(56, 189, 248, 0.32);
+
+  --of-sem-availability-text: #facc15;
+  --of-sem-availability-bg: rgba(250, 204, 21, 0.12);
+  --of-sem-availability-border: rgba(250, 204, 21, 0.30);
+
+  --of-sem-availability-muted-text: #94a3b8;
+  --of-sem-availability-muted-bg: rgba(100, 116, 139, 0.12);
+  --of-sem-availability-muted-border: rgba(148, 163, 184, 0.22);
+
+  --of-sem-result-pass-text: #bbf7d0;
+  --of-sem-result-pass-bg: rgba(34, 197, 94, 0.16);
+  --of-sem-result-pass-border: rgba(74, 222, 128, 0.34);
+
+  --of-sem-result-warn-text: #fde68a;
+  --of-sem-result-warn-bg: rgba(245, 158, 11, 0.16);
+  --of-sem-result-warn-border: rgba(251, 191, 36, 0.34);
+
+  --of-sem-result-fail-text: #fecdd3;
+  --of-sem-result-fail-bg: rgba(244, 63, 94, 0.16);
+  --of-sem-result-fail-border: rgba(251, 113, 133, 0.38);
+
+  --of-sem-coverage-text: #67e8f9;
+  --of-sem-coverage-bg: rgba(8, 145, 178, 0.14);
+  --of-sem-coverage-border: rgba(34, 211, 238, 0.34);
+
+  --of-sem-selection-text: #ecfeff;
+  --of-sem-selection-bg: rgba(6, 182, 212, 0.20);
+  --of-sem-selection-border: rgba(103, 232, 249, 0.58);
+
+  --of-sem-severity-critical-text: #fecdd3;
+  --of-sem-severity-critical-bg: rgba(225, 29, 72, 0.18);
+  --of-sem-severity-critical-border: rgba(251, 113, 133, 0.42);
+
+  --of-sem-severity-high-text: #fed7aa;
+  --of-sem-severity-high-bg: rgba(249, 115, 22, 0.16);
+  --of-sem-severity-high-border: rgba(251, 146, 60, 0.36);
+
+  --of-sem-severity-medium-text: #fde68a;
+  --of-sem-severity-medium-bg: rgba(217, 119, 6, 0.16);
+  --of-sem-severity-medium-border: rgba(245, 158, 11, 0.34);
+
+  --of-sem-severity-low-text: #d9f99d;
+  --of-sem-severity-low-bg: rgba(101, 163, 13, 0.14);
+  --of-sem-severity-low-border: rgba(132, 204, 22, 0.30);
+
+  --of-sem-value-primary: #f8fafc;
+  --of-sem-value-accent: #facc15;
+  --of-sem-value-muted: #94a3b8;
+}
+
+/* Common badge chassis: labels carry semantics, not decoration. */
+:where(
+  .provenance-badge,
+  .status-badge,
+  .severity-badge,
+  .scenario-result-pill,
+  .mission-target-health-badge,
+  .data-products-priority-pill,
+  .data-products-coverage-label,
+  .lineage-review-state,
+  .lineage-artifact-kind,
+  .scenario-catalog-row strong,
+  .mission-target-scenario-status
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: fit-content !important;
+  border: 1px solid var(--of-sem-boundary-border) !important;
+  border-radius: var(--of-visual-radius-pill) !important;
+  color: var(--of-sem-boundary-text) !important;
+  background: var(--of-sem-boundary-bg) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.055em !important;
+  text-transform: uppercase !important;
+}
+
+/* Boundary / provenance: constraints, guarantees and source ownership. */
+:where(
+  .provenance-badge,
+  .status-badge-read-only,
+  .status-badge-core-derived,
+  .status-badge-core-owned,
+  .status-badge-core-json-only,
+  .status-badge-fixed-wrappers,
+  .status-badge-no-yaml-editor,
+  .status-badge-no-command-uplink,
+  .status-badge-no-uplink,
+  .status-badge-no-inference,
+  .status-badge-no-private-inference,
+  .status-badge-no-log-derived-state,
+  .status-badge-no-live-telemetry,
+  .scenario-cockpit-guardrails .status-badge,
+  .data-products-guardrail-strip .status-badge
+) {
+  color: var(--of-sem-boundary-text) !important;
+  border-color: var(--of-sem-boundary-border) !important;
+  background: var(--of-sem-boundary-bg) !important;
+  box-shadow: none !important;
+  opacity: 0.92 !important;
+}
+
+/* Evidence provenance: generated/Core-backed source, not pass/fail. */
+:where(
+  .provenance-badge-core-derived,
+  .provenance-badge-core-reported,
+  .provenance-badge-generated-aware,
+  .status-badge-core-reported,
+  .status-badge-source-core-evidence,
+  .lineage-artifact-kind
+) {
+  color: var(--of-sem-provenance-text) !important;
+  border-color: var(--of-sem-provenance-border) !important;
+  background: var(--of-sem-provenance-bg) !important;
+}
+
+/* Availability / load state: data exists or is missing; it is not validation. */
+:where(
+  .status-badge-available,
+  .status-badge-loaded,
+  .status-badge-reported,
+  .status-badge-inventory-loaded,
+  .lineage-review-state-ready-for-review,
+  .core-runner-state-positive strong
+) {
+  color: var(--of-sem-availability-text) !important;
+}
+
+:where(
+  .status-badge-available,
+  .status-badge-loaded,
+  .status-badge-reported,
+  .status-badge-inventory-loaded,
+  .lineage-review-state-ready-for-review
+) {
+  border-color: var(--of-sem-availability-border) !important;
+  background: var(--of-sem-availability-bg) !important;
+}
+
+:where(
+  .status-badge-unavailable,
+  .status-badge-not-available,
+  .status-badge-not-reported,
+  .status-badge-inventory-not-loaded,
+  .status-badge-no-session-run,
+  .status-badge-idle,
+  .mission-target-card-status-muted,
+  .core-runner-state-neutral strong,
+  .core-runner-state-blocked strong
+) {
+  color: var(--of-sem-availability-muted-text) !important;
+}
+
+:where(
+  .status-badge-unavailable,
+  .status-badge-not-available,
+  .status-badge-not-reported,
+  .status-badge-inventory-not-loaded,
+  .status-badge-no-session-run,
+  .status-badge-idle
+) {
+  border-color: var(--of-sem-availability-muted-border) !important;
+  background: var(--of-sem-availability-muted-bg) !important;
+}
+
+/* Result / validation: green/yellow/red is reserved for outcomes. */
+:where(
+  .status-badge-passed,
+  .status-badge-pass,
+  .scenario-result-pill-passed,
+  .scenario-catalog-row .mission-target-scenario-status-passed,
+  .mission-target-scenario-status-passed,
+  .scenario-result-passed,
+  .lineage-review-state-passed
+) {
+  color: var(--of-sem-result-pass-text) !important;
+  border-color: var(--of-sem-result-pass-border) !important;
+  background: var(--of-sem-result-pass-bg) !important;
+}
+
+:where(
+  .status-badge-warning,
+  .status-badge-warnings,
+  .status-badge-review,
+  .lineage-warning-rail .status-badge,
+  .mission-target-warnings small,
+  .mission-target-lint-warning span,
+  .mission-target-lint-warning strong
+) {
+  color: var(--of-sem-result-warn-text) !important;
+}
+
+:where(
+  .status-badge-warning,
+  .status-badge-warnings,
+  .status-badge-review
+) {
+  border-color: var(--of-sem-result-warn-border) !important;
+  background: var(--of-sem-result-warn-bg) !important;
+}
+
+:where(
+  .status-badge-failed,
+  .status-badge-fail,
+  .status-badge-error,
+  .status-badge-errors,
+  .scenario-result-pill-failed,
+  .mission-target-scenario-status-failed,
+  .scenario-result-failed,
+  .lineage-review-state-failed,
+  .mission-target-lint-error span,
+  .mission-target-lint-error strong
+) {
+  color: var(--of-sem-result-fail-text) !important;
+}
+
+:where(
+  .status-badge-failed,
+  .status-badge-fail,
+  .status-badge-error,
+  .status-badge-errors,
+  .scenario-result-pill-failed,
+  .mission-target-scenario-status-failed,
+  .scenario-result-failed,
+  .lineage-review-state-failed
+) {
+  border-color: var(--of-sem-result-fail-border) !important;
+  background: var(--of-sem-result-fail-bg) !important;
+}
+
+/* Coverage / quantitative completeness: numeric progress, not warning. */
+:where(
+  .data-products-coverage-label,
+  .mission-target-progress,
+  .data-products-coverage-panel strong,
+  .data-products-entity-coverage strong,
+  .mission-target-evidence strong,
+  .mission-target-card-header > strong,
+  .cockpit-kpi-card strong,
+  .lineage-stat-card strong,
+  .core-runner-inventory-pill strong
+) {
+  color: var(--of-sem-value-accent) !important;
+}
+
+/* Selection / focus: cyan means current UI focus, not result. */
+:where(
+  .status-badge-selected,
+  .lineage-review-state-selected,
+  .data-products-catalog-card-selected,
+  .scenario-catalog-row-selected,
+  .core-runner-action-card-focused
+) {
+  border-color: var(--of-sem-selection-border) !important;
+  background: var(--of-sem-selection-bg) !important;
+}
+
+:where(
+  .status-badge-selected,
+  .lineage-review-state-selected
+) {
+  color: var(--of-sem-selection-text) !important;
+}
+
+/* Severity / priority: domain importance, not runtime failure. */
+:where(
+  .severity-badge-critical,
+  .status-badge-critical,
+  .data-products-priority-critical,
+  .data-products-priority-pill-critical
+) {
+  color: var(--of-sem-severity-critical-text) !important;
+  border-color: var(--of-sem-severity-critical-border) !important;
+  background: var(--of-sem-severity-critical-bg) !important;
+}
+
+:where(
+  .severity-badge-high,
+  .status-badge-high,
+  .data-products-priority-high,
+  .data-products-priority-pill-high
+) {
+  color: var(--of-sem-severity-high-text) !important;
+  border-color: var(--of-sem-severity-high-border) !important;
+  background: var(--of-sem-severity-high-bg) !important;
+}
+
+:where(
+  .severity-badge-medium,
+  .status-badge-medium,
+  .data-products-priority-medium,
+  .data-products-priority-pill-medium
+) {
+  color: var(--of-sem-severity-medium-text) !important;
+  border-color: var(--of-sem-severity-medium-border) !important;
+  background: var(--of-sem-severity-medium-bg) !important;
+}
+
+:where(
+  .severity-badge-low,
+  .status-badge-low,
+  .data-products-priority-low,
+  .data-products-priority-pill-low
+) {
+  color: var(--of-sem-severity-low-text) !important;
+  border-color: var(--of-sem-severity-low-border) !important;
+  background: var(--of-sem-severity-low-bg) !important;
+}
+
+/* Keep badges subordinate to actual values inside operational hero headers. */
+:where(
+  .core-runner-boundary-row,
+  .data-products-cockpit-hero-side,
+  .scenario-evidence-header .badge-row,
+  .lineage-header .badge-row
+) :where(.provenance-badge, .status-badge) {
+  font-size: 0.58rem !important;
+  padding: 4px 7px !important;
+  line-height: 1 !important;
+}
+
+/* Numeric/value emphasis is shared across surfaces. */
+:where(
+  .mission-target-quick-stat strong,
+  .mission-target-card-header > strong,
+  .core-runner-readiness-card strong,
+  .core-runner-detail strong,
+  .cockpit-kpi-card strong,
+  .lineage-stat-card strong,
+  .scenario-posture-card strong,
+  .scenario-mini-metric strong
+) {
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* E18.1 semantic tuning: keep boundary guardrails neutral and avoid warning-colored unknown values. */
+.scenario-cockpit-guardrails :where(.provenance-badge, .status-badge, span, strong),
+.scenario-boundary-row :where(.provenance-badge, .status-badge),
+.core-runner-boundary-row :where(.provenance-badge, .status-badge),
+.data-products-guardrail-strip :where(.provenance-badge, .status-badge),
+.lineage-header :where(.provenance-badge, .status-badge) {
+  color: var(--of-sem-boundary-text) !important;
+  border-color: var(--of-sem-boundary-border) !important;
+  background: var(--of-sem-boundary-bg) !important;
+  box-shadow: none !important;
+}
+
+.core-runner-generated-strip .core-runner-inventory-pill strong {
+  color: var(--of-sem-value-primary) !important;
+}
+
+.core-runner-generated-strip .core-runner-inventory-pill strong:where(:empty) {
+  color: var(--of-sem-value-muted) !important;
+}
+
+.core-runner-generated-strip {
+  color: var(--of-sem-value-primary) !important;
+}
+
+/* E18.2 neutral availability correction */
+:where(
+  .core-runner-state-neutral strong,
+  .core-runner-state-blocked strong,
+  .core-runner-inventory-neutral strong,
+  .core-runner-inventory-blocked strong
+) {
+  color: var(--of-sem-availability-muted-text) !important;
+}
+
+:where(
+  .core-runner-inventory-neutral,
+  .core-runner-inventory-blocked
+) .dashboard-icon {
+  opacity: 0.58 !important;
+}
+
+:where(
+  .core-runner-state-positive strong,
+  .core-runner-inventory-positive strong
+) {
+  color: var(--of-sem-availability-text) !important;
+}
+
+/* E18.3 Core runner value semantic specificity */
+.core-report-runner-desktop-surface .core-runner-readiness-card.core-runner-state-neutral strong,
+.core-report-runner-desktop-surface .core-runner-readiness-card.core-runner-state-blocked strong,
+.core-report-runner-desktop-surface .core-runner-inventory-neutral strong,
+.core-report-runner-desktop-surface .core-runner-inventory-blocked strong,
+.core-report-runner-desktop-surface .core-runner-detail-missing strong {
+  color: var(--of-sem-availability-muted-text) !important;
+  text-shadow: none !important;
+}
+
+.core-report-runner-desktop-surface .core-runner-readiness-card.core-runner-state-positive strong,
+.core-report-runner-desktop-surface .core-runner-inventory-positive strong,
+.core-report-runner-desktop-surface .core-runner-detail-available strong {
+  color: var(--of-sem-availability-text) !important;
+}
+
+.core-report-runner-desktop-surface .core-runner-detail-positive strong {
+  color: var(--of-sem-result-pass-text) !important;
+  text-shadow: none !important;
+}
+
+.core-report-runner-desktop-surface .core-runner-detail-failed strong {
+  color: var(--of-sem-result-fail-text) !important;
+  text-shadow: none !important;
+}
+
+.core-report-runner-desktop-surface .core-runner-detail-value strong {
+  color: var(--of-sem-value-accent) !important;
+}
