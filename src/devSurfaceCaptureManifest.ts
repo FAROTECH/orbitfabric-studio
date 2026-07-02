@@ -26,7 +26,7 @@ export interface DevSurfaceCaptureProfile {
   notes: string;
 }
 
-export const DEV_SURFACE_CAPTURE_MANIFEST_VERSION = "E5-visual-qa-capture-manifest";
+export const DEV_SURFACE_CAPTURE_MANIFEST_VERSION = "E28-final-studio-visual-closure";
 
 export const DEV_SURFACE_CAPTURE_PROFILES: readonly DevSurfaceCaptureProfile[] = [
   {
@@ -36,7 +36,7 @@ export const DEV_SURFACE_CAPTURE_PROFILES: readonly DevSurfaceCaptureProfile[] =
     mode: "current-window",
     required: true,
     notes:
-      "Primary compact desktop sanity profile. Required for Mission Overview and Core Report Runner after E3/E4.",
+      "Final compact desktop closure profile after E15R-E27 visual hardening. Use only for sanity when fullscreen closure already passes.",
   },
   {
     id: "desktop-fullscreen",
@@ -45,7 +45,7 @@ export const DEV_SURFACE_CAPTURE_PROFILES: readonly DevSurfaceCaptureProfile[] =
     mode: "current-window",
     required: true,
     notes:
-      "Primary full-surface capture profile for all public Studio surfaces. Enter fullscreen manually, then press SURFACE.",
+      "Final closure capture profile for all public Studio surfaces. Enter fullscreen manually, then press SURFACE/Capture.",
   },
 ];
 
@@ -57,7 +57,7 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     shellSelector: ".main-surface",
     targetSelector: ".mission-target",
     requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
-    notes: "Golden candidate after E3 desktop-envelope migration.",
+    notes: "E28 closure target. Validate final hero/header, shell/sidebar, status bar and surface grammar.",
   },
   {
     label: "Core Report Runner",
@@ -66,7 +66,7 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     shellSelector: ".main-surface-core-report-runner",
     targetSelector: ".core-report-runner-surface",
     requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
-    notes: "Golden candidate after E4 desktop-envelope migration.",
+    notes: "E28 closure target. Validate Core runner grammar, icon system and status bar contract.",
   },
   {
     label: "Data Products",
@@ -76,7 +76,7 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     shellSelector: ".main-surface-data-products",
     targetSelector: ".data-products-cockpit-surface",
     requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
-    notes: "Desktop-envelope migrated in E7; validate reference and fullscreen cockpit profiles.",
+    notes: "E28 closure target. Validate data product cockpit, selected/read-only semantics and icon registry.",
   },
   {
     label: "Scenarios",
@@ -85,7 +85,7 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     shellSelector: ".main-surface-scenario-evidence",
     targetSelector: ".scenario-evidence-cockpit",
     requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
-    notes: "Desktop-envelope migrated in E9; validate reference and fullscreen evidence cockpit profiles.",
+    notes: "E28 closure target. Validate scenario evidence cockpit, sidebar parity, scroll model and icon registry.",
   },
   {
     label: "Generated Artifacts",
@@ -94,15 +94,15 @@ export const DEV_SURFACE_CAPTURE_TARGETS: readonly DevSurfaceCaptureTargetSpec[]
     shellSelector: ".main-surface-generated-artifacts",
     targetSelector: ".generated-artifacts-surface",
     requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
-    notes: "Desktop-envelope migrated in E8; validate empty and populated inventory states when available.",
+    notes: "E28 closure target. Validate automatic artifact hydration, populated inventory and icon registry.",
   },
   {
     label: "Data Flow Workbench",
     slug: "data-flow-workbench",
     activeSurface: "mission-data-flow-workbench",
-    shellSelector: ".main-surface",
+    shellSelector: ".main-surface-data-flow-workbench",
     targetSelector: ".mission-data-flow-workbench",
     requiredProfiles: ["desktop-reference-1440x900", "desktop-fullscreen"],
-    notes: "Desktop-contract migrated in E12; validate reference and fullscreen workbench profiles.",
+    notes: "E28 closure target. Validate full-width Data Flow Workbench, direct focus affordance and no disabled-readiness cursor.",
   },
 ];
