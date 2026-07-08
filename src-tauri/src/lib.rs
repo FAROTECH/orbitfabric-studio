@@ -26,13 +26,7 @@ const EXPECTED_MISSION_FILES: &[&str] = &[
     "commandability.yaml",
 ];
 
-const GENERATED_DIRS: &[&str] = &[
-    "docs",
-    "reports",
-    "logs",
-    "runtime",
-    "runtime/cpp17",
-];
+const GENERATED_DIRS: &[&str] = &["docs", "reports", "logs", "runtime", "runtime/cpp17"];
 
 #[derive(Debug, Serialize)]
 struct WorkspaceInspection {
@@ -214,7 +208,13 @@ fn inspect_workspace(path: String) -> Result<WorkspaceInspection, String> {
 
     let (source_model_files, missing_expected_source_files) = match &mission_dir {
         Some(dir) => inspect_mission_files(dir),
-        None => (Vec::new(), EXPECTED_MISSION_FILES.iter().map(|file| file.to_string()).collect()),
+        None => (
+            Vec::new(),
+            EXPECTED_MISSION_FILES
+                .iter()
+                .map(|file| file.to_string())
+                .collect(),
+        ),
     };
 
     let scenario_files = scenarios_dir
@@ -241,7 +241,9 @@ fn inspect_workspace(path: String) -> Result<WorkspaceInspection, String> {
 }
 
 #[tauri::command]
-fn inspect_generated_artifacts(workspace_path: String) -> Result<GeneratedArtifactInventory, String> {
+fn inspect_generated_artifacts(
+    workspace_path: String,
+) -> Result<GeneratedArtifactInventory, String> {
     let workspace = canonicalize_existing_dir(&workspace_path)?;
     let generated_candidate = workspace.join("generated");
     let mut warnings = Vec::new();
@@ -292,7 +294,8 @@ fn read_text_file(workspace_path: String, file_path: String) -> Result<FileConte
         return Err("Requested file is outside the selected workspace.".to_string());
     }
 
-    let metadata = fs::metadata(&file).map_err(|error| format!("Unable to read file metadata: {error}"))?;
+    let metadata =
+        fs::metadata(&file).map_err(|error| format!("Unable to read file metadata: {error}"))?;
 
     if metadata.len() > MAX_TEXT_FILE_BYTES {
         return Err(format!(
@@ -304,7 +307,8 @@ fn read_text_file(workspace_path: String, file_path: String) -> Result<FileConte
         return Err("File type is not supported by the read-only text viewer.".to_string());
     }
 
-    let content = fs::read_to_string(&file).map_err(|error| format!("Unable to read file as UTF-8 text: {error}"))?;
+    let content = fs::read_to_string(&file)
+        .map_err(|error| format!("Unable to read file as UTF-8 text: {error}"))?;
     let name = file
         .file_name()
         .and_then(|value| value.to_str())
@@ -321,7 +325,40 @@ fn read_text_file(workspace_path: String, file_path: String) -> Result<FileConte
 }
 
 #[tauri::command]
-fn save_dev_capture_png(filename: String, data_url: String) -> Result<DevCaptureSaveResult, String> {
+fn reveal_generated_artifact_in_file_manager(
+    workspace_path: String,
+    artifact_path: String,
+) -> Result<(), String> {
+    let workspace = canonicalize_existing_dir(&workspace_path)?;
+    let generated = workspace
+        .join("generated")
+        .canonicalize()
+        .map_err(|error| format!("Unable to resolve generated directory: {error}"))?;
+
+    if !generated.is_dir() {
+        return Err("Generated directory is not available for this workspace.".to_string());
+    }
+
+    if !generated.starts_with(&workspace) {
+        return Err("Generated directory is outside the selected workspace.".to_string());
+    }
+
+    let artifact = canonicalize_existing_file(&artifact_path)?;
+
+    if !artifact.starts_with(&generated) {
+        return Err(
+            "Generated artifact is outside the selected workspace generated directory.".to_string(),
+        );
+    }
+
+    reveal_path_in_file_manager(&artifact)
+}
+
+#[tauri::command]
+fn save_dev_capture_png(
+    filename: String,
+    data_url: String,
+) -> Result<DevCaptureSaveResult, String> {
     if data_url.len() > MAX_DEV_CAPTURE_DATA_URL_BYTES {
         return Err("Dev capture PNG is too large to save.".to_string());
     }
@@ -354,7 +391,11 @@ fn run_core_inspect_mission(
 ) -> Result<CoreCommandResult, String> {
     let mission = canonicalize_existing_dir(&mission_dir)?;
     let mission_display = display_path(&mission);
-    run_core_command(executable, &["inspect", "mission", mission_display.as_str()], None)
+    run_core_command(
+        executable,
+        &["inspect", "mission", mission_display.as_str()],
+        None,
+    )
 }
 
 #[tauri::command]
@@ -369,7 +410,12 @@ fn run_core_lint_mission(
 
     run_core_command(
         executable,
-        &["lint", mission_display.as_str(), "--json", report_display.as_str()],
+        &[
+            "lint",
+            mission_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
         Some(report_path),
     )
 }
@@ -619,9 +665,7 @@ fn run_core_command_with_artifacts(
         .output()
         .map_err(|error| format!("Unable to execute OrbitFabric Core command: {error}"))?;
 
-    let json_report_available = json_report_path
-        .as_ref()
-        .is_some_and(|path| path.is_file());
+    let json_report_available = json_report_path.as_ref().is_some_and(|path| path.is_file());
 
     let json_report_content = match &json_report_path {
         Some(path) if path.is_file() => fs::read_to_string(path).ok(),
@@ -800,7 +844,9 @@ fn generated_artifact_class_for_relative_path(relative_path: &str) -> GeneratedA
     }
 }
 
-fn count_generated_artifacts(artifacts: &[GeneratedArtifactEntry]) -> GeneratedArtifactInventoryCounts {
+fn count_generated_artifacts(
+    artifacts: &[GeneratedArtifactEntry],
+) -> GeneratedArtifactInventoryCounts {
     let mut counts = empty_generated_artifact_counts();
     counts.total_artifacts = artifacts.len();
 
@@ -957,7 +1003,10 @@ fn report_path_for_mission(
     report_directory_description: &str,
 ) -> Result<PathBuf, String> {
     let workspace = mission.parent().unwrap_or(mission);
-    Ok(generated_reports_dir_for_workspace(workspace, report_directory_description)?.join(report_file_name))
+    Ok(
+        generated_reports_dir_for_workspace(workspace, report_directory_description)?
+            .join(report_file_name),
+    )
 }
 
 fn generated_reports_dir_for_workspace(
@@ -978,6 +1027,59 @@ fn require_report_input_file(path: &Path, error_message: &str) -> Result<(), Str
     } else {
         Err(error_message.to_string())
     }
+}
+
+#[cfg(target_os = "macos")]
+fn reveal_path_in_file_manager(path: &Path) -> Result<(), String> {
+    let status = Command::new("open")
+        .arg("-R")
+        .arg(path)
+        .status()
+        .map_err(|error| format!("Unable to open file location in Finder: {error}"))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err("Finder did not accept the generated artifact location.".to_string())
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn reveal_path_in_file_manager(path: &Path) -> Result<(), String> {
+    let selector = format!("/select,{}", path.to_string_lossy());
+    let status = Command::new("explorer")
+        .arg(selector)
+        .status()
+        .map_err(|error| format!("Unable to open file location in File Explorer: {error}"))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err("File Explorer did not accept the generated artifact location.".to_string())
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn reveal_path_in_file_manager(path: &Path) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| "Generated artifact parent directory is not available.".to_string())?;
+
+    let status = Command::new("xdg-open")
+        .arg(parent)
+        .status()
+        .map_err(|error| format!("Unable to open generated artifact directory: {error}"))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err("The system file manager did not accept the generated artifact directory.".to_string())
+    }
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+fn reveal_path_in_file_manager(_path: &Path) -> Result<(), String> {
+    Err("Opening generated artifact locations is not supported on this platform.".to_string())
 }
 
 fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
@@ -1252,6 +1354,7 @@ pub fn run() {
             inspect_workspace,
             inspect_generated_artifacts,
             read_text_file,
+            reveal_generated_artifact_in_file_manager,
             save_dev_capture_png,
             run_core_version,
             run_core_inspect_mission,

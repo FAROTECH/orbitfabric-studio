@@ -152,8 +152,10 @@ export function GeneratedArtifactExplorerPanel({
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
   const [isReadingArtifact, setIsReadingArtifact] = useState(false);
+  const [isRevealingArtifact, setIsRevealingArtifact] = useState(false);
 
   const artifacts = useMemo(
     () => classifyGeneratedArtifacts(inventory?.artifacts ?? []),
@@ -231,6 +233,7 @@ export function GeneratedArtifactExplorerPanel({
     hydratedWorkspaceRef.current = workspacePath;
     setError(null);
     setPreviewError(null);
+    setActionError(null);
     setSelectedArtifactFile(null);
     setSelectedArtifact(null);
     onArtifactSelectionChange?.(null);
@@ -289,6 +292,7 @@ export function GeneratedArtifactExplorerPanel({
 
     setError(null);
     setPreviewError(null);
+    setActionError(null);
     setSelectedArtifactFile(null);
     setSelectedArtifact(null);
     onArtifactSelectionChange?.(null);
@@ -327,6 +331,7 @@ export function GeneratedArtifactExplorerPanel({
     setSelectedArtifact(artifact);
     setSelectedArtifactFile(null);
     setPreviewError(null);
+    setActionError(null);
     onArtifactSelectionChange?.(toInspectorItem(artifact));
   }
 
@@ -356,6 +361,28 @@ export function GeneratedArtifactExplorerPanel({
       setPreviewError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsReadingArtifact(false);
+    }
+  }
+
+  async function handleRevealArtifactInFileManager(artifact = selectedArtifact) {
+    if (!artifact) {
+      setActionError("Select a generated artifact first.");
+      return;
+    }
+
+    handleSelectArtifact(artifact);
+    setActionError(null);
+    setIsRevealingArtifact(true);
+
+    try {
+      await invoke<void>("reveal_generated_artifact_in_file_manager", {
+        workspacePath,
+        artifactPath: artifact.path,
+      });
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setIsRevealingArtifact(false);
     }
   }
 
@@ -391,8 +418,11 @@ export function GeneratedArtifactExplorerPanel({
         selectedArtifact={selectedArtifact}
         selectedArtifactFile={selectedArtifactFile}
         previewError={previewError}
+        actionError={actionError}
         isReadingArtifact={isReadingArtifact}
+        isRevealingArtifact={isRevealingArtifact}
         onOpenArtifactPreview={() => void handleOpenArtifactPreview()}
+        onRevealArtifactInFileManager={() => void handleRevealArtifactInFileManager()}
       />
 
       {error ? <p className="error-text lineage-board-error">{error}</p> : null}
@@ -840,14 +870,20 @@ function ArtifactLineageInspector({
   selectedArtifact,
   selectedArtifactFile,
   previewError,
+  actionError,
   isReadingArtifact,
+  isRevealingArtifact,
   onOpenArtifactPreview,
+  onRevealArtifactInFileManager,
 }: {
   selectedArtifact: ClassifiedGeneratedArtifactEntry | null;
   selectedArtifactFile: FileContent | null;
   previewError: string | null;
+  actionError: string | null;
   isReadingArtifact: boolean;
+  isRevealingArtifact: boolean;
   onOpenArtifactPreview: () => void;
+  onRevealArtifactInFileManager: () => void;
 }) {
   return (
     <aside className="lineage-inspector" aria-label="Artifact inspector">
@@ -866,7 +902,10 @@ function ArtifactLineageInspector({
         <>
           <section className="lineage-inspector-object">
             <div className={`lineage-inspector-cube lineage-family-${selectedArtifact.artifact_class}`} aria-hidden="true">
-              {artifactFamilyIcon(selectedArtifact.artifact_class)}
+              <StudioIcon
+                kind={artifactFamilyIcon(selectedArtifact.artifact_class)}
+                className="lineage-inspector-cube-icon"
+              />
             </div>
             <div>
               <strong>{selectedArtifact.name}</strong>
@@ -913,12 +952,17 @@ function ArtifactLineageInspector({
       )}
 
       <div className="lineage-inspector-actions">
+        {actionError ? <p className="error-text">{actionError}</p> : null}
         <button type="button" className="lineage-primary-action" onClick={onOpenArtifactPreview} disabled={!selectedArtifact}>
           Open Artifact
         </button>
-        <button type="button" disabled>Open in File Explorer</button>
-        <button type="button" disabled>Add to Review Queue</button>
-        <button type="button" disabled>Export</button>
+        <button
+          type="button"
+          onClick={onRevealArtifactInFileManager}
+          disabled={!selectedArtifact || isRevealingArtifact}
+        >
+          {isRevealingArtifact ? "Opening location" : "Open in File Explorer"}
+        </button>
       </div>
     </aside>
   );
