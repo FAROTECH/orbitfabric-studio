@@ -199,10 +199,8 @@ function App() {
     useState<StudioDetailSelection | null>(null);
 
   const [error, setError] = useState<string | null>(null);
-  const [viewerError, setViewerError] = useState<string | null>(null);
   const [coreError, setCoreError] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
-  const [isReadingFile, setIsReadingFile] = useState(false);
   const [isRunningCoreCommand, setIsRunningCoreCommand] = useState(false);
 
   const mainContentRef = useRef<HTMLElement | null>(null);
@@ -231,7 +229,6 @@ function App() {
 
   async function handleOpenWorkspace() {
     setError(null);
-    setViewerError(null);
     setCoreError(null);
     setSelectedFile(null);
     setCoreResult(null);
@@ -284,12 +281,9 @@ function App() {
       return;
     }
 
-    setViewerError(null);
     setSelectedGeneratedArtifact(null);
     setSelectedSimulationRecord(null);
     setSelectedCoreDomainEntity(null);
-    setIsReadingFile(true);
-
     try {
       const file = await invoke<FileContent>("read_text_file", {
         workspacePath: workspace.selected_path,
@@ -302,10 +296,8 @@ function App() {
         title: file.name,
         source: file.path,
       });
-    } catch (caught) {
-      setViewerError(caught instanceof Error ? caught.message : String(caught));
-    } finally {
-      setIsReadingFile(false);
+    } catch {
+      // Keep failed source-file reads non-disruptive; no active surface renders file read errors.
     }
   }
 
@@ -624,9 +616,6 @@ function App() {
     coverageSummary,
     generatedArtifactInventory: null,
   });
-  const hasCoreModelSummary = Boolean(modelSummary);
-  const hasCoreEntityIndex = Boolean(entityIndex);
-  const hasCoreRelationshipManifest = Boolean(relationshipManifest);
 
   const surfaceAvailability: Record<ActiveSurface, boolean> = {
     "mission-dashboard": true,
