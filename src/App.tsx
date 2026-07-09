@@ -4,6 +4,8 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 import { CoverageSummaryPanel } from "./CoverageSummaryPanel";
 import { FileViewer } from "./FileViewer";
+import { EntrySection } from "./EntrySection";
+import { MissingFiles } from "./MissingFiles";
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
 import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
 import {
@@ -3847,81 +3849,5 @@ function severityCategory(severity: string): ProjectEntry["category"] {
   return severity === "ERROR" ? "derivedReport" : "generatedOutput";
 }
 
-function EntrySection({
-  id,
-  title,
-  entries,
-  emptyText,
-  onOpenFile,
-}: {
-  id?: string;
-  title: string;
-  entries: ProjectEntry[];
-  emptyText: string;
-  onOpenFile: (entry: ProjectEntry) => void;
-}) {
-  return (
-    <section id={id} className="entry-section">
-      <h3>{title}</h3>
-      {entries.length > 0 ? (
-        <ul className="entry-list">
-          {entries.map((entry) => (
-            <li key={entry.path}>
-              <div className="entry-main">
-                <button
-                  className="entry-button"
-                  type="button"
-                  onClick={() => onOpenFile(entry)}
-                  disabled={entry.kind !== "file"}
-                >
-                  {entry.name}
-                </button>
-                <span className={`category-badge category-${entry.category}`}>
-                  {formatCategory(entry.category)}
-                </span>
-              </div>
-              <span className="entry-path">{entry.path}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="empty-text">{emptyText}</p>
-      )}
-    </section>
-  );
-}
-
-function MissingFiles({ files }: { files: string[] }) {
-  if (files.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="entry-section muted-section">
-      <h3>Expected source files not detected</h3>
-      <p>
-        Missing files are reported structurally. This is not a validation result.
-      </p>
-      <ul className="missing-list">
-        {files.map((file) => (
-          <li key={file}>{file}</li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function formatCategory(category: ProjectEntry["category"]) {
-  switch (category) {
-    case "sourceModel":
-      return "source model";
-    case "scenarioSource":
-      return "scenario source";
-    case "derivedReport":
-      return "derived report";
-    case "generatedOutput":
-      return "generated output";
-  }
-}
 
 export default App;
