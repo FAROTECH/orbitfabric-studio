@@ -21,7 +21,6 @@ import {
   type GeneratedEvidenceArtifactSummary,
 } from "./GeneratedArtifactExplorer";
 import { GeneratedArtifactsSurface } from "./GeneratedArtifactsSurface";
-import { GroundIntegrationArtifactViewer } from "./GroundIntegrationArtifactViewer";
 import { CoreReportRunnerSurface } from "./CoreReportRunnerSurface";
 import { MissionCockpit } from "./MissionCockpit";
 import { MissionDataFlowWorkbenchRoute } from "./MissionDataFlowWorkbenchRoute";
@@ -39,12 +38,10 @@ import { ContactsDownlinkDomainSurface } from "./ContactsDownlinkDomainSurface";
 import { CommandabilityDomainSurface } from "./CommandabilityDomainSurface";
 import { AutonomyReservedSurface } from "./AutonomyReservedSurface";
 import { ShellStatusBar } from "./ShellStatusBar";
-import { DashboardIcon } from "./DashboardIcon";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { PrimarySidebar } from "./PrimarySidebar";
 import { ProvenanceBadge, SeverityBadge, StatusBadge } from "./Badges";
 import {
-  reservedSurfaceItems,
   type ActiveSurface,
   type TargetDomainId,
 } from "./navigationModel";
@@ -87,18 +84,6 @@ import type {
   WorkspaceInspection,
 } from "./types/workspace";
 
-
-const nonGoalItems = [
-  "No editing",
-  "No artifact generation",
-  "No generated file modification",
-  "No private scenario execution",
-  "No mission control behavior",
-  "No command uplink",
-  "No live telemetry archive",
-  "No private graph semantics",
-  "No visual Mission Model editor",
-];
 
 interface CoreReportSnapshots {
   lintReport: CoreLintReport | null;
@@ -1020,73 +1005,6 @@ function formatUnknownBlock(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-function ReservedFutureSurfaces() {
-  return (
-    <section
-      id="studio-future-surfaces"
-      className="reserved-surfaces-panel"
-      aria-label="Reserved future Studio surfaces"
-    >
-      <div className="file-viewer-header">
-        <div>
-          <h2>Reserved future surfaces</h2>
-          <p>
-            This slot keeps the next ground-facing roadmap surface visible without
-            implementing its domain logic. It is intentionally disabled in the primary
-            navigation and does not provide ground operations, live mission behavior,
-            command uplink or telemetry archive behavior.
-          </p>
-        </div>
-        <div className="badge-row">
-          <ProvenanceBadge label="READ-ONLY" />
-          <StatusBadge label="RESERVED" />
-        </div>
-      </div>
-
-      <div className="reserved-surface-grid">
-        {reservedSurfaceItems.map((surface) => (
-          <article
-            id={surface.id}
-            key={surface.id}
-            className="reserved-surface-card"
-          >
-            <div className="reserved-surface-header">
-              <div>
-                <h3>{surface.title}</h3>
-                <span>{surface.milestone}</span>
-              </div>
-              <StatusBadge label="RESERVED" />
-            </div>
-
-            <p>{surface.summary}</p>
-
-            <div className="reserved-surface-columns">
-              <div>
-                <h4>Allowed future scope</h4>
-                <ul>
-                  {surface.allowed.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4>Explicit non-goals</h4>
-                <ul>
-                  {surface.forbidden.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-
 function EmptyState() {
   return (
     <section className="inspection-panel" aria-label="No workspace selected">
@@ -1105,17 +1023,11 @@ function EmptyState() {
 
 
 
-function formatDashboardRatio(value: number | null | undefined): string {
-  return value === null || value === undefined ? "not reported" : String(value);
-}
 
 function formatDashboardStatusLabel(value: string | null): string {
   return value ? value.toUpperCase() : "UNAVAILABLE";
 }
 
-function formatDashboardDomainState(present: boolean): string {
-  return present ? "present" : "missing";
-}
 
 
 
