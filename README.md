@@ -1,8 +1,8 @@
 # OrbitFabric Studio
 
-Experimental visual engineering workbench for OrbitFabric Mission Data Contracts.
+Local-first visual engineering workbench for OrbitFabric Mission Data Contracts.
 
-OrbitFabric Studio exists to make OrbitFabric Mission Data Contracts inspectable, navigable, understandable and eventually safely authorable through controlled, validation-gated workflows.
+OrbitFabric Studio exists to make mission contracts inspectable, navigable and reviewable without replacing OrbitFabric Core or redefining mission semantics.
 
 Studio is not where mission semantics are created.
 
@@ -10,164 +10,55 @@ Studio is where mission semantics become inspectable.
 
 ---
 
-## Status
+## Current baseline
 
 ```text
-Current implementation baseline: v0.14.0 - Artifact Traceability Integration
-Current technical milestone candidate: v0.14.0 - Artifact Traceability Integration
-Next planning baseline: v0.15.0 - Mission Cockpit Realization
-GitHub Release publication: deferred
+Project state: post-E34 cleanup / public-preview hardening
+Package version: 0.14.0
+Visual baseline: studio-visual-baseline-e28
+Packaging: inactive
+Brand assets: provisional
 ```
 
-The current implementation baseline is `v0.14.0`.
+The current baseline is a stabilized public-preview workbench. The repository has completed the E28 visual closure gate, the E29 generated-artifact action contract, the E30 label-overflow decision, the E31 application identity audit and the E32-E34 documentation cleanup/archive sequence.
 
-`v0.14.0` closes the Artifact Traceability Integration milestone. It connects generated artifacts, evidence records and Core-reported model entities more explicitly inside the Mission Data Flow Workbench without adding authoring, live telemetry, command uplink, plugin behavior, private relationship inference, private data-flow inference or generated artifact mutation.
+The active work is now publication hardening:
 
-The v0.14.0 milestone is an architectural traceability milestone, not a north-star visual parity release.
-
-The Workbench now provides a read-only traceability model foundation, Inspector traceability blocks, generated artifact inventory linkage, generated output traceability links and a compact route-level traceability posture panel.
-
-The north-star gap assessment confirms that Studio is moving in the right direction, but that Mission Cockpit realization and read-only graph Workbench maturity remain future milestones.
-
-The previous immediate `Plugin-aware Studio Surface` direction remains deferred. Plugin-awareness is planned only after the cockpit, graph Workbench and evidence console are mature.
-
-Planning references:
-
-```text
-docs/roadmap/studio-target-ui-convergence-strategy.md
-docs/roadmap/studio-ui-north-star-reference.md
-docs/archive/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
-docs/archive/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md
-docs/roadmap/studio-north-star-gap-assessment-after-v0.14.0.md
-```
-
-Release references:
-
-```text
-docs/archive/releases/v0.11.0-release-notes.md
-docs/archive/releases/v0.11.1-release-notes.md
-docs/archive/releases/v0.12.0-release-notes.md
-docs/archive/releases/v0.13.0-release-notes.md
-docs/archive/releases/v0.14.0-release-notes.md
-V0_12_0_RELEASE_CHECKLIST.md
-V0_13_0_RELEASE_CHECKLIST.md
-V0_14_0_RELEASE_CHECKLIST.md
-```
+- simplify current-facing documentation;
+- preserve historical material under `docs/archive/`;
+- keep the E28 visual baseline stable;
+- prepare source architecture refactor slices;
+- defer final logo/app-icon work until the documentation reset is complete;
+- defer packaging activation until brand assets and bundle policy are explicit.
 
 ---
 
-## Current Implementation State
+## Product boundary
 
-v0.14.0 preserves the local-first Tauri 2 and React Mission Cockpit workbench and extends the dedicated Mission Data Flow Workbench into a read-only traceability inspection surface.
+OrbitFabric Core remains authoritative for:
 
-Implemented areas include:
+- Mission Model loading;
+- validation and linting;
+- scenario execution and scenario evidence;
+- generated reports;
+- generated artifacts;
+- entity indexing;
+- relationship semantics;
+- coverage summaries;
+- future plugin semantics.
 
-- local workspace opening and structural inspection;
-- read-only source and generated artifact preview;
-- fixed OrbitFabric Core command wrappers;
-- Core-derived validation, model summary, entity index, relationship, dashboard, scenario, coverage and simulation report rendering;
-- Scenario Evidence Explorer;
-- dedicated Generated Artifacts surface;
-- compact Generated Artifact Explorer;
-- Ground Integration Artifact Viewer;
-- semantic mission-domain sidebar;
-- typed navigation model;
-- explicit legacy surface mapping for non-primary diagnostic areas;
-- `available`, `unavailable`, `reserved` and `diagnostic` shell states;
-- persistent contextual Inspector;
-- model-backed shell command bar;
-- global shell status bar;
-- Mission Cockpit visual hierarchy consolidation;
-- reported evidence lanes for contract, validation, scenario, coverage and artifacts;
-- provenance, status and severity badge system;
-- explicit read-only and Core-derived boundaries;
-- dedicated Core-derived domain surfaces for Spacecraft, Subsystems, Modes, Telemetry, Commands, Events, Faults, Packets, Payloads, Data Products, Contacts & Downlink and Commandability;
-- conservative multi-domain aggregation for Contacts & Downlink;
-- conservative multi-domain aggregation for Commandability;
-- consistent Core entity list/detail inspection through the contextual Inspector;
-- Autonomy preserved as a reserved domain;
-- dedicated Mission Data Flow Workbench surface;
-- Workbench Reference B layout foundation;
-- Workbench Graph View tab foundation;
-- Workbench canvas-like read-only preview;
-- Core-derived relationship edge rendering from `relationship_manifest.json` records;
-- Workbench evidence taxonomy for relationship, scenario, validation, coverage and artifact evidence;
-- Workbench validation evidence from `CoreLintReport` and fallback `CoreDashboardSummary.validation`;
-- Workbench scenario data-flow evidence rendering from Core simulation report `data_flow_evidence` records;
-- Workbench coverage evidence rendering from Core coverage summary records;
-- local read-only selection for Core-reported Workbench nodes, edges and records;
-- Workbench Inspector detail with raw Core-reported payload preview;
-- Workbench traceability model foundation;
-- Workbench Inspector traceability blocks;
-- generated artifact inventory bridge;
-- generated artifact records linked into Workbench evidence;
-- generated output traceability links;
-- compact route-level traceability posture panel;
-- north-star gap assessment and roadmap recalibration after v0.14.0.
+OrbitFabric Studio consumes and renders Core outputs.
 
-Studio remains downstream from OrbitFabric Core.
+Studio must not:
 
-OrbitFabric Core remains authoritative for validation, scenario evidence, generated artifacts, contract introspection, entity indexing, relationship semantics and future plugin semantics.
-
----
-
-## Current UI Direction
-
-The v0.14.0 UI keeps the Mission Cockpit as the entry point and moves the dedicated Mission Data Flow Workbench closer to the Reference B north-star surface.
-
-The Workbench is still a read-only engineering inspection surface. It does not author Mission Model content, mutate generated artifacts, execute commands, ingest live telemetry, infer private relationships or calculate private coverage, readiness, health or completeness.
-
-The primary sidebar follows the accepted target domain grammar:
-
-```text
-Mission
-Data Flow Workbench
-Spacecraft
-Subsystems
-Modes
-Telemetry
-Commands
-Events
-Faults
-Packets
-Payloads
-Data Products
-Contacts & Downlink
-Commandability
-Autonomy
-Scenarios
-Generated Artifacts
-```
-
-Autonomy remains reserved until an explicit Core-derived implementation path exists.
-
-Diagnostic and developer-oriented surfaces remain accessible, but they do not define the primary navigation model.
-
----
-
-## v0.15.0 Direction
-
-v0.15.0 is the next planning baseline: Mission Cockpit Realization.
-
-It should bring the Mission Cockpit closer to the accepted cockpit north-star while preserving Core-derived semantics.
-
-The target areas are:
-
-- top KPI card grid;
-- reported or unavailable metric states;
-- Mission Data Contract Overview;
-- recent validation results;
-- recent scenario runs;
-- generated artifact cards;
-- links from Cockpit cards to domain surfaces, Workbench and Generated Artifacts;
-- stronger compact dashboard density;
-- no invented health, completeness, readiness or coverage calculations.
-
-React Flow remains deferred until after Mission Cockpit realization. A graph library may be reconsidered for a future read-only graph Workbench milestone.
-
----
-
-## Core Alignment Rule
+- parse Mission Model YAML semantically as a replacement for Core;
+- invent missing relationships;
+- infer private data-flow links;
+- calculate private health, readiness, completeness or coverage scores;
+- mutate generated artifacts;
+- behave like a ground segment;
+- expose live telemetry or command uplink behavior;
+- hide Core diagnostics behind private UI conclusions.
 
 Correct pattern:
 
@@ -182,16 +73,107 @@ Incorrect pattern:
 Studio reimplements Core semantics because the required output is missing.
 ```
 
-If Core does not report a value, Studio must display `unavailable`, `not reported`, `reserved` or `diagnostic` as appropriate.
+If Core does not report a value, Studio displays `unavailable`, `not reported`, `reserved` or `diagnostic` instead of inventing meaning.
 
 ---
 
-## Local Checks
+## Implemented public-preview capabilities
 
-Recommended checks before release publication or next development baseline closure:
+Studio currently provides:
+
+- local workspace opening;
+- structural workspace inspection;
+- read-only source and generated-artifact preview;
+- fixed OrbitFabric Core command wrappers;
+- Core report rendering for lint, model summary, entity index, relationship manifest, dashboard summary, scenario run index and coverage summary;
+- Scenario Evidence inspection;
+- Generated Artifacts inspection and real file-manager reveal action;
+- Mission Cockpit surface;
+- Mission Data Flow Workbench surface;
+- domain navigation for Core-derived mission areas;
+- reserved Autonomy handling;
+- contextual Inspector;
+- shell status bar;
+- surface capture utility;
+- Studio icon registry;
+- visual QA and audit scripts.
+
+Studio remains local-first and read-only for the current public-preview baseline.
+
+---
+
+## Repository structure
+
+```text
+.
+├── README.md
+├── ROADMAP.md
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── DATA_BOUNDARIES.md
+│   ├── qa/
+│   ├── roadmap/
+│   └── archive/
+├── src/
+├── src-tauri/
+├── tools/dev/
+├── package.json
+└── vite.config.ts
+```
+
+Historical release checklists, release notes, milestone plans and old development notes are preserved under `docs/archive/`.
+
+Current-facing documentation should stay small and aligned with the public-preview baseline.
+
+---
+
+## Development checks
+
+Recommended local checks:
 
 ```bash
-npm install --package-lock-only
 npm run build
+git diff --check
+npm run qa:icon-audit
+npm run qa:studio-visual-token-contract
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
+
+For Rust formatting:
+
+```bash
+cd src-tauri
+cargo fmt --check
+```
+
+---
+
+## Packaging and brand status
+
+Tauri bundling is intentionally inactive.
+
+The current icon and graphical assets are provisional. Final logo, favicon, app icon and generated Tauri icon assets will be handled in a dedicated brand-assets pass before packaging activation.
+
+Packaging activation must be a dedicated PR with explicit decisions on:
+
+- final icon master;
+- bundle targets;
+- artifact naming;
+- signing expectations;
+- macOS notarization expectations;
+- versioning policy;
+- release channel.
+
+---
+
+## Current roadmap
+
+The immediate roadmap is publication hardening:
+
+1. documentation rewrite;
+2. source architecture refactor plan;
+3. source architecture refactor slices;
+4. brand assets / logo / app icon;
+5. packaging activation.
+
+Longer-term product milestones remain possible only if they preserve the Core/Studio boundary.
