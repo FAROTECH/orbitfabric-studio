@@ -32,17 +32,17 @@ Reference planning documents:
 ```text
 docs/roadmap/studio-target-ui-convergence-strategy.md
 docs/roadmap/studio-ui-north-star-reference.md
-docs/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
-docs/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md
+docs/archive/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
+docs/archive/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md
 docs/roadmap/studio-north-star-gap-assessment-after-v0.14.0.md
-docs/roadmap/studio-v0.15.0-mission-cockpit-realization-plan.md
+docs/archive/roadmap/studio-v0.15.0-mission-cockpit-realization-plan.md
 ```
 
 Release references:
 
 ```text
-docs/releases/v0.13.0-release-notes.md
-docs/releases/v0.14.0-release-notes.md
+docs/archive/releases/v0.13.0-release-notes.md
+docs/archive/releases/v0.14.0-release-notes.md
 V0_13_0_RELEASE_CHECKLIST.md
 V0_14_0_RELEASE_CHECKLIST.md
 V0_15_0_RELEASE_CHECKLIST.md
