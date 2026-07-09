@@ -9,6 +9,7 @@ import { EntrySection } from "./EntrySection";
 import { MissingFiles } from "./MissingFiles";
 import { DashboardSummaryPanel } from "./DashboardSummaryPanel";
 import { ScenarioRunIndexPanel } from "./ScenarioRunIndexPanel";
+import { InspectorField, formatInspectorPath } from "./InspectorField";
 import {
   GeneratedArtifactExplorerPanel,
   type GeneratedArtifactDashboardSummary,
@@ -1328,40 +1329,6 @@ function InspectorPanel({
     </aside>
   );
 }
-
-function InspectorField({
-  label,
-  value,
-  title,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-  title?: string;
-}) {
-  return (
-    <div className="inspector-field" title={title}>
-      <span>{label}</span>
-      <strong>{value === null || value === undefined || value === "" ? "not available" : value}</strong>
-    </div>
-  );
-}
-
-function formatInspectorPath(value: string | null | undefined): string {
-  if (!value) {
-    return "not available";
-  }
-
-  const parts = value.split(/[\\/]/).filter(Boolean);
-
-  if (parts.length <= 3) {
-    return value;
-  }
-
-  return `…/${parts.slice(-3).join("/")}`;
-}
-
-
-
 
 function ScenarioEvidenceSurface({
   workspace,
