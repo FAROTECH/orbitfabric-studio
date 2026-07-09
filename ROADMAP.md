@@ -1,58 +1,45 @@
-# OrbitFabric Studio - Roadmap
+# OrbitFabric Studio — Roadmap
 
-OrbitFabric Studio is an experimental visual workbench for OrbitFabric Mission Data Contracts.
+OrbitFabric Studio is a local-first visual engineering workbench for OrbitFabric Mission Data Contracts.
 
-Studio exists to make Mission Data Contracts inspectable, navigable and understandable without replacing OrbitFabric Core or redefining mission semantics.
-
-The Mission Model remains the source of truth. OrbitFabric Core remains authoritative for validation, scenario evidence, generated artifacts, contract introspection, entity indexing, relationship semantics and future plugin semantics. Studio is downstream.
+Studio exists to make Mission Data Contracts inspectable, navigable and reviewable without replacing OrbitFabric Core or creating private mission semantics.
 
 ---
 
-## Current Baseline
+## Current phase
 
 ```text
-Current implementation baseline: v0.14.0 - Artifact Traceability Integration
-Current technical milestone candidate: v0.14.0 - Artifact Traceability Integration
-Active planning baseline: v0.15.0 - Mission Cockpit Realization
-GitHub Release publication: deferred
+Phase: publication hardening
+Baseline: post-E28 visual closure and post-E34 documentation archive cleanup
+Package version: 0.14.0
+Packaging: inactive
+Brand assets: provisional
 ```
 
-v0.14.0 is the current implementation baseline.
+The project has completed the current visual stabilization sequence:
 
-It closed the Artifact Traceability Integration milestone by connecting generated artifacts, evidence records and Core-reported model entities more explicitly inside the Mission Data Flow Workbench.
+- E28 — final Studio visual closure gate;
+- E29 — generated artifacts action contract;
+- E30 — label overflow / ellipsis audit decision;
+- E31 — application identity / packaging asset audit;
+- E32 — master cleanup / publication hardening plan;
+- E33 — archive historical release checklists;
+- E34 — archive historical planning documentation.
 
-v0.14.0 is an architectural traceability milestone, not a north-star visual parity release.
-
-v0.15.0 is the active planning baseline. It must bring the Mission Cockpit closer to the accepted Cockpit north-star while preserving Core-derived semantics and explicit unavailable or not reported metric states.
-
-Plugin-awareness remains deferred until the cockpit, graph Workbench and evidence console are mature.
-
-Reference planning documents:
-
-```text
-docs/roadmap/studio-target-ui-convergence-strategy.md
-docs/roadmap/studio-ui-north-star-reference.md
-docs/archive/roadmap/studio-v0.13.0-evidence-integrated-workbench-plan.md
-docs/archive/roadmap/studio-v0.14.0-artifact-traceability-integration-plan.md
-docs/roadmap/studio-north-star-gap-assessment-after-v0.14.0.md
-docs/archive/roadmap/studio-v0.15.0-mission-cockpit-realization-plan.md
-```
-
-Release references:
-
-```text
-docs/archive/releases/v0.13.0-release-notes.md
-docs/archive/releases/v0.14.0-release-notes.md
-V0_13_0_RELEASE_CHECKLIST.md
-V0_14_0_RELEASE_CHECKLIST.md
-V0_15_0_RELEASE_CHECKLIST.md
-```
+The next work focuses on making the repository clean, understandable and maintainable before adding new product surface area.
 
 ---
 
-## Roadmap Philosophy
+## Roadmap principles
 
-OrbitFabric Studio grows through narrow, inspectable, validation-aligned vertical slices.
+Every milestone must preserve the distinction among:
+
+```text
+source model      = authoritative Mission Model files
+derived report    = OrbitFabric Core output derived from the source model
+generated output  = disposable artifact generated from the contract
+UI state          = local Studio presentation and interaction state
+```
 
 Correct pattern:
 
@@ -67,151 +54,173 @@ Incorrect pattern:
 Studio reimplements Core semantics because the required output is missing.
 ```
 
-Every milestone must preserve a clear distinction among:
+Studio may render, organize and explain engineering evidence.
 
-```text
-source model      = authoritative Mission Model files
-derived report    = OrbitFabric Core output derived from the source model
-generated output  = disposable artifact generated from the contract
-UI state          = local Studio representation
-```
-
-If Core does not report a value, Studio must show `unavailable`, `not reported`, `reserved` or `diagnostic` instead of calculating private meaning.
-
-This rule applies especially to mission health, readiness, model completeness, coverage, traceability completeness, operational status and autonomy status.
+Studio must not invent engineering evidence.
 
 ---
 
-## Completed Baselines
+## Active cleanup roadmap
 
-```text
-v0.0.0  - Studio Charter
-v0.1.0  - Read-only Mission Project Viewer
-v0.2.0  - Validation and Diagnostics Workbench
-v0.3.0  - Contract Navigation Surface
-v0.4.0  - Relationship Surface
-v0.5.0  - Generated Artifact Explorer
-v0.6.0  - Studio Information Architecture & UX Foundation
-v0.7.0  - Scenario Evidence Explorer
-v0.7.1  - Dashboard and Coverage Foundation
-v0.7.2  - Core-derived Dashboard UX Realization
-v0.8.0  - Ground Integration Artifact Viewer
-v0.9.0  - Semantic Navigation & Unified Shell
-v0.10.0 - Mission Cockpit Consolidation
-v0.11.0 - Domain Surfaces & Entity Detail System
-v0.11.1 - Runtime UI triage hotfix
-v0.12.0 - Mission Data Flow Workbench Foundation
-v0.13.0 - Evidence-integrated Workbench
-v0.14.0 - Artifact Traceability Integration
-```
+### E35 — Documentation Rewrite / Current Project Narrative
 
-Completed baselines preserve the same boundary: Studio remains read-only by default, Core-derived and non-authoritative for mission semantics.
-
-## v0.14.0 Closure Summary
-
-v0.14.0 turned the Mission Data Flow Workbench into a stronger read-only traceability surface.
-
-It introduced:
-
-- traceability model foundation;
-- traceability groups, links, endpoints and summary counts;
-- traceability link generation for Core-reported relationship, scenario, validation, coverage and generated artifact evidence;
-- compact Workbench Inspector traceability blocks;
-- generated artifact inventory bridge;
-- generated output traceability links;
-- route-level Workbench traceability posture panel;
-- north-star gap assessment and roadmap recalibration;
-- metadata alignment to `0.14.0`.
-
-v0.14.0 did not introduce graph-library adoption, graph editing, authoring, artifact mutation, runtime operations, private inference, private scoring, Autonomy implementation or plugin behavior.
-
----
-
-## Active Planning Baseline
-
-### v0.15.0 - Mission Cockpit Realization
-
-Status: Planned
-
-Primary objective:
-
-```text
-Bring the Mission Cockpit much closer to the Mission Cockpit north-star while preserving Core-derived semantics.
-```
+Rewrite current-facing documentation around the actual stabilized baseline.
 
 Scope:
 
-- top KPI card grid;
-- reported, unavailable and not reported metric states;
-- Mission Data Contract Overview;
-- Recent Validation Results;
-- Recent Scenario Runs;
-- Generated Artifacts cards;
-- links from Cockpit cards to domain surfaces, Workbench, Scenarios and Generated Artifacts;
-- stronger compact dashboard density.
-
-Metric policy:
-
-- Mission Health must be Core-derived or shown as `not reported` / `unavailable`.
-- Model Completeness must be Core-derived or shown as `not reported` / `unavailable`.
-- Lint Status may use Core lint or dashboard validation outputs.
-- Scenario Coverage must be Core-derived and must not be inferred from scenario run counts.
-- Data Product Coverage must be Core-derived and must not be inferred from data product entity counts.
-- Commandability Coverage must be Core-derived and must not be inferred from command counts or domain presence.
+- `README.md`;
+- `ROADMAP.md`;
+- `docs/ARCHITECTURE.md`;
+- possible later review of `docs/DATA_BOUNDARIES.md`.
 
 Non-goals:
 
-- no React Flow or graph-library adoption;
-- no graph editing;
-- no Mission Model authoring;
-- no generated artifact mutation;
-- no operational behavior;
-- no private health, completeness, readiness or coverage calculation;
-- no private relationship or data-flow inference;
-- no Autonomy implementation;
-- no plugin behavior.
+- no runtime changes;
+- no source refactor;
+- no CSS changes;
+- no packaging activation;
+- no brand asset redesign.
 
-Planned PR sequence:
+### E36 — Source Architecture Refactor Plan
 
-1. Planning and boundary document.
-2. Cockpit data model refinement.
-3. Top KPI card grid.
-4. Mission Data Contract Overview panel.
-5. Recent Validation Results panel.
-6. Recent Scenario Runs panel.
-7. Generated Artifacts cockpit cards.
-8. Cockpit navigation and linkage polish.
-9. Cockpit visual density polish.
-10. v0.15.0 release hardening.
+Document how to improve source architecture without destabilizing the E28 visual baseline.
+
+Expected focus:
+
+- `src/App.tsx`;
+- `src-tauri/src/lib.rs`;
+- CSS import layering;
+- shell/surface routing boundaries;
+- legacy surface mapping;
+- QA gates for future refactor slices.
+
+### E37+ — Source Architecture Refactor Slices
+
+Perform small, reversible refactors.
+
+Rules:
+
+- one architectural seam per PR;
+- no visual redesign;
+- no Core/model-data changes;
+- build and QA gates required;
+- visual baseline must remain protected.
+
+### Brand Assets / Logo / App Icon
+
+Final graphical assets are deferred to a dedicated brand-assets chat and PR.
+
+Scope when started:
+
+- logo;
+- app icon master;
+- favicon;
+- Tauri icon set;
+- visual brand usage rules.
+
+This must happen before packaging activation.
+
+### Packaging Activation
+
+Packaging remains inactive until after brand assets are finalized.
+
+A packaging PR must explicitly decide:
+
+- bundle targets;
+- final icon set;
+- signing expectations;
+- macOS notarization expectations;
+- release artifact naming;
+- versioning policy;
+- release channel.
 
 ---
 
-## Accepted UI Convergence Direction
+## Product roadmap after hardening
 
-The accepted direction remains a mission-domain cockpit and integrated data-flow workbench.
+Future product milestones remain conditional on source maturity and Core support.
+
+### Mission Cockpit Realization
+
+Goal:
 
 ```text
-v0.15.0 - Mission Cockpit Realization
-v0.16.0 - Read-only Graph Workbench Engine
-v0.17.0 - Workbench Evidence Console
-v0.18.0 - Authoring Readiness Assessment
-v0.19.0 or later - Plugin-aware Studio Surface
+Bring the Mission Cockpit closer to the accepted cockpit north-star while preserving Core-derived semantics.
 ```
 
-## Future Decision Points
+Allowed:
 
-### v0.16.0 - Read-only Graph Workbench Engine
+- stronger cockpit density;
+- clearer Core-derived evidence cards;
+- reported / unavailable metric states;
+- links to Workbench, Scenarios and Generated Artifacts.
 
-v0.16.0 may evaluate React Flow or an equivalent graph library only under strict read-only, Core-derived constraints.
+Not allowed:
 
-### v0.17.0 - Workbench Evidence Console
+- private health calculation;
+- private readiness calculation;
+- private model completeness calculation;
+- private coverage calculation;
+- operational state simulation;
+- live telemetry behavior.
 
-v0.17.0 should strengthen scenario timeline, lint and validation tables, contextual warning blocks, artifact/runtime/ground affordances, traceability path inspection, evidence filters, status grouping and Inspector refinement.
+### Read-only Graph Workbench
 
-### v0.18.0 - Authoring Readiness Assessment
+A graph library such as React Flow may be reconsidered only when the graph model is Core-derived and explainable.
 
-v0.18.0 is an assessment milestone only. It should decide what can become safely authorable without violating the model-first contract.
+Allowed graph edges:
 
-### v0.19.0 or later - Plugin-aware Studio Surface
+- Core-reported relationships;
+- generated-artifact provenance links;
+- scenario evidence links;
+- explicitly documented Core outputs.
+
+Not allowed:
+
+- private graph semantics;
+- graph editing;
+- layout-as-mission-meaning;
+- inferred relationship recovery.
+
+### Workbench Evidence Console
+
+Future evidence-console work may improve:
+
+- scenario timeline readability;
+- lint/validation tables;
+- traceability inspection;
+- artifact/runtime/ground evidence grouping;
+- status filtering;
+- Inspector refinement.
+
+It must not introduce private scenario interpretation or private validation.
+
+### Authoring Readiness Assessment
+
+Authoring is not part of the current baseline.
+
+A future authoring-readiness milestone may assess controlled editing only if edits are:
+
+- explicit;
+- reviewable;
+- represented as source Mission Model patches;
+- validated by OrbitFabric Core;
+- never applied silently.
+
+### Plugin-aware Studio Surface
 
 Plugin-awareness remains deferred until the cockpit, graph workbench and evidence console are mature.
+
+Plugin behavior must be Core-declared or explicitly documented. Studio must not invent plugin semantics.
+
+---
+
+## Archived roadmap history
+
+Historical release notes, milestone plans and implementation notes are preserved under:
+
+```text
+docs/archive/
+```
+
+These files explain how Studio evolved, but they no longer define the active roadmap.
