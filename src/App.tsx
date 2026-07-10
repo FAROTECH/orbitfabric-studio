@@ -3,14 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import { PublicPreviewPlaceholder } from "./PublicPreviewPlaceholder";
-import {
-  InspectorPanel,
-  type SimulationInspectorRecord,
-  type StudioDetailSelection,
-} from "./InspectorPanel";
+import { InspectorPanel } from "./InspectorPanel";
 import {
   type GeneratedArtifactDashboardSummary,
-  type GeneratedArtifactInspectorItem,
   type GeneratedEvidenceArtifactSummary,
 } from "./GeneratedArtifactExplorer";
 import { GeneratedArtifactsSurface } from "./GeneratedArtifactsSurface";
@@ -24,7 +19,6 @@ import {
   type ActiveSurface,
   type TargetDomainId,
 } from "./navigationModel";
-import type { DomainEntitySummary } from "./domainSurfaceModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
 import { createSurfaceAvailability } from "./surfaceAvailability";
 import {
@@ -35,6 +29,7 @@ import {
 } from "./studioSurfaceConfig";
 import { hydrateGeneratedReportsFromWorkspace } from "./generatedReportHydration";
 import { useCoreCommands } from "./useCoreCommands";
+import { useStudioSelection } from "./useStudioSelection";
 import {
   upsertSimulationReport,
 } from "./coreReportSnapshots";
@@ -61,36 +56,42 @@ import {
 import type {
   CoreEntityIndex,
   CoreModelSummary,
-  FileContent,
-  ProjectEntry,
   WorkspaceInspection,
 } from "./types/workspace";
 
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
-  const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
   const [generatedArtifactSummary, setGeneratedArtifactSummary] =
     useState<GeneratedArtifactDashboardSummary | null>(null);
-  const [selectedGeneratedArtifact, setSelectedGeneratedArtifact] =
-    useState<GeneratedArtifactInspectorItem | null>(null);
   const [generatedEvidenceArtifactSummary, setGeneratedEvidenceArtifactSummary] =
     useState<GeneratedEvidenceArtifactSummary | null>(null);
   const [generatedArtifactRefreshToken, setGeneratedArtifactRefreshToken] =
     useState(0);
-  const [selectedSimulationRecord, setSelectedSimulationRecord] =
-    useState<SimulationInspectorRecord | null>(null);
-  const [selectedCoreDomainEntity, setSelectedCoreDomainEntity] =
-    useState<DomainEntitySummary | null>(null);
   const [activeSurface, setActiveSurface] =
     useState<ActiveSurface>("mission-dashboard");
   const [activeNavigationId, setActiveNavigationId] =
     useState<TargetDomainId>("mission");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [selectedDetail, setSelectedDetail] =
-    useState<StudioDetailSelection | null>(null);
-
   const [error, setError] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
+
+  const {
+    selectedFile,
+    selectedGeneratedArtifact,
+    selectedSimulationRecord,
+    selectedCoreDomainEntity,
+    selectedDetail,
+    clearSelectedContext,
+    clearSelectedSimulationRecord,
+    selectWorkspace,
+    selectCoreOutput,
+    handleOpenFile,
+    handleGeneratedArtifactSelectionChange,
+    handleSelectSimulationRecord,
+    handleSelectCoreDomainEntity,
+  } = useStudioSelection({
+    workspace,
+  });
 
   const {
     coreExecutable,
@@ -113,16 +114,8 @@ function App() {
     handleCoreSimScenario,
   } = useCoreCommands({
     workspace,
-    onCoreOutput: (result) => {
-      setSelectedDetail({
-        kind: "core-output",
-        title: result.command,
-        source: result.args.join(" ") || "fixed Core command",
-      });
-    },
-    onScenarioExecutionStart: () => {
-      setSelectedSimulationRecord(null);
-    },
+    onCoreOutput: selectCoreOutput,
+    onScenarioExecutionStart: clearSelectedSimulationRecord,
     onGeneratedArtifactRefresh: () => {
       setGeneratedArtifactRefreshToken((current) => current + 1);
     },
@@ -144,27 +137,15 @@ function App() {
     resetMainContentScroll();
   }, [activeSurface, activeNavigationId]);
 
-  function clearSelectedContext() {
-    setSelectedFile(null);
-    setSelectedGeneratedArtifact(null);
-    setSelectedSimulationRecord(null);
-    setSelectedCoreDomainEntity(null);
-    setSelectedDetail(null);
-  }
-
   async function handleOpenWorkspace() {
     setError(null);
     resetCoreCommandState();
-    setSelectedFile(null);
+    clearSelectedContext();
     setGeneratedArtifactSummary(null);
-    setSelectedGeneratedArtifact(null);
     setGeneratedEvidenceArtifactSummary(null);
     setGeneratedArtifactRefreshToken(0);
-    setSelectedSimulationRecord(null);
-    setSelectedCoreDomainEntity(null);
     setActiveSurface("mission-dashboard");
     setActiveNavigationId("mission");
-    setSelectedDetail(null);
     setIsOpening(true);
 
     try {
@@ -187,80 +168,12 @@ function App() {
 
       setWorkspace(inspection);
       hydrateCoreReportSnapshots(generatedHydration.coreReportSnapshots);
-      setSelectedDetail({
-        kind: "workspace",
-        title: "Workspace inspection",
-        source: inspection.selected_path,
-      });
+      selectWorkspace(inspection);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setIsOpening(false);
     }
-  }
-
-  async function handleOpenFile(entry: ProjectEntry) {
-    if (!workspace || entry.kind !== "file") {
-      return;
-    }
-
-    setSelectedGeneratedArtifact(null);
-    setSelectedSimulationRecord(null);
-    setSelectedCoreDomainEntity(null);
-    try {
-      const file = await invoke<FileContent>("read_text_file", {
-        workspacePath: workspace.selected_path,
-        filePath: entry.path,
-      });
-
-      setSelectedFile(file);
-      setSelectedDetail({
-        kind: "source-file",
-        title: file.name,
-        source: file.path,
-      });
-    } catch {
-      // Keep failed source-file reads non-disruptive; no active surface renders file read errors.
-    }
-  }
-
-  function handleGeneratedArtifactSelectionChange(
-    artifact: GeneratedArtifactInspectorItem | null,
-  ) {
-    setSelectedGeneratedArtifact(artifact);
-    setSelectedSimulationRecord(null);
-    setSelectedCoreDomainEntity(null);
-    setSelectedDetail(
-      artifact
-        ? {
-            kind: "generated-artifact",
-            title: artifact.name,
-            source: artifact.relativePath,
-          }
-        : null,
-    );
-  }
-
-  function handleSelectSimulationRecord(record: SimulationInspectorRecord) {
-    setSelectedSimulationRecord(record);
-    setSelectedGeneratedArtifact(null);
-    setSelectedCoreDomainEntity(null);
-    setSelectedDetail({
-      kind: "simulation-record",
-      title: record.title,
-      source: record.kind,
-    });
-  }
-
-  function handleSelectCoreDomainEntity(entity: DomainEntitySummary) {
-    setSelectedCoreDomainEntity(entity);
-    setSelectedGeneratedArtifact(null);
-    setSelectedSimulationRecord(null);
-    setSelectedDetail({
-      kind: "core-entity",
-      title: entity.displayName || entity.id,
-      source: "Core entity_index.json",
-    });
   }
 
   function handleActiveSurfaceChange(surface: ActiveSurface) {
