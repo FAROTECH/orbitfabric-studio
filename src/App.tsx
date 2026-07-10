@@ -34,10 +34,8 @@ import {
   publicPreviewPlaceholderCopy,
 } from "./studioSurfaceConfig";
 import { hydrateGeneratedReportsFromWorkspace } from "./generatedReportHydration";
-import { createCoreReportSnapshotsUpdater } from "./coreReportSnapshotUpdate";
+import { useCoreCommands } from "./useCoreCommands";
 import {
-  createEmptyCoreReportSnapshots,
-  type CoreReportSnapshots,
   upsertSimulationReport,
 } from "./coreReportSnapshots";
 import {
@@ -61,7 +59,6 @@ import {
   parseCoreSimulationReport,
 } from "./coreReports";
 import type {
-  CoreCommandResult,
   CoreEntityIndex,
   CoreModelSummary,
   FileContent,
@@ -72,10 +69,6 @@ import type {
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
-  const [coreExecutable, setCoreExecutable] = useState("orbitfabric");
-  const [coreResult, setCoreResult] = useState<CoreCommandResult | null>(null);
-  const [coreReportSnapshots, setCoreReportSnapshots] =
-    useState<CoreReportSnapshots>(() => createEmptyCoreReportSnapshots());
   const [generatedArtifactSummary, setGeneratedArtifactSummary] =
     useState<GeneratedArtifactDashboardSummary | null>(null);
   const [selectedGeneratedArtifact, setSelectedGeneratedArtifact] =
@@ -97,9 +90,43 @@ function App() {
     useState<StudioDetailSelection | null>(null);
 
   const [error, setError] = useState<string | null>(null);
-  const [coreError, setCoreError] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
-  const [isRunningCoreCommand, setIsRunningCoreCommand] = useState(false);
+
+  const {
+    coreExecutable,
+    setCoreExecutable,
+    coreResult,
+    coreReportSnapshots,
+    coreError,
+    isRunningCoreCommand,
+    resetCoreCommandState,
+    hydrateCoreReportSnapshots,
+    handleCoreVersion,
+    handleCoreInspectMission,
+    handleCoreLintMission,
+    handleCoreExportModelSummary,
+    handleCoreExportEntityIndex,
+    handleCoreExportRelationshipManifest,
+    handleCoreExportDashboardSummary,
+    handleCoreExportScenarioRunIndex,
+    handleCoreExportCoverageSummary,
+    handleCoreSimScenario,
+  } = useCoreCommands({
+    workspace,
+    onCoreOutput: (result) => {
+      setSelectedDetail({
+        kind: "core-output",
+        title: result.command,
+        source: result.args.join(" ") || "fixed Core command",
+      });
+    },
+    onScenarioExecutionStart: () => {
+      setSelectedSimulationRecord(null);
+    },
+    onGeneratedArtifactRefresh: () => {
+      setGeneratedArtifactRefreshToken((current) => current + 1);
+    },
+  });
 
   const mainContentRef = useRef<HTMLElement | null>(null);
   const surfaceContentRef = useRef<HTMLElement | null>(null);
@@ -127,10 +154,8 @@ function App() {
 
   async function handleOpenWorkspace() {
     setError(null);
-    setCoreError(null);
+    resetCoreCommandState();
     setSelectedFile(null);
-    setCoreResult(null);
-    setCoreReportSnapshots(createEmptyCoreReportSnapshots());
     setGeneratedArtifactSummary(null);
     setSelectedGeneratedArtifact(null);
     setGeneratedEvidenceArtifactSummary(null);
@@ -161,7 +186,7 @@ function App() {
       );
 
       setWorkspace(inspection);
-      setCoreReportSnapshots(generatedHydration.coreReportSnapshots);
+      hydrateCoreReportSnapshots(generatedHydration.coreReportSnapshots);
       setSelectedDetail({
         kind: "workspace",
         title: "Workspace inspection",
@@ -253,180 +278,6 @@ function App() {
     setActiveSurface(surface);
     setActiveNavigationId(navigationId);
     resetMainContentScroll();
-  }
-
-  async function handleCoreVersion() {
-    await runCoreCommand("run_core_version", { executable: coreExecutable });
-  }
-
-  async function handleCoreInspectMission() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core inspection.");
-      return;
-    }
-
-    await runCoreCommand("run_core_inspect_mission", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-  }
-
-  async function handleCoreLintMission() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core lint.");
-      return;
-    }
-
-    await runCoreCommand("run_core_lint_mission", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-  }
-
-  async function handleCoreExportModelSummary() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core model summary export.");
-      return;
-    }
-
-    await runCoreCommand("run_core_export_model_summary", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-  }
-
-  async function handleCoreExportEntityIndex() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core entity index export.");
-      return;
-    }
-
-    await runCoreCommand("run_core_export_entity_index", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-  }
-
-  async function handleCoreExportRelationshipManifest() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core relationship manifest export.");
-      return;
-    }
-
-    await runCoreCommand("run_core_export_relationship_manifest", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-  }
-
-  async function handleCoreExportDashboardSummary() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core dashboard summary export.");
-      return;
-    }
-
-    const result = await runCoreCommand("run_core_export_dashboard_summary", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-
-    if (result?.json_report_available) {
-      setGeneratedArtifactRefreshToken((current) => current + 1);
-    }
-  }
-
-  async function handleCoreExportScenarioRunIndex() {
-    if (!workspace) {
-      setCoreError("No workspace is available for Core scenario run index export.");
-      return;
-    }
-
-    const result = await runCoreCommand("run_core_export_scenario_run_index", {
-      executable: coreExecutable,
-      workspacePath: workspace.selected_path,
-    });
-
-    if (result?.json_report_available) {
-      setGeneratedArtifactRefreshToken((current) => current + 1);
-    }
-  }
-
-  async function handleCoreExportCoverageSummary() {
-    if (!workspace?.mission_dir) {
-      setCoreError("No mission directory is available for Core coverage summary export.");
-      return;
-    }
-
-    const result = await runCoreCommand("run_core_export_coverage_summary", {
-      executable: coreExecutable,
-      missionDir: workspace.mission_dir,
-    });
-
-    if (result?.json_report_available) {
-      setGeneratedArtifactRefreshToken((current) => current + 1);
-    }
-  }
-
-  async function handleCoreSimScenario(scenario: ProjectEntry) {
-    if (!workspace) {
-      setCoreError("No workspace is available for Core scenario execution.");
-      return;
-    }
-
-    if (scenario.kind !== "file") {
-      setCoreError("Only scenario source files can be executed through Core.");
-      return;
-    }
-
-    setSelectedSimulationRecord(null);
-
-    const result = await runCoreCommand("run_core_sim_scenario", {
-      executable: coreExecutable,
-      workspacePath: workspace.selected_path,
-      scenarioFile: scenario.path,
-    });
-
-    if (result?.json_report_available) {
-      setGeneratedArtifactRefreshToken((current) => current + 1);
-    }
-  }
-
-  async function runCoreCommand(
-    commandName: string,
-    payload: Record<string, string>,
-  ): Promise<CoreCommandResult | null> {
-    setCoreError(null);
-    setCoreResult(null);
-    setIsRunningCoreCommand(true);
-
-    try {
-      const result = await invoke<CoreCommandResult>(commandName, payload);
-      setCoreResult(result);
-      setSelectedDetail({
-        kind: "core-output",
-        title: result.command,
-        source: result.args.join(" ") || "fixed Core command",
-      });
-      updateCoreReportSnapshots(result);
-      return result;
-    } catch (caught) {
-      setCoreError(caught instanceof Error ? caught.message : String(caught));
-      return null;
-    } finally {
-      setIsRunningCoreCommand(false);
-    }
-  }
-
-  function updateCoreReportSnapshots(result: CoreCommandResult) {
-    const updater = createCoreReportSnapshotsUpdater(
-      result.json_report_content ?? null,
-    );
-
-    if (!updater) {
-      return;
-    }
-
-    setCoreReportSnapshots(updater);
   }
 
   const coreReportContent = coreResult?.json_report_content ?? null;
