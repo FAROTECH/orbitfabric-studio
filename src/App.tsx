@@ -26,6 +26,7 @@ import {
 } from "./navigationModel";
 import type { DomainEntitySummary } from "./domainSurfaceModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
+import { createSurfaceAvailability } from "./surfaceAvailability";
 import {
   defaultNavigationIdBySurface,
   modelInventoryDomainSurfaceComponents,
@@ -505,19 +506,7 @@ function App() {
     generatedArtifactInventory: null,
   });
 
-  const surfaceAvailability: Record<ActiveSurface, boolean> = {
-    "mission-dashboard": true,
-    "mission-data-flow-workbench": Boolean(workspace),
-    "model-inventory": Boolean(workspace && workspace.source_model_files.length > 0),
-    "core-commands": Boolean(workspace),
-    contracts: false,
-    relationships: false,
-    "generated-artifacts": Boolean(workspace),
-    "reports-logs": false,
-    "scenario-evidence": Boolean(workspace),
-    "ground-integration": false,
-    "raw-output": false,
-  };
+  const surfaceAvailability = createSurfaceAvailability(workspace);
 
   function renderActiveSurface() {
     if (!workspace) {
