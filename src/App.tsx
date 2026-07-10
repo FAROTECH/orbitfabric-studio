@@ -44,6 +44,12 @@ import {
 } from "./ScenarioTimelineRunnerSurface";
 
 import {
+  formatDashboardStatusLabel,
+  formatNavigationLabel,
+  formatUnknownBlock,
+} from "./studioFormatters";
+
+import {
   parseCoreCoverageSummary,
   parseCoreDashboardSummary,
   parseCoreEntityIndex,
@@ -793,24 +799,5 @@ function App() {
   );
 }
 
-
-function formatNavigationLabel(navigationId: TargetDomainId): string {
-  return navigationId
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ").replace(" And ", " & " );
-}
-
-function formatUnknownBlock(value: unknown): string {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  return JSON.stringify(value, null, 2);
-}
-
-function formatDashboardStatusLabel(value: string | null): string {
-  return value ? value.toUpperCase() : "UNAVAILABLE";
-}
 
 export default App;
