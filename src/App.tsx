@@ -41,6 +41,11 @@ import type { DomainEntitySummary } from "./domainSurfaceModel";
 import { createMissionDataFlowWorkbenchSnapshot } from "./missionDataFlowWorkbenchModel";
 import { hydrateGeneratedReportsFromWorkspace } from "./generatedReportHydration";
 import {
+  createEmptyCoreReportSnapshots,
+  type CoreReportSnapshots,
+  upsertSimulationReport,
+} from "./coreReportSnapshots";
+import {
   ScenarioTimelineRunnerSurface,
   type ScenarioTimelineInspectorRecord,
 } from "./ScenarioTimelineRunnerSurface";
@@ -57,31 +62,12 @@ import {
 } from "./coreReports";
 import type {
   CoreCommandResult,
-  CoreCoverageSummary,
-  CoreDashboardSummary,
   CoreEntityIndex,
-  CoreLintReport,
   CoreModelSummary,
-  CoreRelationshipManifest,
-  CoreSimulationReport,
-  CoreScenarioRunIndex,
   FileContent,
   ProjectEntry,
   WorkspaceInspection,
 } from "./types/workspace";
-
-
-interface CoreReportSnapshots {
-  lintReport: CoreLintReport | null;
-  modelSummary: CoreModelSummary | null;
-  entityIndex: CoreEntityIndex | null;
-  relationshipManifest: CoreRelationshipManifest | null;
-  dashboardSummary: CoreDashboardSummary | null;
-  scenarioRunIndex: CoreScenarioRunIndex | null;
-  coverageSummary: CoreCoverageSummary | null;
-  simulationReport: CoreSimulationReport | null;
-  simulationReports: CoreSimulationReport[];
-}
 
 interface CoreDomainSurfaceComponentProps {
   workspace: WorkspaceInspection;
@@ -156,20 +142,6 @@ const publicPreviewPlaceholderCopy: Partial<Record<ActiveSurface, { title: strin
       "Raw process output is now surfaced inside Core Report Runner, next to the fixed Core action that produced it.",
   },
 };
-
-function createEmptyCoreReportSnapshots(): CoreReportSnapshots {
-  return {
-    lintReport: null,
-    modelSummary: null,
-    entityIndex: null,
-    relationshipManifest: null,
-    dashboardSummary: null,
-    scenarioRunIndex: null,
-    coverageSummary: null,
-    simulationReport: null,
-    simulationReports: [],
-  };
-}
 
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceInspection | null>(null);
@@ -561,15 +533,6 @@ function App() {
         ? upsertSimulationReport(current.simulationReports, simulationReport)
         : current.simulationReports,
     }));
-  }
-
-  function upsertSimulationReport(
-    reports: CoreSimulationReport[],
-    report: CoreSimulationReport,
-  ): CoreSimulationReport[] {
-    const nextReports = reports.filter((candidate) => candidate.scenario !== report.scenario);
-
-    return [...nextReports, report];
   }
 
   const coreReportContent = coreResult?.json_report_content ?? null;
