@@ -34,6 +34,7 @@ import {
   publicPreviewPlaceholderCopy,
 } from "./studioSurfaceConfig";
 import { hydrateGeneratedReportsFromWorkspace } from "./generatedReportHydration";
+import { createCoreReportSnapshotsUpdater } from "./coreReportSnapshotUpdate";
 import {
   createEmptyCoreReportSnapshots,
   type CoreReportSnapshots,
@@ -57,7 +58,6 @@ import {
   parseCoreLintReport,
   parseCoreModelSummary,
   parseCoreRelationshipManifest,
-  parseCoreScenarioRunIndex,
   parseCoreSimulationReport,
 } from "./coreReports";
 import type {
@@ -418,47 +418,15 @@ function App() {
   }
 
   function updateCoreReportSnapshots(result: CoreCommandResult) {
-    const reportContent = result.json_report_content ?? null;
+    const updater = createCoreReportSnapshotsUpdater(
+      result.json_report_content ?? null,
+    );
 
-    if (!reportContent) {
+    if (!updater) {
       return;
     }
 
-    const lintReport = parseCoreLintReport(reportContent);
-    const modelSummary = parseCoreModelSummary(reportContent);
-    const entityIndex = parseCoreEntityIndex(reportContent);
-    const relationshipManifest = parseCoreRelationshipManifest(reportContent);
-    const dashboardSummary = parseCoreDashboardSummary(reportContent);
-    const scenarioRunIndex = parseCoreScenarioRunIndex(reportContent);
-    const coverageSummary = parseCoreCoverageSummary(reportContent);
-    const simulationReport = parseCoreSimulationReport(reportContent);
-
-    if (
-      !lintReport &&
-      !modelSummary &&
-      !entityIndex &&
-      !relationshipManifest &&
-      !dashboardSummary &&
-      !scenarioRunIndex &&
-      !coverageSummary &&
-      !simulationReport
-    ) {
-      return;
-    }
-
-    setCoreReportSnapshots((current) => ({
-      lintReport: lintReport ?? current.lintReport,
-      modelSummary: modelSummary ?? current.modelSummary,
-      entityIndex: entityIndex ?? current.entityIndex,
-      relationshipManifest: relationshipManifest ?? current.relationshipManifest,
-      dashboardSummary: dashboardSummary ?? current.dashboardSummary,
-      scenarioRunIndex: scenarioRunIndex ?? current.scenarioRunIndex,
-      coverageSummary: coverageSummary ?? current.coverageSummary,
-      simulationReport: simulationReport ?? current.simulationReport,
-      simulationReports: simulationReport
-        ? upsertSimulationReport(current.simulationReports, simulationReport)
-        : current.simulationReports,
-    }));
+    setCoreReportSnapshots(updater);
   }
 
   const coreReportContent = coreResult?.json_report_content ?? null;
