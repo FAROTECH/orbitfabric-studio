@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: FAROTECH/orbitfabric
-          ref: 20118154634853115f92f90d685b5044a9bff6a0
+          ref: 47d37ec2c50eae40e13303eea900eb119bd2e0dd
           path: orbitfabric-core
 
       - name: Set up Python
