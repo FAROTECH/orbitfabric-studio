@@ -8,7 +8,9 @@ import {
 } from "./app/studioState";
 import { TauriCoreGateway } from "./core/TauriCoreGateway";
 import { MissionAtlas } from "./features/atlas/MissionAtlas";
+import { EntityExplorer } from "./features/explorer/EntityExplorer";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
+import { EntityXRay } from "./features/xray/EntityXRay";
 import { MissionHydrator, MissionStructuralInvalidError } from "./mission/MissionHydrator";
 
 const CORE_EXECUTABLE_KEY = "orbitfabric-studio.core-executable";
@@ -163,6 +165,7 @@ function App() {
 
   const mission = session.snapshot.mission;
   const isOpeningReplacement = state.opening !== null;
+  const selectedEntity = state.selection.subject;
 
   return (
     <main className="studio-shell">
@@ -177,6 +180,25 @@ function App() {
             </span>
           </div>
         </div>
+
+        <nav className="workspace-nav" aria-label="Mission workspace">
+          <button
+            type="button"
+            className={state.view === "overview" ? "is-active" : ""}
+            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "overview" })}
+          >
+            Overview
+          </button>
+          {session.readiness.entities === "ready" ? (
+            <button
+              type="button"
+              className={state.view === "explore" ? "is-active" : ""}
+              onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" })}
+            >
+              Explore
+            </button>
+          ) : null}
+        </nav>
 
         <div className="topbar-actions">
           <span className="core-version" title={session.core.versionText}>
@@ -201,9 +223,7 @@ function App() {
         </div>
       </header>
 
-      {state.openFailure ? (
-        <ReplacementFailure failure={state.openFailure} />
-      ) : null}
+      {state.openFailure ? <ReplacementFailure failure={state.openFailure} /> : null}
 
       {isOpeningReplacement ? (
         <div className="opening-overlay-status" role="status">
@@ -223,13 +243,49 @@ function App() {
       ) : null}
 
       <section className="studio-main-surface">
-        <MissionAtlas
-          session={session}
-          selectedEntity={state.selection.subject}
-          onSelectEntity={(subject) =>
-            dispatch({ type: "SELECTION_CHANGED", subject, origin: "atlas" })
-          }
-        />
+        <div className={`workspace-layout${selectedEntity ? " has-xray" : ""}`}>
+          <div className="workspace-primary">
+            {state.view === "explore" ? (
+              <EntityExplorer
+                session={session}
+                selectedEntity={selectedEntity}
+                onSelectEntity={(subject) =>
+                  dispatch({ type: "SELECTION_CHANGED", subject, origin: "explorer" })
+                }
+              />
+            ) : (
+              <MissionAtlas
+                session={session}
+                selectedEntity={selectedEntity}
+                onSelectEntity={(subject) =>
+                  dispatch({ type: "SELECTION_CHANGED", subject, origin: "atlas" })
+                }
+              />
+            )}
+          </div>
+
+          {selectedEntity ? (
+            <EntityXRay
+              session={session}
+              subject={selectedEntity}
+              contextPath={state.selection.contextPath}
+              onClose={() =>
+                dispatch({ type: "SELECTION_CHANGED", subject: null, origin: null })
+              }
+              onFollowRelationship={(step) =>
+                dispatch({ type: "CONTEXT_EDGE_FOLLOWED", step, origin: "xray" })
+              }
+              onTruncateContextPath={(subject, length) =>
+                dispatch({
+                  type: "CONTEXT_PATH_TRUNCATED",
+                  subject,
+                  length,
+                  origin: "xray",
+                })
+              }
+            />
+          ) : null}
+        </div>
       </section>
     </main>
   );
