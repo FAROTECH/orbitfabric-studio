@@ -261,7 +261,7 @@ function reconcileSelectionWithPrimary(
   }
 
   return {
-    subject: validPath.at(-1)?.to ?? root,
+    subject: lastPathTarget(validPath, root),
     origin: selection.origin,
     contextPath: validPath,
   };
@@ -287,10 +287,14 @@ function reconcileSelectionWithRelationships(
   }
 
   return {
-    subject: validPath.at(-1)?.to ?? root,
+    subject: lastPathTarget(validPath, root),
     origin: selection.origin,
     contextPath: validPath,
   };
+}
+
+function lastPathTarget(path: readonly ContextPathStep[], fallback: EntityRef): EntityRef {
+  return path.length > 0 ? path[path.length - 1].to : fallback;
 }
 
 function relationshipMatchesStep(
