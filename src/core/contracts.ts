@@ -1,9 +1,6 @@
 export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue =
-  | JsonPrimitive
-  | JsonObject
-  | JsonValue[];
-export type JsonObject = { [key: string]: JsonValue };
+export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
+export type JsonObject = { [key: string]: JsonValue | undefined };
 
 export interface MissionSource {
   selectedPath: string;
@@ -45,17 +42,18 @@ export interface CoreDiagnosticDto {
   suggestion: string | null;
 }
 
-export interface MissionContractObject extends JsonObject {
+export interface MissionContractObject {
   id: string;
   name?: string;
   description?: string;
+  [key: string]: JsonValue | undefined;
 }
 
 export interface SpacecraftContractDto extends MissionContractObject {
   model_version: string;
 }
 
-export interface MissionModelDto extends JsonObject {
+export interface MissionModelDto {
   spacecraft: SpacecraftContractDto;
   subsystems: MissionContractObject[];
   modes: Record<string, JsonObject>;
@@ -103,7 +101,6 @@ export interface EntityIndexDto {
   orbitfabric_version: string;
   mission: MissionIdentityDto;
   entities: EntityIndexRecordDto[];
-  [key: string]: JsonValue;
 }
 
 export interface RelationshipEndpointDto {
@@ -127,7 +124,6 @@ export interface RelationshipManifestDto {
   orbitfabric_version: string;
   mission: MissionIdentityDto;
   relationships: RelationshipRecordDto[];
-  [key: string]: JsonValue;
 }
 
 export interface LintFindingDto {
@@ -152,5 +148,4 @@ export interface LintReportDto {
     info: number;
   };
   findings: LintFindingDto[];
-  [key: string]: JsonValue;
 }
