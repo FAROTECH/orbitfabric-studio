@@ -1,4 +1,9 @@
-import type { CoreDiagnosticDto, EntityIndexDto, LintReportDto, RelationshipManifestDto } from "../core/contracts";
+import type {
+  CoreDiagnosticDto,
+  EntityIndexDto,
+  LintReportDto,
+  RelationshipManifestDto,
+} from "../core/contracts";
 import type { EntityRef } from "../mission/entityRef";
 import {
   type MissionSession,
@@ -10,6 +15,7 @@ import {
 } from "../mission/MissionSession";
 import {
   emptyStudioSelection,
+  type ContextPathStep,
   type SelectionOrigin,
   type StudioSelection,
 } from "../mission/selection";
@@ -75,6 +81,17 @@ export type StudioAction =
       type: "SELECTION_CHANGED";
       subject: EntityRef | null;
       origin: SelectionOrigin | null;
+    }
+  | {
+      type: "CONTEXT_EDGE_FOLLOWED";
+      step: ContextPathStep;
+      origin: SelectionOrigin;
+    }
+  | {
+      type: "CONTEXT_PATH_TRUNCATED";
+      subject: EntityRef;
+      length: number;
+      origin: SelectionOrigin;
     }
   | {
       type: "WORKSPACE_VIEW_CHANGED";
@@ -153,6 +170,26 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           subject: action.subject,
           origin: action.origin,
           contextPath: [],
+        },
+      };
+
+    case "CONTEXT_EDGE_FOLLOWED":
+      return {
+        ...state,
+        selection: {
+          subject: action.step.to,
+          origin: action.origin,
+          contextPath: [...state.selection.contextPath, action.step],
+        },
+      };
+
+    case "CONTEXT_PATH_TRUNCATED":
+      return {
+        ...state,
+        selection: {
+          subject: action.subject,
+          origin: action.origin,
+          contextPath: state.selection.contextPath.slice(0, action.length),
         },
       };
 
