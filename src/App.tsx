@@ -10,6 +10,7 @@ import { TauriCoreGateway } from "./core/TauriCoreGateway";
 import { MissionAtlas } from "./features/atlas/MissionAtlas";
 import { EntityExplorer } from "./features/explorer/EntityExplorer";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
+import { RelationsWorkspace } from "./features/relationships/RelationsWorkspace";
 import { EntityXRay } from "./features/xray/EntityXRay";
 import { MissionHydrator, MissionStructuralInvalidError } from "./mission/MissionHydrator";
 
@@ -198,6 +199,15 @@ function App() {
               Explore
             </button>
           ) : null}
+          {session.readiness.relationships === "ready" ? (
+            <button
+              type="button"
+              className={state.view === "relations" ? "is-active" : ""}
+              onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "relations" })}
+            >
+              Relations
+            </button>
+          ) : null}
         </nav>
 
         <div className="topbar-actions">
@@ -251,6 +261,26 @@ function App() {
                 selectedEntity={selectedEntity}
                 onSelectEntity={(subject) =>
                   dispatch({ type: "SELECTION_CHANGED", subject, origin: "explorer" })
+                }
+              />
+            ) : state.view === "relations" ? (
+              <RelationsWorkspace
+                session={session}
+                subject={selectedEntity}
+                contextPath={state.selection.contextPath}
+                onFollow={(step) =>
+                  dispatch({ type: "CONTEXT_EDGE_FOLLOWED", step, origin: "context-map" })
+                }
+                onNavigateMap={(subject, path) =>
+                  dispatch({
+                    type: "CONTEXT_PATH_REPLACED",
+                    subject,
+                    path,
+                    origin: "context-map",
+                  })
+                }
+                onOpenExplore={() =>
+                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" })
                 }
               />
             ) : (
