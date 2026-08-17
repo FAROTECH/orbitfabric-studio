@@ -1,5 +1,12 @@
+@media (max-width: 1100px) {
+  .workspace-layout.has-xray {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
 @media (max-width: 980px) {
-  .atlas {
+  .atlas,
+  .entity-explorer {
     padding: var(--space-6) var(--space-5);
   }
 
@@ -14,12 +21,31 @@
     max-width: 720px;
   }
 
-  .studio-wordmark {
+  .studio-wordmark,
+  .core-version {
     display: none;
   }
 
-  .core-version {
+  .explorer-controls {
+    grid-template-columns: minmax(220px, 1fr) 200px;
+  }
+
+  .entity-row {
+    grid-template-columns: 120px minmax(0, 1fr) 120px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-layout.has-xray {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-layout.has-xray > .workspace-primary {
     display: none;
+  }
+
+  .entity-xray {
+    border-left: 0;
   }
 }
 
@@ -65,8 +91,17 @@
     padding: 0 var(--space-3);
   }
 
-  .mission-title span {
-    max-width: 52vw;
+  .mission-title-block {
+    display: none;
+  }
+
+  .workspace-nav {
+    min-width: 0;
+  }
+
+  .workspace-nav button {
+    padding: 0 9px;
+    font-size: 11px;
   }
 
   .topbar-actions {
@@ -74,8 +109,8 @@
   }
 
   .secondary-action {
-    padding: 7px 9px;
-    font-size: 12px;
+    padding: 7px 8px;
+    font-size: 11px;
   }
 
   .replacement-failure,
@@ -90,7 +125,8 @@
     margin-left: 0;
   }
 
-  .atlas {
+  .atlas,
+  .entity-explorer {
     padding: var(--space-5) var(--space-4);
   }
 
@@ -120,6 +156,43 @@
     left: var(--space-3);
     right: var(--space-3);
     text-align: center;
+  }
+
+  .explorer-header {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .explorer-count {
+    justify-self: start;
+  }
+
+  .explorer-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .entity-row {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .entity-domain {
+    display: none;
+  }
+
+  .xray-header,
+  .xray-section {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .context-path {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .property-row {
+    grid-template-columns: 106px minmax(0, 1fr);
   }
 }
 
