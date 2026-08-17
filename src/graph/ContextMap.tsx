@@ -1,4 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Background,
+  Controls,
+  Handle,
+  MarkerType,
+  Position,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
+  type Edge,
+  type Node,
+  type NodeProps,
+  type NodeTypes,
+} from "@xyflow/react";
 
 import { entityKey, type EntityKey, type EntityRef } from "../mission/entityRef";
 import type { MissionSession } from "../mission/MissionSession";
@@ -10,8 +24,13 @@ import {
   findContextPath,
   initialContextExpansion,
   type ContextGraphModel,
-  type ContextGraphNode,
 } from "./contextGraphModel";
+import {
+  CONTEXT_NODE_HEIGHT,
+  CONTEXT_NODE_WIDTH,
+  layoutContextGraph,
+  type ContextGraphLayout,
+} from "./contextGraphLayout";
 
 interface ContextMapProps {
   session: MissionSession;
@@ -21,25 +40,33 @@ interface ContextMapProps {
   onNavigate: (subject: EntityRef, path: readonly ContextPathStep[]) => void;
 }
 
-interface PositionedNode extends ContextGraphNode {
-  x: number;
-  y: number;
+type ContextNodeData = Record<string, unknown> & {
+  entity: EntityRef;
+  entityType: string;
+  displayName: string;
+  root: boolean;
+  current: boolean;
+  expandable: boolean;
+  expanded: boolean;
+  onSelect: () => void;
+  onExpand: () => void;
+};
+
+type ContextFlowNode = Node<ContextNodeData, "context">;
+
+const nodeTypes: NodeTypes = {
+  context: ContextFlowNodeView,
+};
+
+export function ContextMap(props: ContextMapProps) {
+  return (
+    <ReactFlowProvider>
+      <ContextMapInner {...props} />
+    </ReactFlowProvider>
+  );
 }
 
-interface GraphLayout {
-  width: number;
-  height: number;
-  nodes: readonly PositionedNode[];
-  positions: ReadonlyMap<EntityKey, PositionedNode>;
-}
-
-const NODE_WIDTH = 174;
-const NODE_HEIGHT = 68;
-const RING_GAP = 190;
-const CANVAS_PADDING = 130;
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-
-export function ContextMap({
+function ContextMapInner({
   session,
   root,
   current,
@@ -50,9 +77,13 @@ export function ContextMap({
   const [expanded, setExpanded] = useState<ReadonlySet<EntityKey>>(() =>
     minimumExpansionForPath(root, contextPath),
   );
+  const [layout, setLayout] = useState<ContextGraphLayout | null>(null);
+  const [layoutPending, setLayoutPending] = useState(true);
+  const [layoutError, setLayoutError] = useState<string | null>(null);
 
   useEffect(() => {
     setExpanded(minimumExpansionForPath(root, contextPath));
+    setLayout(null);
   }, [rootKey, session.sessionId]);
 
   useEffect(() => {
@@ -71,10 +102,128 @@ export function ContextMap({
     () => buildContextGraphModel(session, root, expanded),
     [expanded, root, session],
   );
-  const layout = useMemo(() => layoutContextGraph(model), [model]);
   const visibleKeys = useMemo(
     () => new Set(model.nodes.map((node) => node.key)),
     [model.nodes],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    setLayoutPending(true);
+    setLayoutError(null);
+
+    layoutContextGraph(model)
+      .then((nextLayout) => {
+        if (cancelled) {
+          return;
+        }
+        setLayout(nextLayout);
+        setLayoutPending(false);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        setLayoutPending(false);
+        setLayoutError(error instanceof Error ? error.message : String(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [model]);
+
+  const nodes = useMemo<ContextFlowNode[]>(() => {
+    if (!layout) {
+      return [];
+    }
+
+    const result: ContextFlowNode[] = [];
+    for (const node of model.nodes) {
+      const position = layout.positions.get(node.key);
+      if (!position) {
+        continue;
+      }
+
+      const record = session.readModel.entityRecordsByKey.get(node.key);
+      result.push({
+        id: node.key,
+        type: "context",
+        position,
+        draggable: false,
+        selectable: false,
+        focusable: false,
+        style: {
+          width: CONTEXT_NODE_WIDTH,
+          height: CONTEXT_NODE_HEIGHT,
+        },
+        data: {
+          entity: node.entity,
+          entityType: record?.entity_type ?? node.entity.domain,
+          displayName: record?.display_name ?? node.entity.id,
+          root: rootKey === node.key,
+          current: entityKey(current) === node.key,
+          expanded: expanded.has(node.key),
+          expandable: hasHiddenNeighbor(session, node.entity, visibleKeys),
+          onSelect: () => {
+            const path = findContextPath(model, node.entity);
+            if (path !== null) {
+              onNavigate(node.entity, path);
+            }
+          },
+          onExpand: () => {
+            setExpanded((currentExpanded) =>
+              expandContextEntity(currentExpanded, node.entity),
+            );
+          },
+        },
+      });
+    }
+
+    return result;
+  }, [
+    current,
+    expanded,
+    layout,
+    model,
+    onNavigate,
+    rootKey,
+    session,
+    visibleKeys,
+  ]);
+
+  const nodeIds = useMemo(() => new Set(nodes.map((node) => node.id)), [nodes]);
+  const edges = useMemo<Edge[]>(
+    () =>
+      model.edges
+        .filter(
+          (edge) =>
+            nodeIds.has(entityKey(edge.source)) && nodeIds.has(entityKey(edge.target)),
+        )
+        .map((edge) => {
+          const presentation = relationshipPresentation(edge.relationshipType);
+          const inPath = contextPath.some(
+            (step) => step.relationshipId === edge.relationshipId,
+          );
+
+          return {
+            id: edge.relationshipId,
+            source: entityKey(edge.source),
+            target: entityKey(edge.target),
+            sourceHandle: "out",
+            targetHandle: "in",
+            type: "smoothstep",
+            label: presentation?.forwardLabel ?? edge.relationshipType,
+            className: inPath ? "is-in-path" : undefined,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+            data: {
+              relationshipType: edge.relationshipType,
+            },
+          };
+        }),
+    [contextPath, model.edges, nodeIds],
   );
 
   return (
@@ -101,95 +250,25 @@ export function ContextMap({
         </div>
       </header>
 
-      <div className="context-map-canvas" tabIndex={0}>
-        <svg
-          viewBox={`0 0 ${layout.width} ${layout.height}`}
-          role="img"
-          aria-label={`Relationship context around ${displayName(session, root)}`}
-        >
-          <defs>
-            <marker
-              id="context-arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" className="context-arrow-marker" />
-            </marker>
-          </defs>
+      <div className="context-map-canvas">
+        {layoutError ? (
+          <div className="context-map-layout-error" role="status">
+            Context layout failed: {layoutError}
+          </div>
+        ) : null}
 
-          <g className="context-map-edges">
-            {model.edges.map((edge) => {
-              const source = layout.positions.get(entityKey(edge.source));
-              const target = layout.positions.get(entityKey(edge.target));
-              if (!source || !target) {
-                return null;
-              }
+        <ContextFlowCanvas
+          sessionId={session.sessionId}
+          rootKey={rootKey}
+          nodes={nodes}
+          edges={edges}
+        />
 
-              const geometry = edgeGeometry(source, target);
-              const presentation = relationshipPresentation(edge.relationshipType);
-              const label = presentation?.forwardLabel ?? edge.relationshipType;
-              const inPath = contextPath.some(
-                (step) => step.relationshipId === edge.relationshipId,
-              );
-
-              return (
-                <g
-                  key={edge.relationshipId}
-                  className={`context-map-edge${inPath ? " is-in-path" : ""}`}
-                >
-                  <line
-                    x1={geometry.x1}
-                    y1={geometry.y1}
-                    x2={geometry.x2}
-                    y2={geometry.y2}
-                    markerEnd="url(#context-arrow)"
-                  />
-                  <foreignObject
-                    x={geometry.labelX - 70}
-                    y={geometry.labelY - 13}
-                    width="140"
-                    height="26"
-                    className="context-edge-label-object"
-                  >
-                    <div className="context-edge-label" title={edge.relationshipType}>
-                      {label}
-                    </div>
-                  </foreignObject>
-                </g>
-              );
-            })}
-          </g>
-
-          <g className="context-map-nodes">
-            {layout.nodes.map((node) => (
-              <ContextMapNode
-                key={node.key}
-                session={session}
-                node={node}
-                model={model}
-                current={entityKey(current) === node.key}
-                root={rootKey === node.key}
-                expanded={expanded.has(node.key)}
-                expandable={hasHiddenNeighbor(session, node.entity, visibleKeys)}
-                onSelect={() => {
-                  const path = findContextPath(model, node.entity);
-                  if (path !== null) {
-                    onNavigate(node.entity, path);
-                  }
-                }}
-                onExpand={() =>
-                  setExpanded((currentExpanded) =>
-                    expandContextEntity(currentExpanded, node.entity),
-                  )
-                }
-              />
-            ))}
-          </g>
-        </svg>
+        {layoutPending ? (
+          <div className="context-map-layout-status" aria-live="polite">
+            Arranging context…
+          </div>
+        ) : null}
       </div>
 
       <footer className="context-map-footer">
@@ -205,69 +284,108 @@ export function ContextMap({
   );
 }
 
-function ContextMapNode({
-  session,
-  node,
-  current,
-  root,
-  expanded,
-  expandable,
-  onSelect,
-  onExpand,
+function ContextFlowCanvas({
+  sessionId,
+  rootKey,
+  nodes,
+  edges,
 }: {
-  session: MissionSession;
-  node: PositionedNode;
-  model: ContextGraphModel;
-  current: boolean;
-  root: boolean;
-  expanded: boolean;
-  expandable: boolean;
-  onSelect: () => void;
-  onExpand: () => void;
+  sessionId: string;
+  rootKey: EntityKey;
+  nodes: readonly ContextFlowNode[];
+  edges: readonly Edge[];
 }) {
-  const record = session.readModel.entityRecordsByKey.get(node.key);
+  const { fitView } = useReactFlow();
+  const fittedKey = useRef<string | null>(null);
+  const fitKey = `${sessionId}:${rootKey}`;
+
+  useEffect(() => {
+    if (nodes.length === 0 || fittedKey.current === fitKey) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      void fitView({ padding: 0.2, duration: 220 });
+      fittedKey.current = fitKey;
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [fitKey, fitView, nodes.length]);
+
+  return (
+    <ReactFlow
+      className="context-flow"
+      nodes={[...nodes]}
+      edges={[...edges]}
+      nodeTypes={nodeTypes}
+      nodesDraggable={false}
+      nodesConnectable={false}
+      elementsSelectable={false}
+      nodesFocusable={false}
+      edgesFocusable={false}
+      zoomOnDoubleClick={false}
+      zoomOnScroll={false}
+      panOnScroll={false}
+      minZoom={0.25}
+      maxZoom={1.8}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Background gap={28} size={0.8} />
+      <Controls showInteractive={false} position="bottom-left" />
+    </ReactFlow>
+  );
+}
+
+function ContextFlowNodeView({ data }: NodeProps<ContextFlowNode>) {
   const classes = [
     "context-node",
-    root ? "is-root" : "",
-    current ? "is-current" : "",
+    data.root ? "is-root" : "",
+    data.current ? "is-current" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <foreignObject
-      x={node.x - NODE_WIDTH / 2}
-      y={node.y - NODE_HEIGHT / 2}
-      width={NODE_WIDTH}
-      height={NODE_HEIGHT}
-      className="context-node-object"
-    >
-      <div className={classes}>
+    <div className={classes}>
+      <Handle
+        id="in"
+        type="target"
+        position={Position.Left}
+        className="context-flow-handle"
+        isConnectable={false}
+      />
+      <button
+        type="button"
+        className="context-node-main nodrag nopan"
+        onClick={data.onSelect}
+        title={`${data.entity.domain}:${data.entity.id}`}
+      >
+        <span className="context-node-type">{humanize(data.entityType)}</span>
+        <strong>{data.displayName}</strong>
+        <code>{data.entity.id}</code>
+      </button>
+      {data.expandable ? (
         <button
           type="button"
-          className="context-node-main"
-          onClick={onSelect}
-          title={`${node.entity.domain}:${node.entity.id}`}
+          className="context-node-expand nodrag nopan"
+          onClick={(event) => {
+            event.stopPropagation();
+            data.onExpand();
+          }}
+          aria-label={`Expand context around ${data.displayName}`}
+          title={data.expanded ? "Expand further if new relationships become available" : "Expand context"}
         >
-          <span className="context-node-type">
-            {humanize(record?.entity_type ?? node.entity.domain)}
-          </span>
-          <strong>{record?.display_name ?? node.entity.id}</strong>
-          <code>{node.entity.id}</code>
+          +
         </button>
-        {expandable ? (
-          <button
-            type="button"
-            className="context-node-expand"
-            onClick={onExpand}
-            aria-label={`Expand context around ${record?.display_name ?? node.entity.id}`}
-            title={expanded ? "Expand further if new relationships become available" : "Expand context"}
-          >
-            +
-          </button>
-        ) : null}
-      </div>
-    </foreignObject>
+      ) : null}
+      <Handle
+        id="out"
+        type="source"
+        position={Position.Right}
+        className="context-flow-handle"
+        isConnectable={false}
+      />
+    </div>
   );
 }
 
@@ -281,72 +399,6 @@ function minimumExpansionForPath(
     next.add(entityKey(step.to));
   }
   return next;
-}
-
-function layoutContextGraph(model: ContextGraphModel): GraphLayout {
-  const maxDepth = model.nodes.reduce(
-    (maximum, node) =>
-      Number.isFinite(node.depth) ? Math.max(maximum, node.depth) : maximum,
-    0,
-  );
-  const radius = Math.max(RING_GAP, maxDepth * RING_GAP);
-  const width = Math.max(900, radius * 2 + CANVAS_PADDING * 2 + NODE_WIDTH);
-  const height = Math.max(620, radius * 2 + CANVAS_PADDING * 2 + NODE_HEIGHT);
-  const centerX = width / 2;
-  const centerY = height / 2;
-
-  const depthCounts = new Map<number, number>();
-  const nodes: PositionedNode[] = [];
-
-  for (const node of model.nodes) {
-    if (node.depth === 0) {
-      nodes.push({ ...node, x: centerX, y: centerY });
-      continue;
-    }
-
-    const depth = Number.isFinite(node.depth) ? node.depth : maxDepth + 1;
-    const index = depthCounts.get(depth) ?? 0;
-    depthCounts.set(depth, index + 1);
-
-    const angle = index * GOLDEN_ANGLE + depth * 0.53;
-    const nodeRadius = RING_GAP * depth;
-    nodes.push({
-      ...node,
-      x: centerX + Math.cos(angle) * nodeRadius,
-      y: centerY + Math.sin(angle) * nodeRadius,
-    });
-  }
-
-  return {
-    width,
-    height,
-    nodes,
-    positions: new Map(nodes.map((node) => [node.key, node])),
-  };
-}
-
-function edgeGeometry(source: PositionedNode, target: PositionedNode) {
-  const dx = target.x - source.x;
-  const dy = target.y - source.y;
-  const distance = Math.max(1, Math.hypot(dx, dy));
-  const ux = dx / distance;
-  const uy = dy / distance;
-  const sourcePadding = Math.min(NODE_WIDTH, NODE_HEIGHT) * 0.58;
-  const targetPadding = Math.min(NODE_WIDTH, NODE_HEIGHT) * 0.65;
-
-  const x1 = source.x + ux * sourcePadding;
-  const y1 = source.y + uy * sourcePadding;
-  const x2 = target.x - ux * targetPadding;
-  const y2 = target.y - uy * targetPadding;
-
-  return {
-    x1,
-    y1,
-    x2,
-    y2,
-    labelX: (x1 + x2) / 2,
-    labelY: (y1 + y2) / 2,
-  };
 }
 
 function hasHiddenNeighbor(
