@@ -4,7 +4,7 @@ import type {
   LintReportDto,
   RelationshipManifestDto,
 } from "../core/contracts";
-import type { EntityRef } from "../mission/entityRef";
+import { sameEntity, type EntityRef } from "../mission/entityRef";
 import {
   type MissionSession,
   type SecondarySurfaceName,
@@ -13,6 +13,7 @@ import {
   withRelationships,
   withSecondaryFailure,
 } from "../mission/MissionSession";
+import { resolveEntityContract } from "../mission/resolveEntityContract";
 import {
   emptyStudioSelection,
   type ContextPathStep,
@@ -134,7 +135,9 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         activeSession: action.session,
         opening: null,
         openFailure: null,
-        selection: replacingSameMission ? state.selection : emptyStudioSelection(),
+        selection: replacingSameMission
+          ? reconcileSelectionWithPrimary(state.selection, action.session)
+          : emptyStudioSelection(),
         view: replacingSameMission ? state.view : "overview",
       };
     }
@@ -154,10 +157,18 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         withEntityIndex(session, action.entityIndex),
       );
 
-    case "MISSION_RELATIONSHIPS_READY":
-      return updateActiveSession(state, action.sessionId, (session) =>
-        withRelationships(session, action.relationships),
-      );
+    case "MISSION_RELATIONSHIPS_READY": {
+      if (state.activeSession?.sessionId !== action.sessionId) {
+        return state;
+      }
+
+      const session = withRelationships(state.activeSession, action.relationships);
+      return {
+        ...state,
+        activeSession: session,
+        selection: reconcileSelectionWithRelationships(state.selection, session),
+      };
+    }
 
     case "MISSION_LINT_READY":
       return updateActiveSession(state, action.sessionId, (session) =>
@@ -215,6 +226,82 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         view: action.view,
       };
   }
+}
+
+function reconcileSelectionWithPrimary(
+  selection: StudioSelection,
+  session: MissionSession,
+): StudioSelection {
+  if (selection.subject === null) {
+    return selection;
+  }
+
+  if (resolveEntityContract(session.snapshot, selection.subject) === null) {
+    return emptyStudioSelection();
+  }
+
+  if (selection.contextPath.length === 0) {
+    return selection;
+  }
+
+  const root = selection.contextPath[0].from;
+  if (resolveEntityContract(session.snapshot, root) === null) {
+    return emptyStudioSelection();
+  }
+
+  const validPath: ContextPathStep[] = [];
+  for (const step of selection.contextPath) {
+    if (
+      resolveEntityContract(session.snapshot, step.from) === null ||
+      resolveEntityContract(session.snapshot, step.to) === null
+    ) {
+      break;
+    }
+    validPath.push(step);
+  }
+
+  return {
+    subject: validPath.at(-1)?.to ?? root,
+    origin: selection.origin,
+    contextPath: validPath,
+  };
+}
+
+function reconcileSelectionWithRelationships(
+  selection: StudioSelection,
+  session: MissionSession,
+): StudioSelection {
+  if (selection.subject === null || selection.contextPath.length === 0) {
+    return selection;
+  }
+
+  const root = selection.contextPath[0].from;
+  const validPath: ContextPathStep[] = [];
+
+  for (const step of selection.contextPath) {
+    const relationship = session.readModel.relationshipsById.get(step.relationshipId);
+    if (!relationship || !relationshipMatchesStep(relationship, step)) {
+      break;
+    }
+    validPath.push(step);
+  }
+
+  return {
+    subject: validPath.at(-1)?.to ?? root,
+    origin: selection.origin,
+    contextPath: validPath,
+  };
+}
+
+function relationshipMatchesStep(
+  relationship: RelationshipManifestDto["relationships"][number],
+  step: ContextPathStep,
+): boolean {
+  if (step.direction === "forward") {
+    return sameEntity(relationship.from, step.from) && sameEntity(relationship.to, step.to);
+  }
+
+  return sameEntity(relationship.to, step.from) && sameEntity(relationship.from, step.to);
 }
 
 function updateActiveSession(
