@@ -88,6 +88,12 @@ export type StudioAction =
       origin: SelectionOrigin;
     }
   | {
+      type: "CONTEXT_PATH_REPLACED";
+      subject: EntityRef;
+      path: readonly ContextPathStep[];
+      origin: SelectionOrigin;
+    }
+  | {
       type: "CONTEXT_PATH_TRUNCATED";
       subject: EntityRef;
       length: number;
@@ -180,6 +186,16 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           subject: action.step.to,
           origin: action.origin,
           contextPath: [...state.selection.contextPath, action.step],
+        },
+      };
+
+    case "CONTEXT_PATH_REPLACED":
+      return {
+        ...state,
+        selection: {
+          subject: action.subject,
+          origin: action.origin,
+          contextPath: [...action.path],
         },
       };
 
