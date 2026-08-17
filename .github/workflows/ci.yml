@@ -45,3 +45,77 @@ jobs:
 
       - name: Cargo check
         run: cargo check --locked --manifest-path src-tauri/Cargo.toml
+
+  core-contract:
+    name: Pinned Core contract smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Studio
+        uses: actions/checkout@v4
+
+      - name: Checkout OrbitFabric Core integration baseline
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: 20118154634853115f92f90d685b5044a9bff6a0
+          path: orbitfabric-core
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned Core
+        run: python -m pip install -e ./orbitfabric-core
+
+      - name: Export Studio-required Core surfaces
+        run: |
+          orbitfabric export mission-snapshot orbitfabric-core/examples/demo-3u/mission \
+            --json /tmp/mission_snapshot.json
+          orbitfabric export entity-index orbitfabric-core/examples/demo-3u/mission \
+            --json /tmp/entity_index.json
+          orbitfabric export relationship-manifest orbitfabric-core/examples/demo-3u/mission \
+            --json /tmp/relationship_manifest.json
+          orbitfabric lint orbitfabric-core/examples/demo-3u/mission \
+            --json /tmp/lint_report.json
+
+      - name: Assert C1 and C4 integration contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          snapshot = json.loads(Path('/tmp/mission_snapshot.json').read_text())
+          entities = json.loads(Path('/tmp/entity_index.json').read_text())
+          relationships = json.loads(Path('/tmp/relationship_manifest.json').read_text())
+          lint = json.loads(Path('/tmp/lint_report.json').read_text())
+
+          assert snapshot['kind'] == 'orbitfabric.mission_snapshot'
+          assert snapshot['snapshot_version'] == '0.1-candidate'
+          assert snapshot['result'] == 'loaded'
+          assert snapshot['model'] is not None
+
+          assert entities['kind'] == 'orbitfabric.entity_index'
+          assert entities['index_version'] == '0.1'
+
+          assert relationships['kind'] == 'orbitfabric.relationship_manifest'
+          assert relationships['manifest_version'] == '0.1-candidate'
+          assert relationships['counts']['total_relationships'] == 63
+
+          required_fdir = {
+              'fault_observes_telemetry',
+              'fault_recovery_targets_mode',
+              'fault_recovery_dispatches_command',
+              'autonomous_action_triggered_by_fault',
+              'autonomous_action_uses_command_source',
+              'recovery_intent_targets_mode',
+              'recovery_intent_includes_command',
+          }
+          emitted = set(relationships['counts']['relationship_types'])
+          assert required_fdir <= emitted
+
+          assert lint['tool'] == 'orbitfabric-lint'
+          assert lint['mission'] == snapshot['mission']['id']
+          assert entities['mission']['id'] == snapshot['mission']['id']
+          assert relationships['mission']['id'] == snapshot['mission']['id']
+          PY
