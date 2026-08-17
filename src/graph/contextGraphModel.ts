@@ -1,6 +1,7 @@
 import type { RelationshipRecordDto } from "../core/contracts";
 import { entityKey, type EntityKey, type EntityRef } from "../mission/entityRef";
 import type { MissionSession } from "../mission/MissionSession";
+import type { ContextPathStep } from "../mission/selection";
 
 export interface ContextGraphNode {
   entity: EntityRef;
@@ -88,6 +89,94 @@ export function expandContextEntity(
   const next = new Set(expanded);
   next.add(entityKey(entity));
   return next;
+}
+
+/**
+ * Return one shortest traversal path through the currently visible Core relationships.
+ *
+ * This is presentation/navigation state only. It does not assert a new causal or semantic
+ * relationship between the first and last entity in the path.
+ */
+export function findContextPath(
+  model: ContextGraphModel,
+  target: EntityRef,
+): ContextPathStep[] | null {
+  const rootKey = entityKey(model.root);
+  const targetKey = entityKey(target);
+
+  if (rootKey === targetKey) {
+    return [];
+  }
+
+  interface Traversal {
+    neighbor: EntityRef;
+    step: ContextPathStep;
+  }
+
+  const adjacency = new Map<EntityKey, Traversal[]>();
+
+  for (const node of model.nodes) {
+    adjacency.set(node.key, []);
+  }
+
+  for (const edge of model.edges) {
+    const sourceKey = entityKey(edge.source);
+    const targetEdgeKey = entityKey(edge.target);
+
+    adjacency.get(sourceKey)?.push({
+      neighbor: edge.target,
+      step: {
+        relationshipId: edge.relationshipId,
+        from: edge.source,
+        to: edge.target,
+        direction: "forward",
+      },
+    });
+
+    adjacency.get(targetEdgeKey)?.push({
+      neighbor: edge.source,
+      step: {
+        relationshipId: edge.relationshipId,
+        from: edge.target,
+        to: edge.source,
+        direction: "inverse",
+      },
+    });
+  }
+
+  const visited = new Set<EntityKey>([rootKey]);
+  const queue: { entity: EntityRef; path: ContextPathStep[] }[] = [
+    { entity: model.root, path: [] },
+  ];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current) {
+      break;
+    }
+
+    const currentKey = entityKey(current.entity);
+    const traversals = [...(adjacency.get(currentKey) ?? [])].sort((left, right) =>
+      left.step.relationshipId.localeCompare(right.step.relationshipId),
+    );
+
+    for (const traversal of traversals) {
+      const neighborKey = entityKey(traversal.neighbor);
+      if (visited.has(neighborKey)) {
+        continue;
+      }
+
+      const nextPath = [...current.path, traversal.step];
+      if (neighborKey === targetKey) {
+        return nextPath;
+      }
+
+      visited.add(neighborKey);
+      queue.push({ entity: traversal.neighbor, path: nextPath });
+    }
+  }
+
+  return null;
 }
 
 function addRelationship(
