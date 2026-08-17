@@ -1,0 +1,135 @@
+@media (max-width: 980px) {
+  .atlas {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .atlas-hero,
+  .section-heading,
+  .territory {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .atlas-purpose {
+    max-width: 720px;
+  }
+
+  .studio-wordmark {
+    display: none;
+  }
+
+  .core-version {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  :root {
+    --topbar-height: 56px;
+  }
+
+  .launcher-shell {
+    display: block;
+    padding: 0;
+    background: var(--bg-canvas);
+  }
+
+  .launcher-panel {
+    width: 100%;
+    min-height: 100%;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: var(--space-3);
+    padding: var(--space-8) var(--space-5);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .launcher-mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .launcher-open,
+  .open-failure,
+  .launcher-recents,
+  .launcher-integration {
+    grid-column: 1 / -1;
+  }
+
+  .launcher-open {
+    width: 100%;
+  }
+
+  .studio-topbar {
+    padding: 0 var(--space-3);
+  }
+
+  .mission-title span {
+    max-width: 52vw;
+  }
+
+  .topbar-actions {
+    gap: var(--space-1);
+  }
+
+  .secondary-action {
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .replacement-failure,
+  .diagnostic-summary {
+    margin: var(--space-2) var(--space-3) 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .replacement-failure small,
+  .diagnostic-summary small {
+    margin-left: 0;
+  }
+
+  .atlas {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .atlas-hero {
+    padding-bottom: var(--space-6);
+  }
+
+  .atlas-section {
+    padding: var(--space-6) 0;
+  }
+
+  .participant-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .territory ul {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .hydration-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .opening-overlay-status {
+    left: var(--space-3);
+    right: var(--space-3);
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
