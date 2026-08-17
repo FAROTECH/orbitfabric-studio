@@ -48,11 +48,11 @@ export function ContextMap({
 }: ContextMapProps) {
   const rootKey = entityKey(root);
   const [expanded, setExpanded] = useState<ReadonlySet<EntityKey>>(() =>
-    initialContextExpansion(root),
+    minimumExpansionForPath(root, contextPath),
   );
 
   useEffect(() => {
-    setExpanded(initialContextExpansion(root));
+    setExpanded(minimumExpansionForPath(root, contextPath));
   }, [rootKey, session.sessionId]);
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export function ContextMap({
           <button
             type="button"
             className="secondary-action"
-            onClick={() => setExpanded(initialContextExpansion(root))}
+            onClick={() => setExpanded(minimumExpansionForPath(root, contextPath))}
           >
             Reset map
           </button>
@@ -269,6 +269,18 @@ function ContextMapNode({
       </div>
     </foreignObject>
   );
+}
+
+function minimumExpansionForPath(
+  root: EntityRef,
+  contextPath: readonly ContextPathStep[],
+): ReadonlySet<EntityKey> {
+  const next = new Set(initialContextExpansion(root));
+  for (const step of contextPath) {
+    next.add(entityKey(step.from));
+    next.add(entityKey(step.to));
+  }
+  return next;
 }
 
 function layoutContextGraph(model: ContextGraphModel): GraphLayout {
