@@ -76,7 +76,7 @@ Explicitly deferred:
 - [x] Core child process has a bounded timeout (10 s version probe, 60 s mission operations).
 - [x] Timed-out Core child is terminated and reaped.
 - [x] Timeout behavior is covered by automated Rust tests.
-- [ ] Temporary request cleanup is verified on normal and failed paths.
+- [x] Temporary request cleanup is verified directly in Rust and on primary-open failure paths.
 
 ## Gate C — Automated acceptance
 
@@ -87,16 +87,16 @@ Explicitly deferred:
 - [x] Core acceptance matrix covers demo-3u + FINCH + SpaceLab automatically.
 - [x] SpaceLab assertion verifies that `payloads: []` is accepted as normal mission content.
 - [x] FINCH assertion verifies same textual ID in multiple domains remains valid input.
-- [ ] Pure Studio tests cover at minimum EntityRef identity, Context Path behavior, refresh reconciliation and graph expansion/reset.
+- [x] Pure Studio tests cover domain-qualified EntityRef identity, Context Path/graph expansion separation and refresh reconciliation.
 - [ ] Visual acceptance baseline exists for Overview / Explore+X-Ray / Context Map at representative viewport sizes.
 
 ## Gate D — Release hygiene
 
 - [x] README describes the rebooted Studio rather than the historical E28/E34 product.
 - [x] PR #318 description reflects the current React Flow + ELK Context Map and current release state.
-- [ ] Old active-runtime dependencies are removed when no longer used (Monaco is a release-audit candidate).
-- [ ] `npm audit` findings are reviewed individually; no blind `--force` upgrade.
-- [ ] dependency licenses are compatible with Apache-2.0 distribution.
+- [x] Unused Monaco and `html-to-image` dependencies have been removed from the reboot dependency set.
+- [x] npm audit findings were classified and fixed without `--force`; the audited dependency maintenance commit required a clean `npm audit --audit-level=low` before being pushed.
+- [x] Direct graph dependency licenses are recorded in `THIRD_PARTY_NOTICES.md`; exact pinned ELK 0.11.1 is EPL-2.0. Binary redistribution obligations remain part of the later packaging gate.
 - [ ] CSP / Tauri security configuration is reviewed for preview distribution.
 - [ ] version/release naming is chosen.
 
