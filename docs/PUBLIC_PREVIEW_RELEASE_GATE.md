@@ -93,7 +93,7 @@ Explicitly deferred:
 ## Gate D — Release hygiene
 
 - [x] README describes the rebooted Studio rather than the historical E28/E34 product.
-- [ ] PR #318 description reflects the current React Flow + ELK Context Map and current release state.
+- [x] PR #318 description reflects the current React Flow + ELK Context Map and current release state.
 - [ ] Old active-runtime dependencies are removed when no longer used (Monaco is a release-audit candidate).
 - [ ] `npm audit` findings are reviewed individually; no blind `--force` upgrade.
 - [ ] dependency licenses are compatible with Apache-2.0 distribution.
