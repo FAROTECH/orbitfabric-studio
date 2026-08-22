@@ -365,6 +365,24 @@ mod tests {
         assert_eq!(sanitize_request_id("///"), "request");
     }
 
+    #[test]
+    fn clear_request_temp_removes_the_whole_request_directory() {
+        let request_id = "rust-cleanup-test";
+        let report = request_report_path(request_id, "report.json", true)
+            .expect("request temp directory should be created");
+        fs::write(&report, b"{}")
+            .expect("test report should be writable");
+
+        let request_dir = core_request_temp_dir(request_id);
+        assert!(request_dir.is_dir());
+        assert!(report.is_file());
+
+        clear_core_request_temp(request_id.to_string())
+            .expect("request temp directory should be removable");
+
+        assert!(!request_dir.exists());
+    }
+
     #[cfg(unix)]
     #[test]
     fn core_command_completes_before_timeout() {
