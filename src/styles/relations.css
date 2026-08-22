@@ -251,8 +251,7 @@
   background: transparent;
 }
 
-.context-flow .react-flow__pane,
-.context-flow .react-flow__viewport {
+.context-flow .react-flow__pane {
   cursor: grab;
 }
 
@@ -261,6 +260,8 @@
 }
 
 .context-flow .react-flow__node {
+  pointer-events: auto;
+  cursor: default;
   border: 0;
   background: transparent;
   box-shadow: none;

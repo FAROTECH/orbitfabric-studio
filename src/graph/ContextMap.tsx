@@ -151,8 +151,8 @@ function ContextMapInner({
         type: "context",
         position,
         draggable: false,
-        selectable: false,
-        focusable: false,
+        selectable: true,
+        focusable: true,
         style: {
           width: CONTEXT_NODE_WIDTH,
           height: CONTEXT_NODE_HEIGHT,
@@ -320,8 +320,8 @@ function ContextFlowCanvas({
       nodeTypes={nodeTypes}
       nodesDraggable={false}
       nodesConnectable={false}
-      elementsSelectable={false}
-      nodesFocusable={false}
+      elementsSelectable={true}
+      nodesFocusable={true}
       edgesFocusable={false}
       zoomOnDoubleClick={false}
       zoomOnScroll={false}
