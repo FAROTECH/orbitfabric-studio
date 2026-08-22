@@ -75,32 +75,20 @@ function ContextMapInner({
 }: ContextMapProps) {
   const rootKey = entityKey(root);
   const [expanded, setExpanded] = useState<ReadonlySet<EntityKey>>(() =>
-    minimumExpansionForPath(root, contextPath),
+    initialContextExpansion(root),
   );
   const [layout, setLayout] = useState<ContextGraphLayout | null>(null);
   const [layoutPending, setLayoutPending] = useState(true);
   const [layoutError, setLayoutError] = useState<string | null>(null);
 
   useEffect(() => {
-    setExpanded(minimumExpansionForPath(root, contextPath));
+    setExpanded(initialContextExpansion(root));
     setLayout(null);
   }, [rootKey, session.sessionId]);
 
-  useEffect(() => {
-    setExpanded((currentExpanded) => {
-      const next = new Set(currentExpanded);
-      next.add(rootKey);
-      for (const step of contextPath) {
-        next.add(entityKey(step.from));
-        next.add(entityKey(step.to));
-      }
-      return next;
-    });
-  }, [contextPath, rootKey]);
-
   const model = useMemo(
-    () => buildContextGraphModel(session, root, expanded),
-    [expanded, root, session],
+    () => buildContextGraphModel(session, root, expanded, contextPath),
+    [contextPath, expanded, root, session],
   );
   const visibleKeys = useMemo(
     () => new Set(model.nodes.map((node) => node.key)),
@@ -249,7 +237,7 @@ function ContextMapInner({
           <button
             type="button"
             className="secondary-action"
-            onClick={() => setExpanded(minimumExpansionForPath(root, contextPath))}
+            onClick={() => setExpanded(initialContextExpansion(root))}
           >
             Reset map
           </button>
@@ -447,18 +435,6 @@ function navigationPathForSelection(
   // current subject. In that case use one deterministic visible path as a
   // fallback, rather than inventing a relationship.
   return findContextPath(model, target);
-}
-
-function minimumExpansionForPath(
-  root: EntityRef,
-  contextPath: readonly ContextPathStep[],
-): ReadonlySet<EntityKey> {
-  const next = new Set(initialContextExpansion(root));
-  for (const step of contextPath) {
-    next.add(entityKey(step.from));
-    next.add(entityKey(step.to));
-  }
-  return next;
 }
 
 function hasHiddenNeighbor(
