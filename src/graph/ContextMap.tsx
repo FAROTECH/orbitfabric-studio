@@ -40,10 +40,13 @@ interface ContextMapProps {
   onNavigate: (subject: EntityRef, path: readonly ContextPathStep[]) => void;
 }
 
+type ContextNodeTone = "fdir" | "operations" | "data" | "system" | "neutral";
+
 type ContextNodeData = Record<string, unknown> & {
   entity: EntityRef;
   entityType: string;
   displayName: string;
+  tone: ContextNodeTone;
   root: boolean;
   current: boolean;
   expandable: boolean;
@@ -94,6 +97,14 @@ function ContextMapInner({
     () => new Set(model.nodes.map((node) => node.key)),
     [model.nodes],
   );
+  const expandableVisibleKeys = useMemo(
+    () =>
+      model.nodes
+        .filter((node) => hasHiddenNeighbor(session, node.entity, visibleKeys))
+        .map((node) => node.key),
+    [model.nodes, session, visibleKeys],
+  );
+  const canExpandContext = expandableVisibleKeys.length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -134,6 +145,7 @@ function ContextMapInner({
       }
 
       const record = session.readModel.entityRecordsByKey.get(node.key);
+      const entityType = record?.entity_type ?? node.entity.domain;
       result.push({
         id: node.key,
         type: "context",
@@ -147,8 +159,9 @@ function ContextMapInner({
         },
         data: {
           entity: node.entity,
-          entityType: record?.entity_type ?? node.entity.domain,
+          entityType,
           displayName: record?.display_name ?? node.entity.id,
+          tone: contextNodeTone(entityType),
           root: rootKey === node.key,
           current: entityKey(current) === node.key,
           expanded: expanded.has(node.key),
@@ -220,6 +233,20 @@ function ContextMapInner({
     [contextPath, model.edges, nodeIds],
   );
 
+  const expandVisibleContext = () => {
+    if (!canExpandContext) {
+      return;
+    }
+
+    setExpanded((currentExpanded) => {
+      const next = new Set(currentExpanded);
+      for (const key of visibleKeys) {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
   return (
     <section className="context-map" aria-label="Context Map">
       <header className="context-map-header">
@@ -234,13 +261,24 @@ function ContextMapInner({
         <div className="context-map-stats">
           <span>{model.nodes.length} nodes</span>
           <span>{model.edges.length} relationships</span>
-          <button
-            type="button"
-            className="secondary-action"
-            onClick={() => setExpanded(initialContextExpansion(root))}
-          >
-            Reset map
-          </button>
+          <div className="context-map-actions">
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={expandVisibleContext}
+              disabled={!canExpandContext}
+              title="Reveal one more layer around the context currently visible"
+            >
+              Expand context
+            </button>
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() => setExpanded(initialContextExpansion(root))}
+            >
+              Reset map
+            </button>
+          </div>
         </div>
       </header>
 
@@ -333,6 +371,7 @@ function ContextFlowCanvas({
 function ContextFlowNodeView({ data }: NodeProps<ContextFlowNode>) {
   const classes = [
     "context-node",
+    `tone-${data.tone}`,
     data.root ? "is-root" : "",
     data.current ? "is-current" : "",
   ]
@@ -457,6 +496,39 @@ function hasHiddenNeighbor(
   }
 
   return false;
+}
+
+function contextNodeTone(entityType: string): ContextNodeTone {
+  switch (entityType) {
+    case "fault":
+    case "recovery_intent":
+    case "autonomous_action":
+      return "fdir";
+
+    case "mode":
+    case "command":
+    case "command_source":
+    case "commandability_rule":
+      return "operations";
+
+    case "telemetry":
+    case "event":
+    case "packet":
+    case "data_product":
+    case "payload":
+    case "contact_profile":
+    case "contact_window":
+    case "link_profile":
+    case "downlink_flow":
+      return "data";
+
+    case "spacecraft":
+    case "subsystem":
+      return "system";
+
+    default:
+      return "neutral";
+  }
 }
 
 function displayName(session: MissionSession, entity: EntityRef): string {
