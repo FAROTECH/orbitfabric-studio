@@ -9,6 +9,21 @@
   cursor: default;
 }
 
+.context-flow .react-flow__edge.is-current-adjacent .react-flow__edge-path {
+  stroke: #9fd3ff;
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 2px rgba(159, 211, 255, 0.28));
+}
+
+.context-flow .react-flow__edge.is-current-adjacent .react-flow__edge-text {
+  fill: #cce9ff;
+  font-weight: 650;
+}
+
+.context-flow .react-flow__edge.is-current-adjacent .react-flow__edge-textbg {
+  stroke: rgba(159, 211, 255, 0.78);
+}
+
 .context-node {
   --context-node-tint: rgba(145, 160, 179, 0.055);
   --context-node-accent: rgba(164, 178, 195, 0.72);
