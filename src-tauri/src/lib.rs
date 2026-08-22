@@ -1,8 +1,15 @@
 use serde::Serialize;
 use std::env;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
+
+const CORE_VERSION_TIMEOUT: Duration = Duration::from_secs(10);
+const CORE_OPERATION_TIMEOUT: Duration = Duration::from_secs(60);
+const CORE_POLL_INTERVAL: Duration = Duration::from_millis(25);
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -180,16 +187,76 @@ fn run_core_command(
     args: &[&str],
     report_path: Option<PathBuf>,
 ) -> Result<CoreInvocationResult, String> {
+    run_core_command_with_timeout(
+        executable,
+        operation,
+        args,
+        report_path,
+        core_timeout_for_operation(operation),
+    )
+}
+
+fn run_core_command_with_timeout(
+    executable: String,
+    operation: &str,
+    args: &[&str],
+    report_path: Option<PathBuf>,
+    timeout: Duration,
+) -> Result<CoreInvocationResult, String> {
     let command = executable.trim();
 
     if command.is_empty() {
         return Err("OrbitFabric executable path is empty.".to_string());
     }
 
-    let output = Command::new(command)
+    let mut child = Command::new(command)
         .args(args)
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|error| format!("Unable to execute OrbitFabric Core command: {error}"))?;
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "Unable to capture OrbitFabric Core stdout.".to_string())?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| "Unable to capture OrbitFabric Core stderr.".to_string())?;
+
+    let stdout_reader = thread::spawn(move || read_stream(stdout));
+    let stderr_reader = thread::spawn(move || read_stream(stderr));
+
+    let started = Instant::now();
+    let mut timed_out = false;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) if started.elapsed() >= timeout => {
+                timed_out = true;
+                let _ = child.kill();
+                break child
+                    .wait()
+                    .map_err(|error| format!("Unable to reap timed-out OrbitFabric Core process: {error}"))?;
+            }
+            Ok(None) => thread::sleep(CORE_POLL_INTERVAL),
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                let _ = stdout_reader.join();
+                let _ = stderr_reader.join();
+                return Err(format!("Unable to poll OrbitFabric Core process: {error}"));
+            }
+        }
+    };
+
+    let stdout_bytes = stdout_reader
+        .join()
+        .map_err(|_| "OrbitFabric Core stdout reader thread failed.".to_string())??;
+    let stderr_bytes = stderr_reader
+        .join()
+        .map_err(|_| "OrbitFabric Core stderr reader thread failed.".to_string())??;
 
     let report_text = match &report_path {
         Some(path) if path.is_file() => fs::read_to_string(path).ok(),
@@ -200,14 +267,30 @@ fn run_core_command(
         operation: operation.to_string(),
         executable: command.to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
-        exit_code: output.status.code(),
-        process_completed: true,
-        timed_out: false,
-        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+        exit_code: status.code(),
+        process_completed: !timed_out,
+        timed_out,
+        stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
+        stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
         report_path: report_path.as_ref().map(|path| display_path(path)),
         report_text,
     })
+}
+
+fn read_stream<R: Read>(mut stream: R) -> Result<Vec<u8>, String> {
+    let mut buffer = Vec::new();
+    stream
+        .read_to_end(&mut buffer)
+        .map_err(|error| format!("Unable to read OrbitFabric Core process output: {error}"))?;
+    Ok(buffer)
+}
+
+fn core_timeout_for_operation(operation: &str) -> Duration {
+    if operation == "version" {
+        CORE_VERSION_TIMEOUT
+    } else {
+        CORE_OPERATION_TIMEOUT
+    }
 }
 
 fn request_report_path(
@@ -270,6 +353,51 @@ fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
 
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_request_id_keeps_only_safe_characters() {
+        assert_eq!(sanitize_request_id("abc DEF/../123_-"), "abcDEF123_-");
+        assert_eq!(sanitize_request_id("///"), "request");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn core_command_completes_before_timeout() {
+        let result = run_core_command_with_timeout(
+            "/bin/sh".to_string(),
+            "test",
+            &["-c", "printf 'ok'"],
+            None,
+            Duration::from_secs(1),
+        )
+        .expect("test command should run");
+
+        assert!(result.process_completed);
+        assert!(!result.timed_out);
+        assert_eq!(result.exit_code, Some(0));
+        assert_eq!(result.stdout, "ok");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn core_command_is_killed_after_timeout() {
+        let result = run_core_command_with_timeout(
+            "/bin/sh".to_string(),
+            "test",
+            &["-c", "sleep 2"],
+            None,
+            Duration::from_millis(75),
+        )
+        .expect("timed-out command should return a transport result");
+
+        assert!(!result.process_completed);
+        assert!(result.timed_out);
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
