@@ -19,7 +19,6 @@
     "qa:icon-audit": "node tools/dev/audit-studio-icons.mjs --write"
   },
   "dependencies": {
-    "@monaco-editor/react": "4.7.0",
     "@tauri-apps/api": "2.0.0",
     "@tauri-apps/plugin-dialog": "2.0.0",
     "@xyflow/react": "12.11.2",
@@ -32,9 +31,8 @@
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react": "4.7.0",
-    "html-to-image": "^1.11.13",
     "typescript": "5.8.3",
-    "vite": "6.3.7"
+    "vite": "6.4.3"
   },
   "overrides": {
     "esbuild": "0.25.9"
