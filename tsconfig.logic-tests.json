@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".test-dist",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "isolatedModules": false,
+    "sourceMap": false,
+    "declaration": false
+  },
+  "files": [
+    "src/core/contracts.ts",
+    "src/mission/entityRef.ts",
+    "src/mission/selection.ts",
+    "src/mission/MissionSession.ts",
+    "src/mission/resolveEntityContract.ts",
+    "src/app/studioState.ts",
+    "src/graph/contextGraphModel.ts"
+  ]
+}
