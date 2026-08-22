@@ -73,25 +73,26 @@ Explicitly deferred:
 - [x] Open/Refresh are generation-scoped and transactional.
 - [x] Relationship endpoints are checked against the Entity Index.
 - [x] Non-zero Core exit status is not automatically treated as semantic failure.
-- [ ] Core child process has a bounded timeout.
-- [ ] Timed-out Core child is terminated and reaped.
-- [ ] Timeout behavior is covered by automated Rust tests.
+- [x] Core child process has a bounded timeout (10 s version probe, 60 s mission operations).
+- [x] Timed-out Core child is terminated and reaped.
+- [x] Timeout behavior is covered by automated Rust tests.
 - [ ] Temporary request cleanup is verified on normal and failed paths.
 
 ## Gate C — Automated acceptance
 
 - [x] TypeScript + Vite build in CI.
 - [x] Rust compile check in CI.
-- [x] Pinned OrbitFabric Core C1/C4 contract smoke in CI.
-- [ ] Rust tests run in CI.
-- [ ] Core acceptance matrix covers demo-3u + FINCH + SpaceLab automatically.
-- [ ] SpaceLab assertion verifies that `payloads: []` is accepted as normal mission content.
+- [x] Rust tests run in CI.
+- [x] Pinned OrbitFabric Core C1/C4 integration assertions run in CI.
+- [x] Core acceptance matrix covers demo-3u + FINCH + SpaceLab automatically.
+- [x] SpaceLab assertion verifies that `payloads: []` is accepted as normal mission content.
+- [x] FINCH assertion verifies same textual ID in multiple domains remains valid input.
 - [ ] Pure Studio tests cover at minimum EntityRef identity, Context Path behavior, refresh reconciliation and graph expansion/reset.
 - [ ] Visual acceptance baseline exists for Overview / Explore+X-Ray / Context Map at representative viewport sizes.
 
 ## Gate D — Release hygiene
 
-- [ ] README describes the rebooted Studio rather than the historical E28/E34 product.
+- [x] README describes the rebooted Studio rather than the historical E28/E34 product.
 - [ ] PR #318 description reflects the current React Flow + ELK Context Map and current release state.
 - [ ] Old active-runtime dependencies are removed when no longer used (Monaco is a release-audit candidate).
 - [ ] `npm audit` findings are reviewed individually; no blind `--force` upgrade.
@@ -105,9 +106,9 @@ The first target is a **developer/source public preview** unless binary packagin
 
 For the source preview:
 
-- [ ] supported host prerequisites are documented;
-- [ ] OrbitFabric Core installation/runtime selection is documented;
-- [ ] Linux development/run path is documented and verified;
+- [ ] supported host prerequisites are documented precisely enough for a clean machine;
+- [x] OrbitFabric Core runtime selection is documented;
+- [x] Linux development/run path is documented;
 - [ ] one clean-clone installation run is completed from README only.
 
 Desktop binary packaging is deliberately a separate gate unless we decide otherwise:
