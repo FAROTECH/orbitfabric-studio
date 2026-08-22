@@ -25,13 +25,18 @@ export interface ContextGraphModel {
 /**
  * Build the local context graph from Core-owned relationships only.
  *
- * `expanded` is presentation state: every expanded entity contributes its immediate
- * incoming/outgoing Core relationships. The function never infers additional edges.
+ * `expanded` is presentation state: every explicitly expanded entity contributes its
+ * immediate incoming/outgoing Core relationships.
+ *
+ * `contextPath` is separate presentation state. Exact path nodes/edges are pinned into
+ * the visible graph so the investigation remains explainable, but path membership does
+ * not expand an entity's neighborhood.
  */
 export function buildContextGraphModel(
   session: MissionSession,
   root: EntityRef,
   expanded: ReadonlySet<EntityKey>,
+  contextPath: readonly ContextPathStep[] = [],
 ): ContextGraphModel {
   const rootKey = entityKey(root);
   const nodes = new Map<EntityKey, EntityRef>([[rootKey, root]]);
@@ -53,6 +58,17 @@ export function buildContextGraphModel(
     for (const relationship of session.readModel.incomingByEntity.get(expandedKey) ?? []) {
       addRelationship(nodes, edges, relationship);
     }
+  }
+
+  // Keep the exact investigation path visible without treating path entities as expanded.
+  // Every edge remains Core-owned and is resolved by relationship_id from the hydrated
+  // Relationship Manifest.
+  for (const step of contextPath) {
+    const relationship = session.readModel.relationshipsById.get(step.relationshipId);
+    if (!relationship) {
+      continue;
+    }
+    addRelationship(nodes, edges, relationship);
   }
 
   const depths = shortestUndirectedDepths(rootKey, nodes, edges);
