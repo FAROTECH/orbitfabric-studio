@@ -166,7 +166,13 @@ function ContextMapInner({
           expanded: expanded.has(node.key),
           expandable: hasHiddenNeighbor(session, node.entity, visibleKeys),
           onSelect: () => {
-            const path = findContextPath(model, node.entity);
+            const path = navigationPathForSelection(
+              model,
+              root,
+              current,
+              node.entity,
+              contextPath,
+            );
             if (path !== null) {
               onNavigate(node.entity, path);
             }
@@ -258,7 +264,7 @@ function ContextMapInner({
         ) : null}
 
         <ContextFlowCanvas
-          sessionId={session.sessionId}
+          missionKey={`${session.source.missionDir}:${session.snapshot.mission?.id ?? "unknown"}`}
           rootKey={rootKey}
           nodes={nodes}
           edges={edges}
@@ -285,19 +291,19 @@ function ContextMapInner({
 }
 
 function ContextFlowCanvas({
-  sessionId,
+  missionKey,
   rootKey,
   nodes,
   edges,
 }: {
-  sessionId: string;
+  missionKey: string;
   rootKey: EntityKey;
   nodes: readonly ContextFlowNode[];
   edges: readonly Edge[];
 }) {
   const { fitView } = useReactFlow();
   const fittedKey = useRef<string | null>(null);
-  const fitKey = `${sessionId}:${rootKey}`;
+  const fitKey = `${missionKey}:${rootKey}`;
 
   useEffect(() => {
     if (nodes.length === 0 || fittedKey.current === fitKey) {
@@ -387,6 +393,60 @@ function ContextFlowNodeView({ data }: NodeProps<ContextFlowNode>) {
       />
     </div>
   );
+}
+
+function navigationPathForSelection(
+  model: ContextGraphModel,
+  root: EntityRef,
+  current: EntityRef,
+  target: EntityRef,
+  contextPath: readonly ContextPathStep[],
+): ContextPathStep[] | null {
+  const targetKey = entityKey(target);
+  const rootKey = entityKey(root);
+
+  if (targetKey === rootKey) {
+    return [];
+  }
+
+  // Selecting an entity already present in the investigation path means
+  // "go back to that point", not "find a different shorter route".
+  const pathEntities: EntityRef[] = [root, ...contextPath.map((step) => step.to)];
+  const existingIndex = pathEntities.findIndex((entity) => entityKey(entity) === targetKey);
+  if (existingIndex >= 0) {
+    return contextPath.slice(0, existingIndex);
+  }
+
+  // Preserve cognitive continuity when the clicked entity is an immediate
+  // neighbor of the current subject. The relationship remains Core-owned;
+  // only the exploration path is Studio-owned presentation state.
+  const currentKey = entityKey(current);
+  const directEdge = model.edges.find((edge) => {
+    const sourceKey = entityKey(edge.source);
+    const edgeTargetKey = entityKey(edge.target);
+    return (
+      (sourceKey === currentKey && edgeTargetKey === targetKey) ||
+      (edgeTargetKey === currentKey && sourceKey === targetKey)
+    );
+  });
+
+  if (directEdge) {
+    const forward = entityKey(directEdge.source) === currentKey;
+    return [
+      ...contextPath,
+      {
+        relationshipId: directEdge.relationshipId,
+        from: current,
+        to: target,
+        direction: forward ? "forward" : "inverse",
+      },
+    ];
+  }
+
+  // A graph node can be visible without being directly adjacent to the
+  // current subject. In that case use one deterministic visible path as a
+  // fallback, rather than inventing a relationship.
+  return findContextPath(model, target);
 }
 
 function minimumExpansionForPath(
