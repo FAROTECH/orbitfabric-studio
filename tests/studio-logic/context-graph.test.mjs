@@ -51,6 +51,11 @@ function sessionFixture() {
     session: {
       readModel: {
         entityRecordsByKey: records,
+        entityRefsByDomain: new Map(),
+        relationshipsById: new Map([
+          [rootToCommand.relationship_id, rootToCommand],
+          [commandToEvent.relationship_id, commandToEvent],
+        ]),
         outgoingByEntity: new Map([
           [entityKey(root), [rootToCommand]],
           [entityKey(command), [commandToEvent]],
