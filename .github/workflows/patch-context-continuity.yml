@@ -1,0 +1,74 @@
+name: Patch Context Continuity
+
+on:
+  push:
+    branches:
+      - reboot/studio-v1
+    paths:
+      - .github/workflows/patch-context-continuity.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: reboot/studio-v1
+
+      - name: Preserve investigation path and viewport across refresh
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/graph/ContextMap.tsx')
+          text = path.read_text()
+
+          old = '''          onSelect: () => {\n            const path = findContextPath(model, node.entity);\n            if (path !== null) {\n              onNavigate(node.entity, path);\n            }\n          },'''
+          new = '''          onSelect: () => {\n            const path = navigationPathForSelection(\n              model,\n              root,\n              current,\n              node.entity,\n              contextPath,\n            );\n            if (path !== null) {\n              onNavigate(node.entity, path);\n            }\n          },'''
+          if old not in text:
+              raise SystemExit('onSelect block not found')
+          text = text.replace(old, new)
+
+          text = text.replace(
+              '''        <ContextFlowCanvas\n          sessionId={session.sessionId}\n          rootKey={rootKey}''',
+              '''        <ContextFlowCanvas\n          missionKey={`${session.source.missionDir}:${session.snapshot.mission?.id ?? "unknown"}`}\n          rootKey={rootKey}''',
+          )
+
+          text = text.replace(
+              '''function ContextFlowCanvas({\n  sessionId,\n  rootKey,''',
+              '''function ContextFlowCanvas({\n  missionKey,\n  rootKey,''',
+          )
+          text = text.replace(
+              '''}: {\n  sessionId: string;\n  rootKey: EntityKey;''',
+              '''}: {\n  missionKey: string;\n  rootKey: EntityKey;''',
+          )
+          text = text.replace(
+              '''  const fitKey = `${sessionId}:${rootKey}`;''',
+              '''  const fitKey = `${missionKey}:${rootKey}`;''',
+          )
+
+          marker = '''function minimumExpansionForPath(\n  root: EntityRef,\n  contextPath: readonly ContextPathStep[],\n): ReadonlySet<EntityKey> {'''
+          helper = '''function navigationPathForSelection(\n  model: ContextGraphModel,\n  root: EntityRef,\n  current: EntityRef,\n  target: EntityRef,\n  contextPath: readonly ContextPathStep[],\n): ContextPathStep[] | null {\n  const targetKey = entityKey(target);\n  const rootKey = entityKey(root);\n\n  if (targetKey === rootKey) {\n    return [];\n  }\n\n  // Selecting an entity already present in the investigation path means\n  // "go back to that point", not "find a different shorter route".\n  const pathEntities: EntityRef[] = [root, ...contextPath.map((step) => step.to)];\n  const existingIndex = pathEntities.findIndex((entity) => entityKey(entity) === targetKey);\n  if (existingIndex >= 0) {\n    return contextPath.slice(0, existingIndex);\n  }\n\n  // Preserve cognitive continuity when the clicked entity is an immediate\n  // neighbor of the current subject. The relationship remains Core-owned;\n  // only the exploration path is Studio-owned presentation state.\n  const currentKey = entityKey(current);\n  const directEdge = model.edges.find((edge) => {\n    const sourceKey = entityKey(edge.source);\n    const edgeTargetKey = entityKey(edge.target);\n    return (\n      (sourceKey === currentKey && edgeTargetKey === targetKey) ||\n      (edgeTargetKey === currentKey && sourceKey === targetKey)\n    );\n  });\n\n  if (directEdge) {\n    const forward = entityKey(directEdge.source) === currentKey;\n    return [\n      ...contextPath,\n      {\n        relationshipId: directEdge.relationshipId,\n        from: current,\n        to: target,\n        direction: forward ? "forward" : "inverse",\n      },\n    ];\n  }\n\n  // A graph node can be visible without being directly adjacent to the\n  // current subject. In that case use one deterministic visible path as a\n  // fallback, rather than inventing a relationship.\n  return findContextPath(model, target);\n}\n\n'''
+          if marker not in text:
+              raise SystemExit('minimumExpansion marker not found')
+          text = text.replace(marker, helper + marker)
+
+          path.write_text(text)
+          PY
+
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit continuity fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/graph/ContextMap.tsx
+          git commit -m "fix(relations): preserve investigation continuity across navigation and refresh"
+          git push origin HEAD:reboot/studio-v1
