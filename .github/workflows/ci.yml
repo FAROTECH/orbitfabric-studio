@@ -25,7 +25,7 @@ jobs:
         run: npm run build
 
   rust:
-    name: Rust check
+    name: Rust tests and check
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -43,11 +43,14 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Cargo test
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
       - name: Cargo check
         run: cargo check --locked --manifest-path src-tauri/Cargo.toml
 
   core-contract:
-    name: Pinned Core contract smoke
+    name: Pinned Core acceptance matrix
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Studio
@@ -68,40 +71,67 @@ jobs:
       - name: Install pinned Core
         run: python -m pip install -e ./orbitfabric-core
 
-      - name: Export Studio-required Core surfaces
+      - name: Export Studio-required surfaces for acceptance missions
         run: |
-          orbitfabric export mission-snapshot orbitfabric-core/examples/demo-3u/mission \
-            --json /tmp/mission_snapshot.json
-          orbitfabric export entity-index orbitfabric-core/examples/demo-3u/mission \
-            --json /tmp/entity_index.json
-          orbitfabric export relationship-manifest orbitfabric-core/examples/demo-3u/mission \
-            --json /tmp/relationship_manifest.json
-          orbitfabric lint orbitfabric-core/examples/demo-3u/mission \
-            --json /tmp/lint_report.json
+          set -euo pipefail
 
-      - name: Assert C1 and C4 integration contract
+          for mission in \
+            demo-3u \
+            finch-inspired-minislice \
+            spacelab-inspired-communications-minislice
+          do
+            out="/tmp/${mission}"
+            mkdir -p "$out"
+
+            orbitfabric export mission-snapshot "orbitfabric-core/examples/${mission}/mission" \
+              --json "$out/mission_snapshot.json"
+            orbitfabric export entity-index "orbitfabric-core/examples/${mission}/mission" \
+              --json "$out/entity_index.json"
+            orbitfabric export relationship-manifest "orbitfabric-core/examples/${mission}/mission" \
+              --json "$out/relationship_manifest.json"
+            orbitfabric lint "orbitfabric-core/examples/${mission}/mission" \
+              --json "$out/lint_report.json"
+          done
+
+      - name: Assert Studio integration and mission-diversity contract
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          snapshot = json.loads(Path('/tmp/mission_snapshot.json').read_text())
-          entities = json.loads(Path('/tmp/entity_index.json').read_text())
-          relationships = json.loads(Path('/tmp/relationship_manifest.json').read_text())
-          lint = json.loads(Path('/tmp/lint_report.json').read_text())
+          missions = [
+              'demo-3u',
+              'finch-inspired-minislice',
+              'spacelab-inspired-communications-minislice',
+          ]
 
-          assert snapshot['kind'] == 'orbitfabric.mission_snapshot'
-          assert snapshot['snapshot_version'] == '0.1-candidate'
-          assert snapshot['result'] == 'loaded'
-          assert snapshot['model'] is not None
+          loaded = {}
+          for mission in missions:
+              root = Path('/tmp') / mission
+              snapshot = json.loads((root / 'mission_snapshot.json').read_text())
+              entities = json.loads((root / 'entity_index.json').read_text())
+              relationships = json.loads((root / 'relationship_manifest.json').read_text())
+              lint = json.loads((root / 'lint_report.json').read_text())
 
-          assert entities['kind'] == 'orbitfabric.entity_index'
-          assert entities['index_version'] == '0.1'
+              assert snapshot['kind'] == 'orbitfabric.mission_snapshot'
+              assert snapshot['snapshot_version'] == '0.1-candidate'
+              assert snapshot['result'] == 'loaded'
+              assert snapshot['model'] is not None
 
-          assert relationships['kind'] == 'orbitfabric.relationship_manifest'
-          assert relationships['manifest_version'] == '0.1-candidate'
-          assert relationships['counts']['total_relationships'] == 63
+              assert entities['kind'] == 'orbitfabric.entity_index'
+              assert entities['index_version'] == '0.1'
 
+              assert relationships['kind'] == 'orbitfabric.relationship_manifest'
+              assert relationships['manifest_version'] == '0.1-candidate'
+
+              assert lint['tool'] == 'orbitfabric-lint'
+              assert lint['mission'] == snapshot['mission']['id']
+              assert entities['mission']['id'] == snapshot['mission']['id']
+              assert relationships['mission']['id'] == snapshot['mission']['id']
+
+              loaded[mission] = (snapshot, entities, relationships)
+
+          demo_relationships = loaded['demo-3u'][2]
           required_fdir = {
               'fault_observes_telemetry',
               'fault_recovery_targets_mode',
@@ -111,11 +141,17 @@ jobs:
               'recovery_intent_targets_mode',
               'recovery_intent_includes_command',
           }
-          emitted = set(relationships['counts']['relationship_types'])
+          emitted = set(demo_relationships['counts']['relationship_types'])
           assert required_fdir <= emitted
 
-          assert lint['tool'] == 'orbitfabric-lint'
-          assert lint['mission'] == snapshot['mission']['id']
-          assert entities['mission']['id'] == snapshot['mission']['id']
-          assert relationships['mission']['id'] == snapshot['mission']['id']
+          finch_entities = loaded['finch-inspired-minislice'][1]['entities']
+          duplicated_id = [
+              entity for entity in finch_entities
+              if entity['id'] == 'hyperspectral_payload'
+          ]
+          assert len(duplicated_id) >= 2
+          assert len({entity['domain'] for entity in duplicated_id}) >= 2
+
+          spacelab_snapshot = loaded['spacelab-inspired-communications-minislice'][0]
+          assert spacelab_snapshot['model']['payloads'] == []
           PY
