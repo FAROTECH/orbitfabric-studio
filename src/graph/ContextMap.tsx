@@ -77,6 +77,7 @@ function ContextMapInner({
   onNavigate,
 }: ContextMapProps) {
   const rootKey = entityKey(root);
+  const currentKey = entityKey(current);
   const [expanded, setExpanded] = useState<ReadonlySet<EntityKey>>(() =>
     initialContextExpansion(root),
   );
@@ -163,7 +164,7 @@ function ContextMapInner({
           displayName: record?.display_name ?? node.entity.id,
           tone: contextNodeTone(entityType),
           root: rootKey === node.key,
-          current: entityKey(current) === node.key,
+          current: currentKey === node.key,
           expanded: expanded.has(node.key),
           expandable: hasHiddenNeighbor(session, node.entity, visibleKeys),
           onSelect: () => {
@@ -190,6 +191,7 @@ function ContextMapInner({
     return result;
   }, [
     current,
+    currentKey,
     expanded,
     layout,
     model,
@@ -209,28 +211,38 @@ function ContextMapInner({
         )
         .map((edge) => {
           const presentation = relationshipPresentation(edge.relationshipType);
+          const sourceKey = entityKey(edge.source);
+          const targetKey = entityKey(edge.target);
           const inPath = contextPath.some(
             (step) => step.relationshipId === edge.relationshipId,
           );
+          const adjacentToCurrent = sourceKey === currentKey || targetKey === currentKey;
+          const className = [
+            inPath ? "is-in-path" : "",
+            adjacentToCurrent ? "is-current-adjacent" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           return {
             id: edge.relationshipId,
-            source: entityKey(edge.source),
-            target: entityKey(edge.target),
+            source: sourceKey,
+            target: targetKey,
             sourceHandle: "out",
             targetHandle: "in",
             type: "smoothstep",
             label: presentation?.forwardLabel ?? edge.relationshipType,
-            className: inPath ? "is-in-path" : undefined,
+            className: className || undefined,
             markerEnd: {
               type: MarkerType.ArrowClosed,
+              color: adjacentToCurrent ? "#9fd3ff" : undefined,
             },
             data: {
               relationshipType: edge.relationshipType,
             },
           };
         }),
-    [contextPath, model.edges, nodeIds],
+    [contextPath, currentKey, model.edges, nodeIds],
   );
 
   const expandVisibleContext = () => {
