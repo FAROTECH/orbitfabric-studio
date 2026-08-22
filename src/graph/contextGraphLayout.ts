@@ -1,4 +1,5 @@
-import ELK, { type ElkNode } from "elkjs";
+import ELK from "elkjs/lib/elk.bundled.js";
+import type { ElkNode } from "elkjs";
 
 import { entityKey, type EntityKey } from "../mission/entityRef";
 import type { ContextGraphModel } from "./contextGraphModel";
