@@ -102,7 +102,7 @@ Explicitly deferred:
 
 ## Gate E — Distribution
 
-The first target is a **developer/source public preview** unless binary packaging is explicitly promoted into this gate.
+The first target is a **developer/source public preview**. Binary packaging is explicitly outside this first gate.
 
 For the source preview:
 
@@ -111,7 +111,7 @@ For the source preview:
 - [x] Linux development/run path is documented;
 - [ ] one clean-clone installation run is completed from README only.
 
-Desktop binary packaging is deliberately a separate gate unless we decide otherwise:
+Desktop binary packaging is deliberately a later gate:
 
 - Tauri bundling is currently inactive;
 - Core sidecar strategy is not yet frozen;
@@ -119,7 +119,7 @@ Desktop binary packaging is deliberately a separate gate unless we decide otherw
 
 ## Release decision
 
-The preview can be published when all mandatory items in Gates A–E for the chosen distribution mode are closed and CI is green on the release candidate.
+The preview can be published when all mandatory items in Gates A–E for the developer/source preview are closed and CI is green on the release candidate.
 
 No Operations/Data Journey/Replay work is required to close this gate.
 
