@@ -330,7 +330,7 @@ function ContextFlowCanvas({
       nodesFocusable={true}
       edgesFocusable={false}
       zoomOnDoubleClick={false}
-      zoomOnScroll={false}
+      zoomOnScroll={true}
       panOnScroll={false}
       minZoom={0.25}
       maxZoom={1.8}
