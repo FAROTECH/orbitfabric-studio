@@ -61,7 +61,12 @@ export class MissionHydrator {
       throw new MissionStructuralInvalidError(snapshot.diagnostics);
     }
 
-    assertLoadedSnapshot(snapshot);
+    try {
+      assertLoadedSnapshot(snapshot);
+    } catch (error) {
+      await this.clearRequestTempBestEffort(options.requestId);
+      throw error;
+    }
 
     return {
       sessionId: options.requestId,
