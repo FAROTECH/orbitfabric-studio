@@ -1,0 +1,87 @@
+name: Tauri security baseline refresh
+
+on:
+  push:
+    branches:
+      - reboot/studio-v1
+    paths:
+      - package.json
+      - src-tauri/Cargo.toml
+      - src-tauri/tauri.conf.json
+      - .github/workflows/tauri-security-refresh.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-and-validate:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: reboot/studio-v1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev
+
+      - name: Refresh npm lockfile
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Refresh Cargo lockfile minimally through resolution
+        run: cargo check --manifest-path src-tauri/Cargo.toml
+
+      - name: Install locked frontend dependencies
+        run: npm ci
+
+      - name: Audit all npm dependencies
+        run: npm audit --audit-level=low
+
+      - name: Studio logic tests
+        run: npm run test:logic
+
+      - name: Frontend production build
+        run: npm run build
+
+      - name: Rust tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Rust locked check
+        run: cargo check --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Tauri production-path debug build
+        run: npm run tauri -- build --debug --no-bundle
+
+      - name: Verify diff hygiene
+        run: git diff --check
+
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/tauri-security-refresh.yml
+
+      - name: Commit refreshed locks and workflow removal
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json src-tauri/Cargo.lock .github/workflows/tauri-security-refresh.yml
+          if git diff --cached --quiet; then
+            echo "No lockfile changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: refresh Tauri security baseline locks"
+          git push origin HEAD:reboot/studio-v1
