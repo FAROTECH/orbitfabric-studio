@@ -19,15 +19,15 @@
     "qa:icon-audit": "node tools/dev/audit-studio-icons.mjs --write"
   },
   "dependencies": {
-    "@tauri-apps/api": "2.0.0",
-    "@tauri-apps/plugin-dialog": "2.0.0",
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-dialog": "2.7.2",
     "@xyflow/react": "12.11.2",
     "elkjs": "0.11.1",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.0.0",
+    "@tauri-apps/cli": "2.11.4",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react": "4.7.0",
