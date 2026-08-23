@@ -9,6 +9,14 @@ on:
       - src-tauri/Cargo.toml
       - src-tauri/tauri.conf.json
       - .github/workflows/tauri-security-refresh.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - package.json
+      - src-tauri/Cargo.toml
+      - src-tauri/tauri.conf.json
+      - .github/workflows/tauri-security-refresh.yml
   workflow_dispatch:
 
 permissions:
@@ -16,6 +24,7 @@ permissions:
 
 jobs:
   refresh-and-validate:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'reboot/studio-v1'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout branch
