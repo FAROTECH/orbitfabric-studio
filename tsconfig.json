@@ -16,6 +16,17 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"],
+  "include": [
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/app/**/*.ts",
+    "src/core/**/*.ts",
+    "src/features/**/*.ts",
+    "src/features/**/*.tsx",
+    "src/graph/**/*.ts",
+    "src/graph/**/*.tsx",
+    "src/mission/**/*.ts",
+    "src/**/*.d.ts"
+  ],
   "references": []
 }
