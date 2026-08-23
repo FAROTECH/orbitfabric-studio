@@ -21,12 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Runtime dependency audit
-        run: npm audit --omit=dev --audit-level=high
-
-      - name: Full dependency audit (informational while findings are classified)
-        continue-on-error: true
-        run: npm audit --audit-level=high
+      - name: Dependency audit
+        run: npm audit --audit-level=low
 
       - name: Studio logic tests
         run: npm run test:logic
@@ -35,7 +31,7 @@ jobs:
         run: npm run build
 
   rust:
-    name: Rust tests and check
+    name: Rust tests, check and Tauri build
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -50,6 +46,15 @@ jobs:
             librsvg2-dev \
             libxdo-dev
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
@@ -58,6 +63,9 @@ jobs:
 
       - name: Cargo check
         run: cargo check --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Tauri production-path debug build
+        run: npm run tauri -- build --debug --no-bundle
 
   core-contract:
     name: Pinned Core acceptance matrix
