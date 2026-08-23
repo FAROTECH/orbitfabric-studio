@@ -64,6 +64,7 @@ Explicitly deferred:
 - [ ] SpaceLab-inspired communications minislice: no-payload runtime/manual acceptance.
 - [ ] demo-3u: final smoke acceptance on release candidate.
 - [ ] OreSat-inspired minislice: final heterogeneous/power-backlog smoke.
+- [ ] Wide / Standard / Compact manual visual pass at 1280 / 960 / 640 px on the real Tauri application.
 
 ## Gate B — Core integration hardening
 
@@ -83,21 +84,26 @@ Explicitly deferred:
 - [x] TypeScript + Vite build in CI.
 - [x] Rust compile check in CI.
 - [x] Rust tests run in CI.
+- [x] Tauri production-path debug build runs in CI with the configured CSP and no bundle.
+- [x] Full npm dependency audit is a blocking CI gate.
 - [x] Pinned OrbitFabric Core C1/C4 integration assertions run in CI.
 - [x] Core acceptance matrix covers demo-3u + FINCH + SpaceLab automatically.
 - [x] SpaceLab assertion verifies that `payloads: []` is accepted as normal mission content.
 - [x] FINCH assertion verifies same textual ID in multiple domains remains valid input.
 - [x] Pure Studio tests cover domain-qualified EntityRef identity, Context Path/graph expansion separation and refresh reconciliation.
-- [ ] Visual acceptance baseline exists for Overview / Explore+X-Ray / Context Map at representative viewport sizes.
+- [x] A repeatable visual acceptance baseline is defined in `docs/qa/public-preview-visual-acceptance.md` for Overview, Explore+X-Ray and Context Map at representative viewport sizes.
 
 ## Gate D — Release hygiene
 
 - [x] README describes the rebooted Studio rather than the historical E28/E34 product.
 - [x] PR #318 description reflects the current React Flow + ELK Context Map and current release state.
 - [x] Unused Monaco and `html-to-image` dependencies have been removed from the reboot dependency set.
-- [x] npm audit findings were classified and fixed without `--force`; the audited dependency maintenance commit required a clean `npm audit --audit-level=low` before being pushed.
+- [x] npm audit findings were classified and fixed without `--force`; the full audit is now a permanent blocking CI gate.
 - [x] Direct graph dependency licenses are recorded in `THIRD_PARTY_NOTICES.md`; exact pinned ELK 0.11.1 is EPL-2.0. Binary redistribution obligations remain part of the later packaging gate.
-- [ ] CSP / Tauri security configuration is reviewed for preview distribution.
+- [x] Tauri has been moved from the original 2.0.0 baseline to the current secure 2.x baseline used by the preview, including the post-2.11.1 IPC/origin fixes.
+- [x] Production CSP and a separate localhost-only development CSP are enabled; the real Tauri production-path debug build passes with them enabled.
+- [x] Tauri capability remains window-scoped and minimal (`core:default` + native directory-open dialog only; no remote capability).
+- [ ] Legacy E60 source residue that is unreachable from the reboot application entrypoint is removed from the active source tree or otherwise excluded from the public source baseline by an explicit repository decision.
 - [ ] version/release naming is chosen.
 
 ## Gate E — Distribution
@@ -106,9 +112,9 @@ The first target is a **developer/source public preview**. Binary packaging is e
 
 For the source preview:
 
-- [ ] supported host prerequisites are documented precisely enough for a clean machine;
-- [x] OrbitFabric Core runtime selection is documented;
-- [x] Linux development/run path is documented;
+- [x] Supported/tested Linux host prerequisites are documented in README (Debian 12 primary desktop acceptance; Ubuntu 22.04 CI; Node 22; stable Rust; Python 3.11+ for Core).
+- [x] OrbitFabric Core runtime selection is documented.
+- [x] Linux development/run path is documented.
 - [ ] one clean-clone installation run is completed from README only.
 
 Desktop binary packaging is deliberately a later gate:
