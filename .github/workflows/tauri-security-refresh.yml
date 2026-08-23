@@ -22,6 +22,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: tauri-security-refresh-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   refresh-and-validate:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'reboot/studio-v1'
