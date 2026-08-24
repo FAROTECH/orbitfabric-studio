@@ -1,6 +1,6 @@
 # OrbitFabric Studio — Public Preview Release Gate
 
-**Status:** merged candidate — owner-controlled publication steps pending  
+**Status:** public repository — tag and prerelease publication pending  
 **Target:** OrbitFabric Studio 0.15.0 Preview 1 — first public developer/source preview of the rebooted Studio  
 **Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
 
@@ -128,7 +128,8 @@ For the source preview:
 - [x] Linux development/run path documented.
 - [x] One clean-clone installation run completed from README only on Debian 12; evidence is recorded in `docs/qa/public-preview-clean-clone-acceptance.md`.
 - [x] Feature branch merged into the default branch through PR #318.
-- [ ] Repository owner changes GitHub visibility from private to public before publication.
+- [x] Repository owner changed GitHub visibility from private to public.
+- [x] Release notes prepared in `docs/releases/v0.15.0-preview.1.md`.
 - [ ] Tag `v0.15.0-preview.1` and a GitHub prerelease are published from the final merged commit.
 
 Deferred desktop packaging decisions include:
