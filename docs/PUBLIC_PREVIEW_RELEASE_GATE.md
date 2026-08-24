@@ -60,7 +60,7 @@ Explicitly deferred:
 - [x] Context Map: selection and explicit expansion are separate interactions.
 - [x] Context Map: wheel zoom, background pan and browser/WebView context-menu suppression accepted.
 - [x] Context Map: Expand context, reset, semantic tones and current-edge emphasis accepted.
-- [ ] SpaceLab-inspired communications minislice: no-payload runtime/manual acceptance.
+- [x] SpaceLab-inspired communications minislice: no-payload Overview, Operations, Explore/X-Ray and Relations runtime/manual acceptance.
 - [x] demo-3u: final smoke plus Operations commandability/recovery acceptance.
 - [x] OreSat-inspired minislice: validation, exact entity inspection, Operations and dense Relations acceptance.
 - [x] Validation Findings: severity filters, Escape/close, exact Entity X-Ray navigation and 1280 / 960 / 640 responsive acceptance.

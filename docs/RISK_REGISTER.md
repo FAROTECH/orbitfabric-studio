@@ -25,9 +25,8 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 Before publishing the source preview, the following must close:
 
 1. one README-only clean-clone installation;
-2. manual SpaceLab no-payload acceptance;
-3. preview version/release naming;
-4. green CI on the final release candidate.
+2. preview version/release naming;
+3. green CI on the final release candidate.
 
 ## Risk rule
 

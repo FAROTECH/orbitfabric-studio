@@ -38,10 +38,9 @@ No additional product feature is required before the preview.
 ### Remaining preview gates
 
 1. reproduce one clean clone using README only;
-2. manually accept SpaceLab with no payloads;
-3. choose preview version/release naming;
-4. require green CI on the final release candidate;
-5. merge draft PR #318 only after those gates close.
+2. choose preview version/release naming;
+3. require green CI on the final release candidate;
+4. merge draft PR #318 only after those gates close.
 
 The canonical checklist is `docs/PUBLIC_PREVIEW_RELEASE_GATE.md`.
 
