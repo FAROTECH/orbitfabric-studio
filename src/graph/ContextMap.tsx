@@ -26,6 +26,11 @@ import {
   type ContextGraphModel,
 } from "./contextGraphModel";
 import {
+  buildContextMapEvidence,
+  type RenderedContextEdgeEvidence,
+  type RenderedContextNodeEvidence,
+} from "./contextMapEvidence";
+import {
   CONTEXT_NODE_HEIGHT,
   CONTEXT_NODE_WIDTH,
   layoutContextGraph,
@@ -84,10 +89,12 @@ function ContextMapInner({
   const [layout, setLayout] = useState<ContextGraphLayout | null>(null);
   const [layoutPending, setLayoutPending] = useState(true);
   const [layoutError, setLayoutError] = useState<string | null>(null);
+  const [auditFileName, setAuditFileName] = useState<string | null>(null);
 
   useEffect(() => {
     setExpanded(initialContextExpansion(root));
     setLayout(null);
+    setAuditFileName(null);
   }, [rootKey, session.sessionId]);
 
   const model = useMemo(
@@ -259,6 +266,56 @@ function ContextMapInner({
     });
   };
 
+  const exportContextMapAudit = () => {
+    if (!import.meta.env.DEV || !layout || layoutPending) {
+      return;
+    }
+    if (session.entityIndex === null || session.relationships === null) {
+      return;
+    }
+
+    const renderedNodeRefs = new Map(nodes.map((node) => [node.id, node.data.entity] as const));
+    const renderedNodes: RenderedContextNodeEvidence[] = nodes.map((node) => ({
+      entity: node.data.entity,
+      entityType: node.data.entityType,
+      displayName: node.data.displayName,
+      root: node.data.root,
+      current: node.data.current,
+      expanded: node.data.expanded,
+      expandable: node.data.expandable,
+      position: {
+        x: node.position.x,
+        y: node.position.y,
+      },
+    }));
+    const renderedEdges: RenderedContextEdgeEvidence[] = edges.map((edge) => ({
+      relationshipId: edge.id,
+      relationshipType:
+        typeof edge.data?.relationshipType === "string"
+          ? edge.data.relationshipType
+          : null,
+      source: renderedNodeRefs.get(edge.source) ?? null,
+      target: renderedNodeRefs.get(edge.target) ?? null,
+      label: typeof edge.label === "string" ? edge.label : null,
+      inContextPath: hasClass(edge.className, "is-in-path"),
+      adjacentToCurrent: hasClass(edge.className, "is-current-adjacent"),
+    }));
+
+    const evidence = buildContextMapEvidence({
+      session,
+      root,
+      current,
+      expanded,
+      contextPath,
+      model,
+      renderedNodes,
+      renderedEdges,
+    });
+    const fileName = contextMapEvidenceFileName(session, root, current);
+    downloadJson(fileName, evidence);
+    setAuditFileName(fileName);
+  };
+
   return (
     <section className="context-map" aria-label="Context Map">
       <header className="context-map-header">
@@ -290,6 +347,22 @@ function ContextMapInner({
             >
               Reset map
             </button>
+            {import.meta.env.DEV ? (
+              <button
+                type="button"
+                className="secondary-action"
+                onClick={exportContextMapAudit}
+                disabled={
+                  layoutPending ||
+                  layout === null ||
+                  session.entityIndex === null ||
+                  session.relationships === null
+                }
+                title="Download Core/model/render evidence for independent Context Map verification"
+              >
+                Audit map
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
@@ -323,6 +396,11 @@ function ContextMapInner({
           Current <strong>{displayName(session, current)}</strong>
         </span>
         <span>Arrow direction follows the declared Core relationship.</span>
+        {import.meta.env.DEV && auditFileName ? (
+          <span title={auditFileName}>
+            Audit <strong>{auditFileName}</strong>
+          </span>
+        ) : null}
       </footer>
     </section>
   );
@@ -418,7 +496,11 @@ function ContextFlowNodeView({ data }: NodeProps<ContextFlowNode>) {
             data.onExpand();
           }}
           aria-label={`Expand context around ${data.displayName}`}
-          title={data.expanded ? "Expand further if new relationships become available" : "Expand context"}
+          title={
+            data.expanded
+              ? "Expand further if new relationships become available"
+              : "Expand context"
+          }
         >
           +
         </button>
@@ -549,4 +631,39 @@ function displayName(session: MissionSession, entity: EntityRef): string {
 
 function humanize(value: string): string {
   return value.replaceAll("_", " ");
+}
+
+function hasClass(className: string | undefined, target: string): boolean {
+  return className?.split(/\s+/).includes(target) ?? false;
+}
+
+function contextMapEvidenceFileName(
+  session: MissionSession,
+  root: EntityRef,
+  current: EntityRef,
+): string {
+  const mission = safeFilePart(session.snapshot.mission?.id ?? "mission");
+  const rootPart = safeFilePart(`${root.domain}-${root.id}`);
+  const currentPart = safeFilePart(`${current.domain}-${current.id}`);
+  const timestamp = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
+  return `orbitfabric-context-map-${mission}-${rootPart}-${currentPart}-${timestamp}.json`;
+}
+
+function safeFilePart(value: string): string {
+  const sanitized = value.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+  return (sanitized || "entity").slice(0, 64);
+}
+
+function downloadJson(fileName: string, value: unknown): void {
+  const text = `${JSON.stringify(value, null, 2)}\n`;
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

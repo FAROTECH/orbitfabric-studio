@@ -34,6 +34,7 @@ try {
     "--test",
     "tests/studio-logic/entity-ref.test.mjs",
     "tests/studio-logic/context-graph.test.mjs",
+    "tests/studio-logic/context-map-evidence.test.mjs",
     "tests/studio-logic/studio-state.test.mjs",
   ]);
 } finally {
