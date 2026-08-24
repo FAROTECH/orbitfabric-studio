@@ -3,9 +3,7 @@ import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 
 const outDir = ".test-dist";
-const tsc = process.platform === "win32"
-  ? join("node_modules", ".bin", "tsc.cmd")
-  : join("node_modules", ".bin", "tsc");
+const tscEntry = join("node_modules", "typescript", "bin", "tsc");
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -24,7 +22,7 @@ function run(command, args) {
 
 try {
   rmSync(outDir, { recursive: true, force: true });
-  run(tsc, ["-p", "tsconfig.logic-tests.json"]);
+  run(process.execPath, [tscEntry, "-p", "tsconfig.logic-tests.json"]);
 
   mkdirSync(outDir, { recursive: true });
   writeFileSync(
