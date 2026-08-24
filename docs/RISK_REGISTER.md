@@ -17,7 +17,8 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 | Dependency vulnerability reintroduced | Security/release risk | Full `npm audit --audit-level=low` is a blocking CI gate; no blind `audit fix --force` policy |
 | Linux host differences | README works only on developer machine | Debian 12 primary acceptance, Ubuntu 22.04 CI, documented Node/Rust/Python/system prerequisites; one clean-clone README-only run still required |
 | Documentation drifts back to E60/product-plumbing framing | Contributors implement the wrong product | Current-facing docs rewritten mission-first; historical cockpit/workbench docs and obsolete QA tooling removed from active tree |
-| Release naming/version ambiguity | Public preview appears older/newer than its actual architecture | Final preview version/release naming remains a mandatory release gate |
+| Release identity drift | Manifests, tag or release title disagree | Identity fixed as OrbitFabric Studio 0.15.0 Preview 1 / `v0.15.0-preview.1`; all manifests are aligned before the final candidate |
+| Private repository at publication time | A developer/source public preview is not publicly accessible | Repository owner will change GitHub visibility only after engineering gates close and before publishing the prerelease |
 | Binary distribution expectations | Users expect installers/signing/Core bundling prematurely | First release explicitly developer/source only; bundling, sidecar strategy, signing and notarization deferred |
 
 ## Release-critical open risks
@@ -25,8 +26,8 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 Before publishing the source preview, the following must close:
 
 1. one README-only clean-clone installation;
-2. preview version/release naming;
-3. green CI on the final release candidate.
+2. green CI on the final release candidate;
+3. owner-controlled public repository visibility and publication of `v0.15.0-preview.1` from the final merged commit.
 
 ## Risk rule
 

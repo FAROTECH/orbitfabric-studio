@@ -1,7 +1,7 @@
 # OrbitFabric Studio — Public Preview Release Gate
 
 **Status:** active release gate — feature freeze  
-**Target:** first public developer/source preview of the rebooted Studio  
+**Target:** OrbitFabric Studio 0.15.0 Preview 1 — first public developer/source preview of the rebooted Studio  
 **Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
 
 ## Release thesis
@@ -111,7 +111,7 @@ Explicitly deferred:
 - [x] Unreachable E60 runtime source removed from the active `src/` tree and validated with frontend/Rust/Tauri builds.
 - [x] Broken E60 QA scripts and obsolete current-facing cockpit/workbench documentation removed from the active public-source narrative.
 - [x] Current Charter, Vision, Architecture, UX, boundaries and roadmap are mission-first.
-- [ ] version/release naming chosen.
+- [x] Version/release naming chosen: **OrbitFabric Studio 0.15.0 Preview 1** / `v0.15.0-preview.1`.
 
 ## Gate E — Distribution
 
@@ -122,7 +122,9 @@ For the source preview:
 - [x] Supported/tested Linux host prerequisites documented in README.
 - [x] OrbitFabric Core runtime selection documented.
 - [x] Linux development/run path documented.
-- [ ] one clean-clone installation run completed from README only.
+- [ ] One clean-clone installation run completed from README only.
+- [ ] Repository owner changes GitHub visibility from private to public before publication.
+- [ ] Tag `v0.15.0-preview.1` and a GitHub prerelease are published from the final merged commit.
 
 Deferred desktop packaging decisions include:
 

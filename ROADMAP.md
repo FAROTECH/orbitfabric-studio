@@ -6,7 +6,7 @@ OrbitFabric Studio is a local-first engineering workbench for seeing and underst
 
 ## Current phase — Public Preview RC hardening
 
-The first developer/source public preview is feature-frozen. Its complete journey is:
+The first developer/source public preview is feature-frozen. Its release identity is **OrbitFabric Studio 0.15.0 Preview 1** (`v0.15.0-preview.1`). Its complete journey is:
 
 ```text
 Open Mission
@@ -38,9 +38,10 @@ No additional product feature is required before the preview.
 ### Remaining preview gates
 
 1. reproduce one clean clone using README only;
-2. choose preview version/release naming;
-3. require green CI on the final release candidate;
-4. merge draft PR #318 only after those gates close.
+2. require green CI on the final release candidate;
+3. merge draft PR #318 only after the engineering gates close;
+4. have the repository owner change GitHub visibility from private to public;
+5. publish tag `v0.15.0-preview.1` and the corresponding GitHub prerelease from the final merged commit.
 
 The canonical checklist is `docs/PUBLIC_PREVIEW_RELEASE_GATE.md`.
 

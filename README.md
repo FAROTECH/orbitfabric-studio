@@ -10,6 +10,8 @@ Studio is not a graphical file browser, a JSON dashboard, or a GUI wrapper aroun
 
 ## Public Preview scope
 
+Candidate release identity: **OrbitFabric Studio 0.15.0 Preview 1** (`v0.15.0-preview.1`).
+
 The rebooted Studio provides a complete mission-understanding product slice with complementary lenses:
 
 ```text
