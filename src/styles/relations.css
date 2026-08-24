@@ -110,9 +110,16 @@
 }
 
 .relationship-group > header span {
-  color: var(--text-muted);
+  min-width: 25px;
+  padding: 2px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(127, 180, 232, 0.07);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .relationship-explorer-list {
