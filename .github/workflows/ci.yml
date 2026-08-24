@@ -96,6 +96,7 @@ jobs:
           for mission in \
             demo-3u \
             finch-inspired-minislice \
+            oresat-inspired-minislice \
             spacelab-inspired-communications-minislice
           do
             out="/tmp/${mission}"
@@ -120,6 +121,7 @@ jobs:
           missions = [
               'demo-3u',
               'finch-inspired-minislice',
+              'oresat-inspired-minislice',
               'spacelab-inspired-communications-minislice',
           ]
 
@@ -173,3 +175,17 @@ jobs:
           spacelab_snapshot = loaded['spacelab-inspired-communications-minislice'][0]
           assert spacelab_snapshot['model']['payloads'] == []
           PY
+
+      - name: Set up Node for Context Map Core regression
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked Studio dependencies
+        run: npm ci
+
+      - name: Exhaustive Context Map regression against pinned Core fixtures
+        env:
+          ORBITFABRIC_STUDIO_CORE_SURFACES: /tmp
+        run: npm run test:logic

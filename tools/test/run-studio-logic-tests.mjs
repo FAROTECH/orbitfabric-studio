@@ -30,13 +30,18 @@ try {
     JSON.stringify({ type: "commonjs" }, null, 2),
   );
 
-  run(process.execPath, [
-    "--test",
+  const tests = [
     "tests/studio-logic/entity-ref.test.mjs",
     "tests/studio-logic/context-graph.test.mjs",
     "tests/studio-logic/context-map-evidence.test.mjs",
     "tests/studio-logic/studio-state.test.mjs",
-  ]);
+  ];
+
+  if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
+    tests.push("tests/studio-logic/context-map-core-regression.test.mjs");
+  }
+
+  run(process.execPath, ["--test", ...tests]);
 } finally {
   rmSync(outDir, { recursive: true, force: true });
 }
