@@ -80,6 +80,7 @@ test("refresh preserves a valid Context Path, then truncates it when the relatio
       origin: "context-map",
       contextPath: [step],
     },
+    operationsMode: modeB,
     view: "relations",
   };
 
@@ -91,6 +92,7 @@ test("refresh preserves a valid Context Path, then truncates it when the relatio
   assert.deepEqual(primaryCommitted.selection.subject, modeB);
   assert.equal(primaryCommitted.selection.contextPath.length, 1);
   assert.equal(primaryCommitted.view, "relations");
+  assert.deepEqual(primaryCommitted.operationsMode, modeB);
 
   const relationshipsReady = studioReducer(primaryCommitted, {
     type: "MISSION_RELATIONSHIPS_READY",
@@ -108,4 +110,26 @@ test("refresh preserves a valid Context Path, then truncates it when the relatio
 
   assert.deepEqual(relationshipsReady.selection.subject, modeA);
   assert.equal(relationshipsReady.selection.contextPath.length, 0);
+});
+
+test("inspecting another entity preserves the last Operations Mode Focus", () => {
+  const mode = { domain: "modes", id: "LOW_POWER" };
+  const command = { domain: "commands", id: "comms.start_downlink" };
+  const state = {
+    activeSession: session("active", ["NOMINAL", "LOW_POWER"]),
+    opening: null,
+    openFailure: null,
+    selection: { subject: mode, origin: "operations", contextPath: [] },
+    operationsMode: mode,
+    view: "operations",
+  };
+
+  const inspecting = studioReducer(state, {
+    type: "SELECTION_CHANGED",
+    subject: command,
+    origin: "operations",
+  });
+
+  assert.deepEqual(inspecting.selection.subject, command);
+  assert.deepEqual(inspecting.operationsMode, mode);
 });

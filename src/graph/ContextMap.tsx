@@ -14,6 +14,10 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 
+import {
+  routedEdgeTypes,
+  type ElkRoutedEdgeData,
+} from "./RoutedEdge";
 import { entityKey, type EntityKey, type EntityRef } from "../mission/entityRef";
 import type { MissionSession } from "../mission/MissionSession";
 import { relationshipPresentation } from "../mission/relationshipPresentation";
@@ -209,14 +213,14 @@ function ContextMapInner({
   ]);
 
   const nodeIds = useMemo(() => new Set(nodes.map((node) => node.id)), [nodes]);
-  const edges = useMemo<Edge[]>(
+  const edges = useMemo<Edge<ElkRoutedEdgeData>[]>(
     () =>
       model.edges
         .filter(
           (edge) =>
             nodeIds.has(entityKey(edge.source)) && nodeIds.has(entityKey(edge.target)),
         )
-        .map((edge) => {
+        .flatMap((edge) => {
           const presentation = relationshipPresentation(edge.relationshipType);
           const sourceKey = entityKey(edge.source);
           const targetKey = entityKey(edge.target);
@@ -231,13 +235,16 @@ function ContextMapInner({
             .filter(Boolean)
             .join(" ");
 
-          return {
+          const route = layout?.routes.get(edge.relationshipId);
+          if (!route) {
+            return [];
+          }
+
+          return [{
             id: edge.relationshipId,
             source: sourceKey,
             target: targetKey,
-            sourceHandle: "out",
-            targetHandle: "in",
-            type: "smoothstep",
+            type: "elk-routed" as const,
             label: presentation?.forwardLabel ?? edge.relationshipType,
             className: className || undefined,
             markerEnd: {
@@ -246,10 +253,11 @@ function ContextMapInner({
             },
             data: {
               relationshipType: edge.relationshipType,
+              route,
             },
-          };
+          }];
         }),
-    [contextPath, currentKey, model.edges, nodeIds],
+    [contextPath, currentKey, layout, model.edges, nodeIds],
   );
 
   const expandVisibleContext = () => {
@@ -440,6 +448,7 @@ function ContextFlowCanvas({
       nodes={[...nodes]}
       edges={[...edges]}
       nodeTypes={nodeTypes}
+      edgeTypes={routedEdgeTypes}
       nodesDraggable={false}
       nodesConnectable={false}
       elementsSelectable={true}

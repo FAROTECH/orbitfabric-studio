@@ -40,6 +40,7 @@ export interface StudioState {
   opening: MissionOpeningState | null;
   openFailure: MissionOpenFailure | null;
   selection: StudioSelection;
+  operationsMode: EntityRef | null;
   view: MissionWorkspaceView;
 }
 
@@ -110,6 +111,7 @@ export const initialStudioState: StudioState = {
   opening: null,
   openFailure: null,
   selection: emptyStudioSelection(),
+  operationsMode: null,
   view: "overview",
 };
 
@@ -138,6 +140,9 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         selection: replacingSameMission
           ? reconcileSelectionWithPrimary(state.selection, action.session)
           : emptyStudioSelection(),
+        operationsMode: replacingSameMission
+          ? reconcileOperationsMode(state.operationsMode, action.session)
+          : null,
         view: replacingSameMission ? state.view : "overview",
       };
     }
@@ -188,6 +193,8 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           origin: action.origin,
           contextPath: [],
         },
+        operationsMode:
+          action.subject?.domain === "modes" ? action.subject : state.operationsMode,
       };
 
     case "CONTEXT_EDGE_FOLLOWED":
@@ -198,6 +205,8 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           origin: action.origin,
           contextPath: [...state.selection.contextPath, action.step],
         },
+        operationsMode:
+          action.step.to.domain === "modes" ? action.step.to : state.operationsMode,
       };
 
     case "CONTEXT_PATH_REPLACED":
@@ -208,6 +217,8 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           origin: action.origin,
           contextPath: [...action.path],
         },
+        operationsMode:
+          action.subject.domain === "modes" ? action.subject : state.operationsMode,
       };
 
     case "CONTEXT_PATH_TRUNCATED":
@@ -218,6 +229,8 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           origin: action.origin,
           contextPath: state.selection.contextPath.slice(0, action.length),
         },
+        operationsMode:
+          action.subject.domain === "modes" ? action.subject : state.operationsMode,
       };
 
     case "WORKSPACE_VIEW_CHANGED":
@@ -226,6 +239,18 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         view: action.view,
       };
   }
+}
+
+function reconcileOperationsMode(
+  operationsMode: EntityRef | null,
+  session: MissionSession,
+): EntityRef | null {
+  if (operationsMode === null) {
+    return null;
+  }
+  return resolveEntityContract(session.snapshot, operationsMode) === null
+    ? null
+    : operationsMode;
 }
 
 function reconcileSelectionWithPrimary(

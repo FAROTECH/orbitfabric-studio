@@ -14,6 +14,7 @@ import {
 interface OperationsWorkspaceProps {
   session: MissionSession;
   selectedEntity: EntityRef | null;
+  focusedMode: EntityRef | null;
   onSelectMode: (mode: EntityRef) => void;
   onInspectEntity: (entity: EntityRef) => void;
 }
@@ -21,6 +22,7 @@ interface OperationsWorkspaceProps {
 export function OperationsWorkspace({
   session,
   selectedEntity,
+  focusedMode,
   onSelectMode,
   onInspectEntity,
 }: OperationsWorkspaceProps) {
@@ -40,6 +42,9 @@ export function OperationsWorkspace({
     selectedEntity?.domain === "modes" &&
     model.modes.some((mode) => mode.ref.id === selectedEntity.id)
       ? selectedEntity.id
+      : focusedMode?.domain === "modes" &&
+          model.modes.some((mode) => mode.ref.id === focusedMode.id)
+        ? focusedMode.id
       : model.modes.find((mode) => mode.initial)?.ref.id ?? model.modes[0].ref.id;
   const focus = buildModeFocus(model, selectedMode);
   if (!focus) {

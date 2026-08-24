@@ -283,6 +283,7 @@ function App() {
               <OperationsWorkspace
                 session={session}
                 selectedEntity={selectedEntity}
+                focusedMode={state.operationsMode}
                 onSelectMode={(subject) =>
                   dispatch({ type: "SELECTION_CHANGED", subject, origin: "operations" })
                 }

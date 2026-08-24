@@ -14,6 +14,10 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 
+import {
+  routedEdgeTypes,
+  type ElkRoutedEdgeData,
+} from "../../graph/RoutedEdge";
 import type { OperationsModel, OperationalModeFact } from "./operationsModel";
 import {
   layoutOperationalStateMap,
@@ -110,23 +114,28 @@ function OperationalStateMapInner({
     });
   }, [layout, model.modes, onSelectMode, selectedModeId]);
 
-  const edges = useMemo<Edge[]>(
+  const edges = useMemo<Edge<ElkRoutedEdgeData>[]>(
     () =>
-      model.transitions.map((transition) => ({
-        id: transition.key,
-        source: transition.from,
-        target: transition.to,
-        sourceHandle: "out",
-        targetHandle: "in",
-        type: "smoothstep",
-        label: transition.reason,
-        className:
-          transition.from === selectedModeId || transition.to === selectedModeId
-            ? "is-selected-adjacent"
-            : undefined,
-        markerEnd: { type: MarkerType.ArrowClosed },
-      })),
-    [model.transitions, selectedModeId],
+      model.transitions.flatMap((transition) => {
+        const route = layout?.routes.get(transition.key);
+        if (!route) {
+          return [];
+        }
+        return [{
+          id: transition.key,
+          source: transition.from,
+          target: transition.to,
+          type: "elk-routed" as const,
+          label: transition.reason,
+          className:
+            transition.from === selectedModeId || transition.to === selectedModeId
+              ? "is-selected-adjacent"
+              : undefined,
+          markerEnd: { type: MarkerType.ArrowClosed },
+          data: { route },
+        }];
+      }),
+    [layout, model.transitions, selectedModeId],
   );
 
   return (
@@ -196,6 +205,7 @@ function OperationalStateFlow({
       nodes={[...nodes]}
       edges={[...edges]}
       nodeTypes={nodeTypes}
+      edgeTypes={routedEdgeTypes}
       nodesDraggable={false}
       nodesConnectable={false}
       elementsSelectable
