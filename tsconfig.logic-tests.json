@@ -18,5 +18,6 @@
     "src/app/studioState.ts",
     "src/graph/contextGraphModel.ts",
     "src/graph/contextMapEvidence.ts"
-  ]
+  ],
+  "include": []
 }
