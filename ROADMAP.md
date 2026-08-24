@@ -37,11 +37,10 @@ No additional product feature is required before the preview.
 
 ### Remaining preview gates
 
-1. reproduce one clean clone using README only;
-2. require green CI on the final release candidate;
-3. merge draft PR #318 only after the engineering gates close;
-4. have the repository owner change GitHub visibility from private to public;
-5. publish tag `v0.15.0-preview.1` and the corresponding GitHub prerelease from the final merged commit.
+1. require green CI on the final release candidate;
+2. merge draft PR #318 only after the engineering gates close;
+3. have the repository owner change GitHub visibility from private to public;
+4. publish tag `v0.15.0-preview.1` and the corresponding GitHub prerelease from the final merged commit.
 
 The canonical checklist is `docs/PUBLIC_PREVIEW_RELEASE_GATE.md`.
 

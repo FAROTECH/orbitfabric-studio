@@ -15,7 +15,7 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 | WebView/browser chrome leaks into product | Accidental reload/navigation/devtools and broken desktop mental model | Global context-menu suppression; browser controls are not product UI |
 | Tauri/WebKit security regression | Desktop attack surface | Hardened Tauri 2.x baseline; production CSP + localhost-only dev CSP; minimal window capability; production-path Tauri build in CI |
 | Dependency vulnerability reintroduced | Security/release risk | Full `npm audit --audit-level=low` is a blocking CI gate; no blind `audit fix --force` policy |
-| Linux host differences | README works only on developer machine | Debian 12 primary acceptance, Ubuntu 22.04 CI, documented Node/Rust/Python/system prerequisites; one clean-clone README-only run still required |
+| Linux host differences | README works only on developer machine | Debian 12 README-only clean clone passed with Node 24, Rust 1.97 and Python 3.11; Ubuntu 22.04 CI remains green; the observed NewMac WebKit DMA-BUF fallback is documented |
 | Documentation drifts back to E60/product-plumbing framing | Contributors implement the wrong product | Current-facing docs rewritten mission-first; historical cockpit/workbench docs and obsolete QA tooling removed from active tree |
 | Release identity drift | Manifests, tag or release title disagree | Identity fixed as OrbitFabric Studio 0.15.0 Preview 1 / `v0.15.0-preview.1`; all manifests are aligned before the final candidate |
 | Private repository at publication time | A developer/source public preview is not publicly accessible | Repository owner will change GitHub visibility only after engineering gates close and before publishing the prerelease |
@@ -25,9 +25,8 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 
 Before publishing the source preview, the following must close:
 
-1. one README-only clean-clone installation;
-2. green CI on the final release candidate;
-3. owner-controlled public repository visibility and publication of `v0.15.0-preview.1` from the final merged commit.
+1. green CI on the final release candidate;
+2. owner-controlled public repository visibility and publication of `v0.15.0-preview.1` from the final merged commit.
 
 ## Risk rule
 

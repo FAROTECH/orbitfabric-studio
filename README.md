@@ -209,11 +209,13 @@ Start the desktop app:
 npm run tauri:dev
 ```
 
-On Linux/WebKit systems where DMA-BUF causes rendering problems, use:
+If `npm run tauri:dev` creates an empty window and the terminal reports `DRM_IOCTL_MODE_CREATE_DUMB failed` or `Failed to create GBM buffer`, stop the process and disable the WebKit DMA-BUF renderer:
 
 ```bash
 WEBKIT_DISABLE_DMABUF_RENDERER=1 npm run tauri:dev
 ```
+
+This host-specific rendering fallback does not change Studio or Core semantics.
 
 In the pre-open launcher, set **OrbitFabric executable** to the Core executable installed above.
 

@@ -122,7 +122,7 @@ For the source preview:
 - [x] Supported/tested Linux host prerequisites documented in README.
 - [x] OrbitFabric Core runtime selection documented.
 - [x] Linux development/run path documented.
-- [ ] One clean-clone installation run completed from README only.
+- [x] One clean-clone installation run completed from README only on Debian 12; evidence is recorded in `docs/qa/public-preview-clean-clone-acceptance.md`.
 - [ ] Repository owner changes GitHub visibility from private to public before publication.
 - [ ] Tag `v0.15.0-preview.1` and a GitHub prerelease are published from the final merged commit.
 
