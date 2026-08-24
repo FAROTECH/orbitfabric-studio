@@ -1,37 +1,33 @@
 {
   "name": "orbitfabric-studio",
   "private": true,
-  "version": "0.14.0",
+  "version": "0.15.0-preview.1",
   "type": "module",
-  "description": "Local-first visual engineering workbench for OrbitFabric Mission Data Contracts.",
+  "description": "Local-first engineering workbench for seeing and understanding OrbitFabric missions.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test:logic": "node tools/test/run-studio-logic-tests.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "qa:visual-checklist": "node tools/dev/generate-visual-qa-checklist.mjs --write",
-    "qa:desktop-envelope-audit": "node tools/dev/check-desktop-envelope-audit.mjs --write",
-    "qa:data-flow-workbench-audit": "node tools/dev/check-data-flow-workbench-audit.mjs --write",
-    "qa:studio-visual-token-contract": "node tools/dev/check-studio-visual-token-contract.mjs",
-    "qa:icon-audit": "node tools/dev/audit-studio-icons.mjs --write"
+    "tauri:build": "tauri build"
   },
   "dependencies": {
-    "@monaco-editor/react": "4.7.0",
-    "@tauri-apps/api": "2.0.0",
-    "@tauri-apps/plugin-dialog": "2.0.0",
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-dialog": "2.7.2",
+    "@xyflow/react": "12.11.2",
+    "elkjs": "0.11.1",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.0.0",
+    "@tauri-apps/cli": "2.11.4",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react": "4.7.0",
-    "html-to-image": "^1.11.13",
     "typescript": "5.8.3",
-    "vite": "6.3.7"
+    "vite": "6.4.3"
   },
   "overrides": {
     "esbuild": "0.25.9"

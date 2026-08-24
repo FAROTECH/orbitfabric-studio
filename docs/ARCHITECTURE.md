@@ -2,369 +2,284 @@
 
 ## 1. Architecture thesis
 
-OrbitFabric Studio is a downstream visual engineering workbench for OrbitFabric Mission Data Contracts.
+OrbitFabric Studio is a local-first desktop workbench that helps a human see and understand an OrbitFabric mission.
 
-OrbitFabric Core remains authoritative for engineering meaning.
-
-Studio is responsible for local presentation, navigation, inspection and interaction over Core-owned or Core-derived evidence.
-
-Studio must not become a second implementation of OrbitFabric Core.
-
----
-
-## 2. Core / Studio boundary
-
-The fundamental boundary is:
+The authority boundary is strict:
 
 ```text
-OrbitFabric Core
-    |
-    | CLI commands / JSON reports / generated artifacts
-    v
-Tauri backend adapter
-    |
-    | bounded commands / filesystem inspection / report loading
-    v
-React UI adapter and view models
-    |
-    | local presentation state
-    v
-Studio surfaces
+OrbitFabric Core owns engineering meaning.
+Studio owns how that meaning is presented and explored.
 ```
 
-The boundary is strict.
+Studio is not a second implementation of OrbitFabric Core.
 
-Studio consumes Core outputs.
+## 2. Runtime data flow
 
-Studio does not recreate Core semantics.
-
----
-
-## 3. Authority model
-
-### Core authority
-
-OrbitFabric Core owns:
-
-- Mission Model loading;
-- schema interpretation;
-- semantic validation;
-- lint rules;
-- scenario execution;
-- scenario evidence;
-- generated documentation;
-- generated JSON reports;
-- runtime-facing contract bindings;
-- ground-facing contract artifacts;
-- entity indexing;
-- relationship semantics;
-- coverage summaries;
-- future plugin semantics.
-
-### Studio authority
-
-Studio owns:
-
-- local workspace selection;
-- UI layout;
-- navigation state;
-- read-only inspection surfaces;
-- status presentation;
-- file preview;
-- generated artifact browsing;
-- local capture utility;
-- UI affordance state;
-- provisional packaging/application identity.
-
-Studio may display engineering meaning.
-
-Studio must not invent engineering meaning.
-
----
-
-## 4. Data categories
-
-Studio must preserve this distinction everywhere:
+The current reboot follows this path:
 
 ```text
-source model      = authoritative user-authored Mission Model files
-derived report    = OrbitFabric Core output derived from the source model
-generated output  = disposable artifact generated from the contract
-UI state          = local Studio representation
+OrbitFabric Core CLI / JSON surfaces
+        |
+        v
+Rust / Tauri process + filesystem seam
+        |
+        v
+TauriCoreGateway
+        |
+        v
+MissionHydrator
+        |
+        v
+MissionSession read model
+        |
+        +--> Mission Atlas
+        +--> Entity Explorer
+        +--> Entity X-Ray
+        +--> Relationship Explorer
+        `--> Context Graph -> ELK layout -> React Flow
 ```
 
-The UI must make it clear whether a value comes from source files, Core-derived reports, generated artifacts or local UI state.
+Core is the source of mission semantics. Studio validates transport/protocol shape and internal referential safety, but it does not independently decide what mission data means.
 
----
+## 3. Core integration contract
 
-## 5. Runtime shape
+Mission opening is progressively hydrated.
 
-The current application is a local-first Tauri 2 + React + TypeScript desktop workbench.
+### Primary hydration
 
-Primary runtime areas:
+C1 Mission Snapshot is the load-bearing surface. A successful snapshot makes the mission explorable immediately.
+
+### Secondary hydration
+
+Entity Index, Relationship Manifest and lint information arrive progressively. They enrich the already-loaded mission rather than blocking the first useful screen.
+
+This preserves:
+
+```text
+loadable != lint-clean
+```
+
+A mission may be successfully loaded while still containing Core-reported warnings or diagnostics.
+
+### Exit status and protocol
+
+Studio does not equate process exit status with semantic result:
+
+```text
+process exit status
+    != protocol validity
+    != semantic result
+```
+
+For example, Core may emit valid structured lint output and still return a non-zero process status because findings exist.
+
+## 4. Process and temporary-file boundary
+
+Rust/Tauri owns:
+
+- invoking the configured OrbitFabric executable;
+- bounded process lifetime;
+- terminating and reaping timed-out child processes;
+- writing Core JSON output to Studio-owned OS temporary storage;
+- cleanup of request temporary directories;
+- native directory selection;
+- path/process error reporting.
+
+Current timeouts are bounded: short capability/version probes use a smaller timeout than mission operations.
+
+Studio does not write hydration products into the user's mission workspace.
+
+## 5. Frontend authority
+
+React/TypeScript may:
+
+- normalize Core output into a read model;
+- group and label facts for presentation;
+- maintain selection, navigation and view state;
+- present relationship families by engineering intent;
+- compute graph layout input from explicit Core-owned edges;
+- preserve the path the user actually followed through those edges.
+
+React/TypeScript must not:
+
+- parse YAML to recover missing semantics;
+- infer relationships from names, co-occurrence, limits or text;
+- create private validation rules;
+- derive mission health/readiness/completeness/coverage scores;
+- treat layout as engineering meaning.
+
+## 6. Entity identity
+
+Entity IDs are not assumed globally unique across domains.
+
+The universal Studio identity is:
+
+```ts
+EntityRef = { domain, id }
+```
+
+This is required for real missions such as FINCH where the same textual ID may validly identify entities in different domains.
+
+## 7. Mission session and refresh
+
+`MissionSession` is the non-authoritative read model for one loaded generation.
+
+Open/Refresh are transactional and generation-scoped:
+
+- a new generation hydrates independently;
+- stale asynchronous responses are ignored;
+- the previous valid session is not partially mutated by a failed refresh;
+- semantic selection and Context Path are reconciled when possible.
+
+The Context Map may recalculate and refit after refresh to keep the current semantic context readable. Pixel-perfect viewport persistence is not an architectural requirement.
+
+## 8. Selection and Context Path
+
+Studio has one global semantic selection across lenses. Operations also retains the last valid mode focus as presentation state so an explicit Entity X-Ray inspection does not destroy the user's operational context.
+
+The Context Path is presentation state describing the investigation route the user actually followed through explicit Core-owned edges. It is not a shortest-path claim and is not mission semantics.
+
+When the user follows a direct relationship, the path extends. Selecting an earlier entity already in the path truncates back to that point.
+
+## 9. Graph architecture
+
+Both engineering graphs use the same authority-preserving rendering pipeline:
+
+```text
+Core-owned structured facts
+        |
+        v
+renderer-independent presentation model
+        |
+        v
+ELK node geometry + orthogonal edge routes
+        |
+        v
+React Flow renderer
+```
+
+`ContextGraphModel` owns presentation-level graph membership and expansion state over explicit Relationship Manifest edges. `OperationsModel` contains only explicit Mission Snapshot modes, transitions and declared mode-linked contracts. Payload lifecycle values remain effects and never become inferred mission-mode nodes.
+
+ELK owns presentation geometry and complete orthogonal routes. React Flow renders those routes and owns interaction; it does not reinterpret edge direction. Automated geometry tests verify that cyclic graph routes remain orthogonal and do not cross unrelated nodes.
+
+Selection and expansion are separate actions. Nodes are selectable/focusable but not freely draggable because arbitrary node placement must not imply mission meaning.
+
+The Context Map is a local investigation surface, not a global graph dump or graph editor. The Operational State Map is a declared-contract lens, not a simulator or runtime-state display.
+
+## 10. Active frontend tree
+
+The active reboot source is intentionally small:
 
 ```text
 src/
-  React UI, surfaces, view models, CSS and QA support
-
-src-tauri/
-  Tauri shell, command handlers, filesystem access and Core wrappers
-
-tools/dev/
-  visual QA, audit and development utilities
-
-docs/
-  current project documentation, QA records and historical archive
+├── App.tsx
+├── main.tsx
+├── vite-env.d.ts
+├── app/
+│   ├── lastPathTarget.ts
+│   └── studioState.ts
+├── core/
+│   ├── CoreGateway.ts
+│   ├── TauriCoreGateway.ts
+│   ├── contracts.ts
+│   └── surfaceValidation.ts
+├── features/
+│   ├── atlas/
+│   ├── explorer/
+│   ├── launcher/
+│   ├── operations/
+│   ├── relationships/
+│   ├── validation/
+│   └── xray/
+├── graph/
+│   ├── ContextMap.tsx
+│   ├── RoutedEdge.tsx
+│   ├── contextGraphLayout.ts
+│   ├── contextGraphModel.ts
+│   ├── contextMapEvidence.ts
+│   └── elkRouting.ts
+├── mission/
+│   ├── MissionHydrator.ts
+│   ├── MissionSession.ts
+│   ├── entityRef.ts
+│   ├── relationshipPresentation.ts
+│   ├── resolveEntityContract.ts
+│   └── selection.ts
+└── styles/
+    ├── context-map.css
+    ├── features.css
+    ├── operations.css
+    ├── relations.css
+    ├── reset.css
+    ├── responsive.css
+    ├── shell.css
+    └── tokens.css
 ```
 
-Tauri bundling is currently inactive.
+Historical E60 cockpit/workbench source is intentionally absent from the active tree. Git history is the archive.
 
-The app icon and graphical identity assets are provisional.
+## 11. Tauri security boundary
 
----
+The preview uses the current hardened Tauri 2.x baseline selected during release hardening.
 
-## 6. Frontend architecture
+Security properties include:
 
-The frontend is organized around public-preview surfaces:
+- production CSP enabled;
+- separate localhost-only development CSP for Vite/HMR;
+- window-scoped minimal capability;
+- `core:default` plus only the native directory-open permission required by the product;
+- no remote content capability;
+- no browser/WebView context menu exposed to the user.
 
-- Mission Cockpit;
-- Core Report Runner;
-- Mission Data Flow Workbench;
-- Data Products;
-- Scenario Evidence;
-- Generated Artifacts;
-- Ground Integration Artifact Viewer;
-- Core-derived domain surfaces;
-- reserved Autonomy surface.
+The production-path Tauri build is a permanent CI gate so configuration/CSP regressions fail before release.
 
-Important frontend modules include:
+## 12. Responsive architecture
 
-- `src/App.tsx` — current shell orchestration and legacy diagnostic surface host;
-- `src/navigationModel.ts` — navigation and surface status model;
-- `src/coreReports.ts` — Core report parsing and guards;
-- `src/missionContentViewModel.ts` — Mission Cockpit adapter model;
-- `src/missionDataFlowWorkbenchModel.ts` — Workbench adapter model;
-- `src/generatedArtifactInventoryStore.ts` — generated artifact inventory bridge;
-- `src/StudioIcon.tsx` — semantic icon registry;
-- `src/devSurfaceCapture.ts` — visual QA capture support.
-
-### Current frontend debt
-
-`src/App.tsx` is still too large and mixes multiple responsibilities.
-
-Future refactor slices should extract:
-
-- shell state;
-- workspace state;
-- inspector state;
-- legacy diagnostic surfaces;
-- scenario evidence panels;
-- Core report panels;
-- workspace file viewer logic.
-
-Refactors must preserve visual behavior and the E28 baseline.
-
----
-
-## 7. Backend architecture
-
-The Tauri backend currently provides:
-
-- workspace inspection;
-- generated artifact inspection;
-- bounded text file reading;
-- generated artifact reveal in the OS file manager;
-- development capture saving;
-- fixed OrbitFabric Core command wrappers;
-- scenario execution wrapper;
-- generated report path management;
-- generated artifact classification.
-
-Important backend file:
+The first preview is designed around three presentation tiers rather than one fixed desktop size:
 
 ```text
-src-tauri/src/lib.rs
+Wide      ~1280 px
+Standard  ~960 px
+Compact   ~640 px
 ```
 
-### Current backend debt
+The same semantic surfaces remain available. Layout adapts; mission meaning does not.
 
-`src-tauri/src/lib.rs` is too large and mixes command handlers, filesystem helpers, Core invocation, artifact discovery and capture utilities.
+## 13. Automated acceptance
 
-Future refactor slices should split it into focused modules, for example:
+Permanent CI covers:
 
-```text
-commands/
-workspace/
-core/
-artifacts/
-files/
-capture/
-platform/
-```
+- blocking `npm audit`;
+- pure Studio logic tests;
+- TypeScript + Vite production build;
+- Rust tests;
+- locked Cargo check;
+- Tauri production-path debug build;
+- pinned OrbitFabric Core integration checks;
+- an acceptance matrix including demo-3u, FINCH and SpaceLab.
 
-No backend refactor should change command behavior unless explicitly scoped and tested.
+Pure Studio tests protect domain-qualified identity, Validation finding links/filters, declared-only Operations joins, focus preservation, Context Path/graph behavior, ELK route geometry and refresh reconciliation. Rust tests protect Core process timeout/termination and temporary cleanup.
 
----
+## 14. Deferred architecture
 
-## 8. Core invocation model
+The first source preview intentionally does not require:
 
-Studio invokes fixed Core commands.
+- a database;
+- a server;
+- a Core sidecar bundle;
+- desktop signing/notarization;
+- Mission Model editing;
+- a plugin runtime;
+- cloud accounts or collaboration;
+- live telemetry or operational connectivity.
 
-Correct flow:
+Those require separate architecture decisions if they ever become product requirements.
 
-```text
-User action
-    |
-Studio fixed command wrapper
-    |
-OrbitFabric Core CLI
-    |
-Core report / stdout / stderr / exit code
-    |
-Studio renders result
-```
+## 15. Non-negotiable rule
 
-Studio must preserve raw evidence where useful.
+When Studio needs engineering meaning that Core does not expose, the answer is not to infer it privately.
 
-Studio must fail clearly when Core is missing, unsupported or returns malformed output.
+The correct choices are:
 
-Studio must not expose a free shell.
-
----
-
-## 9. Generated artifact model
-
-Generated artifacts are read-only outputs.
-
-Studio may:
-
-- list them;
-- classify them conservatively;
-- preview supported text artifacts;
-- reveal an artifact in the OS file manager;
-- link generated artifacts to Core-reported evidence when such linkage is available.
-
-Studio must not:
-
-- mutate generated artifacts;
-- treat generated artifacts as source of truth;
-- infer runtime or ground behavior from generated files;
-- hide unknown generated artifacts.
-
----
-
-## 10. Scenario evidence model
-
-Scenario evidence is Core-produced contract evidence.
-
-It is not live operations.
-
-It is not spacecraft telemetry.
-
-It is not a private Studio simulation.
-
-Studio may render Core simulation reports and scenario run indexes.
-
-Studio must not infer scenario state from logs, scenario YAML or missing evidence.
-
----
-
-## 11. CSS architecture
-
-The current CSS is stable but historically layered.
-
-The E28 visual baseline depends on an ordering-sensitive stack imported from `src/main.tsx`.
-
-Current CSS categories include:
-
-- base/global styles;
-- cockpit visual hierarchy;
-- surface-specific styles;
-- desktop envelope styles;
-- generated artifact styles;
-- scenario styles;
-- public baseline stabilization layers;
-- semantic visual token layers.
-
-### Current CSS debt
-
-Several `publicBaseline*` files are stabilization layers, not final architecture.
-
-Do not delete or consolidate them blindly.
-
-Future CSS refactor must:
-
-- document the import order;
-- preserve the E28 visual baseline;
-- change one layer at a time;
-- use visual QA captures before and after changes;
-- avoid broad selectors unless intentionally scoped.
-
----
-
-## 12. Documentation architecture
-
-Current-facing documentation should stay small and accurate.
-
-Historical planning material is preserved under:
-
-```text
-docs/archive/
-```
-
-Active documentation should explain:
-
-- what Studio is;
-- what Studio is not;
-- how it depends on Core;
-- what the public-preview baseline contains;
-- what remains provisional;
-- how to develop and QA changes.
-
----
-
-## 13. Packaging and brand boundary
-
-Packaging is not active.
-
-Brand assets are provisional.
-
-Final logo, favicon, app icon and generated Tauri icon sets must be created in a dedicated brand-assets pass before packaging activation.
-
-Packaging activation must be explicit and must not happen as a side effect of source cleanup.
-
----
-
-## 14. Future architecture hardening
-
-Recommended future sequence:
-
-1. document CSS layer order;
-2. split `App.tsx` by responsibility;
-3. split Tauri backend modules;
-4. reduce legacy diagnostic routing;
-5. consolidate CSS only after visual regression coverage;
-6. finalize brand assets;
-7. activate packaging.
-
-Each step must be narrow, reviewable and reversible.
-
----
-
-## 15. Non-negotiable engineering rules
-
-Studio must not introduce:
-
-- private Mission Model semantics;
-- private validation;
-- private relationship inference;
-- private data-flow inference;
-- private health/readiness/completeness/coverage scoring;
-- generated artifact mutation;
-- operational ground behavior;
-- command uplink behavior;
-- live telemetry behavior;
-- hidden authoring;
-- silent source rewrites.
-
-If Core does not provide the required engineering output, the correct response is to improve Core or show an explicit unavailable state.
+1. improve the Core machine-readable surface; or
+2. show the information as unavailable.

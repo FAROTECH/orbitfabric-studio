@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".test-dist",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "isolatedModules": false,
+    "sourceMap": false,
+    "declaration": false
+  },
+  "files": [
+    "src/core/contracts.ts",
+    "src/mission/entityRef.ts",
+    "src/mission/selection.ts",
+    "src/mission/MissionSession.ts",
+    "src/mission/resolveEntityContract.ts",
+    "src/app/studioState.ts",
+    "src/features/validation/validationModel.ts",
+    "src/features/operations/operationsModel.ts",
+    "src/features/operations/operationalStateLayout.ts",
+    "src/graph/contextGraphModel.ts",
+    "src/graph/elkRouting.ts",
+    "src/graph/contextGraphLayout.ts",
+    "src/mission/relationshipPresentation.ts",
+    "src/graph/contextMapEvidence.ts"
+  ],
+  "include": []
+}

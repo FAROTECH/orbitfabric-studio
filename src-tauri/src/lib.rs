@@ -1,440 +1,92 @@
 use serde::Serialize;
-use std::collections::BTreeMap;
 use std::env;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
-const MAX_TEXT_FILE_BYTES: u64 = 1_048_576;
-const MAX_GENERATED_ARTIFACTS: usize = 1_000;
-const MAX_GENERATED_ARTIFACT_DEPTH: usize = 8;
-const MAX_DEV_CAPTURE_DATA_URL_BYTES: usize = 96_000_000;
-
-const EXPECTED_MISSION_FILES: &[&str] = &[
-    "spacecraft.yaml",
-    "subsystems.yaml",
-    "modes.yaml",
-    "telemetry.yaml",
-    "commands.yaml",
-    "events.yaml",
-    "faults.yaml",
-    "packets.yaml",
-    "policies.yaml",
-    "payloads.yaml",
-    "data_products.yaml",
-    "contacts.yaml",
-    "commandability.yaml",
-];
-
-const GENERATED_DIRS: &[&str] = &["docs", "reports", "logs", "runtime", "runtime/cpp17"];
+const CORE_VERSION_TIMEOUT: Duration = Duration::from_secs(10);
+const CORE_OPERATION_TIMEOUT: Duration = Duration::from_secs(60);
+const CORE_POLL_INTERVAL: Duration = Duration::from_millis(25);
 
 #[derive(Debug, Serialize)]
-struct WorkspaceInspection {
+#[serde(rename_all = "camelCase")]
+struct MissionSourceResolution {
     selected_path: String,
-    mission_dir: Option<String>,
-    scenarios_dir: Option<String>,
-    generated_dir: Option<String>,
-    source_model_files: Vec<ProjectEntry>,
-    missing_expected_source_files: Vec<String>,
-    scenario_files: Vec<ProjectEntry>,
-    generated_locations: Vec<ProjectEntry>,
-    warnings: Vec<String>,
+    mission_dir: String,
 }
 
 #[derive(Debug, Serialize)]
-struct ProjectEntry {
-    name: String,
-    path: String,
-    kind: EntryKind,
-    category: EntryCategory,
-}
-
-#[derive(Debug, Serialize)]
-struct FileContent {
-    name: String,
-    path: String,
-    language: String,
-    content: String,
-    size_bytes: u64,
-}
-
-#[derive(Debug, Serialize)]
-struct GeneratedArtifactInventory {
-    generated_dir: Option<String>,
-    artifacts: Vec<GeneratedArtifactEntry>,
-    counts: GeneratedArtifactInventoryCounts,
-    warnings: Vec<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct GeneratedArtifactInventoryCounts {
-    total_artifacts: usize,
-    by_class: BTreeMap<String, usize>,
-    known_artifacts: usize,
-    unknown_artifacts: usize,
-    previewable_artifacts: usize,
-    not_previewable_artifacts: usize,
-}
-
-#[derive(Debug, Serialize)]
-struct GeneratedArtifactEntry {
-    name: String,
-    path: String,
-    relative_path: String,
-    extension: Option<String>,
-    size_bytes: u64,
-    artifact_class: GeneratedArtifactClass,
-    known_status: GeneratedArtifactKnownStatus,
-    preview_status: GeneratedArtifactPreviewStatus,
-    classification_reason: String,
-    provenance: GeneratedArtifactProvenance,
-}
-
-#[derive(Debug, Serialize)]
-struct GeneratedArtifactProvenance {
-    source: GeneratedArtifactProvenanceSource,
-    detail: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct CoreCommandResult {
-    command: String,
+#[serde(rename_all = "camelCase")]
+struct CoreInvocationResult {
+    operation: String,
+    executable: String,
     args: Vec<String>,
     exit_code: Option<i32>,
-    success: bool,
+    process_completed: bool,
+    timed_out: bool,
     stdout: String,
     stderr: String,
-    json_report_path: Option<String>,
-    json_report_available: bool,
-    json_report_content: Option<String>,
-    log_path: Option<String>,
-    log_available: bool,
+    report_path: Option<String>,
+    report_text: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-struct DevCaptureSaveResult {
-    path: String,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-enum EntryKind {
-    File,
-    Directory,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-enum EntryCategory {
-    SourceModel,
-    ScenarioSource,
-    DerivedReport,
-    GeneratedOutput,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-enum GeneratedArtifactClass {
-    Reports,
-    Logs,
-    Docs,
-    Runtime,
-    Ground,
-    Unknown,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
-enum GeneratedArtifactKnownStatus {
-    Known,
-    Unknown,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-enum GeneratedArtifactPreviewStatus {
-    Previewable,
-    NotPreviewable,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
-enum GeneratedArtifactProvenanceSource {
-    DocumentedCorePath,
-    DocumentedCoreFileName,
-    ManifestField,
-    Unknown,
-}
-
-impl GeneratedArtifactClass {
-    fn as_str(&self) -> &'static str {
-        match self {
-            GeneratedArtifactClass::Reports => "reports",
-            GeneratedArtifactClass::Logs => "logs",
-            GeneratedArtifactClass::Docs => "docs",
-            GeneratedArtifactClass::Runtime => "runtime",
-            GeneratedArtifactClass::Ground => "ground",
-            GeneratedArtifactClass::Unknown => "unknown",
-        }
-    }
-}
-
+/// Resolve the user's directory selection to the candidate Mission Model directory.
+///
+/// This command deliberately performs no OrbitFabric semantic inspection. It recognizes
+/// only the conventional `<workspace>/mission` directory shape; Core remains the authority
+/// on whether the resulting directory is a loadable Mission Model.
 #[tauri::command]
-fn inspect_workspace(path: String) -> Result<WorkspaceInspection, String> {
-    let selected = PathBuf::from(path);
+fn resolve_mission_source(path: String) -> Result<MissionSourceResolution, String> {
+    let selected = canonicalize_existing_dir(&path)?;
 
-    if !selected.exists() {
-        return Err("Selected path does not exist.".to_string());
-    }
-
-    if !selected.is_dir() {
-        return Err("Selected path is not a directory.".to_string());
-    }
-
-    let mission_dir = detect_mission_dir(&selected);
-    let scenarios_dir = detect_child_dir(&selected, "scenarios");
-    let generated_dir = detect_child_dir(&selected, "generated");
-
-    let mut warnings = Vec::new();
-
-    if mission_dir.is_none() {
-        warnings.push(
-            "No OrbitFabric mission directory was detected structurally. This is not a Core validation result."
-                .to_string(),
-        );
-    }
-
-    let (source_model_files, missing_expected_source_files) = match &mission_dir {
-        Some(dir) => inspect_mission_files(dir),
-        None => (
-            Vec::new(),
-            EXPECTED_MISSION_FILES
-                .iter()
-                .map(|file| file.to_string())
-                .collect(),
-        ),
-    };
-
-    let scenario_files = scenarios_dir
-        .as_ref()
-        .map(|dir| list_yaml_files(dir, EntryCategory::ScenarioSource))
-        .unwrap_or_default();
-
-    let generated_locations = generated_dir
-        .as_ref()
-        .map(|dir| inspect_generated_locations(dir))
-        .unwrap_or_default();
-
-    Ok(WorkspaceInspection {
-        selected_path: display_path(&selected),
-        mission_dir: mission_dir.as_ref().map(|dir| display_path(dir)),
-        scenarios_dir: scenarios_dir.as_ref().map(|dir| display_path(dir)),
-        generated_dir: generated_dir.as_ref().map(|dir| display_path(dir)),
-        source_model_files,
-        missing_expected_source_files,
-        scenario_files,
-        generated_locations,
-        warnings,
-    })
-}
-
-#[tauri::command]
-fn inspect_generated_artifacts(
-    workspace_path: String,
-) -> Result<GeneratedArtifactInventory, String> {
-    let workspace = canonicalize_existing_dir(&workspace_path)?;
-    let generated_candidate = workspace.join("generated");
-    let mut warnings = Vec::new();
-
-    if !generated_candidate.exists() {
-        warnings.push("No generated directory was found in the selected workspace.".to_string());
-
-        return Ok(GeneratedArtifactInventory {
-            generated_dir: None,
-            artifacts: Vec::new(),
-            counts: empty_generated_artifact_counts(),
-            warnings,
-        });
-    }
-
-    if !generated_candidate.is_dir() {
-        return Err("The generated path exists but is not a directory.".to_string());
-    }
-
-    let generated = generated_candidate
-        .canonicalize()
-        .map_err(|error| format!("Unable to resolve generated directory: {error}"))?;
-
-    if !generated.starts_with(&workspace) {
-        return Err("Generated directory is outside the selected workspace.".to_string());
-    }
-
-    let mut artifacts = Vec::new();
-    collect_generated_artifacts(&generated, &generated, 0, &mut artifacts, &mut warnings);
-    artifacts.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
-
-    let counts = count_generated_artifacts(&artifacts);
-
-    Ok(GeneratedArtifactInventory {
-        generated_dir: Some(display_path(&generated)),
-        artifacts,
-        counts,
-        warnings,
-    })
-}
-
-#[tauri::command]
-fn read_text_file(workspace_path: String, file_path: String) -> Result<FileContent, String> {
-    let workspace = canonicalize_existing_dir(&workspace_path)?;
-    let file = canonicalize_existing_file(&file_path)?;
-
-    if !file.starts_with(&workspace) {
-        return Err("Requested file is outside the selected workspace.".to_string());
-    }
-
-    let metadata =
-        fs::metadata(&file).map_err(|error| format!("Unable to read file metadata: {error}"))?;
-
-    if metadata.len() > MAX_TEXT_FILE_BYTES {
-        return Err(format!(
-            "File is too large for the read-only viewer. Maximum supported size is {MAX_TEXT_FILE_BYTES} bytes."
-        ));
-    }
-
-    if !is_supported_text_file(&file) {
-        return Err("File type is not supported by the read-only text viewer.".to_string());
-    }
-
-    let content = fs::read_to_string(&file)
-        .map_err(|error| format!("Unable to read file as UTF-8 text: {error}"))?;
-    let name = file
+    let mission = if selected
         .file_name()
         .and_then(|value| value.to_str())
-        .unwrap_or("selected file")
-        .to_string();
+        .is_some_and(|value| value == "mission")
+    {
+        selected.clone()
+    } else {
+        let child = selected.join("mission");
+        if child.is_dir() {
+            child
+                .canonicalize()
+                .map_err(|error| format!("Unable to resolve mission directory: {error}"))?
+        } else {
+            selected.clone()
+        }
+    };
 
-    Ok(FileContent {
-        name,
-        path: display_path(&file),
-        language: language_for_path(&file),
-        content,
-        size_bytes: metadata.len(),
+    Ok(MissionSourceResolution {
+        selected_path: display_path(&selected),
+        mission_dir: display_path(&mission),
     })
 }
 
 #[tauri::command]
-fn reveal_generated_artifact_in_file_manager(
-    workspace_path: String,
-    artifact_path: String,
-) -> Result<(), String> {
-    let workspace = canonicalize_existing_dir(&workspace_path)?;
-    let generated = workspace
-        .join("generated")
-        .canonicalize()
-        .map_err(|error| format!("Unable to resolve generated directory: {error}"))?;
-
-    if !generated.is_dir() {
-        return Err("Generated directory is not available for this workspace.".to_string());
-    }
-
-    if !generated.starts_with(&workspace) {
-        return Err("Generated directory is outside the selected workspace.".to_string());
-    }
-
-    let artifact = canonicalize_existing_file(&artifact_path)?;
-
-    if !artifact.starts_with(&generated) {
-        return Err(
-            "Generated artifact is outside the selected workspace generated directory.".to_string(),
-        );
-    }
-
-    reveal_path_in_file_manager(&artifact)
+fn run_core_version(executable: String) -> Result<CoreInvocationResult, String> {
+    run_core_command(executable, "version", &["--version"], None)
 }
 
 #[tauri::command]
-fn save_dev_capture_png(
-    filename: String,
-    data_url: String,
-) -> Result<DevCaptureSaveResult, String> {
-    if data_url.len() > MAX_DEV_CAPTURE_DATA_URL_BYTES {
-        return Err("Dev capture PNG is too large to save.".to_string());
-    }
-
-    let safe_filename = sanitize_capture_filename(&filename);
-    let output_dir = dev_capture_output_dir()?;
-    fs::create_dir_all(&output_dir)
-        .map_err(|error| format!("Unable to create dev capture output directory: {error}"))?;
-
-    let output_path = output_dir.join(safe_filename);
-    let png_bytes = decode_png_data_url(&data_url)?;
-
-    fs::write(&output_path, png_bytes)
-        .map_err(|error| format!("Unable to write dev capture PNG: {error}"))?;
-
-    Ok(DevCaptureSaveResult {
-        path: display_path(&output_path),
-    })
-}
-
-#[tauri::command]
-fn run_core_version(executable: String) -> Result<CoreCommandResult, String> {
-    run_core_command(executable, &["--version"], None)
-}
-
-#[tauri::command]
-fn run_core_inspect_mission(
+fn run_core_export_mission_snapshot(
     executable: String,
     mission_dir: String,
-) -> Result<CoreCommandResult, String> {
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
     let mission = canonicalize_existing_dir(&mission_dir)?;
+    let report_path = request_report_path(&request_id, "mission_snapshot.json", true)?;
     let mission_display = display_path(&mission);
-    run_core_command(
-        executable,
-        &["inspect", "mission", mission_display.as_str()],
-        None,
-    )
-}
-
-#[tauri::command]
-fn run_core_lint_mission(
-    executable: String,
-    mission_dir: String,
-) -> Result<CoreCommandResult, String> {
-    let mission = canonicalize_existing_dir(&mission_dir)?;
-    let mission_display = display_path(&mission);
-    let report_path = lint_report_path_for_mission(&mission)?;
     let report_display = display_path(&report_path);
 
     run_core_command(
         executable,
-        &[
-            "lint",
-            mission_display.as_str(),
-            "--json",
-            report_display.as_str(),
-        ],
-        Some(report_path),
-    )
-}
-
-#[tauri::command]
-fn run_core_export_model_summary(
-    executable: String,
-    mission_dir: String,
-) -> Result<CoreCommandResult, String> {
-    let mission = canonicalize_existing_dir(&mission_dir)?;
-    let mission_display = display_path(&mission);
-    let report_path = model_summary_report_path_for_mission(&mission)?;
-    let report_display = display_path(&report_path);
-
-    run_core_command(
-        executable,
+        "mission-snapshot",
         &[
             "export",
-            "model-summary",
+            "mission-snapshot",
             mission_display.as_str(),
             "--json",
             report_display.as_str(),
@@ -447,14 +99,16 @@ fn run_core_export_model_summary(
 fn run_core_export_entity_index(
     executable: String,
     mission_dir: String,
-) -> Result<CoreCommandResult, String> {
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
     let mission = canonicalize_existing_dir(&mission_dir)?;
+    let report_path = request_report_path(&request_id, "entity_index.json", false)?;
     let mission_display = display_path(&mission);
-    let report_path = entity_index_report_path_for_mission(&mission)?;
     let report_display = display_path(&report_path);
 
     run_core_command(
         executable,
+        "entity-index",
         &[
             "export",
             "entity-index",
@@ -470,14 +124,16 @@ fn run_core_export_entity_index(
 fn run_core_export_relationship_manifest(
     executable: String,
     mission_dir: String,
-) -> Result<CoreCommandResult, String> {
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
     let mission = canonicalize_existing_dir(&mission_dir)?;
+    let report_path = request_report_path(&request_id, "relationship_manifest.json", false)?;
     let mission_display = display_path(&mission);
-    let report_path = relationship_manifest_report_path_for_mission(&mission)?;
     let report_display = display_path(&report_path);
 
     run_core_command(
         executable,
+        "relationship-manifest",
         &[
             "export",
             "relationship-manifest",
@@ -490,20 +146,21 @@ fn run_core_export_relationship_manifest(
 }
 
 #[tauri::command]
-fn run_core_export_dashboard_summary(
+fn run_core_lint_mission(
     executable: String,
     mission_dir: String,
-) -> Result<CoreCommandResult, String> {
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
     let mission = canonicalize_existing_dir(&mission_dir)?;
+    let report_path = request_report_path(&request_id, "lint_report.json", false)?;
     let mission_display = display_path(&mission);
-    let report_path = dashboard_summary_report_path_for_mission(&mission)?;
     let report_display = display_path(&report_path);
 
     run_core_command(
         executable,
+        "lint",
         &[
-            "export",
-            "dashboard-summary",
+            "lint",
             mission_display.as_str(),
             "--json",
             report_display.as_str(),
@@ -513,837 +170,252 @@ fn run_core_export_dashboard_summary(
 }
 
 #[tauri::command]
-fn run_core_export_scenario_run_index(
-    executable: String,
-    workspace_path: String,
-) -> Result<CoreCommandResult, String> {
-    let workspace = canonicalize_existing_dir(&workspace_path)?;
-    let reports_dir = generated_reports_dir_for_workspace(
-        &workspace,
-        "Studio scenario run index report directory",
-    )?;
-    let report_path = scenario_run_index_report_path_for_workspace(&workspace)?;
-    let reports_dir_display = display_path(&reports_dir);
-    let report_display = display_path(&report_path);
+fn clear_core_request_temp(request_id: String) -> Result<(), String> {
+    let request_dir = core_request_temp_dir(&request_id);
 
-    run_core_command(
-        executable,
-        &[
-            "export",
-            "scenario-run-index",
-            "--simulation-reports",
-            reports_dir_display.as_str(),
-            "--json",
-            report_display.as_str(),
-        ],
-        Some(report_path),
-    )
-}
-
-#[tauri::command]
-fn run_core_export_coverage_summary(
-    executable: String,
-    mission_dir: String,
-) -> Result<CoreCommandResult, String> {
-    let mission = canonicalize_existing_dir(&mission_dir)?;
-    let mission_display = display_path(&mission);
-    let entity_index_path = entity_index_report_path_for_mission(&mission)?;
-    let relationship_manifest_path = relationship_manifest_report_path_for_mission(&mission)?;
-    let scenario_run_index_path = scenario_run_index_report_path_for_mission(&mission)?;
-
-    require_report_input_file(
-        &entity_index_path,
-        "Studio entity index report is missing. Run the Core entity-index export before coverage summary.",
-    )?;
-    require_report_input_file(
-        &relationship_manifest_path,
-        "Studio relationship manifest report is missing. Run the Core relationship-manifest export before coverage summary.",
-    )?;
-    require_report_input_file(
-        &scenario_run_index_path,
-        "Studio scenario run index report is missing. Run the Core scenario-run-index export before coverage summary.",
-    )?;
-
-    let report_path = coverage_summary_report_path_for_mission(&mission)?;
-    let entity_index_display = display_path(&entity_index_path);
-    let relationship_manifest_display = display_path(&relationship_manifest_path);
-    let scenario_run_index_display = display_path(&scenario_run_index_path);
-    let report_display = display_path(&report_path);
-
-    run_core_command(
-        executable,
-        &[
-            "export",
-            "coverage-summary",
-            mission_display.as_str(),
-            "--entity-index",
-            entity_index_display.as_str(),
-            "--relationship-manifest",
-            relationship_manifest_display.as_str(),
-            "--scenario-run-index",
-            scenario_run_index_display.as_str(),
-            "--json",
-            report_display.as_str(),
-        ],
-        Some(report_path),
-    )
-}
-
-#[tauri::command]
-fn run_core_sim_scenario(
-    executable: String,
-    workspace_path: String,
-    scenario_file: String,
-) -> Result<CoreCommandResult, String> {
-    let workspace = canonicalize_existing_dir(&workspace_path)?;
-    let scenario = canonicalize_existing_file(&scenario_file)?;
-
-    if !scenario.starts_with(&workspace) {
-        return Err("Scenario file is outside the selected workspace.".to_string());
+    if request_dir.exists() {
+        fs::remove_dir_all(&request_dir)
+            .map_err(|error| format!("Unable to clear Studio Core request directory: {error}"))?;
     }
 
-    let scenarios_dir = workspace.join("scenarios");
-
-    if !scenarios_dir.is_dir() {
-        return Err("Selected workspace does not contain a scenarios directory.".to_string());
-    }
-
-    let scenarios_dir = scenarios_dir
-        .canonicalize()
-        .map_err(|error| format!("Unable to resolve scenarios directory: {error}"))?;
-
-    if !scenario.starts_with(&scenarios_dir) {
-        return Err("Scenario file is outside the workspace scenarios directory.".to_string());
-    }
-
-    if !is_yaml_file(&scenario) {
-        return Err("Scenario command only accepts YAML scenario source files.".to_string());
-    }
-
-    let (report_path, log_path) = simulation_output_paths_for_workspace(&workspace, &scenario)?;
-    let scenario_display = display_path(&scenario);
-    let report_display = display_path(&report_path);
-    let log_display = display_path(&log_path);
-
-    run_core_command_with_artifacts(
-        executable,
-        &[
-            "sim",
-            scenario_display.as_str(),
-            "--json",
-            report_display.as_str(),
-            "--log",
-            log_display.as_str(),
-        ],
-        Some(report_path),
-        Some(log_path),
-    )
+    Ok(())
 }
 
 fn run_core_command(
     executable: String,
+    operation: &str,
     args: &[&str],
-    json_report_path: Option<PathBuf>,
-) -> Result<CoreCommandResult, String> {
-    run_core_command_with_artifacts(executable, args, json_report_path, None)
+    report_path: Option<PathBuf>,
+) -> Result<CoreInvocationResult, String> {
+    run_core_command_with_timeout(
+        executable,
+        operation,
+        args,
+        report_path,
+        core_timeout_for_operation(operation),
+    )
 }
 
-fn run_core_command_with_artifacts(
+fn run_core_command_with_timeout(
     executable: String,
+    operation: &str,
     args: &[&str],
-    json_report_path: Option<PathBuf>,
-    log_path: Option<PathBuf>,
-) -> Result<CoreCommandResult, String> {
+    report_path: Option<PathBuf>,
+    timeout: Duration,
+) -> Result<CoreInvocationResult, String> {
     let command = executable.trim();
 
     if command.is_empty() {
         return Err("OrbitFabric executable path is empty.".to_string());
     }
 
-    let output = Command::new(command)
+    let mut child = Command::new(command)
         .args(args)
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|error| format!("Unable to execute OrbitFabric Core command: {error}"))?;
 
-    let json_report_available = json_report_path.as_ref().is_some_and(|path| path.is_file());
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "Unable to capture OrbitFabric Core stdout.".to_string())?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| "Unable to capture OrbitFabric Core stderr.".to_string())?;
 
-    let json_report_content = match &json_report_path {
+    let stdout_reader = thread::spawn(move || read_stream(stdout));
+    let stderr_reader = thread::spawn(move || read_stream(stderr));
+
+    let started = Instant::now();
+    let mut timed_out = false;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) if started.elapsed() >= timeout => {
+                timed_out = true;
+                let _ = child.kill();
+                break child
+                    .wait()
+                    .map_err(|error| format!("Unable to reap timed-out OrbitFabric Core process: {error}"))?;
+            }
+            Ok(None) => thread::sleep(CORE_POLL_INTERVAL),
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                let _ = stdout_reader.join();
+                let _ = stderr_reader.join();
+                return Err(format!("Unable to poll OrbitFabric Core process: {error}"));
+            }
+        }
+    };
+
+    let stdout_bytes = stdout_reader
+        .join()
+        .map_err(|_| "OrbitFabric Core stdout reader thread failed.".to_string())??;
+    let stderr_bytes = stderr_reader
+        .join()
+        .map_err(|_| "OrbitFabric Core stderr reader thread failed.".to_string())??;
+
+    let report_text = match &report_path {
         Some(path) if path.is_file() => fs::read_to_string(path).ok(),
         _ => None,
     };
 
-    let log_available = log_path.as_ref().is_some_and(|path| path.is_file());
-
-    Ok(CoreCommandResult {
-        command: command.to_string(),
+    Ok(CoreInvocationResult {
+        operation: operation.to_string(),
+        executable: command.to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
-        exit_code: output.status.code(),
-        success: output.status.success(),
-        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
-        json_report_path: json_report_path.as_ref().map(|path| display_path(path)),
-        json_report_available,
-        json_report_content,
-        log_path: log_path.as_ref().map(|path| display_path(path)),
-        log_available,
+        exit_code: status.code(),
+        process_completed: !timed_out,
+        timed_out,
+        stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
+        stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
+        report_path: report_path.as_ref().map(|path| display_path(path)),
+        report_text,
     })
 }
 
-fn collect_generated_artifacts(
-    dir: &Path,
-    generated_root: &Path,
-    depth: usize,
-    artifacts: &mut Vec<GeneratedArtifactEntry>,
-    warnings: &mut Vec<String>,
-) {
-    if artifacts.len() >= MAX_GENERATED_ARTIFACTS {
-        return;
-    }
-
-    if depth > MAX_GENERATED_ARTIFACT_DEPTH {
-        warnings.push(format!(
-            "Generated artifact inspection depth limit reached at {}.",
-            display_path(dir)
-        ));
-        return;
-    }
-
-    let read_dir = match fs::read_dir(dir) {
-        Ok(read_dir) => read_dir,
-        Err(error) => {
-            warnings.push(format!(
-                "Unable to read generated directory {}: {error}",
-                display_path(dir)
-            ));
-            return;
-        }
-    };
-
-    let mut entries = Vec::new();
-
-    for entry_result in read_dir {
-        let entry = match entry_result {
-            Ok(entry) => entry,
-            Err(error) => {
-                warnings.push(format!("Unable to read generated directory entry: {error}"));
-                continue;
-            }
-        };
-
-        let file_type = match entry.file_type() {
-            Ok(file_type) => file_type,
-            Err(error) => {
-                warnings.push(format!(
-                    "Unable to read generated entry type for {}: {error}",
-                    display_path(&entry.path())
-                ));
-                continue;
-            }
-        };
-
-        entries.push((entry.path(), file_type));
-    }
-
-    entries.sort_by(|left, right| left.0.cmp(&right.0));
-
-    for (path, file_type) in entries {
-        if artifacts.len() >= MAX_GENERATED_ARTIFACTS {
-            warnings.push(format!(
-                "Generated artifact inspection limit reached at {MAX_GENERATED_ARTIFACTS} files."
-            ));
-            return;
-        }
-
-        if file_type.is_symlink() {
-            warnings.push(format!(
-                "Generated artifact inspection skipped symbolic link {}.",
-                display_path(&path)
-            ));
-            continue;
-        }
-
-        if file_type.is_dir() {
-            collect_generated_artifacts(&path, generated_root, depth + 1, artifacts, warnings);
-            continue;
-        }
-
-        if file_type.is_file() {
-            match build_generated_artifact_entry(&path, generated_root) {
-                Ok(artifact) => artifacts.push(artifact),
-                Err(error) => warnings.push(error),
-            }
-        }
-    }
+fn read_stream<R: Read>(mut stream: R) -> Result<Vec<u8>, String> {
+    let mut buffer = Vec::new();
+    stream
+        .read_to_end(&mut buffer)
+        .map_err(|error| format!("Unable to read OrbitFabric Core process output: {error}"))?;
+    Ok(buffer)
 }
 
-fn build_generated_artifact_entry(
-    path: &Path,
-    generated_root: &Path,
-) -> Result<GeneratedArtifactEntry, String> {
-    let metadata = fs::metadata(path).map_err(|error| {
-        format!(
-            "Unable to read generated artifact metadata for {}: {error}",
-            display_path(path)
-        )
-    })?;
-
-    let name = path
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("generated artifact")
-        .to_string();
-
-    let relative_path = path
-        .strip_prefix(generated_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/");
-
-    let extension = path
-        .extension()
-        .and_then(|value| value.to_str())
-        .map(|value| value.to_ascii_lowercase());
-
-    let artifact_class = generated_artifact_class_for_relative_path(&relative_path);
-    let preview_status = if metadata.len() <= MAX_TEXT_FILE_BYTES && is_supported_text_file(path) {
-        GeneratedArtifactPreviewStatus::Previewable
+fn core_timeout_for_operation(operation: &str) -> Duration {
+    if operation == "version" {
+        CORE_VERSION_TIMEOUT
     } else {
-        GeneratedArtifactPreviewStatus::NotPreviewable
-    };
-
-    Ok(GeneratedArtifactEntry {
-        name,
-        path: display_path(path),
-        relative_path,
-        extension,
-        size_bytes: metadata.len(),
-        artifact_class,
-        known_status: GeneratedArtifactKnownStatus::Unknown,
-        preview_status,
-        classification_reason:
-            "Classified only by top-level generated/ subdirectory in this backend slice."
-                .to_string(),
-        provenance: GeneratedArtifactProvenance {
-            source: GeneratedArtifactProvenanceSource::Unknown,
-            detail: Some(
-                "No Core manifest or file-specific provenance is interpreted by this backend slice."
-                    .to_string(),
-            ),
-        },
-    })
-}
-
-fn generated_artifact_class_for_relative_path(relative_path: &str) -> GeneratedArtifactClass {
-    match relative_path.split('/').next() {
-        Some("reports") => GeneratedArtifactClass::Reports,
-        Some("logs") => GeneratedArtifactClass::Logs,
-        Some("docs") => GeneratedArtifactClass::Docs,
-        Some("runtime") => GeneratedArtifactClass::Runtime,
-        Some("ground") => GeneratedArtifactClass::Ground,
-        _ => GeneratedArtifactClass::Unknown,
+        CORE_OPERATION_TIMEOUT
     }
 }
 
-fn count_generated_artifacts(
-    artifacts: &[GeneratedArtifactEntry],
-) -> GeneratedArtifactInventoryCounts {
-    let mut counts = empty_generated_artifact_counts();
-    counts.total_artifacts = artifacts.len();
+fn request_report_path(
+    request_id: &str,
+    file_name: &str,
+    reset_request_dir: bool,
+) -> Result<PathBuf, String> {
+    let request_dir = core_request_temp_dir(request_id);
 
-    for artifact in artifacts {
-        *counts
-            .by_class
-            .entry(artifact.artifact_class.as_str().to_string())
-            .or_insert(0) += 1;
-
-        match artifact.known_status {
-            GeneratedArtifactKnownStatus::Known => counts.known_artifacts += 1,
-            GeneratedArtifactKnownStatus::Unknown => counts.unknown_artifacts += 1,
-        }
-
-        match artifact.preview_status {
-            GeneratedArtifactPreviewStatus::Previewable => counts.previewable_artifacts += 1,
-            GeneratedArtifactPreviewStatus::NotPreviewable => counts.not_previewable_artifacts += 1,
-        }
+    if reset_request_dir && request_dir.exists() {
+        fs::remove_dir_all(&request_dir)
+            .map_err(|error| format!("Unable to reset Studio Core request directory: {error}"))?;
     }
 
-    counts
+    fs::create_dir_all(&request_dir)
+        .map_err(|error| format!("Unable to create Studio Core request directory: {error}"))?;
+
+    Ok(request_dir.join(file_name))
 }
 
-fn empty_generated_artifact_counts() -> GeneratedArtifactInventoryCounts {
-    let mut by_class = BTreeMap::new();
-
-    for artifact_class in ["reports", "logs", "docs", "runtime", "ground", "unknown"] {
-        by_class.insert(artifact_class.to_string(), 0);
-    }
-
-    GeneratedArtifactInventoryCounts {
-        total_artifacts: 0,
-        by_class,
-        known_artifacts: 0,
-        unknown_artifacts: 0,
-        previewable_artifacts: 0,
-        not_previewable_artifacts: 0,
-    }
+fn core_request_temp_dir(request_id: &str) -> PathBuf {
+    env::temp_dir()
+        .join("orbitfabric-studio")
+        .join("core")
+        .join(std::process::id().to_string())
+        .join(sanitize_request_id(request_id))
 }
 
-fn lint_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    report_path_for_mission(
-        mission,
-        "orbitfabric_studio_lint_report.json",
-        "Studio lint report directory",
-    )
-}
-
-fn model_summary_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    report_path_for_mission(
-        mission,
-        "orbitfabric_studio_model_summary.json",
-        "Studio model summary report directory",
-    )
-}
-
-fn entity_index_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    report_path_for_mission(
-        mission,
-        "orbitfabric_studio_entity_index.json",
-        "Studio entity index report directory",
-    )
-}
-
-fn relationship_manifest_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    report_path_for_mission(
-        mission,
-        "orbitfabric_studio_relationship_manifest.json",
-        "Studio relationship manifest report directory",
-    )
-}
-
-fn dashboard_summary_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    report_path_for_mission(
-        mission,
-        "orbitfabric_studio_dashboard_summary.json",
-        "Studio dashboard summary report directory",
-    )
-}
-
-fn scenario_run_index_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    let workspace = mission.parent().unwrap_or(mission);
-    scenario_run_index_report_path_for_workspace(workspace)
-}
-
-fn scenario_run_index_report_path_for_workspace(workspace: &Path) -> Result<PathBuf, String> {
-    Ok(generated_reports_dir_for_workspace(
-        workspace,
-        "Studio scenario run index report directory",
-    )?
-    .join("orbitfabric_studio_scenario_run_index.json"))
-}
-
-fn coverage_summary_report_path_for_mission(mission: &Path) -> Result<PathBuf, String> {
-    report_path_for_mission(
-        mission,
-        "orbitfabric_studio_coverage_summary.json",
-        "Studio coverage summary report directory",
-    )
-}
-
-fn simulation_output_paths_for_workspace(
-    workspace: &Path,
-    scenario: &Path,
-) -> Result<(PathBuf, PathBuf), String> {
-    let scenario_id = safe_file_stem(scenario)?;
-    let reports_dir = workspace.join("generated").join("reports");
-    let logs_dir = workspace.join("generated").join("logs");
-
-    fs::create_dir_all(&reports_dir)
-        .map_err(|error| format!("Unable to create Studio simulation report directory: {error}"))?;
-    fs::create_dir_all(&logs_dir)
-        .map_err(|error| format!("Unable to create Studio simulation log directory: {error}"))?;
-
-    Ok((
-        reports_dir.join(format!("{scenario_id}_report.json")),
-        logs_dir.join(format!("{scenario_id}.log")),
-    ))
-}
-
-fn safe_file_stem(path: &Path) -> Result<String, String> {
-    let stem = path
-        .file_stem()
-        .and_then(|value| value.to_str())
-        .ok_or_else(|| "Scenario file has no valid UTF-8 file name.".to_string())?;
-
-    let sanitized: String = stem
+fn sanitize_request_id(request_id: &str) -> String {
+    let sanitized: String = request_id
         .chars()
-        .map(|character| {
-            if character.is_ascii_alphanumeric() || character == '-' || character == '_' {
-                character
+        .filter_map(|character| {
+            if character.is_ascii_alphanumeric() || matches!(character, '-' | '_') {
+                Some(character)
             } else {
-                '_'
+                None
             }
         })
+        .take(96)
         .collect();
 
     if sanitized.is_empty() {
-        Err("Scenario file name does not produce a valid report name.".to_string())
+        "request".to_string()
     } else {
-        Ok(sanitized)
+        sanitized
     }
-}
-
-fn is_yaml_file(path: &Path) -> bool {
-    path.extension()
-        .and_then(|value| value.to_str())
-        .is_some_and(|extension| matches!(extension, "yaml" | "yml"))
-}
-
-fn report_path_for_mission(
-    mission: &Path,
-    report_file_name: &str,
-    report_directory_description: &str,
-) -> Result<PathBuf, String> {
-    let workspace = mission.parent().unwrap_or(mission);
-    Ok(
-        generated_reports_dir_for_workspace(workspace, report_directory_description)?
-            .join(report_file_name),
-    )
-}
-
-fn generated_reports_dir_for_workspace(
-    workspace: &Path,
-    report_directory_description: &str,
-) -> Result<PathBuf, String> {
-    let reports_dir = workspace.join("generated").join("reports");
-
-    fs::create_dir_all(&reports_dir)
-        .map_err(|error| format!("Unable to create {report_directory_description}: {error}"))?;
-
-    Ok(reports_dir)
-}
-
-fn require_report_input_file(path: &Path, error_message: &str) -> Result<(), String> {
-    if path.is_file() {
-        Ok(())
-    } else {
-        Err(error_message.to_string())
-    }
-}
-
-#[cfg(target_os = "macos")]
-fn reveal_path_in_file_manager(path: &Path) -> Result<(), String> {
-    let status = Command::new("open")
-        .arg("-R")
-        .arg(path)
-        .status()
-        .map_err(|error| format!("Unable to open file location in Finder: {error}"))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err("Finder did not accept the generated artifact location.".to_string())
-    }
-}
-
-#[cfg(target_os = "windows")]
-fn reveal_path_in_file_manager(path: &Path) -> Result<(), String> {
-    let selector = format!("/select,{}", path.to_string_lossy());
-    let status = Command::new("explorer")
-        .arg(selector)
-        .status()
-        .map_err(|error| format!("Unable to open file location in File Explorer: {error}"))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err("File Explorer did not accept the generated artifact location.".to_string())
-    }
-}
-
-#[cfg(target_os = "linux")]
-fn reveal_path_in_file_manager(path: &Path) -> Result<(), String> {
-    let parent = path
-        .parent()
-        .ok_or_else(|| "Generated artifact parent directory is not available.".to_string())?;
-
-    let status = Command::new("xdg-open")
-        .arg(parent)
-        .status()
-        .map_err(|error| format!("Unable to open generated artifact directory: {error}"))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err("The system file manager did not accept the generated artifact directory.".to_string())
-    }
-}
-
-#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-fn reveal_path_in_file_manager(_path: &Path) -> Result<(), String> {
-    Err("Opening generated artifact locations is not supported on this platform.".to_string())
 }
 
 fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
     let candidate = PathBuf::from(path);
 
     if !candidate.is_dir() {
-        return Err("Workspace path is not a directory.".to_string());
+        return Err("Selected path is not an existing directory.".to_string());
     }
 
     candidate
         .canonicalize()
-        .map_err(|error| format!("Unable to resolve workspace path: {error}"))
-}
-
-fn canonicalize_existing_file(path: &str) -> Result<PathBuf, String> {
-    let candidate = PathBuf::from(path);
-
-    if !candidate.is_file() {
-        return Err("Requested path is not a file.".to_string());
-    }
-
-    candidate
-        .canonicalize()
-        .map_err(|error| format!("Unable to resolve file path: {error}"))
-}
-
-fn is_supported_text_file(path: &Path) -> bool {
-    match path.extension().and_then(|value| value.to_str()) {
-        Some(
-            "yaml" | "yml" | "json" | "md" | "txt" | "log" | "csv" | "hpp" | "cpp" | "h" | "c",
-        ) => true,
-        _ => path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .is_some_and(|name| name == "CMakeLists.txt"),
-    }
-}
-
-fn language_for_path(path: &Path) -> String {
-    match path.extension().and_then(|value| value.to_str()) {
-        Some("yaml" | "yml") => "yaml",
-        Some("json") => "json",
-        Some("md") => "markdown",
-        Some("hpp" | "cpp" | "h" | "c") => "cpp",
-        Some("log" | "txt") => "plaintext",
-        Some("csv") => "csv",
-        _ => "plaintext",
-    }
-    .to_string()
-}
-
-fn detect_mission_dir(selected: &Path) -> Option<PathBuf> {
-    let direct_score = count_expected_files(selected);
-
-    if direct_score > 0 {
-        return Some(selected.to_path_buf());
-    }
-
-    let child = selected.join("mission");
-
-    if child.is_dir() && count_expected_files(&child) > 0 {
-        return Some(child);
-    }
-
-    None
-}
-
-fn detect_child_dir(selected: &Path, name: &str) -> Option<PathBuf> {
-    let child = selected.join(name);
-
-    if child.is_dir() {
-        Some(child)
-    } else {
-        None
-    }
-}
-
-fn count_expected_files(dir: &Path) -> usize {
-    EXPECTED_MISSION_FILES
-        .iter()
-        .filter(|file| dir.join(file).is_file())
-        .count()
-}
-
-fn inspect_mission_files(dir: &Path) -> (Vec<ProjectEntry>, Vec<String>) {
-    let mut found = Vec::new();
-    let mut missing = Vec::new();
-
-    for file in EXPECTED_MISSION_FILES {
-        let path = dir.join(file);
-
-        if path.is_file() {
-            found.push(ProjectEntry {
-                name: (*file).to_string(),
-                path: display_path(&path),
-                kind: EntryKind::File,
-                category: EntryCategory::SourceModel,
-            });
-        } else {
-            missing.push((*file).to_string());
-        }
-    }
-
-    (found, missing)
-}
-
-fn list_yaml_files(dir: &Path, category: EntryCategory) -> Vec<ProjectEntry> {
-    let mut entries = Vec::new();
-
-    if let Ok(read_dir) = fs::read_dir(dir) {
-        for entry in read_dir.flatten() {
-            let path = entry.path();
-            let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
-                continue;
-            };
-
-            if path.is_file() && (name.ends_with(".yaml") || name.ends_with(".yml")) {
-                entries.push(ProjectEntry {
-                    name: name.to_string(),
-                    path: display_path(&path),
-                    kind: EntryKind::File,
-                    category: clone_category(&category),
-                });
-            }
-        }
-    }
-
-    entries.sort_by(|left, right| left.name.cmp(&right.name));
-    entries
-}
-
-fn inspect_generated_locations(dir: &Path) -> Vec<ProjectEntry> {
-    let mut entries = Vec::new();
-
-    for relative in GENERATED_DIRS {
-        let path = dir.join(relative);
-
-        if path.is_dir() {
-            entries.push(ProjectEntry {
-                name: (*relative).to_string(),
-                path: display_path(&path),
-                kind: EntryKind::Directory,
-                category: generated_category(relative),
-            });
-        }
-    }
-
-    entries
-}
-
-fn generated_category(relative: &str) -> EntryCategory {
-    if relative == "reports" || relative == "logs" {
-        EntryCategory::DerivedReport
-    } else {
-        EntryCategory::GeneratedOutput
-    }
-}
-
-fn clone_category(category: &EntryCategory) -> EntryCategory {
-    match category {
-        EntryCategory::SourceModel => EntryCategory::SourceModel,
-        EntryCategory::ScenarioSource => EntryCategory::ScenarioSource,
-        EntryCategory::DerivedReport => EntryCategory::DerivedReport,
-        EntryCategory::GeneratedOutput => EntryCategory::GeneratedOutput,
-    }
-}
-
-fn dev_capture_output_dir() -> Result<PathBuf, String> {
-    let Some(home) = env::var_os("HOME") else {
-        return Err("Unable to resolve HOME for dev capture output.".to_string());
-    };
-
-    Ok(PathBuf::from(home)
-        .join("Downloads")
-        .join("OrbitFabric Studio QA Captures"))
-}
-
-fn sanitize_capture_filename(filename: &str) -> String {
-    let sanitized: String = filename
-        .chars()
-        .map(|character| {
-            if character.is_ascii_alphanumeric()
-                || character == '-'
-                || character == '_'
-                || character == '.'
-            {
-                character
-            } else {
-                '_'
-            }
-        })
-        .collect();
-
-    let trimmed = sanitized.trim_matches('_');
-    let mut safe = if trimmed.is_empty() {
-        "of-studio-qa-capture.png".to_string()
-    } else {
-        trimmed.to_string()
-    };
-
-    if !safe.ends_with(".png") {
-        safe.push_str(".png");
-    }
-
-    safe
-}
-
-fn decode_png_data_url(data_url: &str) -> Result<Vec<u8>, String> {
-    const PREFIX: &str = "data:image/png;base64,";
-
-    if !data_url.starts_with(PREFIX) {
-        return Err("Dev capture did not produce a PNG data URL.".to_string());
-    }
-
-    let bytes = decode_base64(&data_url[PREFIX.len()..])?;
-    let png_signature = [137, 80, 78, 71, 13, 10, 26, 10];
-
-    if !bytes.starts_with(&png_signature) {
-        return Err("Dev capture payload is not a valid PNG.".to_string());
-    }
-
-    Ok(bytes)
-}
-
-fn decode_base64(input: &str) -> Result<Vec<u8>, String> {
-    let mut output = Vec::with_capacity(input.len() * 3 / 4);
-    let mut buffer: u32 = 0;
-    let mut bits: u8 = 0;
-
-    for byte in input.bytes() {
-        if byte == b'=' {
-            break;
-        }
-
-        if matches!(byte, b'\r' | b'\n' | b' ' | b'\t') {
-            continue;
-        }
-
-        let value = base64_value(byte)?;
-        buffer = (buffer << 6) | u32::from(value);
-        bits += 6;
-
-        if bits >= 8 {
-            bits -= 8;
-            output.push(((buffer >> bits) & 0xff) as u8);
-        }
-    }
-
-    Ok(output)
-}
-
-fn base64_value(byte: u8) -> Result<u8, String> {
-    match byte {
-        b'A'..=b'Z' => Ok(byte - b'A'),
-        b'a'..=b'z' => Ok(byte - b'a' + 26),
-        b'0'..=b'9' => Ok(byte - b'0' + 52),
-        b'+' => Ok(62),
-        b'/' => Ok(63),
-        _ => Err("Dev capture payload contains invalid base64.".to_string()),
-    }
+        .map_err(|error| format!("Unable to resolve selected directory: {error}"))
 }
 
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_request_id_keeps_only_safe_characters() {
+        assert_eq!(sanitize_request_id("abc DEF/../123_-"), "abcDEF123_-");
+        assert_eq!(sanitize_request_id("///"), "request");
+    }
+
+    #[test]
+    fn clear_request_temp_removes_the_whole_request_directory() {
+        let request_id = "rust-cleanup-test";
+        let report = request_report_path(request_id, "report.json", true)
+            .expect("request temp directory should be created");
+        fs::write(&report, b"{}")
+            .expect("test report should be writable");
+
+        let request_dir = core_request_temp_dir(request_id);
+        assert!(request_dir.is_dir());
+        assert!(report.is_file());
+
+        clear_core_request_temp(request_id.to_string())
+            .expect("request temp directory should be removable");
+
+        assert!(!request_dir.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn core_command_completes_before_timeout() {
+        let result = run_core_command_with_timeout(
+            "/bin/sh".to_string(),
+            "test",
+            &["-c", "printf 'ok'"],
+            None,
+            Duration::from_secs(1),
+        )
+        .expect("test command should run");
+
+        assert!(result.process_completed);
+        assert!(!result.timed_out);
+        assert_eq!(result.exit_code, Some(0));
+        assert_eq!(result.stdout, "ok");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn core_command_is_killed_after_timeout() {
+        let result = run_core_command_with_timeout(
+            "/bin/sh".to_string(),
+            "test",
+            &["-c", "sleep 2"],
+            None,
+            Duration::from_millis(75),
+        )
+        .expect("timed-out command should return a transport result");
+
+        assert!(!result.process_completed);
+        assert!(result.timed_out);
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -1351,21 +423,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            inspect_workspace,
-            inspect_generated_artifacts,
-            read_text_file,
-            reveal_generated_artifact_in_file_manager,
-            save_dev_capture_png,
+            resolve_mission_source,
             run_core_version,
-            run_core_inspect_mission,
-            run_core_lint_mission,
-            run_core_export_model_summary,
+            run_core_export_mission_snapshot,
             run_core_export_entity_index,
             run_core_export_relationship_manifest,
-            run_core_export_dashboard_summary,
-            run_core_export_scenario_run_index,
-            run_core_export_coverage_summary,
-            run_core_sim_scenario
+            run_core_lint_mission,
+            clear_core_request_temp,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");

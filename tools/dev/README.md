@@ -1,44 +1,56 @@
 # OrbitFabric Studio developer tools
 
-Small local utilities used during Studio desktop QA.
+This directory contains only small local helpers that are still useful to the rebooted Studio.
 
-## Location
+The active product does not depend on these scripts at runtime.
 
-These scripts should live in:
+## Desktop resize helpers
 
-    tools/dev/
+The public-preview visual acceptance baseline uses three representative widths:
 
-Suggested files:
+```text
+Wide      1280 px
+Standard   960 px
+Compact    640 px
+```
 
-    tools/dev/README.md
-    tools/dev/resize-orbitfabric-studio.macos.sh
-    tools/dev/resize-orbitfabric-studio.windows.ps1
+The canonical acceptance procedure is documented in:
 
-## Resize Studio window on macOS
+```text
+docs/qa/public-preview-visual-acceptance.md
+```
 
-Start Studio first:
-
-    npm run tauri:dev
-
-Then, from the repository root:
-
-    chmod +x tools/dev/resize-orbitfabric-studio.macos.sh
-    ./tools/dev/resize-orbitfabric-studio.macos.sh 1440 900
-
-## Resize Studio window on Windows
+### macOS
 
 Start Studio first:
 
-    npm run tauri:dev
+```bash
+npm run tauri:dev
+```
 
-Then, from PowerShell:
+Then:
 
-    powershell -ExecutionPolicy Bypass -File .\tools\dev\resize-orbitfabric-studio.windows.ps1 1440 900
+```bash
+chmod +x tools/dev/resize-orbitfabric-studio.macos.sh
+./tools/dev/resize-orbitfabric-studio.macos.sh 1280 900
+```
 
-## Notes
+Repeat with 960 and 640 width as required by the acceptance protocol.
 
-These scripts are only developer utilities.
+### Windows
 
-They do not affect Studio runtime behavior, mission data, generated artifacts, or Core outputs.
+Start Studio first, then from PowerShell:
 
-Use them only to make desktop QA reproducible across macOS and Windows.
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\dev\resize-orbitfabric-studio.windows.ps1 1280 900
+```
+
+Repeat with 960 and 640 width as required.
+
+## Linux
+
+The primary manual preview acceptance is performed on the real Tauri application. Window sizing may be done with the desktop/window-manager facilities available on the test host; there is no Studio-specific Linux resize dependency.
+
+## Boundary
+
+These helpers modify only the desktop window size. They do not affect mission data, Core outputs, Studio selection, relationship semantics or generated files.

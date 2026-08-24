@@ -1,179 +1,307 @@
 # OrbitFabric Studio
 
-Local-first visual engineering workbench for OrbitFabric Mission Data Contracts.
+**See the mission.**
 
-OrbitFabric Studio exists to make mission contracts inspectable, navigable and reviewable without replacing OrbitFabric Core or redefining mission semantics.
+OrbitFabric Studio is a local-first engineering workbench for seeing and understanding OrbitFabric missions.
 
-Studio is not where mission semantics are created.
+> **OrbitFabric exposes the Mission Data Contract. OrbitFabric Studio exposes the mission to the human.**
 
-Studio is where mission semantics become inspectable.
+Studio is not a graphical file browser, a JSON dashboard, or a GUI wrapper around Core commands. Its job is to reduce the effort required to understand a mission: what exists, how declared elements relate, and where those facts come from.
 
----
+## Public Preview scope
 
-## Current baseline
+Candidate release identity: **OrbitFabric Studio 0.15.0 Preview 1** (`v0.15.0-preview.1`).
+
+The rebooted Studio provides a complete mission-understanding product slice with complementary lenses:
 
 ```text
-Project state: post-E34 cleanup / public-preview hardening
-Package version: 0.14.0
-Visual baseline: studio-visual-baseline-e28
-Packaging: inactive
-Brand assets: provisional
+Open Mission
+  -> Mission Atlas
+  -> Explore / Entity X-Ray
+  -> Relations / Context Path / Context Map
+  -> Validation Findings / exact entity inspection
+  -> Operations / Operational State Map / Mode Focus
 ```
 
-The current baseline is a stabilized public-preview workbench. The repository has completed the E28 visual closure gate, the E29 generated-artifact action contract, the E30 label-overflow decision, the E31 application identity audit and the E32-E34 documentation cleanup/archive sequence.
+Implemented preview capabilities include:
 
-The active work is now publication hardening:
+- **Open Mission** with recent-mission recall and configurable OrbitFabric Core executable;
+- **Mission Atlas / Overview** with presence-driven mission structure;
+- **Entity Explorer** with transversal search and domain filtering;
+- **Entity X-Ray** with type-aware detail, immediate relationships and provenance;
+- **Global Studio Selection** preserved across mission views;
+- **Context Path** representing the relationship path actually followed by the user;
+- **Relationship Explorer** grouped by engineering intent;
+- **Context Map** based only on explicit Core-owned relationships, with pan/zoom, node selection, explicit expansion, progressive `Expand context`, reset and current-neighborhood emphasis;
+- **Validation Findings Viewer** exposing complete Core lint findings, severity filters and exact domain-qualified entity inspection;
+- **Operations Logic Lens** answering “What can happen from here?” with a Core-declared Operational State Map and Mode Focus for transitions, commands, commandability and recovery contracts;
+- ELK-owned orthogonal graph routing rendered by React Flow for readable cyclic state and relationship graphs;
+- progressive Entity Index / relationship / lint hydration after the mission becomes available;
+- transactional Refresh with generation reconciliation and preservation of the last valid Operations focus.
 
-- simplify current-facing documentation;
-- preserve historical material under `docs/archive/`;
-- keep the E28 visual baseline stable;
-- prepare source architecture refactor slices;
-- defer final logo/app-icon work until the documentation reset is complete;
-- defer packaging activation until brand assets and bundle policy are explicit.
-
----
+The preview remains read-only with respect to Mission Model source.
 
 ## Product boundary
 
-OrbitFabric Core remains authoritative for:
+OrbitFabric Core owns mission semantics.
 
-- Mission Model loading;
-- validation and linting;
-- scenario execution and scenario evidence;
-- generated reports;
-- generated artifacts;
-- entity indexing;
-- relationship semantics;
-- coverage summaries;
-- future plugin semantics.
-
-OrbitFabric Studio consumes and renders Core outputs.
+Studio consumes structured Core-owned facts and may normalize, group, label, lay out and navigate them for presentation. It must not infer or create missing mission meaning.
 
 Studio must not:
 
 - parse Mission Model YAML semantically as a replacement for Core;
-- invent missing relationships;
-- infer private data-flow links;
-- calculate private health, readiness, completeness or coverage scores;
-- mutate generated artifacts;
-- behave like a ground segment;
-- expose live telemetry or command uplink behavior;
-- hide Core diagnostics behind private UI conclusions.
+- infer relationships from names, ID prefixes, file proximity or textual descriptions;
+- turn telemetry limits into fault relationships unless Core exposes that relationship explicitly;
+- parse textual preconditions into a private semantic graph;
+- infer physical containment or causality that the contract does not declare;
+- calculate private mission health/readiness/completeness/coverage scores;
+- behave as mission control or a live telemetry/uplink system.
 
 Correct pattern:
 
 ```text
-OrbitFabric Core emits a structured output.
-Studio consumes and renders it.
+OrbitFabric Core owns the fact.
+Studio makes the fact understandable.
 ```
 
-Incorrect pattern:
+## Current Core integration
+
+The preview consumes these machine-readable OrbitFabric Core surfaces:
+
+- Mission Snapshot (C1);
+- Entity Index;
+- Relationship Manifest, including the explicit FDIR extension (C4 minimum);
+- lint JSON.
+
+Studio writes temporary hydration reports only to Studio-owned OS temporary storage; opening a mission does not write generated reports into the user's mission repository.
+
+Entity identity in Studio is domain-qualified:
 
 ```text
-Studio reimplements Core semantics because the required output is missing.
+{ domain, id }
 ```
 
-If Core does not report a value, Studio displays `unavailable`, `not reported`, `reserved` or `diagnostic` instead of inventing meaning.
+This is required because the same textual ID may legitimately exist in different Mission Model domains.
 
----
+## Run from source
 
-## Implemented public-preview capabilities
+The first public preview targets **developer/source use**. Binary packaging is intentionally a later release gate.
 
-Studio currently provides:
+### Tested host baseline
 
-- local workspace opening;
-- structural workspace inspection;
-- read-only source and generated-artifact preview;
-- fixed OrbitFabric Core command wrappers;
-- Core report rendering for lint, model summary, entity index, relationship manifest, dashboard summary, scenario run index and coverage summary;
-- Scenario Evidence inspection;
-- Generated Artifacts inspection and real file-manager reveal action;
-- Mission Cockpit surface;
-- Mission Data Flow Workbench surface;
-- domain navigation for Core-derived mission areas;
-- reserved Autonomy handling;
-- contextual Inspector;
-- shell status bar;
-- surface capture utility;
-- Studio icon registry;
-- visual QA and audit scripts.
+The release gate is exercised on:
 
-Studio remains local-first and read-only for the current public-preview baseline.
+- Debian 12 for primary desktop acceptance;
+- Ubuntu 22.04 in CI for Rust/Tauri builds;
+- Node.js 22+;
+- stable Rust;
+- Python 3.11+ for OrbitFabric Core.
 
----
+Other platforms may work, but they are not part of the first source-preview acceptance claim until explicitly tested.
 
-## Repository structure
+### Debian / Ubuntu system dependencies
 
-```text
-.
-├── README.md
-├── ROADMAP.md
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── DATA_BOUNDARIES.md
-│   ├── qa/
-│   ├── roadmap/
-│   └── archive/
-├── src/
-├── src-tauri/
-├── tools/dev/
-├── package.json
-└── vite.config.ts
-```
-
-Historical release checklists, release notes, milestone plans and old development notes are preserved under `docs/archive/`.
-
-Current-facing documentation should stay small and aligned with the public-preview baseline.
-
----
-
-## Development checks
-
-Recommended local checks:
+Install the Tauri 2 Linux prerequisites:
 
 ```bash
+sudo apt update
+sudo apt install -y \
+  libwebkit2gtk-4.1-dev \
+  build-essential \
+  curl \
+  wget \
+  file \
+  libxdo-dev \
+  libssl-dev \
+  libayatana-appindicator3-dev \
+  librsvg2-dev
+```
+
+Install a current stable Rust toolchain if one is not already available:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Install Node.js 22+ using your normal system/version-manager workflow, then restart the shell or load the relevant environment.
+
+Verify prerequisites:
+
+```bash
+rustc --version
+cargo --version
+node --version
+npm --version
+python3 --version
+```
+
+### Install the validated OrbitFabric Core baseline
+
+Studio deliberately does not embed or replace OrbitFabric Core in this source preview.
+
+The preview CI is validated against Core commit:
+
+```text
+47d37ec2c50eae40e13303eea900eb119bd2e0dd
+```
+
+Install that baseline:
+
+```bash
+git clone https://github.com/FAROTECH/orbitfabric.git
+cd orbitfabric
+git checkout 47d37ec2c50eae40e13303eea900eb119bd2e0dd
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -e .
+.venv/bin/orbitfabric --version
+```
+
+Keep the resulting executable path; for example:
+
+```text
+/home/user/dev/orbitfabric/.venv/bin/orbitfabric
+```
+
+A newer Core revision may also work, but the commit above is the reproducible compatibility baseline for this preview.
+
+### Install Studio
+
+Clone Studio and install its locked frontend dependencies:
+
+```bash
+git clone https://github.com/FAROTECH/orbitfabric-studio.git
+cd orbitfabric-studio
+git switch reboot/studio-v1
+npm ci
+```
+
+The `git switch reboot/studio-v1` step is required only while testing the unmerged release candidate. Remove that step after the preview lands on the repository default branch.
+
+While the repository remains private, an authenticated release-candidate tester with GitHub SSH access should replace the HTTPS clone command with:
+
+```bash
+git clone git@github.com:FAROTECH/orbitfabric-studio.git
+```
+
+After publication, the HTTPS clone command works without GitHub authentication.
+
+### Verify the source tree
+
+Run the same release-critical checks used by CI:
+
+```bash
+npm audit --audit-level=low
+npm run test:logic
 npm run build
-git diff --check
-npm run qa:icon-audit
-npm run qa:studio-visual-token-contract
-cargo check --manifest-path src-tauri/Cargo.toml
+cargo test --locked --manifest-path src-tauri/Cargo.toml
+cargo check --locked --manifest-path src-tauri/Cargo.toml
+npm run tauri -- build --debug --no-bundle
 ```
 
-For Rust formatting:
+All commands must pass before treating the clone as a valid release-candidate environment.
+
+### Run Studio
+
+Start the desktop app:
 
 ```bash
-cd src-tauri
-cargo fmt --check
+npm run tauri:dev
 ```
 
----
+If `npm run tauri:dev` creates an empty window and the terminal reports `DRM_IOCTL_MODE_CREATE_DUMB failed` or `Failed to create GBM buffer`, stop the process and disable the WebKit DMA-BUF renderer:
 
-## Packaging and brand status
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 npm run tauri:dev
+```
 
-Tauri bundling is intentionally inactive.
+This host-specific rendering fallback does not change Studio or Core semantics.
 
-The current icon and graphical assets are provisional. Final logo, favicon, app icon and generated Tauri icon assets will be handled in a dedicated brand-assets pass before packaging activation.
+In the pre-open launcher, set **OrbitFabric executable** to the Core executable installed above.
 
-Packaging activation must be a dedicated PR with explicit decisions on:
+Then select either:
 
-- final icon master;
-- bundle targets;
-- artifact naming;
-- signing expectations;
-- macOS notarization expectations;
-- versioning policy;
-- release channel.
+- a Mission Model directory directly; or
+- a workspace root containing a conventional `mission/` child directory.
 
----
+Core remains the authority on whether the selected source is a loadable mission.
 
-## Current roadmap
+## Security boundary
 
-The immediate roadmap is publication hardening:
+The source preview keeps the desktop boundary intentionally small:
 
-1. documentation rewrite;
-2. source architecture refactor plan;
-3. source architecture refactor slices;
-4. brand assets / logo / app icon;
-5. packaging activation.
+- OrbitFabric Core runs as a bounded child process managed by Rust/Tauri;
+- Core invocations have explicit timeouts and timed-out children are terminated and reaped;
+- Studio uses a restricted, window-scoped Tauri capability plus the native directory-open dialog;
+- the WebView loads no application data from remote origins;
+- production and development Content Security Policies are configured separately;
+- full npm dependency auditing is a blocking CI gate.
 
-Longer-term product milestones remain possible only if they preserve the Core/Studio boundary.
+## Acceptance missions
+
+The preview is exercised against multiple mission shapes rather than one reference topology:
+
+- `demo-3u` — minimal/smoke;
+- OrbitFabric Reference Mission — primary engineering acceptance;
+- `finch-inspired-minislice` — dense imaging/payload topology and duplicate textual IDs across domains;
+- `spacelab-inspired-communications-minislice` — communications-centric mission with no payload;
+- `oresat-inspired-minislice` — heterogeneous topology with power/backlog pressure;
+- `university-cubesat-minislice` — generic topology sanity.
+
+A UI assumption is not considered generic merely because it works on the Reference Mission.
+
+## Architecture
+
+```text
+OrbitFabric Core / Python
+    owns semantics, validation and structured mission facts
+
+Tauri / Rust
+    owns desktop integration, filesystem/temp boundaries and Core process lifecycle
+
+React / TypeScript
+    owns interaction, presentation and non-authoritative Studio state
+```
+
+The Context Map and Operational State Map use React Flow + ELK. ELK owns presentation geometry and orthogonal routes; the semantic graph/state models remain renderer-independent and contain only Core-owned facts.
+
+Current architectural documentation is in:
+
+```text
+docs/ARCHITECTURE.md
+docs/DATA_BOUNDARIES.md
+docs/adr/0001-mission-first-studio.md
+```
+
+## Current release state
+
+The reboot is feature-frozen and being finalized as a **developer/source public preview**.
+
+The mandatory release gate is tracked in:
+
+```text
+docs/PUBLIC_PREVIEW_RELEASE_GATE.md
+```
+
+The manual responsive acceptance procedure is tracked in:
+
+```text
+docs/qa/public-preview-visual-acceptance.md
+```
+
+Desktop binary packaging is deliberately separate. Core sidecar strategy, bundle targets, signing and notarization are not part of this source-preview claim.
+
+## Not in this preview
+
+The later Product Contract includes capabilities intentionally not required for the first preview:
+
+- Data Product Journey;
+- Scenario Catalog;
+- Scenario Replay / Evidence;
+- Experiment Mode;
+- Compare;
+- Coverage;
+- Generated Output Center;
+- Mission Model editing.
+
+The preview is intentionally small: it should already change how an engineer understands a mission before additional capability is added.
