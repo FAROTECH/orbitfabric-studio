@@ -80,6 +80,7 @@ Studio owns local presentation state such as:
 - active lens;
 - filters;
 - Context Path;
+- last valid Operations Mode Focus;
 - graph expansion state;
 - pan/zoom/layout state.
 
@@ -116,7 +117,9 @@ Those are presentation state. They do not create new mission edges or causality.
 
 The Context Graph contains nodes and edges selected from explicit Core-owned relationships plus UI-only expansion/selection metadata.
 
-ELK geometry and React Flow positions are UI state only. Position, distance and direction on screen must not be interpreted as additional mission semantics beyond the explicit edge direction supplied by the model.
+The Operational State Map contains only Mission Snapshot `modes` and `mode_transitions`. Mode Focus may join explicit Core fields such as `allowed_modes`, recovery `mode_transition`, recovery-intent `target_mode` and commandability mode declarations. Preconditions and expected effects are preserved as declared Core JSON; Studio does not interpret them into private behavior. Payload lifecycle values remain effects and never become mission-mode nodes.
+
+ELK geometry and React Flow positions/routes are UI state only. Position, distance and direction on screen must not be interpreted as additional mission semantics beyond the explicit edge direction supplied by Core-owned facts.
 
 ## 9. Temporary Core output
 

@@ -44,7 +44,33 @@ PASS when:
 - long IDs, property names and source paths remain inspectable;
 - closing X-Ray returns to the underlying exploration surface cleanly.
 
-### 3. Relations / Context Map
+### 3. Validation Findings
+
+Use a mission with errors/warnings and an exact Core-indexed finding target.
+
+PASS when:
+
+- the global summary remains readable at every width;
+- filters expose All/Error/Warning/Info without changing Core order;
+- every Core field, including suggestion and provenance file, remains inspectable;
+- Inspect entity appears only for an exact domain-qualified Entity Index match;
+- the modal drawer closes by its action and Escape without disturbing the active mission.
+
+### 4. Operations Logic
+
+Use OreSat for cyclic state density and demo-3u for commandability/recovery contracts.
+
+PASS when:
+
+- mode and transition counts match the Core Mission Snapshot;
+- ELK-routed arrows, labels and direction remain readable without crossing unrelated nodes;
+- Mode Focus exposes exact incoming/outgoing transitions, commands, commandability and recovery facts;
+- payload lifecycle values remain declared effects rather than becoming mission-mode nodes;
+- Inspect opens the exact Entity X-Ray and returning to Operations preserves the last Mode Focus;
+- Standard retains the two-column transition/fact composition where space permits;
+- Compact intentionally collapses Mode Focus to one column while map pan/zoom remains usable.
+
+### 5. Relations / Context Map
 
 Use a relationship-dense entity (Reference Mission FDIR or FINCH payload).
 
@@ -55,6 +81,8 @@ PASS when:
 - wheel zoom and background pan remain distinct from node click interaction;
 - the current node and all directly connected edges are visibly emphasized;
 - Context Path remains readable and does not overlap map controls;
+- ELK-routed edges and labels remain separated and do not cross unrelated nodes;
+- Expand context produces a readable denser topology and Reset reconstructs the original node/relationship counts;
 - fit/reset behavior produces a readable local context;
 - Compact mode keeps graph interaction usable without exposing WebView/browser chrome or accidental page scrolling.
 
@@ -98,8 +126,10 @@ For the release candidate, retain at least these screenshots in the release revi
 2. Reference Mission Explore + X-Ray — Standard.
 3. Reference Mission Relations / Context Map — Wide.
 4. Reference Mission selected X-Ray — Compact.
-5. SpaceLab Overview — Wide or Standard.
-6. FINCH dense Context Map — Wide.
+5. Validation Findings drawer — Standard or Compact.
+6. OreSat Operational State Map + Mode Focus — Wide.
+7. SpaceLab Overview — Wide or Standard.
+8. FINCH dense Context Map — Wide.
 
 The screenshots are release evidence, not product semantics and not runtime assets.
 

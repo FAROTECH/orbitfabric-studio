@@ -192,17 +192,15 @@ Avoid:
 
 ## 18. Current first-preview journey
 
-The product acceptance baseline is:
+The feature-frozen product acceptance baseline is:
 
 ```text
 Open Mission
   -> Mission Atlas
-  -> Entity Explorer
-  -> Entity X-Ray
-  -> explicit relationship traversal
-  -> Relationship Explorer
-  -> Context Path
-  -> Context Map
+  -> Explore / Entity X-Ray
+  -> Relations / Context Path / Context Map
+  -> Validation Findings / exact entity inspection
+  -> Operations / Operational State Map / Mode Focus
 ```
 
-New features must not be added before the public-preview release gate closes.
+Validation and Operations are accepted preview surfaces. No new feature may be added before the public-preview release gate closes.

@@ -135,34 +135,36 @@ The Context Map may recalculate and refit after refresh to keep the current sema
 
 ## 8. Selection and Context Path
 
-Studio has one global semantic selection across lenses.
+Studio has one global semantic selection across lenses. Operations also retains the last valid mode focus as presentation state so an explicit Entity X-Ray inspection does not destroy the user's operational context.
 
 The Context Path is presentation state describing the investigation route the user actually followed through explicit Core-owned edges. It is not a shortest-path claim and is not mission semantics.
 
 When the user follows a direct relationship, the path extends. Selecting an earlier entity already in the path truncates back to that point.
 
-## 9. Context Graph architecture
+## 9. Graph architecture
 
-The graph pipeline is intentionally split:
+Both engineering graphs use the same authority-preserving rendering pipeline:
 
 ```text
-Core Relationship Manifest
+Core-owned structured facts
         |
         v
-ContextGraphModel
+renderer-independent presentation model
         |
         v
-ELK layered layout
+ELK node geometry + orthogonal edge routes
         |
         v
 React Flow renderer
 ```
 
-`ContextGraphModel` owns presentation-level graph membership and expansion state over explicit Core relationships. ELK owns geometry. React Flow owns rendering and interaction.
+`ContextGraphModel` owns presentation-level graph membership and expansion state over explicit Relationship Manifest edges. `OperationsModel` contains only explicit Mission Snapshot modes, transitions and declared mode-linked contracts. Payload lifecycle values remain effects and never become inferred mission-mode nodes.
+
+ELK owns presentation geometry and complete orthogonal routes. React Flow renders those routes and owns interaction; it does not reinterpret edge direction. Automated geometry tests verify that cyclic graph routes remain orthogonal and do not cross unrelated nodes.
 
 Selection and expansion are separate actions. Nodes are selectable/focusable but not freely draggable because arbitrary node placement must not imply mission meaning.
 
-The Context Map is a local investigation surface, not a global graph dump and not a graph editor.
+The Context Map is a local investigation surface, not a global graph dump or graph editor. The Operational State Map is a declared-contract lens, not a simulator or runtime-state display.
 
 ## 10. Active frontend tree
 
@@ -185,12 +187,17 @@ src/
 │   ├── atlas/
 │   ├── explorer/
 │   ├── launcher/
+│   ├── operations/
 │   ├── relationships/
+│   ├── validation/
 │   └── xray/
 ├── graph/
 │   ├── ContextMap.tsx
+│   ├── RoutedEdge.tsx
 │   ├── contextGraphLayout.ts
-│   └── contextGraphModel.ts
+│   ├── contextGraphModel.ts
+│   ├── contextMapEvidence.ts
+│   └── elkRouting.ts
 ├── mission/
 │   ├── MissionHydrator.ts
 │   ├── MissionSession.ts
@@ -201,6 +208,7 @@ src/
 └── styles/
     ├── context-map.css
     ├── features.css
+    ├── operations.css
     ├── relations.css
     ├── reset.css
     ├── responsive.css
@@ -250,7 +258,7 @@ Permanent CI covers:
 - pinned OrbitFabric Core integration checks;
 - an acceptance matrix including demo-3u, FINCH and SpaceLab.
 
-Pure Studio tests protect domain-qualified identity, graph/path behavior and refresh reconciliation. Rust tests protect Core process timeout/termination and temporary cleanup.
+Pure Studio tests protect domain-qualified identity, Validation finding links/filters, declared-only Operations joins, focus preservation, Context Path/graph behavior, ELK route geometry and refresh reconciliation. Rust tests protect Core process timeout/termination and temporary cleanup.
 
 ## 14. Deferred architecture
 

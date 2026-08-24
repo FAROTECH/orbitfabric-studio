@@ -10,7 +10,7 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 | Temporary hydration residue | Workspace pollution or temp leakage | Outputs written to Studio-owned OS temp; cleanup tested including primary-open failure paths |
 | Stale async refresh overwrites current session | Wrong mission facts shown after refresh/open race | Generation-scoped transactional hydration; stale responses ignored |
 | Textual ID collision across domains | Wrong entity selected or related | Universal `{domain,id}` identity; FINCH acceptance explicitly exercises duplicate textual IDs |
-| Dense relationship graph becomes unreadable | Context Map loses its purpose on real missions | Local progressive context instead of whole-mission graph; React Flow + ELK; high-degree FINCH acceptance; grouping/collapse remains an option if future missions require it |
+| Dense or cyclic graph becomes unreadable | Context/Operational maps lose their purpose on real missions | Local progressive context; ELK-owned orthogonal routes rendered without reinterpretation by React Flow; geometric no-node-crossing tests; dense OreSat/FINCH acceptance; grouping/collapse remains an option if future missions require it |
 | Responsive layout regression | Public preview unusable on narrower desktop windows | Explicit Wide/Standard/Compact visual acceptance at 1280/960/640 on real Tauri app |
 | WebView/browser chrome leaks into product | Accidental reload/navigation/devtools and broken desktop mental model | Global context-menu suppression; browser controls are not product UI |
 | Tauri/WebKit security regression | Desktop attack surface | Hardened Tauri 2.x baseline; production CSP + localhost-only dev CSP; minimal window capability; production-path Tauri build in CI |
@@ -26,10 +26,8 @@ Before publishing the source preview, the following must close:
 
 1. one README-only clean-clone installation;
 2. manual SpaceLab no-payload acceptance;
-3. final demo-3u and OreSat-inspired smoke;
-4. 1280/960/640 real-Tauri visual pass;
-5. preview version/release naming;
-6. green CI on the release candidate.
+3. preview version/release naming;
+4. green CI on the final release candidate.
 
 ## Risk rule
 

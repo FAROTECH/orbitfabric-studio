@@ -10,17 +10,15 @@ Studio is not a graphical file browser, a JSON dashboard, or a GUI wrapper aroun
 
 ## Public Preview scope
 
-The rebooted Studio currently provides one complete mission-understanding journey:
+The rebooted Studio provides a complete mission-understanding product slice with complementary lenses:
 
 ```text
 Open Mission
   -> Mission Atlas
-  -> Entity Explorer
-  -> Entity X-Ray
-  -> explicit relationship traversal
-  -> Relationship Explorer
-  -> Context Path
-  -> Context Map
+  -> Explore / Entity X-Ray
+  -> Relations / Context Path / Context Map
+  -> Validation Findings / exact entity inspection
+  -> Operations / Operational State Map / Mode Focus
 ```
 
 Implemented preview capabilities include:
@@ -33,8 +31,11 @@ Implemented preview capabilities include:
 - **Context Path** representing the relationship path actually followed by the user;
 - **Relationship Explorer** grouped by engineering intent;
 - **Context Map** based only on explicit Core-owned relationships, with pan/zoom, node selection, explicit expansion, progressive `Expand context`, reset and current-neighborhood emphasis;
+- **Validation Findings Viewer** exposing complete Core lint findings, severity filters and exact domain-qualified entity inspection;
+- **Operations Logic Lens** answering “What can happen from here?” with a Core-declared Operational State Map and Mode Focus for transitions, commands, commandability and recovery contracts;
+- ELK-owned orthogonal graph routing rendered by React Flow for readable cyclic state and relationship graphs;
 - progressive Entity Index / relationship / lint hydration after the mission becomes available;
-- transactional Refresh with generation reconciliation.
+- transactional Refresh with generation reconciliation and preservation of the last valid Operations focus.
 
 The preview remains read-only with respect to Mission Model source.
 
@@ -249,7 +250,7 @@ React / TypeScript
     owns interaction, presentation and non-authoritative Studio state
 ```
 
-The current Context Map renderer uses React Flow + ELK. The Context Graph model remains renderer-independent.
+The Context Map and Operational State Map use React Flow + ELK. ELK owns presentation geometry and orthogonal routes; the semantic graph/state models remain renderer-independent and contain only Core-owned facts.
 
 Current architectural documentation is in:
 
@@ -261,7 +262,7 @@ docs/adr/0001-mission-first-studio.md
 
 ## Current release state
 
-The reboot is being prepared as a **developer/source public preview**.
+The reboot is feature-frozen and being finalized as a **developer/source public preview**.
 
 The mandatory release gate is tracked in:
 
@@ -281,7 +282,6 @@ Desktop binary packaging is deliberately separate. Core sidecar strategy, bundle
 
 The later Product Contract includes capabilities intentionally not required for the first preview:
 
-- Operations Logic Lens / Operational State Map;
 - Data Product Journey;
 - Scenario Catalog;
 - Scenario Replay / Evidence;

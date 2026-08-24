@@ -11,12 +11,10 @@ The first developer/source public preview is feature-frozen. Its complete journe
 ```text
 Open Mission
   -> Mission Atlas
-  -> Entity Explorer
-  -> Entity X-Ray
-  -> explicit relationship traversal
-  -> Relationship Explorer
-  -> Context Path
-  -> Context Map
+  -> Explore / Entity X-Ray
+  -> Relations / Context Path / Context Map
+  -> Validation Findings / exact entity inspection
+  -> Operations / Operational State Map / Mode Focus
 ```
 
 No additional product feature is required before the preview.
@@ -28,7 +26,10 @@ No additional product feature is required before the preview.
 - Core C4 explicit relationship integration, including minimum FDIR families;
 - domain-qualified entity identity `{domain,id}`;
 - progressive hydration and transactional refresh;
-- React Flow + ELK Context Map over a renderer-independent graph model;
+- Validation Findings Viewer with complete Core fields, filters and exact `{domain,id}` inspection;
+- Operations Logic Lens with a declared Operational State Map and Mode Focus;
+- React Flow + ELK Context/Operational maps over renderer-independent presentation models;
+- ELK-owned orthogonal routing plus geometric regression tests for cyclic graphs;
 - bounded Core process lifetime and temporary-output cleanup;
 - Tauri 2 security refresh, CSP and minimal capabilities;
 - blocking dependency audit, frontend tests/build, Rust tests/check and Tauri production-path build in CI;
@@ -38,26 +39,15 @@ No additional product feature is required before the preview.
 
 1. reproduce one clean clone using README only;
 2. manually accept SpaceLab with no payloads;
-3. final demo-3u smoke;
-4. final OreSat-inspired heterogeneous/power-backlog smoke;
-5. run the real Tauri visual pass at 1280, 960 and 640 px;
-6. choose preview version/release naming;
-7. require green CI on the release candidate;
-8. merge draft PR #318 only after those gates close.
+3. choose preview version/release naming;
+4. require green CI on the final release candidate;
+5. merge draft PR #318 only after those gates close.
 
 The canonical checklist is `docs/PUBLIC_PREVIEW_RELEASE_GATE.md`.
 
 ## Product roadmap after the preview
 
-The next work extends how the user understands the same mission. It does not turn Studio into a collection of independent tools.
-
-### Feature 5 — Operations Logic Lens
-
-Primary question:
-
-> What can happen from here?
-
-The first implementation must include an Operational State Map when modes/transitions exist and must remain Core-owned in meaning. It should expose mode/state context, transitions, commandability, declared effects and explicit recovery/autonomy relationships without simulating mission behavior.
+Operations Logic is now part of the feature-frozen preview. The next work extends how the user understands the same mission without turning Studio into a collection of independent tools.
 
 ### Feature 6 — Data Product Journey
 

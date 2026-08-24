@@ -1,8 +1,8 @@
 # OrbitFabric Studio — Public Preview Release Gate
 
-**Status:** active release gate  
+**Status:** active release gate — feature freeze  
 **Target:** first public developer/source preview of the rebooted Studio  
-**Scope freeze:** no new product features until this gate closes
+**Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
 
 ## Release thesis
 
@@ -11,12 +11,10 @@ The first public preview must deliver one complete and differentiated engineerin
 ```text
 Open Mission
   -> Mission Atlas
-  -> Entity Explorer
-  -> Entity X-Ray
-  -> explicit relationship traversal
-  -> Relationship Explorer
-  -> Context Path
-  -> Context Map
+  -> Explore / Entity X-Ray
+  -> Relations / Context Path / Context Map
+  -> Validation Findings / exact entity inspection
+  -> Operations / Operational State Map / Mode Focus
 ```
 
 The preview is publishable when an engineer who did not participate in development can install/run it, open a compatible OrbitFabric mission, understand the mission without reading YAML first, and trust that Studio is rendering Core-owned facts rather than inventing semantics.
@@ -37,12 +35,13 @@ Included:
 - Context Path;
 - Relationship Explorer;
 - React Flow + ELK Context Map with pan/zoom, selection, explicit expansion and reset;
-- contextual lint status;
-- transactional refresh.
+- Validation Findings Viewer with complete Core lint fields, severity filters and exact entity inspection;
+- Operations Logic Lens with a Core-declared Operational State Map and Mode Focus;
+- ELK-owned orthogonal routing for Context and Operational maps;
+- transactional refresh with valid selection, Context Path and Operations focus reconciliation.
 
 Explicitly deferred:
 
-- Operations Logic Lens / Operational State Map;
 - Data Product Journey;
 - Scenario Catalog;
 - Replay / Evidence;
@@ -62,9 +61,13 @@ Explicitly deferred:
 - [x] Context Map: wheel zoom, background pan and browser/WebView context-menu suppression accepted.
 - [x] Context Map: Expand context, reset, semantic tones and current-edge emphasis accepted.
 - [ ] SpaceLab-inspired communications minislice: no-payload runtime/manual acceptance.
-- [ ] demo-3u: final smoke acceptance on release candidate.
-- [ ] OreSat-inspired minislice: final heterogeneous/power-backlog smoke.
-- [ ] Wide / Standard / Compact manual visual pass at 1280 / 960 / 640 px on the real Tauri application.
+- [x] demo-3u: final smoke plus Operations commandability/recovery acceptance.
+- [x] OreSat-inspired minislice: validation, exact entity inspection, Operations and dense Relations acceptance.
+- [x] Validation Findings: severity filters, Escape/close, exact Entity X-Ray navigation and 1280 / 960 / 640 responsive acceptance.
+- [x] Operations: Core-declared state/transition counts, Mode Focus, commands, commandability, recovery contracts and raw effects accepted.
+- [x] Operations: last Mode Focus preserved through explicit Entity X-Ray inspection.
+- [x] Context/Operational maps: ELK orthogonal routing, Expand/Reset and dense cyclic topology accepted.
+- [x] Wide / Standard / Compact manual visual pass at 1280 / 960 / 640 px on the real Tauri application.
 
 ## Gate B — Core integration hardening
 
@@ -90,6 +93,9 @@ Explicitly deferred:
 - [x] SpaceLab assertion verifies `payloads: []` is normal mission content.
 - [x] FINCH assertion verifies same textual ID in multiple domains remains valid input.
 - [x] Pure Studio tests cover domain-qualified identity, Context Path/graph behavior and refresh reconciliation.
+- [x] Validation tests cover exact domain-qualified finding links and stable severity filtering.
+- [x] Operations tests cover declared-only state/focus joins and payload-lifecycle separation.
+- [x] Graph-layout tests verify complete orthogonal ELK routes do not cross unrelated nodes.
 - [x] Repeatable visual acceptance baseline defined in `docs/qa/public-preview-visual-acceptance.md`.
 
 ## Gate D — Release hygiene
@@ -129,6 +135,6 @@ Deferred desktop packaging decisions include:
 
 The preview can be published when all mandatory developer/source items above are closed and CI is green on the release candidate.
 
-No Operations/Data Journey/Replay work is required to close this gate.
+No Data Journey/Replay work is required to close this gate. Operations is implemented and accepted as part of the frozen preview scope.
 
 > **Release the smallest complete product that already changes how an engineer understands a mission.**

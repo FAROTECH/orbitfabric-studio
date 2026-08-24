@@ -135,21 +135,21 @@ This is not merely an implementation shortcut. It matches the trust model of eng
 
 ## Product evolution
 
-The first preview proves the foundational loop:
+The first preview proves the foundational product loop:
 
 ```text
 OPEN MISSION
       -> ORIENT
-      -> FIND
-      -> UNDERSTAND
+      -> FIND / UNDERSTAND
       -> FOLLOW RELATIONSHIPS
+      -> REVIEW CORE VALIDATION
+      -> EXPLORE DECLARED OPERATIONS
 ```
 
 The next layers deepen mission understanding:
 
 ```text
-OPERATIONS
-      -> DATA LIFECYCLE
+DATA LIFECYCLE
       -> SCENARIOS / EVIDENCE
 ```
 

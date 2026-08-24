@@ -74,27 +74,24 @@ Studio may explain mission meaning. It must not invent mission meaning.
 
 ## First public-preview scope
 
-The first developer/source preview deliberately stops after one complete differentiated journey:
+The feature-frozen developer/source preview contains one complete differentiated product slice with complementary lenses:
 
 ```text
 Open Mission
   -> Mission Atlas
-  -> Entity Explorer
-  -> Entity X-Ray
-  -> explicit relationship traversal
-  -> Relationship Explorer
-  -> Context Path
-  -> Context Map
+  -> Explore / Entity X-Ray
+  -> Relations / Context Path / Context Map
+  -> Validation Findings / exact entity inspection
+  -> Operations / Operational State Map / Mode Focus
 ```
 
-This is already a complete product slice: a user can enter through the mission, find an entity, understand it, and follow real Core-owned relationships without beginning from YAML or reports.
+A user can enter through the mission, find an entity, understand it, follow real Core-owned relationships, review Core validation and explore declared operational logic without beginning from YAML or reports.
 
-## Next product slices
+## Next product slice
 
-After the preview, the next two product slices are:
+After the preview, the next product slice is:
 
-1. **Operations Logic Lens** — answer “What can happen from here?” with an Operational State Map when modes/transitions exist.
-2. **Data Product Journey** — answer how a product moves from producer through declared lifecycle and downlink context.
+1. **Data Product Journey** — answer how a product moves from producer through declared lifecycle and downlink context.
 
 Scenario/replay/evidence work comes later and must preserve the distinction:
 
