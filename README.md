@@ -178,6 +178,14 @@ npm ci
 
 The `git switch reboot/studio-v1` step is required only while testing the unmerged release candidate. Remove that step after the preview lands on the repository default branch.
 
+While the repository remains private, an authenticated release-candidate tester with GitHub SSH access should replace the HTTPS clone command with:
+
+```bash
+git clone git@github.com:FAROTECH/orbitfabric-studio.git
+```
+
+After publication, the HTTPS clone command works without GitHub authentication.
+
 ### Verify the source tree
 
 Run the same release-critical checks used by CI:
