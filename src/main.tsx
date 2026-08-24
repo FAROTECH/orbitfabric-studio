@@ -9,6 +9,7 @@ import "./styles/shell.css";
 import "./styles/features.css";
 import "./styles/relations.css";
 import "./styles/context-map.css";
+import "./styles/operations.css";
 import "./styles/responsive.css";
 
 // Studio owns contextual actions. Never expose the browser/WebView menu.

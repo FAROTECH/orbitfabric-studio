@@ -10,6 +10,7 @@ import { TauriCoreGateway } from "./core/TauriCoreGateway";
 import { MissionAtlas } from "./features/atlas/MissionAtlas";
 import { EntityExplorer } from "./features/explorer/EntityExplorer";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
+import { OperationsWorkspace } from "./features/operations/OperationsWorkspace";
 import { RelationsWorkspace } from "./features/relationships/RelationsWorkspace";
 import { ValidationFindingsDrawer } from "./features/validation/ValidationFindingsDrawer";
 import { EntityXRay } from "./features/xray/EntityXRay";
@@ -193,6 +194,15 @@ function App() {
           >
             Overview
           </button>
+          {session.snapshot.model ? (
+            <button
+              type="button"
+              className={state.view === "operations" ? "is-active" : ""}
+              onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "operations" })}
+            >
+              Operations
+            </button>
+          ) : null}
           {session.readiness.entities === "ready" ? (
             <button
               type="button"
@@ -263,9 +273,25 @@ function App() {
       ) : null}
 
       <section className="studio-main-surface">
-        <div className={`workspace-layout${selectedEntity ? " has-xray" : ""}`}>
+        <div
+          className={`workspace-layout${
+            selectedEntity && state.view !== "operations" ? " has-xray" : ""
+          }`}
+        >
           <div className="workspace-primary">
-            {state.view === "explore" ? (
+            {state.view === "operations" ? (
+              <OperationsWorkspace
+                session={session}
+                selectedEntity={selectedEntity}
+                onSelectMode={(subject) =>
+                  dispatch({ type: "SELECTION_CHANGED", subject, origin: "operations" })
+                }
+                onInspectEntity={(subject) => {
+                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" });
+                  dispatch({ type: "SELECTION_CHANGED", subject, origin: "operations" });
+                }}
+              />
+            ) : state.view === "explore" ? (
               <EntityExplorer
                 session={session}
                 selectedEntity={selectedEntity}
@@ -304,7 +330,7 @@ function App() {
             )}
           </div>
 
-          {selectedEntity ? (
+          {selectedEntity && state.view !== "operations" ? (
             <EntityXRay
               session={session}
               subject={selectedEntity}

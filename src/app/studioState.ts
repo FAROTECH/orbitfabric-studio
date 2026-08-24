@@ -21,7 +21,7 @@ import {
   type StudioSelection,
 } from "../mission/selection";
 
-export type MissionWorkspaceView = "overview" | "explore" | "relations";
+export type MissionWorkspaceView = "overview" | "operations" | "explore" | "relations";
 
 export interface MissionOpeningState {
   requestId: string;

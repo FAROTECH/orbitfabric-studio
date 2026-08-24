@@ -17,6 +17,7 @@
     "src/mission/resolveEntityContract.ts",
     "src/app/studioState.ts",
     "src/features/validation/validationModel.ts",
+    "src/features/operations/operationsModel.ts",
     "src/graph/contextGraphModel.ts",
     "src/graph/contextMapEvidence.ts"
   ],
