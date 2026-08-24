@@ -1,3 +1,5 @@
+import studioIconUrl from "../../../assets/app-icon.png";
+
 import type { MissionOpenFailure } from "../../app/studioState";
 
 interface MissionLauncherProps {
@@ -23,7 +25,7 @@ export function MissionLauncher({
     <main className="launcher-shell">
       <section className="launcher-panel" aria-labelledby="launcher-title">
         <div className="launcher-mark" aria-hidden="true">
-          OF
+          <img src={studioIconUrl} alt="" />
         </div>
         <div className="launcher-copy">
           <p className="eyebrow">OrbitFabric Studio</p>
