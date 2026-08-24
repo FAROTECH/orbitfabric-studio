@@ -323,6 +323,17 @@
 .diagnostic-summary {
   border-color: rgba(226, 189, 119, 0.3);
   background: rgba(93, 69, 28, 0.16);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.diagnostic-summary:hover,
+.diagnostic-summary:focus-visible {
+  border-color: rgba(226, 189, 119, 0.52);
+  background: rgba(93, 69, 28, 0.25);
+  outline: none;
 }
 
 .opening-overlay-status {

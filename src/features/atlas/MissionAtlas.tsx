@@ -183,7 +183,7 @@ function Territory({
 function HydrationStrip({ session }: { session: MissionSession }) {
   const lint = session.lint;
   const findingText = lint
-    ? `${lint.summary.errors} errors · ${lint.summary.warnings} warnings`
+    ? `${lint.summary.errors} errors · ${lint.summary.warnings} warnings · ${lint.summary.info} info`
     : null;
 
   return (

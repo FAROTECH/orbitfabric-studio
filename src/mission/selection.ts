@@ -5,6 +5,7 @@ export type SelectionOrigin =
   | "explorer"
   | "xray"
   | "context-map"
+  | "validation"
   | "search"
   | "operations"
   | "data-journey"

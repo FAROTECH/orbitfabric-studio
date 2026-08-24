@@ -480,3 +480,217 @@
   font-size: 12px;
   line-height: 1.55;
 }
+
+.validation-drawer {
+  width: min(540px, 100vw);
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: -24px 0 70px rgba(0, 0, 0, 0.38);
+  overflow: hidden;
+}
+
+.validation-drawer[open] {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.validation-drawer::backdrop {
+  background: rgba(4, 7, 11, 0.58);
+}
+
+.validation-drawer-header {
+  min-width: 0;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.validation-drawer-header h2 {
+  margin-bottom: var(--space-2);
+  font-size: 22px;
+  letter-spacing: -0.025em;
+}
+
+.validation-drawer-header p:last-child {
+  max-width: 420px;
+  margin-bottom: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.validation-filters {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line-subtle);
+  background: var(--bg-canvas);
+}
+
+.validation-filters button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.validation-filters button:hover,
+.validation-filters button.is-active {
+  border-color: var(--line-strong);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.validation-filters button.is-active {
+  border-color: rgba(127, 180, 232, 0.52);
+  background: var(--bg-selected);
+}
+
+.validation-filters button span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.validation-findings-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.validation-finding-list {
+  display: grid;
+}
+
+.validation-finding {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.validation-finding-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.validation-severity {
+  padding: 3px 6px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.validation-severity.severity-error {
+  border-color: rgba(239, 154, 154, 0.46);
+  color: var(--danger);
+}
+
+.validation-severity.severity-warning {
+  border-color: rgba(226, 189, 119, 0.46);
+  color: var(--warning);
+}
+
+.validation-severity.severity-info {
+  border-color: rgba(127, 180, 232, 0.46);
+  color: var(--accent-strong);
+}
+
+.validation-message {
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.validation-finding-details {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.validation-finding-details > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.validation-finding-details dt {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.validation-finding-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.validation-suggestion {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border-left: 2px solid var(--line-strong);
+  background: var(--bg-canvas);
+}
+
+.validation-suggestion strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.validation-suggestion p {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.validation-inspect-action {
+  margin-top: var(--space-4);
+}
+
+.validation-empty {
+  margin: 0;
+  padding: var(--space-8) var(--space-5);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.validation-drawer-footer {
+  padding: 9px var(--space-5);
+  border-top: 1px solid var(--line-subtle);
+  background: var(--bg-canvas);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}

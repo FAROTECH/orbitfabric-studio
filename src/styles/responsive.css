@@ -125,6 +125,22 @@
     margin-left: 0;
   }
 
+  .validation-drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+
+  .validation-drawer-header,
+  .validation-finding {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .validation-filters {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
   .atlas,
   .entity-explorer {
     padding: var(--space-5) var(--space-4);

@@ -11,6 +11,7 @@ import { MissionAtlas } from "./features/atlas/MissionAtlas";
 import { EntityExplorer } from "./features/explorer/EntityExplorer";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
 import { RelationsWorkspace } from "./features/relationships/RelationsWorkspace";
+import { ValidationFindingsDrawer } from "./features/validation/ValidationFindingsDrawer";
 import { EntityXRay } from "./features/xray/EntityXRay";
 import { MissionHydrator, MissionStructuralInvalidError } from "./mission/MissionHydrator";
 
@@ -24,6 +25,7 @@ function App() {
     localStorage.getItem(CORE_EXECUTABLE_KEY) ?? "orbitfabric",
   );
   const [recentMissions, setRecentMissions] = useState<string[]>(loadRecentMissions);
+  const [validationOpen, setValidationOpen] = useState(false);
   const generationRef = useRef(0);
 
   const hydrator = useMemo(
@@ -51,6 +53,7 @@ function App() {
   }
 
   async function beginOpen(selectedPath: string, isRefresh: boolean) {
+    setValidationOpen(false);
     const generation = ++generationRef.current;
     const requestId = createRequestId(generation);
 
@@ -242,14 +245,21 @@ function App() {
       ) : null}
 
       {session.lint && session.lint.findings.length > 0 ? (
-        <aside className="diagnostic-summary">
+        <button
+          className="diagnostic-summary"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={validationOpen}
+          aria-controls="validation-findings-dialog"
+          onClick={() => setValidationOpen(true)}
+        >
           <strong>Validation findings</strong>
           <span>
             {session.lint.summary.errors} errors · {session.lint.summary.warnings} warnings ·{" "}
             {session.lint.summary.info} info
           </span>
-          <small>Mission remains explorable because Core loaded the model successfully.</small>
-        </aside>
+          <small>Review findings</small>
+        </button>
       ) : null}
 
       <section className="studio-main-surface">
@@ -317,6 +327,19 @@ function App() {
           ) : null}
         </div>
       </section>
+
+      {validationOpen && session.lint ? (
+        <ValidationFindingsDrawer
+          report={session.lint}
+          readModel={session.readModel}
+          onClose={() => setValidationOpen(false)}
+          onInspectEntity={(subject) => {
+            setValidationOpen(false);
+            dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" });
+            dispatch({ type: "SELECTION_CHANGED", subject, origin: "validation" });
+          }}
+        />
+      ) : null}
     </main>
   );
 }

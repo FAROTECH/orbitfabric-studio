@@ -35,6 +35,7 @@ try {
     "tests/studio-logic/context-graph.test.mjs",
     "tests/studio-logic/context-map-evidence.test.mjs",
     "tests/studio-logic/studio-state.test.mjs",
+    "tests/studio-logic/validation-findings.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
