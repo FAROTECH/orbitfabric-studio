@@ -1,20 +1,69 @@
 # Changelog
 
-All notable changes to OrbitFabric Studio will be documented in this file.
+All notable changes to OrbitFabric Studio are documented in this file.
 
 The format follows a simple release-oriented structure.
-
-OrbitFabric Studio is currently at `v0.14.0 - Artifact Traceability Integration`.
-
-The next planning baseline is `v0.15.0 - Mission Cockpit Realization`.
-
-GitHub Release publication for `v0.14.0` is deferred. The `v0.14.0` milestone is an implementation baseline and technical milestone candidate.
 
 ---
 
 ## Unreleased
 
 No unreleased changes yet.
+
+---
+
+## v0.15.0-preview.1 — Mission Understanding Public Preview
+
+First public developer/source preview of the rebooted OrbitFabric Studio.
+
+This release replaces the previous Cockpit/Workbench implementation with a smaller mission-first product slice focused on understanding Core-owned mission facts.
+
+### Added
+
+- Mission Atlas / Overview with presence-driven mission structure.
+- Entity Explorer with transversal search and domain filtering.
+- Type-aware Entity X-Ray with immediate relationships and provenance.
+- Global domain-qualified Studio Selection and user-followed Context Path.
+- Relationship Explorer and explicit Core-owned Context Map.
+- Complete Validation Findings Viewer with exact entity inspection.
+- Operations Logic Lens with Operational State Map and Mode Focus.
+- ELK-owned orthogonal routing rendered through React Flow.
+- Progressive Entity Index, relationship and lint hydration.
+- Transactional refresh with valid selection, Context Path and Operations focus reconciliation.
+- Release-ready desktop icon and matching launcher identity.
+
+### Architecture and trust boundary
+
+- OrbitFabric Core remains authoritative for mission semantics and validation.
+- Studio consumes Mission Snapshot, Entity Index, Relationship Manifest and lint JSON surfaces.
+- Studio does not semantically parse Mission Model YAML, infer missing relationships or calculate private mission health/readiness.
+- Mission Model source remains read-only.
+- Temporary hydration reports are written only to Studio-owned OS temporary storage.
+
+### Validation
+
+- Frontend build and pure Studio logic tests pass.
+- Rust tests and locked checks pass.
+- Tauri production-path debug build passes.
+- Pinned OrbitFabric Core acceptance matrix passes.
+- Clean-clone installation and real Debian 12 Tauri acceptance completed.
+- Wide, standard and compact visual acceptance completed.
+
+### Distribution
+
+This is a developer/source prerelease. Binary installers, Core sidecar packaging, signing and notarization are explicitly deferred.
+
+Release notes:
+
+```text
+docs/releases/v0.15.0-preview.1.md
+```
+
+---
+
+## Historical pre-reboot development baselines
+
+The entries below preserve the repository's pre-reboot development history. They do not describe the current Preview 1 architecture or product surface.
 
 ---
 
