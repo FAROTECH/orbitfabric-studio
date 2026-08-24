@@ -172,10 +172,11 @@ Clone Studio and install its locked frontend dependencies:
 ```bash
 git clone https://github.com/FAROTECH/orbitfabric-studio.git
 cd orbitfabric-studio
+git switch reboot/studio-v1
 npm ci
 ```
 
-Before the preview branch is merged, release-candidate testers should switch the clone to `reboot/studio-v1`. This branch-specific step is not required after the preview lands on the repository default branch.
+The `git switch reboot/studio-v1` step is required only while testing the unmerged release candidate. Remove that step after the preview lands on the repository default branch.
 
 ### Verify the source tree
 
