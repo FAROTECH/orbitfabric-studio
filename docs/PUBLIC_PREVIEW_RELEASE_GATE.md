@@ -1,6 +1,6 @@
 # OrbitFabric Studio — Public Preview Release Gate
 
-**Status:** engineering gates closed — publication steps pending  
+**Status:** merged candidate — owner-controlled publication steps pending  
 **Target:** OrbitFabric Studio 0.15.0 Preview 1 — first public developer/source preview of the rebooted Studio  
 **Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
 
@@ -97,7 +97,8 @@ Explicitly deferred:
 - [x] Operations tests cover declared-only state/focus joins and payload-lifecycle separation.
 - [x] Graph-layout tests verify complete orthogonal ELK routes do not cross unrelated nodes.
 - [x] Repeatable visual acceptance baseline defined in `docs/qa/public-preview-visual-acceptance.md`.
-- [x] Final release-candidate CI #177 passed on clean-clone evidence commit `be70421`.
+- [x] Clean-clone evidence CI #177 passed on commit `be70421`.
+- [x] Final pre-merge CI #178 passed on branch head `1e6100a`.
 
 ## Gate D — Release hygiene
 
@@ -113,6 +114,8 @@ Explicitly deferred:
 - [x] Broken E60 QA scripts and obsolete current-facing cockpit/workbench documentation removed from the active public-source narrative.
 - [x] Current Charter, Vision, Architecture, UX, boundaries and roadmap are mission-first.
 - [x] Version/release naming chosen: **OrbitFabric Studio 0.15.0 Preview 1** / `v0.15.0-preview.1`.
+- [x] PR #318 merged into `main` with merge commit `5bfbd79`.
+- [x] Public clone instructions cleaned of release-candidate branch and private-repository authentication steps.
 
 ## Gate E — Distribution
 
@@ -124,6 +127,7 @@ For the source preview:
 - [x] OrbitFabric Core runtime selection documented.
 - [x] Linux development/run path documented.
 - [x] One clean-clone installation run completed from README only on Debian 12; evidence is recorded in `docs/qa/public-preview-clean-clone-acceptance.md`.
+- [x] Feature branch merged into the default branch through PR #318.
 - [ ] Repository owner changes GitHub visibility from private to public before publication.
 - [ ] Tag `v0.15.0-preview.1` and a GitHub prerelease are published from the final merged commit.
 

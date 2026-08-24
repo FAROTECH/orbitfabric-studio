@@ -10,7 +10,7 @@ Studio is not a graphical file browser, a JSON dashboard, or a GUI wrapper aroun
 
 ## Public Preview scope
 
-Candidate release identity: **OrbitFabric Studio 0.15.0 Preview 1** (`v0.15.0-preview.1`).
+Release identity: **OrbitFabric Studio 0.15.0 Preview 1** (`v0.15.0-preview.1`).
 
 The rebooted Studio provides a complete mission-understanding product slice with complementary lenses:
 
@@ -172,19 +172,8 @@ Clone Studio and install its locked frontend dependencies:
 ```bash
 git clone https://github.com/FAROTECH/orbitfabric-studio.git
 cd orbitfabric-studio
-git switch reboot/studio-v1
 npm ci
 ```
-
-The `git switch reboot/studio-v1` step is required only while testing the unmerged release candidate. Remove that step after the preview lands on the repository default branch.
-
-While the repository remains private, an authenticated release-candidate tester with GitHub SSH access should replace the HTTPS clone command with:
-
-```bash
-git clone git@github.com:FAROTECH/orbitfabric-studio.git
-```
-
-After publication, the HTTPS clone command works without GitHub authentication.
 
 ### Verify the source tree
 
@@ -199,7 +188,7 @@ cargo check --locked --manifest-path src-tauri/Cargo.toml
 npm run tauri -- build --debug --no-bundle
 ```
 
-All commands must pass before treating the clone as a valid release-candidate environment.
+All commands must pass before treating the clone as a valid source-preview environment.
 
 ### Run Studio
 
@@ -275,7 +264,7 @@ docs/adr/0001-mission-first-studio.md
 
 ## Current release state
 
-The reboot is feature-frozen and being finalized as a **developer/source public preview**.
+The reboot is feature-frozen as a **developer/source public preview**.
 
 The mandatory release gate is tracked in:
 

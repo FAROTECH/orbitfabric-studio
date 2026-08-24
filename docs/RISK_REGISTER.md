@@ -26,7 +26,7 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 Before publishing the source preview, the following must close:
 
 1. owner-controlled public repository visibility;
-2. merge and publication of `v0.15.0-preview.1` from the final merged commit.
+2. publication of `v0.15.0-preview.1` from the final `main` commit.
 
 ## Risk rule
 

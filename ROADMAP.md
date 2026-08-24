@@ -4,7 +4,7 @@ OrbitFabric Studio is a local-first engineering workbench for seeing and underst
 
 > OrbitFabric exposes the Mission Data Contract. OrbitFabric Studio exposes the mission to the human.
 
-## Current phase — Public Preview RC hardening
+## Current phase — Public Preview publication
 
 The first developer/source public preview is feature-frozen. Its release identity is **OrbitFabric Studio 0.15.0 Preview 1** (`v0.15.0-preview.1`). Its complete journey is:
 
@@ -37,9 +37,8 @@ No additional product feature is required before the preview.
 
 ### Remaining preview gates
 
-1. merge draft PR #318 now that the engineering gates are closed;
-2. have the repository owner change GitHub visibility from private to public;
-3. publish tag `v0.15.0-preview.1` and the corresponding GitHub prerelease from the final merged commit.
+1. have the repository owner change GitHub visibility from private to public;
+2. publish tag `v0.15.0-preview.1` and the corresponding GitHub prerelease from the final `main` commit.
 
 The canonical checklist is `docs/PUBLIC_PREVIEW_RELEASE_GATE.md`.
 
