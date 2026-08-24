@@ -1,6 +1,6 @@
 # OrbitFabric Studio — Public Preview Release Gate
 
-**Status:** active release gate — feature freeze  
+**Status:** engineering gates closed — publication steps pending  
 **Target:** OrbitFabric Studio 0.15.0 Preview 1 — first public developer/source preview of the rebooted Studio  
 **Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
 
@@ -97,6 +97,7 @@ Explicitly deferred:
 - [x] Operations tests cover declared-only state/focus joins and payload-lifecycle separation.
 - [x] Graph-layout tests verify complete orthogonal ELK routes do not cross unrelated nodes.
 - [x] Repeatable visual acceptance baseline defined in `docs/qa/public-preview-visual-acceptance.md`.
+- [x] Final release-candidate CI #177 passed on clean-clone evidence commit `be70421`.
 
 ## Gate D — Release hygiene
 
