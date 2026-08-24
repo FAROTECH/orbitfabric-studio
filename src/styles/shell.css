@@ -83,15 +83,15 @@
 .launcher-mark {
   width: 52px;
   height: 52px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line-strong);
+  overflow: hidden;
   border-radius: var(--radius-md);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.26);
+}
+
+.launcher-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .launcher-copy h1 {
