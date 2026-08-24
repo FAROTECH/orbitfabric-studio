@@ -1,587 +1,161 @@
 # OrbitFabric Studio — Non-goals
 
-## 1. Purpose of This Document
+OrbitFabric Studio is intentionally narrow in authority even when it becomes broad in mission understanding.
 
-This document defines what OrbitFabric Studio intentionally does not aim to become.
+These boundaries protect the product from becoming a second semantic system or an imitation of operational software.
 
-Non-goals are not secondary notes.
-
-They are architectural boundaries.
-
-They protect the identity of Studio as a downstream visual engineering workbench for OrbitFabric Mission Data Contracts.
-
-Studio must remain aligned with OrbitFabric Core.
-
-Studio must not dilute, duplicate or replace the Core project.
-
----
-
-## 2. Core Boundary
-
-OrbitFabric Studio is not OrbitFabric Core.
+## Not OrbitFabric Core
 
 Studio does not own:
 
 - Mission Model semantics;
 - schema interpretation;
-- model loading authority;
-- semantic validation;
-- lint rule execution;
-- scenario execution semantics;
-- generated documentation semantics;
-- runtime-facing binding generation;
-- ground-facing artifact generation;
-- plugin semantics.
+- semantic validation or lint rules;
+- engineering relationship semantics;
+- scenario semantics;
+- generated/exported contract semantics;
+- mission health, readiness, completeness or coverage definitions.
 
-OrbitFabric Core owns these responsibilities.
+Core decides engineering meaning. Studio presents and helps humans explore it.
 
-Studio consumes Core outputs, organizes them and makes them inspectable.
+## Not a private semantic recovery layer
 
-Studio may display engineering meaning.
+Studio must not infer authoritative facts from:
 
-Studio must not invent engineering meaning.
+- filenames or directory shape;
+- YAML field-name guesses;
+- textual preconditions;
+- telemetry limits;
+- naming similarity;
+- entity co-occurrence;
+- graph proximity;
+- UI layout.
 
----
+If a semantic relationship is missing from Core, Studio shows it as unavailable or Core is improved.
 
-## 3. Not a Second Core
+## Not a generic contract GUI
 
-Studio must not become a second implementation of OrbitFabric Core.
+The product is not organized around reports, validators, generated files or Core commands as independent tools.
 
-It must not:
+Those are support mechanisms and provenance. The primary object is the mission.
 
-- duplicate semantic validation;
-- maintain a private model interpretation;
-- create independent lint rules;
-- infer missing engineering relationships as authoritative facts;
-- decide validity independently from Core;
-- generate contract artifacts through private logic;
-- create a parallel Mission Data Contract engine.
+Studio should not regress into a shell of Contract Explorer, Report Runner, Generated Artifact Explorer and other disconnected utilities.
 
-Correct pattern:
+## Not a dashboard/KPI product
 
-```text
-Core validates.
-Studio displays validation.
-```
+Studio must not manufacture dashboard metrics merely because counts are easy to display.
 
-Incorrect pattern:
+It must not derive private:
 
-```text
-Studio validates independently and presents its own engineering result.
-```
+- health scores;
+- readiness scores;
+- completeness scores;
+- quality grades;
+- coverage percentages.
 
-A second Core would create semantic drift.
+Counts are acceptable when they help orient the user to mission content. They are not mission status unless Core explicitly defines that meaning.
 
-Semantic drift is unacceptable.
+## Not a generic file browser or YAML IDE
 
----
+Raw files remain reachable for provenance and engineering review, but Studio is not a replacement for VS Code, Vim, JetBrains tools or generic YAML tooling.
 
-## 4. Not an Alternative Mission Model
+The user should encounter mission concepts before filesystem structure.
 
-Studio is not an alternative Mission Model format.
+## Not a generic graph editor
 
-Studio must not create:
+The Context Map is a local relationship-exploration surface, not a freeform canvas.
 
-- a private visual model;
-- a hidden JSON model that becomes more authoritative than YAML;
-- a graphical mission format that bypasses OrbitFabric;
-- a Studio-only schema;
-- a proprietary extension of the contract not declared by Core.
+Studio does not provide:
 
-The Mission Model remains the source of truth.
+- arbitrary engineering edges;
+- drag-to-create relationships;
+- layout-as-semantics;
+- a whole-mission graph dump as the primary UX;
+- a visual model format separate from OrbitFabric.
 
-Future assisted authoring must write explicit, reviewable changes back to the Mission Model.
+Every engineering edge displayed as truth must be explainable by Core/source semantics.
 
----
+## Not Mission Model authoring in the current roadmap
 
-## 5. Not Only a Post-processing Viewer
+The current product and public-preview roadmap are read-only with respect to mission source.
 
-Studio is not limited to post-processing completed contracts.
+Mission Model editing, visual authoring and automated patch generation are not implied future milestones. If authoring is ever proposed, it requires a separate product/architecture decision and cannot bypass Core authority.
 
-This boundary matters because Studio should eventually support assisted authoring and controlled editing.
+## Not mission control
 
-However, this does not mean Studio can become authoritative.
+Studio does not provide or imply:
 
-The correct long-term model is:
-
-```text
-assist user intent
-    -> propose Mission Model patch
-    -> show diff
-    -> write source model
-    -> run OrbitFabric Core validation
-    -> accept or reject result
-```
-
-The wrong model is:
-
-```text
-user edits a private Studio model
-    -> Studio treats it as valid
-    -> Core becomes secondary
-```
-
-Studio is not read-only by identity.
-
-Studio is read-only by initial maturity strategy.
-
----
-
-## 6. Not Flight Software
-
-Studio is not flight software.
-
-Studio is not:
-
-- an OBC framework;
-- an onboard runtime;
-- a telemetry polling task;
-- a command dispatcher;
-- a mode manager;
-- an onboard scheduler;
-- a fault manager;
-- an autonomy engine;
-- a payload controller;
-- a storage manager;
-- a downlink queue manager;
-- a hardware abstraction layer;
-- an RTOS abstraction;
-- a Linux/Yocto runtime component.
-
-Studio may inspect runtime-facing artifacts generated by OrbitFabric Core.
-
-It must not claim to execute or replace flight software.
-
----
-
-## 7. Not a Ground Segment
-
-Studio is not a ground segment.
-
-Studio is not:
-
-- a live ground system;
-- a mission control system;
-- an operator console;
-- a telemetry archive;
-- a command uplink service;
-- a pass execution tool;
-- a ground station controller;
-- a contact scheduler;
-- a real-time monitoring dashboard;
-- a spacecraft operations platform.
-
-Studio may inspect ground-facing contract artifacts generated by OrbitFabric Core.
-
-It must not claim to perform ground operations.
-
----
-
-## 8. Not a Mission Control Console
-
-Studio must not imitate mission control.
-
-It must not present fake or implied:
-
-- live telemetry;
-- command authority;
-- ground pass execution;
+- live spacecraft telemetry;
+- command uplink;
+- operator authority;
+- live pass execution;
 - onboard state synchronization;
-- real-time spacecraft status;
 - operational alarms;
-- operator procedures;
-- ground station connectivity;
-- mission timeline execution.
+- real-time ground-station connectivity.
 
-Scenario evidence is deterministic contract evidence.
+Engineering visuals must never masquerade as live operations.
 
-It is not live flight behavior.
+## Not flight software
 
-Ground-facing artifacts are generated contract outputs.
+Studio is not an OBC framework, scheduler, mode manager, fault manager, autonomy engine, command dispatcher, storage manager or payload controller.
 
-They are not an operational ground system.
+It may explain declared mission behavior. It does not execute onboard behavior.
 
----
+## Not a spacecraft simulator
 
-## 9. Not a Spacecraft Simulator
+Studio does not simulate orbital mechanics, ADCS, thermal behavior, power physics, RF/link performance, payload physics or real onboard timing.
 
-Studio is not a spacecraft simulator.
+Future scenario/replay views represent deterministic contract evidence, not physical simulation.
 
-It does not simulate:
+## Not a ground segment
 
-- orbital mechanics;
-- spacecraft dynamics;
-- ADCS behavior;
-- thermal behavior;
-- power subsystem behavior;
-- RF links;
-- link budgets;
-- ground station geometry;
-- payload physics;
-- onboard execution timing;
-- real storage queues;
-- real downlink sessions.
+Studio is not a telemetry archive, mission database runtime, ground-station controller, command service or replacement for Yamcs/OpenC3.
 
-Studio may display deterministic scenario evidence produced by OrbitFabric Core.
+Ground-facing artifacts may later be explained as part of provenance/lifecycle, but Studio does not become the operational consumer of those artifacts.
 
-That evidence must not be presented as physical simulation.
+## Not a cloud platform for the preview
 
----
+The first product is local-first. It does not require:
 
-## 10. Not a Packet Standard Implementation
+- accounts;
+- cloud workspaces;
+- remote validation;
+- hidden uploads;
+- project synchronization;
+- collaboration servers.
 
-Studio does not implement packet standards.
+Any remote capability requires an explicit trust and security decision.
 
-Studio is not an implementation of:
+## Not a binary-distribution promise yet
 
-- CCSDS Space Packet Protocol;
-- ECSS PUS;
-- CFDP;
-- XTCE;
-- SLE;
-- real telemetry encoding;
-- real command encoding;
-- binary serialization;
-- transport protocols.
+The first public target is a developer/source preview. Core sidecar strategy, desktop bundling, signing and notarization are later distribution decisions.
 
-Studio may inspect packet dictionaries, decoder skeletons or export artifacts generated by OrbitFabric Core.
+## Not browser/WebView chrome
 
-It must not claim standards compliance unless that support is implemented, tested and documented by the appropriate Core/export layer.
+The desktop application should not expose browser context menus, reload/navigation affordances or developer-tool behavior as product UI.
 
----
+## Boundary test
 
-## 11. Not a Yamcs/OpenC3 Replacement
-
-Studio is not a Yamcs replacement.
-
-Studio is not an OpenC3 replacement.
-
-Studio is not a mission database runtime.
-
-Studio may inspect ground-facing artifacts intended to support integration experiments or export workflows.
-
-It must not claim compatibility with Yamcs, OpenC3, XTCE or similar systems unless the compatibility is:
-
-- implemented;
-- tested;
-- documented;
-- versioned;
-- explicitly supported by OrbitFabric Core or a declared plugin/exporter.
-
-No weak compatibility claims.
-
-No implied operational support.
-
----
-
-## 12. Not a Generic YAML IDE
-
-Studio may include YAML inspection.
-
-Studio may eventually include controlled Mission Model editing.
-
-But Studio is not a generic YAML IDE.
-
-It should not compete with:
-
-- VS Code;
-- JetBrains IDEs;
-- Vim/Neovim;
-- generic YAML language tooling;
-- generic schema editors.
-
-Studio should expose the Mission Data Contract, not just files.
-
-YAML is the representation.
-
-The contract is the object.
-
----
-
-## 13. Not a Generic Diagramming Tool
-
-Studio is not a diagramming tool.
-
-It must not become:
-
-- a generic graph editor;
-- a block diagram tool;
-- a drag-and-drop mission drawing tool;
-- a freeform architecture sketching tool;
-- a visual canvas disconnected from the Mission Model.
-
-Every meaningful graph element must be traceable to:
-
-- a source Mission Model entity;
-- a Core report;
-- a generated artifact;
-- scenario evidence;
-- future plugin-declared output.
-
-A graph without provenance is not acceptable as an engineering surface.
-
----
-
-## 14. Not a Cloud Platform
-
-Studio is local-first.
-
-Studio is not initially:
-
-- a SaaS platform;
-- a hosted mission workspace;
-- a collaboration server;
-- a project sharing platform;
-- a cloud repository;
-- an account-based web app;
-- a remote validation service.
-
-Cloud, collaboration or hosted workflows are out of scope unless justified by a future architecture decision.
-
-The first serious version of Studio must remain useful offline.
-
----
-
-## 15. Not an AI Mission Designer
-
-Studio must not be positioned as an AI mission designer.
-
-It must not claim to automatically design missions, generate valid spacecraft contracts or replace engineering judgment.
-
-Future AI-assisted features, if ever considered, must obey the same rules as any other assisted authoring mechanism:
+For every proposed feature, ask:
 
 ```text
-suggest
-    -> show patch
-    -> require confirmation
-    -> validate with OrbitFabric Core
-    -> preserve provenance
+Does this help a person understand the mission?
 ```
 
-No hidden generation.
-
-No unreviewed contract changes.
-
-No AI-created semantics outside Core authority.
-
----
-
-## 16. Not a Replacement for Documentation
-
-Studio does not eliminate documentation.
-
-Studio may make documentation easier to inspect.
-
-Studio may show generated Markdown, reports and artifact manifests.
-
-But the project should still preserve:
-
-- source Mission Model files;
-- generated documentation;
-- generated reports;
-- changelogs;
-- ADRs;
-- release notes;
-- machine-readable artifacts.
-
-Studio is an additional inspection surface, not a replacement for transparent project artifacts.
-
----
-
-## 17. Not a Product Demo First
-
-Studio must not be designed primarily as a demo artifact.
-
-It must not prioritize:
-
-- impressive but vague screenshots;
-- fake mission-control visuals;
-- animated graphs without engineering meaning;
-- dashboard-style status walls;
-- visual polish over traceability;
-- product claims before implementation;
-- investor-demo language.
-
-A serious engineering workbench earns trust through clarity.
-
----
-
-## 18. Not a Place for Unsupported Compatibility Claims
-
-Studio must not claim support for external systems unless support is real.
-
-Forbidden language unless implemented and tested:
-
-- compatible with Yamcs;
-- compatible with OpenC3;
-- XTCE-compliant;
-- CCSDS-compliant;
-- PUS-compliant;
-- ground-system ready;
-- flight-software ready;
-- mission-control ready;
-- real-time capable.
-
-Acceptable language for early work:
-
-- experimental export;
-- prototype artifact;
-- development-preview dictionary;
-- generated skeleton;
-- integration-facing contract artifact;
-- not an operational interface.
-
----
-
-## 19. Not a Place to Hide Complexity
-
-Studio should reduce cognitive load.
-
-It must not hide engineering complexity in a way that makes the system less explicit.
-
-The UI must not hide:
-
-- validation failures;
-- broken references;
-- unsupported model surfaces;
-- generated artifact status;
-- stale outputs;
-- missing Core capabilities;
-- unsupported Core versions;
-- experimental feature status.
-
-Simplified views are acceptable.
-
-Vague views are not.
-
----
-
-## 20. Not an Unbounded Authoring Environment
-
-Future authoring support must remain controlled.
-
-Studio must not become an unrestricted visual editor where any mission concept can be drawn without Core support.
-
-Future authoring must be:
-
-- domain-limited;
-- patch-based;
-- diff-visible;
-- validation-gated;
-- reversible where practical;
-- clearly mapped to source Mission Model files;
-- explicit about unsupported domains.
-
-Authoring does not mean bypassing the Mission Model.
-
-Authoring means helping the user produce better Mission Model changes.
-
----
-
-## 21. Deferred Capabilities
-
-The following capabilities are deferred, not foundational:
-
-- full visual model editing;
-- broad drag-and-drop authoring;
-- project creation wizard;
-- mission template gallery;
-- AI-assisted contract generation;
-- cloud sync;
-- collaboration;
-- plugin marketplace;
-- hosted validation;
-- external tool live integration;
-- browser-only hosted Studio;
-- telemetry replay;
-- live telemetry display;
-- command path simulation;
-- operational procedure authoring.
-
-Deferred does not mean impossible.
-
-It means not part of the initial architecture.
-
----
-
-## 22. Out-of-scope Capabilities
-
-The following capabilities are outside the identity of Studio:
-
-- flight software runtime;
-- OBC framework;
-- onboard scheduler;
-- onboard fault manager;
-- onboard command dispatcher;
-- live ground segment;
-- mission control system;
-- spacecraft dynamics simulator;
-- orbital propagator;
-- RF/link simulator;
-- ground station controller;
-- CCSDS/PUS/CFDP implementation;
-- generic IDE;
-- generic graph editor;
-- generic documentation site generator.
-
-These should not be added to Studio.
-
----
-
-## 23. Boundary Test
-
-When evaluating a new feature, apply this test:
-
-```text
-Does this feature help a user inspect, validate, navigate, understand, trace, review or safely refine an OrbitFabric Mission Data Contract?
-```
-
-If yes, it may belong in Studio.
+If not, it likely does not belong in Studio.
 
 Then ask:
 
 ```text
-Does this feature require Studio to become authoritative for mission semantics?
+Does it require Studio to invent engineering meaning?
 ```
 
-If yes, it does not belong in Studio.
+If yes, it does not belong in Studio unless Core first exposes that meaning explicitly.
 
-Then ask:
+Finally ask:
 
 ```text
-Can this feature be implemented by consuming Core outputs or by requesting improved Core outputs?
+Is the feature explaining declared data, relationships, behavior/evidence or provenance?
 ```
 
-If no, the feature is premature.
-
----
-
-## 24. Summary
-
-OrbitFabric Studio is not a second Core.
-
-It is not a ground segment.
-
-It is not mission control.
-
-It is not flight software.
-
-It is not a simulator.
-
-It is not a generic IDE.
-
-It is not a decorative dashboard.
-
-It is not limited to post-processing either.
-
-Studio is a downstream visual engineering workbench for OrbitFabric Mission Data Contracts.
-
-It starts with inspection and validation.
-
-It grows toward navigation, visualization, evidence review, artifact inspection and controlled authoring.
-
-The Mission Model remains the source of truth.
-
-OrbitFabric Core remains the authority.
-
-Studio makes the contract inspectable without becoming the contract authority.
+If none applies, the feature is probably outside the product thesis.

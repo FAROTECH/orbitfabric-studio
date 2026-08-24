@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.14.0",
   "type": "module",
-  "description": "Local-first visual engineering workbench for OrbitFabric Mission Data Contracts.",
+  "description": "Local-first engineering workbench for seeing and understanding OrbitFabric missions.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -11,12 +11,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "qa:visual-checklist": "node tools/dev/generate-visual-qa-checklist.mjs --write",
-    "qa:desktop-envelope-audit": "node tools/dev/check-desktop-envelope-audit.mjs --write",
-    "qa:data-flow-workbench-audit": "node tools/dev/check-data-flow-workbench-audit.mjs --write",
-    "qa:studio-visual-token-contract": "node tools/dev/check-studio-visual-token-contract.mjs",
-    "qa:icon-audit": "node tools/dev/audit-studio-icons.mjs --write"
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "2.11.1",
