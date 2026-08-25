@@ -1,6 +1,6 @@
 # OrbitFabric Studio — Public Preview Release Gate
 
-**Status:** public repository — tag and prerelease publication pending  
+**Status:** released — public developer/source prerelease published  
 **Target:** OrbitFabric Studio 0.15.0 Preview 1 — first public developer/source preview of the rebooted Studio  
 **Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
 
@@ -130,7 +130,7 @@ For the source preview:
 - [x] Feature branch merged into the default branch through PR #318.
 - [x] Repository owner changed GitHub visibility from private to public.
 - [x] Release notes prepared in `docs/releases/v0.15.0-preview.1.md`.
-- [ ] Tag `v0.15.0-preview.1` and a GitHub prerelease are published from the final merged commit.
+- [x] Tag `v0.15.0-preview.1` and GitHub prerelease published from commit `a5155ad6`.
 
 Deferred desktop packaging decisions include:
 
@@ -141,7 +141,7 @@ Deferred desktop packaging decisions include:
 
 ## Release decision
 
-The preview can be published when all mandatory developer/source items above are closed and CI is green on the release candidate.
+Preview 1 was published after all mandatory developer/source items above were closed and CI was green on both the release candidate and final merged commit.
 
 No Data Journey/Replay work is required to close this gate. Operations is implemented and accepted as part of the frozen preview scope.
 
