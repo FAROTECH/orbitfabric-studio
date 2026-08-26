@@ -99,8 +99,28 @@ export async function captureCurrentStudioSurface(
     await nextAnimationFrame();
 
     const rect = target.getBoundingClientRect();
-    const contentWidth = Math.ceil(Math.max(target.scrollWidth, rect.width));
-    const contentHeight = Math.ceil(Math.max(target.scrollHeight, rect.height, 1));
+    let descendantRight = rect.right;
+    let descendantBottom = rect.bottom;
+
+    for (const element of target.querySelectorAll<Element>("*")) {
+      const childRect = element.getBoundingClientRect();
+      if (
+        !Number.isFinite(childRect.right) ||
+        !Number.isFinite(childRect.bottom) ||
+        (childRect.width === 0 && childRect.height === 0)
+      ) {
+        continue;
+      }
+      descendantRight = Math.max(descendantRight, childRect.right);
+      descendantBottom = Math.max(descendantBottom, childRect.bottom);
+    }
+
+    const contentWidth = Math.ceil(
+      Math.max(target.scrollWidth, rect.width, descendantRight - rect.left),
+    );
+    const contentHeight = Math.ceil(
+      Math.max(target.scrollHeight, rect.height, descendantBottom - rect.top, 1),
+    );
     const pixelRatio = captureScale(contentWidth, contentHeight);
     const background = captureBackgroundColor();
     const hasReactFlow = target.querySelector(".react-flow") !== null;
@@ -160,6 +180,7 @@ function prepareCaptureLayout(target: HTMLElement): () => void {
   restorers.push(
     applyTemporaryStyles(target, {
       height: "auto",
+      "min-height": "0",
       "max-height": "none",
       overflow: "visible",
       transform: "none",
@@ -176,13 +197,14 @@ function prepareCaptureLayout(target: HTMLElement): () => void {
 
   for (const scroller of nestedScrollers) {
     restorers.push(preserveScrollPosition(scroller));
-    const expandedHeight = Math.max(scroller.scrollHeight, scroller.clientHeight, 1);
     restorers.push(
       applyTemporaryStyles(scroller, {
-        height: `${expandedHeight}px`,
+        height: "auto",
+        "min-height": "0",
         "max-height": "none",
-        "overflow-y": "visible",
+        overflow: "visible",
         "scrollbar-gutter": "auto",
+        "align-self": "start",
       }),
     );
     scroller.scrollTo({ top: 0, left: scroller.scrollLeft });
@@ -193,6 +215,7 @@ function prepareCaptureLayout(target: HTMLElement): () => void {
     restorers.push(
       applyTemporaryStyles(xray, {
         height: "auto",
+        "min-height": "0",
         "max-height": "none",
         overflow: "visible",
         "grid-template-rows": "auto auto auto",
