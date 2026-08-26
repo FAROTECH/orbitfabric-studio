@@ -8,8 +8,7 @@ import {
 
 const MAX_CANVAS_EDGE = 16_384;
 const MAX_CANVAS_PIXELS = 64_000_000;
-const CAPTURE_BOTTOM_GUARD = 16;
-const MAX_LAYOUT_STABILIZATION_PASSES = 4;
+const CAPTURE_BOTTOM_GUARD = 24;
 
 interface CaptureRequest {
   missionId: string;
@@ -111,7 +110,12 @@ async function captureGraphSurfaceOffscreen(
     await nextAnimationFrame();
     await nextAnimationFrame();
 
-    const height = await stabilizeExpandedHeight(clone.target, clone.host);
+    const measuredHeight = measureExpandedHeight(clone.target);
+    const height = measuredHeight + CAPTURE_BOTTOM_GUARD;
+    if (!Number.isFinite(height) || height <= 0) {
+      throw new Error(`Invalid off-screen surface height: ${height}.`);
+    }
+
     const pixelRatio = captureScale(width, height);
 
     hideReactFlowEdgeLayers(clone.target);
@@ -133,8 +137,22 @@ async function captureGraphSurfaceOffscreen(
       imageTimeout: 5_000,
     });
 
+    if (canvas.width <= 0 || canvas.height <= 0) {
+      throw new Error(
+        `Final capture canvas is ${canvas.width}×${canvas.height} for surface ` +
+          `${width}×${height} at scale ${pixelRatio.toFixed(3)}.`,
+      );
+    }
+
     drawReactFlowEdges(canvas, edgeSnapshots, pixelRatio);
     const dataUrl = canvas.toDataURL("image/png");
+    if (!dataUrl.startsWith("data:image/png;base64,")) {
+      throw new Error(
+        `Final PNG export failed for surface ${width}×${height} at scale ` +
+          `${pixelRatio.toFixed(3)} (backing canvas ${canvas.width}×${canvas.height}).`,
+      );
+    }
+
     const filename = buildCaptureFilename(request);
     const saved = await invoke<SurfaceCaptureSaveResult>("save_surface_capture_png", {
       filename,
@@ -246,37 +264,6 @@ function makeContentSized(element: HTMLElement) {
   element.style.setProperty("align-self", "start", "important");
 }
 
-async function stabilizeExpandedHeight(
-  target: HTMLElement,
-  host: HTMLElement,
-): Promise<number> {
-  let height = 1;
-
-  for (let pass = 0; pass < MAX_LAYOUT_STABILIZATION_PASSES; pass += 1) {
-    const measured = measureExpandedHeight(target) + CAPTURE_BOTTOM_GUARD;
-    const nextHeight = Math.max(height, measured);
-
-    target.style.setProperty("height", `${nextHeight}px`, "important");
-    host.style.height = `${nextHeight}px`;
-    height = nextHeight;
-
-    await nextAnimationFrame();
-    await nextAnimationFrame();
-
-    const afterReflow = measureExpandedHeight(target) + CAPTURE_BOTTOM_GUARD;
-    if (afterReflow <= height + 1) {
-      return height;
-    }
-
-    height = afterReflow;
-  }
-
-  target.style.setProperty("height", `${height}px`, "important");
-  host.style.height = `${height}px`;
-  await nextAnimationFrame();
-  return height;
-}
-
 function measureExpandedHeight(target: HTMLElement): number {
   const targetRect = target.getBoundingClientRect();
   let extent = Math.max(
@@ -296,18 +283,7 @@ function measureExpandedHeight(target: HTMLElement): number {
       continue;
     }
 
-    const top = rect.top - targetRect.top;
-    const boxBottom = rect.bottom - targetRect.top;
-    const internalBottom =
-      top +
-      Math.max(
-        rect.height,
-        element.scrollHeight,
-        element.offsetHeight,
-        element.clientHeight,
-      );
-
-    extent = Math.max(extent, boxBottom, internalBottom);
+    extent = Math.max(extent, rect.bottom - targetRect.top);
   }
 
   return Math.max(1, Math.ceil(extent));
