@@ -8,7 +8,8 @@ import {
 
 const MAX_CANVAS_EDGE = 16_384;
 const MAX_CANVAS_PIXELS = 64_000_000;
-const CAPTURE_BOTTOM_GUARD = 12;
+const CAPTURE_BOTTOM_GUARD = 16;
+const MAX_LAYOUT_STABILIZATION_PASSES = 4;
 
 interface CaptureRequest {
   missionId: string;
@@ -110,13 +111,10 @@ async function captureGraphSurfaceOffscreen(
     await nextAnimationFrame();
     await nextAnimationFrame();
 
-    const height = measureExpandedHeight(clone.target) + CAPTURE_BOTTOM_GUARD;
+    const height = await stabilizeExpandedHeight(clone.target, clone.host);
     const pixelRatio = captureScale(width, height);
 
-    clone.target.style.setProperty("height", `${height}px`, "important");
-    clone.host.style.height = `${height}px`;
     hideReactFlowEdgeLayers(clone.target);
-
     await nextAnimationFrame();
 
     const { default: html2canvas } = await import("html2canvas");
@@ -184,6 +182,9 @@ function createCaptureClone(
   target.style.setProperty("overflow", "visible", "important");
   target.style.setProperty("transform", "none", "important");
   target.style.setProperty("align-items", "start", "important");
+  target.style.setProperty("align-content", "start", "important");
+  target.style.setProperty("grid-template-rows", "max-content", "important");
+  target.style.setProperty("grid-auto-rows", "max-content", "important");
   target.style.background = background;
 
   host.appendChild(target);
@@ -198,6 +199,7 @@ function expandCloneLayout(target: HTMLElement) {
     ".relations-workspace",
     ".relationship-explorer",
     ".relationship-groups",
+    ".relationship-group",
   ];
 
   for (const selector of structuralSelectors) {
@@ -244,30 +246,71 @@ function makeContentSized(element: HTMLElement) {
   element.style.setProperty("align-self", "start", "important");
 }
 
-function measureExpandedHeight(target: HTMLElement): number {
-  const rect = target.getBoundingClientRect();
-  let bottom = rect.bottom;
+async function stabilizeExpandedHeight(
+  target: HTMLElement,
+  host: HTMLElement,
+): Promise<number> {
+  let height = 1;
 
-  for (const element of target.querySelectorAll<Element>("*")) {
+  for (let pass = 0; pass < MAX_LAYOUT_STABILIZATION_PASSES; pass += 1) {
+    const measured = measureExpandedHeight(target) + CAPTURE_BOTTOM_GUARD;
+    const nextHeight = Math.max(height, measured);
+
+    target.style.setProperty("height", `${nextHeight}px`, "important");
+    host.style.height = `${nextHeight}px`;
+    height = nextHeight;
+
+    await nextAnimationFrame();
+    await nextAnimationFrame();
+
+    const afterReflow = measureExpandedHeight(target) + CAPTURE_BOTTOM_GUARD;
+    if (afterReflow <= height + 1) {
+      return height;
+    }
+
+    height = afterReflow;
+  }
+
+  target.style.setProperty("height", `${height}px`, "important");
+  host.style.height = `${height}px`;
+  await nextAnimationFrame();
+  return height;
+}
+
+function measureExpandedHeight(target: HTMLElement): number {
+  const targetRect = target.getBoundingClientRect();
+  let extent = Math.max(
+    targetRect.height,
+    target.scrollHeight,
+    target.offsetHeight,
+    target.clientHeight,
+  );
+
+  for (const element of target.querySelectorAll<HTMLElement>("*")) {
     if (element.closest(".react-flow__viewport")) {
       continue;
     }
 
-    const childRect = element.getBoundingClientRect();
-    if (
-      Number.isFinite(childRect.bottom) &&
-      (childRect.width > 0 || childRect.height > 0)
-    ) {
-      bottom = Math.max(bottom, childRect.bottom);
+    const rect = element.getBoundingClientRect();
+    if (!Number.isFinite(rect.top) || !Number.isFinite(rect.bottom)) {
+      continue;
     }
+
+    const top = rect.top - targetRect.top;
+    const boxBottom = rect.bottom - targetRect.top;
+    const internalBottom =
+      top +
+      Math.max(
+        rect.height,
+        element.scrollHeight,
+        element.offsetHeight,
+        element.clientHeight,
+      );
+
+    extent = Math.max(extent, boxBottom, internalBottom);
   }
 
-  return Math.max(
-    1,
-    Math.ceil(target.scrollHeight),
-    Math.ceil(target.offsetHeight),
-    Math.ceil(bottom - rect.top),
-  );
+  return Math.max(1, Math.ceil(extent));
 }
 
 function snapshotReactFlowEdges(
