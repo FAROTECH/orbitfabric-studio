@@ -47,3 +47,19 @@ body[data-studio-capture="active"] .xray-scroll {
   overflow: visible !important;
   scrollbar-gutter: auto !important;
 }
+
+/*
+ * Off-screen graph capture uses a cloned workspace as a document layout surface.
+ * The interactive workspace normally relies on min-height: 0 so grid children can
+ * shrink into viewport-bounded scroll containers. Once the clone is assigned its
+ * measured export height that same behavior can compress the single grid row and
+ * leave the tail of the primary column outside the canvas. A max-content row makes
+ * the capture clone content-driven instead: the row must remain at least as tall as
+ * the longest column, independent of the final canvas height.
+ */
+body[data-studio-capture="active"]
+  .workspace-layout[data-studio-capture-clone="true"] {
+  grid-template-rows: max-content !important;
+  grid-auto-rows: max-content !important;
+  align-content: start !important;
+}
