@@ -15,6 +15,17 @@ interface SurfaceCaptureSaveResult {
   path: string;
 }
 
+interface ToPngOptions {
+  cacheBust?: boolean;
+  pixelRatio?: number;
+  width?: number;
+  height?: number;
+  backgroundColor?: string;
+  style?: Record<string, string | number>;
+}
+
+type ToPng = (node: HTMLElement, options?: ToPngOptions) => Promise<string>;
+
 export interface SurfaceCaptureResult {
   path: string;
   copiedToClipboard: boolean;
@@ -47,6 +58,8 @@ export async function captureCurrentStudioSurface(
 
   scrollOwner.scrollTo({ top: 0, left: 0 });
 
+  let restoreReactFlowSnapshots: (() => void) | null = null;
+
   try {
     await nextAnimationFrame();
     await nextAnimationFrame();
@@ -57,8 +70,14 @@ export async function captureCurrentStudioSurface(
     const pixelRatio = captureScale(contentWidth, contentHeight);
     const background = captureBackgroundColor();
     const { toPng } = await import("html-to-image");
+    const renderToPng = toPng as ToPng;
 
-    const dataUrl = await toPng(target, {
+    restoreReactFlowSnapshots = await flattenReactFlowViewports(
+      target,
+      renderToPng,
+    );
+
+    const dataUrl = await renderToPng(target, {
       cacheBust: true,
       pixelRatio,
       width: contentWidth,
@@ -87,9 +106,91 @@ export async function captureCurrentStudioSurface(
       height: contentHeight,
     };
   } finally {
+    restoreReactFlowSnapshots?.();
     restoreTargetStyles();
     restoreScroll();
   }
+}
+
+async function flattenReactFlowViewports(
+  target: HTMLElement,
+  toPng: ToPng,
+): Promise<() => void> {
+  const flows = Array.from(target.querySelectorAll<HTMLElement>(".react-flow"));
+  const restorers: Array<() => void> = [];
+
+  try {
+    for (const flow of flows) {
+      const viewport = flow.querySelector<HTMLElement>(".react-flow__viewport");
+      const renderer = viewport?.parentElement;
+
+      if (!viewport || !(renderer instanceof HTMLElement)) {
+        continue;
+      }
+
+      const flowRect = flow.getBoundingClientRect();
+      const width = Math.max(1, Math.ceil(flowRect.width));
+      const height = Math.max(1, Math.ceil(flowRect.height));
+      const viewportStyle = window.getComputedStyle(viewport);
+      let dataUrl: string;
+
+      try {
+        dataUrl = await toPng(viewport, {
+          cacheBust: true,
+          pixelRatio: captureScale(width, height),
+          width,
+          height,
+          backgroundColor: "transparent",
+          style: {
+            width: `${width}px`,
+            height: `${height}px`,
+            transform: viewportStyle.transform,
+            transformOrigin: viewportStyle.transformOrigin || "0 0",
+            overflow: "visible",
+          },
+        });
+      } catch (error) {
+        throw new Error(
+          `React Flow viewport capture failed: ${describeCaptureError(error)}`,
+        );
+      }
+
+      const snapshot = document.createElement("img");
+      snapshot.src = dataUrl;
+      snapshot.alt = "";
+      snapshot.setAttribute("aria-hidden", "true");
+      snapshot.dataset.studioCaptureReactFlowSnapshot = "true";
+      snapshot.style.position = "absolute";
+      snapshot.style.inset = "0";
+      snapshot.style.width = "100%";
+      snapshot.style.height = "100%";
+      snapshot.style.objectFit = "fill";
+      snapshot.style.pointerEvents = "none";
+      snapshot.style.zIndex = "2";
+
+      renderer.appendChild(snapshot);
+      await waitForImageElement(snapshot);
+
+      const previousDisplay = viewport.style.display;
+      viewport.style.display = "none";
+
+      restorers.push(() => {
+        snapshot.remove();
+        viewport.style.display = previousDisplay;
+      });
+    }
+  } catch (error) {
+    for (const restore of restorers.reverse()) {
+      restore();
+    }
+    throw error;
+  }
+
+  return () => {
+    for (const restore of restorers.reverse()) {
+      restore();
+    }
+  };
 }
 
 function captureScale(width: number, height: number): number {
@@ -174,15 +275,36 @@ function waitForImages(root: HTMLElement): Promise<void> {
     return Promise.resolve();
   }
 
-  return Promise.all(
-    images.map(
-      (image) =>
-        new Promise<void>((resolve) => {
-          image.addEventListener("load", () => resolve(), { once: true });
-          image.addEventListener("error", () => resolve(), { once: true });
-        }),
-    ),
-  ).then(() => undefined);
+  return Promise.all(images.map(waitForImageElement)).then(() => undefined);
+}
+
+function waitForImageElement(image: HTMLImageElement): Promise<void> {
+  if (image.complete) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    image.addEventListener("load", () => resolve(), { once: true });
+    image.addEventListener(
+      "error",
+      (event) => reject(new Error(`Capture image failed to load: ${describeCaptureError(event)}`)),
+      { once: true },
+    );
+  });
+}
+
+function describeCaptureError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (error instanceof Event) {
+    const target = error.target;
+    if (target instanceof HTMLImageElement) {
+      return "renderer emitted an error event from <img>";
+    }
+    return `renderer emitted an ${error.type || "unknown"} event`;
+  }
+  return String(error);
 }
 
 function captureBackgroundColor(): string {
