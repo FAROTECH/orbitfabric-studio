@@ -169,7 +169,7 @@ async function flattenReactFlowViewports(
       snapshot.style.zIndex = "2";
 
       renderer.appendChild(snapshot);
-      await waitForImageElement(snapshot);
+      await waitForSnapshotImage(snapshot);
 
       const previousDisplay = viewport.style.display;
       viewport.style.display = "none";
@@ -275,19 +275,34 @@ function waitForImages(root: HTMLElement): Promise<void> {
     return Promise.resolve();
   }
 
-  return Promise.all(images.map(waitForImageElement)).then(() => undefined);
+  return Promise.all(
+    images.map(
+      (image) =>
+        new Promise<void>((resolve) => {
+          image.addEventListener("load", () => resolve(), { once: true });
+          image.addEventListener("error", () => resolve(), { once: true });
+        }),
+    ),
+  ).then(() => undefined);
 }
 
-function waitForImageElement(image: HTMLImageElement): Promise<void> {
+function waitForSnapshotImage(image: HTMLImageElement): Promise<void> {
   if (image.complete) {
-    return Promise.resolve();
+    return image.naturalWidth > 0
+      ? Promise.resolve()
+      : Promise.reject(new Error("React Flow snapshot image could not be decoded."));
   }
 
   return new Promise<void>((resolve, reject) => {
     image.addEventListener("load", () => resolve(), { once: true });
     image.addEventListener(
       "error",
-      (event) => reject(new Error(`Capture image failed to load: ${describeCaptureError(event)}`)),
+      (event) =>
+        reject(
+          new Error(
+            `React Flow snapshot image failed to load: ${describeCaptureError(event)}`,
+          ),
+        ),
       { once: true },
     );
   });
