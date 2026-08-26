@@ -47,6 +47,11 @@ export function SurfaceCaptureButton({
       return;
     }
 
+    // Capture layout must be active before the renderer performs any measurement.
+    // React state updates are asynchronous, so the body attribute is the synchronous
+    // source of truth for capture-only CSS expansion.
+    document.body.setAttribute("data-studio-capture", "active");
+
     setCaptureState({
       phase: "capturing",
       detail: "Rendering the complete current Studio surface…",
@@ -72,6 +77,8 @@ export function SurfaceCaptureButton({
         detail: captureErrorDetail(error),
       });
       resetLater();
+    } finally {
+      document.body.removeAttribute("data-studio-capture");
     }
   }, [captureState.phase, disabled, missionId, resetLater, selection, view]);
 
@@ -100,6 +107,7 @@ export function SurfaceCaptureButton({
 
   useEffect(
     () => () => {
+      document.body.removeAttribute("data-studio-capture");
       if (resetTimerRef.current !== null) {
         window.clearTimeout(resetTimerRef.current);
       }
