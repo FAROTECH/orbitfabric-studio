@@ -15,17 +15,6 @@ interface SurfaceCaptureSaveResult {
   path: string;
 }
 
-interface ToPngOptions {
-  cacheBust?: boolean;
-  pixelRatio?: number;
-  width?: number;
-  height?: number;
-  backgroundColor?: string;
-  style?: Record<string, string | number>;
-}
-
-type ToPng = (node: HTMLElement, options?: ToPngOptions) => Promise<string>;
-
 export interface SurfaceCaptureResult {
   path: string;
   copiedToClipboard: boolean;
@@ -58,8 +47,6 @@ export async function captureCurrentStudioSurface(
 
   scrollOwner.scrollTo({ top: 0, left: 0 });
 
-  let restoreReactFlowSnapshots: (() => void) | null = null;
-
   try {
     await nextAnimationFrame();
     await nextAnimationFrame();
@@ -69,28 +56,22 @@ export async function captureCurrentStudioSurface(
     const contentHeight = Math.ceil(Math.max(target.scrollHeight, rect.height, 1));
     const pixelRatio = captureScale(contentWidth, contentHeight);
     const background = captureBackgroundColor();
-    const { toPng } = await import("html-to-image");
-    const renderToPng = toPng as ToPng;
 
-    restoreReactFlowSnapshots = await flattenReactFlowViewports(
-      target,
-      renderToPng,
-    );
-
-    const dataUrl = await renderToPng(target, {
-      cacheBust: true,
-      pixelRatio,
-      width: contentWidth,
-      height: contentHeight,
-      backgroundColor: background,
-      style: {
-        width: `${contentWidth}px`,
-        height: `${contentHeight}px`,
-        maxHeight: "none",
-        overflow: "visible",
-        transform: "none",
-      },
-    });
+    const dataUrl = target.querySelector(".react-flow")
+      ? await renderGraphSurfaceWithCanvas(
+          target,
+          contentWidth,
+          contentHeight,
+          pixelRatio,
+          background,
+        )
+      : await renderSurfaceWithHtmlToImage(
+          target,
+          contentWidth,
+          contentHeight,
+          pixelRatio,
+          background,
+        );
 
     const filename = buildCaptureFilename(request);
     const saved = await invoke<SurfaceCaptureSaveResult>("save_surface_capture_png", {
@@ -106,91 +87,78 @@ export async function captureCurrentStudioSurface(
       height: contentHeight,
     };
   } finally {
-    restoreReactFlowSnapshots?.();
     restoreTargetStyles();
     restoreScroll();
   }
 }
 
-async function flattenReactFlowViewports(
+async function renderSurfaceWithHtmlToImage(
   target: HTMLElement,
-  toPng: ToPng,
-): Promise<() => void> {
-  const flows = Array.from(target.querySelectorAll<HTMLElement>(".react-flow"));
-  const restorers: Array<() => void> = [];
-
+  width: number,
+  height: number,
+  pixelRatio: number,
+  background: string,
+): Promise<string> {
   try {
-    for (const flow of flows) {
-      const viewport = flow.querySelector<HTMLElement>(".react-flow__viewport");
-      const renderer = viewport?.parentElement;
-
-      if (!viewport || !(renderer instanceof HTMLElement)) {
-        continue;
-      }
-
-      const flowRect = flow.getBoundingClientRect();
-      const width = Math.max(1, Math.ceil(flowRect.width));
-      const height = Math.max(1, Math.ceil(flowRect.height));
-      const viewportStyle = window.getComputedStyle(viewport);
-      let dataUrl: string;
-
-      try {
-        dataUrl = await toPng(viewport, {
-          cacheBust: true,
-          pixelRatio: captureScale(width, height),
-          width,
-          height,
-          backgroundColor: "transparent",
-          style: {
-            width: `${width}px`,
-            height: `${height}px`,
-            transform: viewportStyle.transform,
-            transformOrigin: viewportStyle.transformOrigin || "0 0",
-            overflow: "visible",
-          },
-        });
-      } catch (error) {
-        throw new Error(
-          `React Flow viewport capture failed: ${describeCaptureError(error)}`,
-        );
-      }
-
-      const snapshot = document.createElement("img");
-      snapshot.src = dataUrl;
-      snapshot.alt = "";
-      snapshot.setAttribute("aria-hidden", "true");
-      snapshot.dataset.studioCaptureReactFlowSnapshot = "true";
-      snapshot.style.position = "absolute";
-      snapshot.style.inset = "0";
-      snapshot.style.width = "100%";
-      snapshot.style.height = "100%";
-      snapshot.style.objectFit = "fill";
-      snapshot.style.pointerEvents = "none";
-      snapshot.style.zIndex = "2";
-
-      renderer.appendChild(snapshot);
-      await waitForSnapshotImage(snapshot);
-
-      const previousDisplay = viewport.style.display;
-      viewport.style.display = "none";
-
-      restorers.push(() => {
-        snapshot.remove();
-        viewport.style.display = previousDisplay;
-      });
-    }
+    const { toPng } = await import("html-to-image");
+    return await toPng(target, {
+      cacheBust: true,
+      pixelRatio,
+      width,
+      height,
+      backgroundColor: background,
+      style: {
+        width: `${width}px`,
+        height: `${height}px`,
+        maxHeight: "none",
+        overflow: "visible",
+        transform: "none",
+      },
+    });
   } catch (error) {
-    for (const restore of restorers.reverse()) {
-      restore();
-    }
-    throw error;
+    throw new Error(`Surface capture failed: ${describeCaptureError(error)}`);
   }
+}
 
-  return () => {
-    for (const restore of restorers.reverse()) {
-      restore();
-    }
-  };
+async function renderGraphSurfaceWithCanvas(
+  target: HTMLElement,
+  width: number,
+  height: number,
+  pixelRatio: number,
+  background: string,
+): Promise<string> {
+  try {
+    const { default: html2canvas } = await import("html2canvas");
+    const documentWidth = Math.max(
+      document.documentElement.clientWidth,
+      document.documentElement.scrollWidth,
+      width,
+    );
+    const documentHeight = Math.max(
+      document.documentElement.clientHeight,
+      document.documentElement.scrollHeight,
+      height,
+    );
+
+    const canvas = await html2canvas(target, {
+      backgroundColor: background,
+      scale: pixelRatio,
+      width,
+      height,
+      windowWidth: documentWidth,
+      windowHeight: documentHeight,
+      scrollX: 0,
+      scrollY: 0,
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      imageTimeout: 5_000,
+    });
+
+    return canvas.toDataURL("image/png");
+  } catch (error) {
+    throw new Error(`React Flow surface capture failed: ${describeCaptureError(error)}`);
+  }
 }
 
 function captureScale(width: number, height: number): number {
@@ -284,28 +252,6 @@ function waitForImages(root: HTMLElement): Promise<void> {
         }),
     ),
   ).then(() => undefined);
-}
-
-function waitForSnapshotImage(image: HTMLImageElement): Promise<void> {
-  if (image.complete) {
-    return image.naturalWidth > 0
-      ? Promise.resolve()
-      : Promise.reject(new Error("React Flow snapshot image could not be decoded."));
-  }
-
-  return new Promise<void>((resolve, reject) => {
-    image.addEventListener("load", () => resolve(), { once: true });
-    image.addEventListener(
-      "error",
-      (event) =>
-        reject(
-          new Error(
-            `React Flow snapshot image failed to load: ${describeCaptureError(event)}`,
-          ),
-        ),
-      { once: true },
-    );
-  });
 }
 
 function describeCaptureError(error: unknown): string {
