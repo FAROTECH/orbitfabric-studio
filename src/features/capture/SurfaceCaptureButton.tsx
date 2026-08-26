@@ -114,6 +114,7 @@ export function SurfaceCaptureButton({
       disabled={disabled || captureState.phase === "capturing"}
       title={captureState.detail}
       aria-label="Capture full current Studio surface as PNG"
+      data-capture-phase={captureState.phase}
       onClick={() => void handleCapture()}
     >
       {captureLabel(captureState.phase)}
