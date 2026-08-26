@@ -8,6 +8,7 @@ import {
 } from "./app/studioState";
 import { TauriCoreGateway } from "./core/TauriCoreGateway";
 import { MissionAtlas } from "./features/atlas/MissionAtlas";
+import { SurfaceCaptureButton } from "./features/capture/SurfaceCaptureButton";
 import { EntityExplorer } from "./features/explorer/EntityExplorer";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
 import { OperationsWorkspace } from "./features/operations/OperationsWorkspace";
@@ -227,6 +228,12 @@ function App() {
           <span className="core-version" title={session.core.versionText}>
             Core {session.core.orbitfabricVersion ?? "connected"}
           </span>
+          <SurfaceCaptureButton
+            missionId={mission?.id ?? "mission"}
+            view={state.view}
+            selection={selectedEntity}
+            disabled={isOpeningReplacement}
+          />
           <button
             className="secondary-action"
             type="button"

@@ -8,7 +8,17 @@ The format follows a simple release-oriented structure.
 
 ## Unreleased
 
-No unreleased changes yet.
+### Added
+
+- Full-current-surface PNG capture from the Studio mission top bar, including vertically scrollable content beyond the visible window where practical.
+- `Ctrl+Shift+C` on Windows/Linux and `Cmd+Shift+C` on macOS as full-surface capture shortcuts.
+- Cross-platform capture persistence under `Downloads/OrbitFabric Studio Captures/`, with best-effort PNG clipboard copy.
+- Capture filenames carrying mission, active view, selected entity context and timestamp.
+
+### Architecture and trust boundary
+
+- Surface capture is presentation/export only and does not mutate Mission Model source, create or infer mission semantics, or write generated artifacts into the opened mission repository.
+- The exported PNG contains the current Studio workspace surface rather than unrelated desktop/window chrome and does not include the historical QA metadata overlay.
 
 ---
 

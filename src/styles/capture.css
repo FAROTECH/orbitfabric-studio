@@ -1,0 +1,75 @@
+/*
+ * Capture-only layout expansion.
+ *
+ * The normal Studio workspace intentionally uses nested scroll containers so the
+ * desktop UI remains bounded by the application viewport. Full-surface export
+ * needs the opposite behavior: while Capture is actively rendering, known
+ * structural scroll boundaries must become content-sized and non-clipping.
+ *
+ * The capture engine sets body[data-studio-capture="active"] synchronously
+ * before any measurement. This avoids depending on React state commit timing.
+ */
+
+body[data-studio-capture="active"] .studio-main-surface {
+  overflow: visible !important;
+}
+
+body[data-studio-capture="active"] .workspace-layout {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  align-items: start !important;
+}
+
+body[data-studio-capture="active"] .workspace-primary {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  align-self: start !important;
+  scrollbar-gutter: auto !important;
+}
+
+body[data-studio-capture="active"] .entity-xray {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  grid-template-rows: auto auto auto !important;
+  align-self: start !important;
+}
+
+body[data-studio-capture="active"] .xray-scroll {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  scrollbar-gutter: auto !important;
+}
+
+/*
+ * Off-screen graph capture uses a cloned workspace as a document layout surface.
+ * The interactive workspace normally relies on min-height: 0 so grid children can
+ * shrink into viewport-bounded scroll containers. A max-content row keeps the
+ * capture clone content-driven instead.
+ */
+body[data-studio-capture="active"]
+  .workspace-layout[data-studio-capture-clone="true"] {
+  grid-template-rows: max-content !important;
+  grid-auto-rows: max-content !important;
+  align-content: start !important;
+}
+
+/*
+ * WebView2/html2canvas can otherwise clip the final interactive row when a long
+ * viewport-oriented column is converted into an off-screen document layout. Keep
+ * a small export-only tail reserve below the primary column so the last row is
+ * guaranteed to remain inside the raster canvas. This affects only the temporary
+ * clone and is removed with it immediately after capture.
+ */
+body[data-studio-capture="active"]
+  .workspace-layout[data-studio-capture-clone="true"]
+  .workspace-primary {
+  padding-bottom: 96px !important;
+}

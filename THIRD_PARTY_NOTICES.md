@@ -23,7 +23,25 @@ React Flow provides the interactive Context Map rendering primitives used by Stu
 
 ELK computes layout positions for the Context Map. Studio does not modify ELK source code.
 
-The first Studio Public Preview is a developer/source distribution and does not vendor ELK binaries or `node_modules`. A future packaged desktop distribution must include the notices and license material required by the applicable ELK license and re-check the exact bundled dependency versions at release time.
+## Surface capture
+
+### html-to-image 1.11.11
+
+- Project: html-to-image
+- License: MIT
+- Repository: https://github.com/bubkoo/html-to-image
+
+Studio uses `html-to-image` for ordinary mission workspace surfaces such as Mission Atlas and Entity X-Ray. The version is intentionally pinned exactly to `1.11.11`, matching React Flow's current download-image compatibility guidance.
+
+### html2canvas 1.4.1
+
+- Project: html2canvas
+- License: MIT
+- Repository: https://github.com/niklasvh/html2canvas
+
+Studio uses `html2canvas` as the graph-surface renderer when the active workspace contains React Flow. This avoids the SVG `foreignObject` to browser-image round trip that fails in the Windows WebView2 runtime for the current Context Map and Operational State Map surfaces.
+
+The first Studio Public Preview is a developer/source distribution and does not vendor ELK binaries or `node_modules`. A future packaged desktop distribution must include the notices and license material required by the applicable dependency licenses and re-check the exact bundled dependency versions at release time.
 
 ## Release rule
 

@@ -43,6 +43,12 @@ Implemented preview capabilities include:
 
 The preview remains read-only with respect to Mission Model source.
 
+### Current unreleased development
+
+Development after `v0.15.0-preview.1` includes a full-current-surface PNG capture capability for engineering documentation and review. With a mission open, **Capture** or `Ctrl+Shift+C` on Windows/Linux (`Cmd+Shift+C` on macOS) exports the current Studio workspace surface, including vertically scrollable content beyond the visible window where practical.
+
+Captures are presentation-only, are saved outside the mission workspace under `Downloads/OrbitFabric Studio Captures/`, and do not alter Core-owned mission facts or Mission Model source. See [Full-Surface Capture](docs/SURFACE_CAPTURE.md).
+
 ## Product boundary
 
 OrbitFabric Core owns mission semantics.

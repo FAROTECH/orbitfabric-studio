@@ -1,3 +1,5 @@
+mod capture;
+
 use serde::Serialize;
 use std::env;
 use std::fs;
@@ -430,6 +432,7 @@ pub fn run() {
             run_core_export_relationship_manifest,
             run_core_lint_mission,
             clear_core_request_temp,
+            capture::save_surface_capture_png,
         ])
         .run(tauri::generate_context!())
         .expect("error while running OrbitFabric Studio");
