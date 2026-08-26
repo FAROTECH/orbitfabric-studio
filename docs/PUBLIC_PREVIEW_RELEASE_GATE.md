@@ -2,7 +2,7 @@
 
 **Status:** released — public developer/source prerelease published  
 **Target:** OrbitFabric Studio 0.15.0 Preview 1 — first public developer/source preview of the rebooted Studio  
-**Scope freeze:** Validation and Operations are accepted; no new product features until this gate closes
+**Frozen baseline:** Validation and Operations are accepted; Preview 1 receives no further product-scope expansion
 
 ## Release thesis
 
@@ -68,6 +68,7 @@ Explicitly deferred:
 - [x] Operations: last Mode Focus preserved through explicit Entity X-Ray inspection.
 - [x] Context/Operational maps: ELK orthogonal routing, Expand/Reset and dense cyclic topology accepted.
 - [x] Wide / Standard / Compact manual visual pass at 1280 / 960 / 640 px on the real Tauri application.
+- [x] Windows 11 source-build and real Tauri/WebView2 acceptance completed across SpaceLab, demo-3u, OreSat and FINCH mission shapes.
 
 ## Gate B — Core integration hardening
 
@@ -127,6 +128,7 @@ For the source preview:
 - [x] OrbitFabric Core runtime selection documented.
 - [x] Linux development/run path documented.
 - [x] One clean-clone installation run completed from README only on Debian 12; evidence is recorded in `docs/qa/public-preview-clean-clone-acceptance.md`.
+- [x] Additional Windows 11 build/runtime acceptance completed; evidence is recorded in `docs/qa/public-preview-windows-acceptance.md`.
 - [x] Feature branch merged into the default branch through PR #318.
 - [x] Repository owner changed GitHub visibility from private to public.
 - [x] Release notes prepared in `docs/releases/v0.15.0-preview.1.md`.

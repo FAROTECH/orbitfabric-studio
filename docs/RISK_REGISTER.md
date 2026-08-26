@@ -15,18 +15,16 @@ This register tracks risks relevant to the rebooted Studio public preview. Histo
 | WebView/browser chrome leaks into product | Accidental reload/navigation/devtools and broken desktop mental model | Global context-menu suppression; browser controls are not product UI |
 | Tauri/WebKit security regression | Desktop attack surface | Hardened Tauri 2.x baseline; production CSP + localhost-only dev CSP; minimal window capability; production-path Tauri build in CI |
 | Dependency vulnerability reintroduced | Security/release risk | Full `npm audit --audit-level=low` is a blocking CI gate; no blind `audit fix --force` policy |
-| Linux host differences | README works only on developer machine | Debian 12 README-only clean clone passed with Node 24, Rust 1.97 and Python 3.11; Ubuntu 22.04 CI remains green; the observed NewMac WebKit DMA-BUF fallback is documented |
+| Cross-platform host differences | README works only on one developer machine or shell | Debian 12 README-only clean clone passed; Windows 11 source-build and real Tauri/WebView2 acceptance passed; Ubuntu 22.04 CI remains green; the observed NewMac WebKit DMA-BUF fallback is documented |
 | Documentation drifts back to E60/product-plumbing framing | Contributors implement the wrong product | Current-facing docs rewritten mission-first; historical cockpit/workbench docs and obsolete QA tooling removed from active tree |
-| Release identity drift | Manifests, tag or release title disagree | Identity fixed as OrbitFabric Studio 0.15.0 Preview 1 / `v0.15.0-preview.1`; all manifests are aligned before the final candidate |
-| Private repository at publication time | A developer/source public preview is not publicly accessible | Repository owner will change GitHub visibility only after engineering gates close and before publishing the prerelease |
+| Release identity drift | Manifests, tag or release title disagree | Identity is fixed as OrbitFabric Studio 0.15.0 Preview 1 / `v0.15.0-preview.1`; manifests, tag and published prerelease are aligned |
 | Binary distribution expectations | Users expect installers/signing/Core bundling prematurely | First release explicitly developer/source only; bundling, sidecar strategy, signing and notarization deferred |
 
-## Release-critical open risks
+## Preview 1 residual risks
 
-Before publishing the source preview, the following must close:
+No release-blocking risk remains for the published developer/source preview.
 
-1. owner-controlled public repository visibility;
-2. publication of `v0.15.0-preview.1` from the final `main` commit.
+Accepted residual work is limited to the large frontend bundle tracked in issue #255, source-only distribution, and the documented host-specific WebKit DMA-BUF fallback. New product scope belongs to a later version.
 
 ## Risk rule
 
