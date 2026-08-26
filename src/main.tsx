@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "@xyflow/react/dist/style.css";
 
 import App from "./App";
+import { installCanvasExportDiagnostics } from "./features/capture/canvasExportDiagnostics";
 import "./styles/tokens.css";
 import "./styles/reset.css";
 import "./styles/shell.css";
@@ -12,6 +13,8 @@ import "./styles/context-map.css";
 import "./styles/operations.css";
 import "./styles/capture.css";
 import "./styles/responsive.css";
+
+installCanvasExportDiagnostics();
 
 // Studio owns contextual actions. Never expose the browser/WebView menu.
 document.addEventListener("contextmenu", (event) => {
