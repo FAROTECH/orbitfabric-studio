@@ -38,7 +38,6 @@ htmlcov/
 venv/
 
 # Node / frontend artifacts
-# Kept for future Studio implementation, but no frontend scaffold exists in v0.0.0.
 node_modules/
 dist/
 build/
@@ -49,7 +48,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Tauri / Rust artifacts
-# Kept for future Studio implementation, but no Tauri scaffold exists in v0.0.0.
 target/
 src-tauri/target/
 src-tauri/gen/

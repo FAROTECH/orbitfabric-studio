@@ -93,13 +93,14 @@ The first public preview targets **developer/source use**. Binary packaging is i
 
 The release gate is exercised on:
 
-- Debian 12 for primary desktop acceptance;
+- Debian 12 for the primary clean-clone and real-desktop acceptance;
+- Windows 11 for additional source-build and real-desktop acceptance with Tauri/WebView2;
 - Ubuntu 22.04 in CI for Rust/Tauri builds;
 - Node.js 22+;
 - stable Rust;
 - Python 3.11+ for OrbitFabric Core.
 
-Other platforms may work, but they are not part of the first source-preview acceptance claim until explicitly tested.
+macOS and other platforms outside the Debian 12 / Windows 11 acceptance baseline may work, but they are not part of the first source-preview acceptance claim until explicitly tested.
 
 ### Debian / Ubuntu system dependencies
 
@@ -137,6 +138,27 @@ npm --version
 python3 --version
 ```
 
+### Windows system dependencies
+
+The additional Windows acceptance baseline uses:
+
+- Windows 11;
+- Visual Studio 2022 Build Tools with the **Desktop development with C++** workload;
+- a current Windows 10/11 SDK;
+- Microsoft Edge WebView2 Runtime;
+- the stable Rust MSVC toolchain;
+- Node.js 22+ and Python 3.11+.
+
+Current Windows 11 installations normally already include WebView2. Verify the developer toolchain from PowerShell:
+
+```powershell
+rustc --version
+cargo --version
+node --version
+npm --version
+python --version
+```
+
 ### Install the validated OrbitFabric Core baseline
 
 Studio deliberately does not embed or replace OrbitFabric Core in this source preview.
@@ -147,7 +169,7 @@ The preview CI is validated against Core commit:
 47d37ec2c50eae40e13303eea900eb119bd2e0dd
 ```
 
-Install that baseline:
+Install that baseline on Debian/Ubuntu:
 
 ```bash
 git clone https://github.com/FAROTECH/orbitfabric.git
@@ -159,10 +181,23 @@ python3 -m venv .venv
 .venv/bin/orbitfabric --version
 ```
 
+On Windows PowerShell:
+
+```powershell
+git clone https://github.com/FAROTECH/orbitfabric.git
+cd orbitfabric
+git checkout 47d37ec2c50eae40e13303eea900eb119bd2e0dd
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\orbitfabric.exe --version
+```
+
 Keep the resulting executable path; for example:
 
 ```text
 /home/user/dev/orbitfabric/.venv/bin/orbitfabric
+C:\Users\user\dev\orbitfabric\.venv\Scripts\orbitfabric.exe
 ```
 
 A newer Core revision may also work, but the commit above is the reproducible compatibility baseline for this preview.

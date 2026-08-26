@@ -203,4 +203,4 @@ Open Mission
   -> Operations / Operational State Map / Mode Focus
 ```
 
-Validation and Operations are accepted preview surfaces. No new feature may be added before the public-preview release gate closes.
+Validation and Operations are accepted Preview 1 surfaces. The public-preview release gate is closed; new product features target a later version.

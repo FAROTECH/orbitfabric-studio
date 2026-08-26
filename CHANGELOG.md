@@ -46,7 +46,8 @@ This release replaces the previous Cockpit/Workbench implementation with a small
 - Rust tests and locked checks pass.
 - Tauri production-path debug build passes.
 - Pinned OrbitFabric Core acceptance matrix passes.
-- Clean-clone installation and real Debian 12 Tauri acceptance completed.
+- Clean-clone installation and primary real-desktop Tauri acceptance completed on Debian 12.
+- Additional source-build and real-desktop Tauri/WebView2 acceptance completed on Windows 11.
 - Wide, standard and compact visual acceptance completed.
 
 ### Distribution
