@@ -15,6 +15,62 @@ interface SurfaceCaptureSaveResult {
   path: string;
 }
 
+interface MatrixSnapshot {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+}
+
+interface PointSnapshot {
+  x: number;
+  y: number;
+}
+
+interface EdgePathSnapshot {
+  d: string;
+  matrix: MatrixSnapshot;
+  stroke: string;
+  strokeWidth: number;
+  opacity: number;
+  dash: number[];
+  dashOffset: number;
+  lineCap: CanvasLineCap;
+  lineJoin: CanvasLineJoin;
+  arrow: {
+    tip: PointSnapshot;
+    previous: PointSnapshot;
+  } | null;
+}
+
+interface EdgeLabelSnapshot {
+  text: string;
+  center: PointSnapshot;
+  fontFamily: string;
+  fontSize: number;
+  fontStyle: string;
+  fontWeight: string;
+  fill: string;
+  opacity: number;
+  background: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    fill: string;
+    stroke: string;
+    strokeWidth: number;
+    opacity: number;
+  } | null;
+}
+
+interface ReactFlowEdgeSnapshot {
+  path: EdgePathSnapshot;
+  label: EdgeLabelSnapshot | null;
+}
+
 export interface SurfaceCaptureResult {
   path: string;
   copiedToClipboard: boolean;
@@ -36,7 +92,7 @@ export async function captureCurrentStudioSurface(
   await waitForStableRendering(target);
 
   const restoreCaptureLayout = prepareCaptureLayout(target);
-  let restoreGraphSnapshots: (() => void) | null = null;
+  let restoreEdgeVisibility: (() => void) | null = null;
 
   try {
     await nextAnimationFrame();
@@ -49,8 +105,10 @@ export async function captureCurrentStudioSurface(
     const background = captureBackgroundColor();
     const hasReactFlow = target.querySelector(".react-flow") !== null;
 
+    let edgeSnapshots: ReactFlowEdgeSnapshot[] = [];
     if (hasReactFlow) {
-      restoreGraphSnapshots = await flattenReactFlowEdgeLayers(target);
+      edgeSnapshots = snapshotReactFlowEdges(target, rect);
+      restoreEdgeVisibility = hideReactFlowEdgeLayers(target);
       await nextAnimationFrame();
     }
 
@@ -61,6 +119,7 @@ export async function captureCurrentStudioSurface(
           contentHeight,
           pixelRatio,
           background,
+          edgeSnapshots,
         )
       : await renderSurfaceWithHtmlToImage(
           target,
@@ -84,7 +143,7 @@ export async function captureCurrentStudioSurface(
       height: contentHeight,
     };
   } finally {
-    restoreGraphSnapshots?.();
+    restoreEdgeVisibility?.();
     restoreCaptureLayout();
   }
 }
@@ -149,50 +208,157 @@ function prepareCaptureLayout(target: HTMLElement): () => void {
   };
 }
 
-async function flattenReactFlowEdgeLayers(target: HTMLElement): Promise<() => void> {
-  const edgeSvgs = uniqueEdgeSvgLayers(target);
-  const restorers: Array<() => void> = [];
+function snapshotReactFlowEdges(
+  target: HTMLElement,
+  targetRect: DOMRect,
+): ReactFlowEdgeSnapshot[] {
+  const snapshots: ReactFlowEdgeSnapshot[] = [];
 
+  for (const path of target.querySelectorAll<SVGPathElement>(".react-flow__edge-path")) {
+    const d = path.getAttribute("d");
+    const matrix = path.getScreenCTM();
+    if (!d || !matrix) {
+      continue;
+    }
+
+    const style = window.getComputedStyle(path);
+    const strokeOpacity = cssNumber(style.strokeOpacity, 1);
+    const elementOpacity = cssNumber(style.opacity, 1);
+    const markerEnd = path.getAttribute("marker-end") || style.markerEnd;
+    const arrow = markerEnd && markerEnd !== "none"
+      ? snapshotPathEnd(path, matrix, targetRect)
+      : null;
+
+    const edgeGroup = path.closest<SVGGElement>(".react-flow__edge");
+    const text = edgeGroup?.querySelector<SVGTextElement>(".react-flow__edge-text") ?? null;
+    const textBackground =
+      edgeGroup?.querySelector<SVGElement>(".react-flow__edge-textbg") ?? null;
+
+    snapshots.push({
+      path: {
+        d,
+        matrix: {
+          a: matrix.a,
+          b: matrix.b,
+          c: matrix.c,
+          d: matrix.d,
+          e: matrix.e - targetRect.left,
+          f: matrix.f - targetRect.top,
+        },
+        stroke: visiblePaint(style.stroke, "#405064"),
+        strokeWidth: cssNumber(style.strokeWidth, 1.45),
+        opacity: strokeOpacity * elementOpacity,
+        dash: parseDashArray(style.strokeDasharray),
+        dashOffset: cssNumber(style.strokeDashoffset, 0),
+        lineCap: canvasLineCap(style.strokeLinecap),
+        lineJoin: canvasLineJoin(style.strokeLinejoin),
+        arrow,
+      },
+      label: text
+        ? snapshotEdgeLabel(text, textBackground, targetRect)
+        : null,
+    });
+  }
+
+  return snapshots;
+}
+
+function snapshotPathEnd(
+  path: SVGPathElement,
+  matrix: DOMMatrix,
+  targetRect: DOMRect,
+): { tip: PointSnapshot; previous: PointSnapshot } | null {
   try {
-    for (const svg of edgeSvgs) {
-      const flow = svg.closest<HTMLElement>(".react-flow");
-      const parent = svg.parentElement;
-      if (!flow || !(parent instanceof HTMLElement)) {
-        continue;
-      }
-
-      const width = Math.max(flow.clientWidth, 1);
-      const height = Math.max(flow.clientHeight, 1);
-      const pngDataUrl = await rasterizeSvgLayer(svg, width, height);
-      const snapshot = document.createElement("img");
-
-      snapshot.src = pngDataUrl;
-      snapshot.alt = "";
-      snapshot.setAttribute("aria-hidden", "true");
-      snapshot.dataset.studioCaptureReactFlowEdges = "true";
-      snapshot.style.position = "absolute";
-      snapshot.style.inset = "0";
-      snapshot.style.width = "100%";
-      snapshot.style.height = "100%";
-      snapshot.style.objectFit = "fill";
-      snapshot.style.pointerEvents = "none";
-
-      parent.insertBefore(snapshot, svg);
-      await waitForSnapshotImage(snapshot);
-
-      const previousVisibility = svg.style.visibility;
-      svg.style.visibility = "hidden";
-
-      restorers.push(() => {
-        svg.style.visibility = previousVisibility;
-        snapshot.remove();
-      });
+    const length = path.getTotalLength();
+    if (!Number.isFinite(length) || length <= 0) {
+      return null;
     }
-  } catch (error) {
-    for (const restore of restorers.reverse()) {
-      restore();
+
+    const tip = transformSvgPoint(path.getPointAtLength(length), matrix, targetRect);
+    const previous = transformSvgPoint(
+      path.getPointAtLength(Math.max(0, length - 8)),
+      matrix,
+      targetRect,
+    );
+
+    return { tip, previous };
+  } catch {
+    return null;
+  }
+}
+
+function transformSvgPoint(
+  point: DOMPoint,
+  matrix: DOMMatrix,
+  targetRect: DOMRect,
+): PointSnapshot {
+  const transformed = new DOMPoint(point.x, point.y).matrixTransform(matrix);
+  return {
+    x: transformed.x - targetRect.left,
+    y: transformed.y - targetRect.top,
+  };
+}
+
+function snapshotEdgeLabel(
+  text: SVGTextElement,
+  background: SVGElement | null,
+  targetRect: DOMRect,
+): EdgeLabelSnapshot | null {
+  const value = text.textContent?.trim();
+  if (!value) {
+    return null;
+  }
+
+  const textRect = text.getBoundingClientRect();
+  const style = window.getComputedStyle(text);
+  const backgroundRect = background?.getBoundingClientRect() ?? null;
+  const backgroundStyle = background ? window.getComputedStyle(background) : null;
+
+  return {
+    text: value,
+    center: {
+      x: textRect.left - targetRect.left + textRect.width / 2,
+      y: textRect.top - targetRect.top + textRect.height / 2,
+    },
+    fontFamily: style.fontFamily || "sans-serif",
+    fontSize: cssNumber(style.fontSize, 9),
+    fontStyle: style.fontStyle || "normal",
+    fontWeight: style.fontWeight || "400",
+    fill: visiblePaint(style.fill, "#8090a5"),
+    opacity: cssNumber(style.opacity, 1) * cssNumber(style.fillOpacity, 1),
+    background:
+      backgroundRect && backgroundStyle
+        ? {
+            x: backgroundRect.left - targetRect.left,
+            y: backgroundRect.top - targetRect.top,
+            width: backgroundRect.width,
+            height: backgroundRect.height,
+            fill: visiblePaint(backgroundStyle.fill, "rgba(11, 14, 19, 0.94)"),
+            stroke: visiblePaint(backgroundStyle.stroke, "rgba(51, 67, 88, 0.85)"),
+            strokeWidth: cssNumber(backgroundStyle.strokeWidth, 1),
+            opacity:
+              cssNumber(backgroundStyle.opacity, 1) *
+              cssNumber(backgroundStyle.fillOpacity, 1),
+          }
+        : null,
+  };
+}
+
+function hideReactFlowEdgeLayers(target: HTMLElement): () => void {
+  const restorers: Array<() => void> = [];
+  const seen = new Set<SVGSVGElement>();
+
+  for (const path of target.querySelectorAll<SVGPathElement>(".react-flow__edge-path")) {
+    const svg = path.closest("svg");
+    if (!(svg instanceof SVGSVGElement) || seen.has(svg)) {
+      continue;
     }
-    throw new Error(`React Flow edge snapshot failed: ${describeCaptureError(error)}`);
+    seen.add(svg);
+    const previousVisibility = svg.style.visibility;
+    svg.style.visibility = "hidden";
+    restorers.push(() => {
+      svg.style.visibility = previousVisibility;
+    });
   }
 
   return () => {
@@ -200,100 +366,6 @@ async function flattenReactFlowEdgeLayers(target: HTMLElement): Promise<() => vo
       restore();
     }
   };
-}
-
-function uniqueEdgeSvgLayers(target: HTMLElement): SVGSVGElement[] {
-  const result: SVGSVGElement[] = [];
-  const seen = new Set<SVGSVGElement>();
-
-  for (const path of target.querySelectorAll<SVGElement>(".react-flow__edge-path")) {
-    const svg = path.closest("svg");
-    if (svg instanceof SVGSVGElement && !seen.has(svg)) {
-      seen.add(svg);
-      result.push(svg);
-    }
-  }
-
-  return result;
-}
-
-async function rasterizeSvgLayer(
-  source: SVGSVGElement,
-  width: number,
-  height: number,
-): Promise<string> {
-  const clone = source.cloneNode(true) as SVGSVGElement;
-  inlineComputedSvgStyles(source, clone);
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  clone.setAttribute("width", String(width));
-  clone.setAttribute("height", String(height));
-
-  if (!clone.hasAttribute("viewBox")) {
-    clone.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  }
-
-  const serialized = new XMLSerializer().serializeToString(clone);
-  const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
-  const image = new Image();
-  image.src = svgDataUrl;
-  await waitForSnapshotImage(image);
-
-  const scale = captureScale(width, height);
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.ceil(width * scale));
-  canvas.height = Math.max(1, Math.ceil(height * scale));
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Studio could not create a canvas for the React Flow edge layer.");
-  }
-
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/png");
-}
-
-function inlineComputedSvgStyles(source: SVGSVGElement, clone: SVGSVGElement) {
-  const sourceElements: Element[] = [source, ...source.querySelectorAll("*")];
-  const cloneElements: Element[] = [clone, ...clone.querySelectorAll("*")];
-  const properties = [
-    "color",
-    "display",
-    "fill",
-    "fill-opacity",
-    "font-family",
-    "font-size",
-    "font-style",
-    "font-weight",
-    "marker-end",
-    "marker-mid",
-    "marker-start",
-    "opacity",
-    "stroke",
-    "stroke-dasharray",
-    "stroke-dashoffset",
-    "stroke-linecap",
-    "stroke-linejoin",
-    "stroke-opacity",
-    "stroke-width",
-    "text-anchor",
-    "visibility",
-  ];
-
-  for (let index = 0; index < sourceElements.length; index += 1) {
-    const sourceElement = sourceElements[index];
-    const cloneElement = cloneElements[index];
-    if (!(cloneElement instanceof SVGElement)) {
-      continue;
-    }
-
-    const computed = window.getComputedStyle(sourceElement);
-    for (const property of properties) {
-      const value = computed.getPropertyValue(property);
-      if (value) {
-        cloneElement.style.setProperty(property, value);
-      }
-    }
-  }
 }
 
 async function renderSurfaceWithHtmlToImage(
@@ -330,6 +402,7 @@ async function renderGraphSurfaceWithCanvas(
   height: number,
   pixelRatio: number,
   background: string,
+  edgeSnapshots: ReactFlowEdgeSnapshot[],
 ): Promise<string> {
   try {
     const { default: html2canvas } = await import("html2canvas");
@@ -359,10 +432,149 @@ async function renderGraphSurfaceWithCanvas(
       imageTimeout: 5_000,
     });
 
+    drawReactFlowEdges(canvas, edgeSnapshots, pixelRatio);
     return canvas.toDataURL("image/png");
   } catch (error) {
     throw new Error(`React Flow surface capture failed: ${describeCaptureError(error)}`);
   }
+}
+
+function drawReactFlowEdges(
+  canvas: HTMLCanvasElement,
+  snapshots: ReactFlowEdgeSnapshot[],
+  pixelRatio: number,
+) {
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Studio could not create a 2D context for React Flow edge compositing.");
+  }
+
+  for (const snapshot of snapshots) {
+    drawEdgePath(context, snapshot.path, pixelRatio);
+    if (snapshot.path.arrow) {
+      drawEdgeArrow(context, snapshot.path, pixelRatio);
+    }
+    if (snapshot.label) {
+      drawEdgeLabel(context, snapshot.label, pixelRatio);
+    }
+  }
+}
+
+function drawEdgePath(
+  context: CanvasRenderingContext2D,
+  snapshot: EdgePathSnapshot,
+  pixelRatio: number,
+) {
+  const matrix = snapshot.matrix;
+  context.save();
+  context.setTransform(
+    matrix.a * pixelRatio,
+    matrix.b * pixelRatio,
+    matrix.c * pixelRatio,
+    matrix.d * pixelRatio,
+    matrix.e * pixelRatio,
+    matrix.f * pixelRatio,
+  );
+  context.strokeStyle = snapshot.stroke;
+  context.lineWidth = snapshot.strokeWidth;
+  context.lineCap = snapshot.lineCap;
+  context.lineJoin = snapshot.lineJoin;
+  context.globalAlpha = snapshot.opacity;
+  context.setLineDash(snapshot.dash);
+  context.lineDashOffset = snapshot.dashOffset;
+  context.stroke(new Path2D(snapshot.d));
+  context.restore();
+}
+
+function drawEdgeArrow(
+  context: CanvasRenderingContext2D,
+  snapshot: EdgePathSnapshot,
+  pixelRatio: number,
+) {
+  const arrow = snapshot.arrow;
+  if (!arrow) {
+    return;
+  }
+
+  const angle = Math.atan2(
+    arrow.tip.y - arrow.previous.y,
+    arrow.tip.x - arrow.previous.x,
+  );
+  const size = Math.max(6.5, snapshot.strokeWidth * 4.5);
+
+  context.save();
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  context.translate(arrow.tip.x, arrow.tip.y);
+  context.rotate(angle);
+  context.globalAlpha = snapshot.opacity;
+  context.fillStyle = snapshot.stroke;
+  context.strokeStyle = snapshot.stroke;
+  context.lineWidth = Math.max(1, snapshot.strokeWidth * 0.8);
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.lineTo(-size, -size * 0.55);
+  context.lineTo(-size, size * 0.55);
+  context.closePath();
+  context.fill();
+  context.stroke();
+  context.restore();
+}
+
+function drawEdgeLabel(
+  context: CanvasRenderingContext2D,
+  label: EdgeLabelSnapshot,
+  pixelRatio: number,
+) {
+  context.save();
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+  if (label.background) {
+    context.globalAlpha = label.background.opacity;
+    context.fillStyle = label.background.fill;
+    context.strokeStyle = label.background.stroke;
+    context.lineWidth = label.background.strokeWidth;
+    context.beginPath();
+    roundedRect(
+      context,
+      label.background.x,
+      label.background.y,
+      label.background.width,
+      label.background.height,
+      3,
+    );
+    context.fill();
+    if (label.background.strokeWidth > 0) {
+      context.stroke();
+    }
+  }
+
+  context.globalAlpha = label.opacity;
+  context.fillStyle = label.fill;
+  context.font = `${label.fontStyle} ${label.fontWeight} ${label.fontSize}px ${label.fontFamily}`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(label.text, label.center.x, label.center.y);
+  context.restore();
+}
+
+function roundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  const r = Math.min(radius, width / 2, height / 2);
+  context.moveTo(x + r, y);
+  context.lineTo(x + width - r, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + r);
+  context.lineTo(x + width, y + height - r);
+  context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  context.lineTo(x + r, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - r);
+  context.lineTo(x, y + r);
+  context.quadraticCurveTo(x, y, x + r, y);
 }
 
 function captureScale(width: number, height: number): number {
@@ -458,22 +670,34 @@ function waitForImages(root: HTMLElement): Promise<void> {
   ).then(() => undefined);
 }
 
-function waitForSnapshotImage(image: HTMLImageElement): Promise<void> {
-  if (image.complete) {
-    return image.naturalWidth > 0
-      ? Promise.resolve()
-      : Promise.reject(new Error("Capture snapshot image could not be decoded."));
-  }
+function cssNumber(value: string, fallback: number): number {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
 
-  return new Promise<void>((resolve, reject) => {
-    image.addEventListener("load", () => resolve(), { once: true });
-    image.addEventListener(
-      "error",
-      (event) =>
-        reject(new Error(`Capture snapshot image failed to load: ${describeCaptureError(event)}`)),
-      { once: true },
-    );
-  });
+function parseDashArray(value: string): number[] {
+  if (!value || value === "none") {
+    return [];
+  }
+  return value
+    .split(/[ ,]+/)
+    .map((part) => Number.parseFloat(part))
+    .filter((part) => Number.isFinite(part));
+}
+
+function canvasLineCap(value: string): CanvasLineCap {
+  return value === "round" || value === "square" ? value : "butt";
+}
+
+function canvasLineJoin(value: string): CanvasLineJoin {
+  return value === "round" || value === "bevel" ? value : "miter";
+}
+
+function visiblePaint(value: string, fallback: string): string {
+  if (!value || value === "none" || value === "transparent") {
+    return fallback;
+  }
+  return value;
 }
 
 function describeCaptureError(error: unknown): string {
