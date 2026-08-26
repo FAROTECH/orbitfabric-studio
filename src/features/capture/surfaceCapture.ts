@@ -35,17 +35,8 @@ export async function captureCurrentStudioSurface(
 
   await waitForStableRendering(target);
 
-  const scrollOwner =
-    target.closest<HTMLElement>(".studio-main-surface") ?? target;
-  const restoreScroll = preserveScrollPosition(scrollOwner);
-  const restoreTargetStyles = applyTemporaryStyles(target, {
-    height: "auto",
-    "max-height": "none",
-    overflow: "visible",
-    transform: "none",
-  });
-
-  scrollOwner.scrollTo({ top: 0, left: 0 });
+  const restoreCaptureLayout = prepareCaptureLayout(target);
+  let restoreGraphSnapshots: (() => void) | null = null;
 
   try {
     await nextAnimationFrame();
@@ -56,8 +47,14 @@ export async function captureCurrentStudioSurface(
     const contentHeight = Math.ceil(Math.max(target.scrollHeight, rect.height, 1));
     const pixelRatio = captureScale(contentWidth, contentHeight);
     const background = captureBackgroundColor();
+    const hasReactFlow = target.querySelector(".react-flow") !== null;
 
-    const dataUrl = target.querySelector(".react-flow")
+    if (hasReactFlow) {
+      restoreGraphSnapshots = await flattenReactFlowEdgeLayers(target);
+      await nextAnimationFrame();
+    }
+
+    const dataUrl = hasReactFlow
       ? await renderGraphSurfaceWithCanvas(
           target,
           contentWidth,
@@ -87,8 +84,215 @@ export async function captureCurrentStudioSurface(
       height: contentHeight,
     };
   } finally {
-    restoreTargetStyles();
-    restoreScroll();
+    restoreGraphSnapshots?.();
+    restoreCaptureLayout();
+  }
+}
+
+function prepareCaptureLayout(target: HTMLElement): () => void {
+  const restorers: Array<() => void> = [];
+
+  const studioSurface = target.closest<HTMLElement>(".studio-main-surface");
+  if (studioSurface) {
+    restorers.push(preserveScrollPosition(studioSurface));
+    studioSurface.scrollTo({ top: 0, left: 0 });
+  }
+
+  restorers.push(
+    applyTemporaryStyles(target, {
+      height: "auto",
+      "max-height": "none",
+      overflow: "visible",
+      transform: "none",
+    }),
+  );
+
+  const nestedScrollers = Array.from(target.querySelectorAll<HTMLElement>("*"))
+    .filter((element) => !element.closest(".react-flow"))
+    .filter((element) => {
+      const style = window.getComputedStyle(element);
+      const scrollsVertically = style.overflowY === "auto" || style.overflowY === "scroll";
+      return scrollsVertically && element.scrollHeight > element.clientHeight + 1;
+    });
+
+  for (const scroller of nestedScrollers) {
+    restorers.push(preserveScrollPosition(scroller));
+    const expandedHeight = Math.max(scroller.scrollHeight, scroller.clientHeight, 1);
+    restorers.push(
+      applyTemporaryStyles(scroller, {
+        height: `${expandedHeight}px`,
+        "max-height": "none",
+        "overflow-y": "visible",
+        "scrollbar-gutter": "auto",
+      }),
+    );
+    scroller.scrollTo({ top: 0, left: scroller.scrollLeft });
+  }
+
+  const xray = target.querySelector<HTMLElement>(".entity-xray");
+  if (xray) {
+    restorers.push(
+      applyTemporaryStyles(xray, {
+        height: "auto",
+        "max-height": "none",
+        overflow: "visible",
+        "grid-template-rows": "auto auto auto",
+        "align-self": "start",
+      }),
+    );
+  }
+
+  return () => {
+    for (const restore of restorers.reverse()) {
+      restore();
+    }
+  };
+}
+
+async function flattenReactFlowEdgeLayers(target: HTMLElement): Promise<() => void> {
+  const edgeSvgs = uniqueEdgeSvgLayers(target);
+  const restorers: Array<() => void> = [];
+
+  try {
+    for (const svg of edgeSvgs) {
+      const flow = svg.closest<HTMLElement>(".react-flow");
+      const parent = svg.parentElement;
+      if (!flow || !(parent instanceof HTMLElement)) {
+        continue;
+      }
+
+      const width = Math.max(flow.clientWidth, 1);
+      const height = Math.max(flow.clientHeight, 1);
+      const pngDataUrl = await rasterizeSvgLayer(svg, width, height);
+      const snapshot = document.createElement("img");
+
+      snapshot.src = pngDataUrl;
+      snapshot.alt = "";
+      snapshot.setAttribute("aria-hidden", "true");
+      snapshot.dataset.studioCaptureReactFlowEdges = "true";
+      snapshot.style.position = "absolute";
+      snapshot.style.inset = "0";
+      snapshot.style.width = "100%";
+      snapshot.style.height = "100%";
+      snapshot.style.objectFit = "fill";
+      snapshot.style.pointerEvents = "none";
+
+      parent.insertBefore(snapshot, svg);
+      await waitForSnapshotImage(snapshot);
+
+      const previousVisibility = svg.style.visibility;
+      svg.style.visibility = "hidden";
+
+      restorers.push(() => {
+        svg.style.visibility = previousVisibility;
+        snapshot.remove();
+      });
+    }
+  } catch (error) {
+    for (const restore of restorers.reverse()) {
+      restore();
+    }
+    throw new Error(`React Flow edge snapshot failed: ${describeCaptureError(error)}`);
+  }
+
+  return () => {
+    for (const restore of restorers.reverse()) {
+      restore();
+    }
+  };
+}
+
+function uniqueEdgeSvgLayers(target: HTMLElement): SVGSVGElement[] {
+  const result: SVGSVGElement[] = [];
+  const seen = new Set<SVGSVGElement>();
+
+  for (const path of target.querySelectorAll<SVGElement>(".react-flow__edge-path")) {
+    const svg = path.closest("svg");
+    if (svg instanceof SVGSVGElement && !seen.has(svg)) {
+      seen.add(svg);
+      result.push(svg);
+    }
+  }
+
+  return result;
+}
+
+async function rasterizeSvgLayer(
+  source: SVGSVGElement,
+  width: number,
+  height: number,
+): Promise<string> {
+  const clone = source.cloneNode(true) as SVGSVGElement;
+  inlineComputedSvgStyles(source, clone);
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  clone.setAttribute("width", String(width));
+  clone.setAttribute("height", String(height));
+
+  if (!clone.hasAttribute("viewBox")) {
+    clone.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  }
+
+  const serialized = new XMLSerializer().serializeToString(clone);
+  const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+  const image = new Image();
+  image.src = svgDataUrl;
+  await waitForSnapshotImage(image);
+
+  const scale = captureScale(width, height);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.ceil(width * scale));
+  canvas.height = Math.max(1, Math.ceil(height * scale));
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Studio could not create a canvas for the React Flow edge layer.");
+  }
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
+}
+
+function inlineComputedSvgStyles(source: SVGSVGElement, clone: SVGSVGElement) {
+  const sourceElements: Element[] = [source, ...source.querySelectorAll("*")];
+  const cloneElements: Element[] = [clone, ...clone.querySelectorAll("*")];
+  const properties = [
+    "color",
+    "display",
+    "fill",
+    "fill-opacity",
+    "font-family",
+    "font-size",
+    "font-style",
+    "font-weight",
+    "marker-end",
+    "marker-mid",
+    "marker-start",
+    "opacity",
+    "stroke",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-opacity",
+    "stroke-width",
+    "text-anchor",
+    "visibility",
+  ];
+
+  for (let index = 0; index < sourceElements.length; index += 1) {
+    const sourceElement = sourceElements[index];
+    const cloneElement = cloneElements[index];
+    if (!(cloneElement instanceof SVGElement)) {
+      continue;
+    }
+
+    const computed = window.getComputedStyle(sourceElement);
+    for (const property of properties) {
+      const value = computed.getPropertyValue(property);
+      if (value) {
+        cloneElement.style.setProperty(property, value);
+      }
+    }
   }
 }
 
@@ -252,6 +456,24 @@ function waitForImages(root: HTMLElement): Promise<void> {
         }),
     ),
   ).then(() => undefined);
+}
+
+function waitForSnapshotImage(image: HTMLImageElement): Promise<void> {
+  if (image.complete) {
+    return image.naturalWidth > 0
+      ? Promise.resolve()
+      : Promise.reject(new Error("Capture snapshot image could not be decoded."));
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    image.addEventListener("load", () => resolve(), { once: true });
+    image.addEventListener(
+      "error",
+      (event) =>
+        reject(new Error(`Capture snapshot image failed to load: ${describeCaptureError(event)}`)),
+      { once: true },
+    );
+  });
 }
 
 function describeCaptureError(error: unknown): string {
