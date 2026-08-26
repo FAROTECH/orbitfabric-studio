@@ -23,6 +23,16 @@ The generated filename includes the mission id, current Studio view, selected en
 
 Studio also attempts to copy the PNG to the system clipboard. Clipboard availability is best-effort and does not affect file saving.
 
+## React Flow surfaces
+
+Context Map and Operational State Map contain interactive React Flow viewports. These are handled as a dedicated capture boundary.
+
+Studio first rasterizes each active `.react-flow__viewport`, temporarily substitutes that visual viewport with the resulting local PNG, captures the complete surrounding Studio surface, and then restores the live React Flow DOM immediately.
+
+This avoids asking the outer full-surface renderer to serialize React Flow's nested SVG, HTML nodes and viewport transforms inside a second SVG export pass. The live graph state, selection, pan/zoom and Mission Model state are not modified.
+
+Studio pins `html-to-image` to `1.11.11` for React Flow export compatibility.
+
 ## Boundary
 
 Surface capture is a presentation/export feature only.
