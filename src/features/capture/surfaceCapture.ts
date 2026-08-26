@@ -35,49 +35,50 @@ export async function captureCurrentStudioSurface(
 
   await waitForStableRendering(target);
 
-  const sourceRect = target.getBoundingClientRect();
-  const sourceWidth = Math.ceil(Math.max(target.scrollWidth, sourceRect.width));
-  const background = captureBackgroundColor();
-  const clone = cloneForCapture(target);
+  const scrollOwner =
+    target.closest<HTMLElement>(".studio-main-surface") ?? target;
+  const restoreScroll = preserveScrollPosition(scrollOwner);
+  const restoreTargetStyles = applyTemporaryStyles(target, {
+    height: "auto",
+    "max-height": "none",
+    overflow: "visible",
+    transform: "none",
+  });
 
-  const staging = document.createElement("div");
-  staging.setAttribute("aria-hidden", "true");
-  staging.style.cssText = [
-    "position:fixed",
-    "left:-100000px",
-    "top:0",
-    `width:${sourceWidth}px`,
-    "height:auto",
-    "overflow:visible",
-    `background:${background}`,
-    "pointer-events:none",
-    "z-index:-2147483648",
-    "contain:none",
-  ].join(";");
-
-  clone.style.width = `${sourceWidth}px`;
-  clone.style.maxWidth = "none";
-  clone.style.height = "auto";
-  clone.style.maxHeight = "none";
-  clone.style.overflow = "visible";
-  staging.appendChild(clone);
-  document.body.appendChild(staging);
+  scrollOwner.scrollTo({ top: 0, left: 0 });
 
   try {
     await nextAnimationFrame();
     await nextAnimationFrame();
 
-    const contentWidth = Math.ceil(Math.max(sourceWidth, clone.scrollWidth));
-    const contentHeight = Math.ceil(Math.max(1, clone.scrollHeight));
-    const wrapper = buildSerializableWrapper(clone, contentWidth, contentHeight, background);
-    const svg = serializeAsSvg(wrapper, contentWidth, contentHeight);
-    const png = await renderSvgToPng(svg, contentWidth, contentHeight, background);
+    const rect = target.getBoundingClientRect();
+    const contentWidth = Math.ceil(Math.max(target.scrollWidth, rect.width));
+    const contentHeight = Math.ceil(Math.max(target.scrollHeight, rect.height, 1));
+    const pixelRatio = captureScale(contentWidth, contentHeight);
+    const background = captureBackgroundColor();
+    const { toPng } = await import("html-to-image");
+
+    const dataUrl = await toPng(target, {
+      cacheBust: true,
+      pixelRatio,
+      width: contentWidth,
+      height: contentHeight,
+      backgroundColor: background,
+      style: {
+        width: `${contentWidth}px`,
+        height: `${contentHeight}px`,
+        maxHeight: "none",
+        overflow: "visible",
+        transform: "none",
+      },
+    });
+
     const filename = buildCaptureFilename(request);
     const saved = await invoke<SurfaceCaptureSaveResult>("save_surface_capture_png", {
       filename,
-      dataUrl: png.dataUrl,
+      dataUrl,
     });
-    const copiedToClipboard = await copyPngToClipboard(png.blob);
+    const copiedToClipboard = await copyDataUrlToClipboard(dataUrl);
 
     return {
       path: saved.path,
@@ -86,144 +87,9 @@ export async function captureCurrentStudioSurface(
       height: contentHeight,
     };
   } finally {
-    staging.remove();
+    restoreTargetStyles();
+    restoreScroll();
   }
-}
-
-function cloneForCapture(source: HTMLElement): HTMLElement {
-  const clone = source.cloneNode(true) as HTMLElement;
-  const sourceElements: Element[] = [source, ...Array.from(source.querySelectorAll("*"))];
-  const cloneElements: Element[] = [clone, ...Array.from(clone.querySelectorAll("*"))];
-
-  for (let index = 0; index < sourceElements.length; index += 1) {
-    const sourceElement = sourceElements[index];
-    const cloneElement = cloneElements[index];
-
-    if (!sourceElement || !cloneElement) {
-      continue;
-    }
-
-    inlineComputedStyle(sourceElement, cloneElement);
-    preserveFormState(sourceElement, cloneElement);
-    expandVerticalScrollContent(sourceElement, cloneElement);
-  }
-
-  return clone;
-}
-
-function inlineComputedStyle(source: Element, clone: Element) {
-  const computed = window.getComputedStyle(source);
-  const styledClone = clone as HTMLElement | SVGElement;
-
-  for (const property of Array.from(computed)) {
-    const value = computed.getPropertyValue(property);
-    const priority = computed.getPropertyPriority(property);
-    styledClone.style.setProperty(property, value, priority);
-  }
-
-  styledClone.style.setProperty("animation", "none", "important");
-  styledClone.style.setProperty("transition", "none", "important");
-  styledClone.style.setProperty("caret-color", "transparent", "important");
-}
-
-function preserveFormState(source: Element, clone: Element) {
-  if (source instanceof HTMLInputElement && clone instanceof HTMLInputElement) {
-    clone.value = source.value;
-    clone.checked = source.checked;
-  } else if (source instanceof HTMLTextAreaElement && clone instanceof HTMLTextAreaElement) {
-    clone.value = source.value;
-    clone.textContent = source.value;
-  } else if (source instanceof HTMLSelectElement && clone instanceof HTMLSelectElement) {
-    clone.value = source.value;
-  }
-}
-
-function expandVerticalScrollContent(source: Element, clone: Element) {
-  if (!(source instanceof HTMLElement) || !(clone instanceof HTMLElement)) {
-    return;
-  }
-
-  if (source.scrollHeight <= source.clientHeight + 1) {
-    return;
-  }
-
-  const overflowY = window.getComputedStyle(source).overflowY;
-  if (!matchesScrollableOverflow(overflowY)) {
-    return;
-  }
-
-  clone.style.height = `${source.scrollHeight}px`;
-  clone.style.maxHeight = "none";
-  clone.style.overflowY = "visible";
-}
-
-function matchesScrollableOverflow(value: string): boolean {
-  return value === "auto" || value === "scroll" || value === "hidden" || value === "clip";
-}
-
-function buildSerializableWrapper(
-  clone: HTMLElement,
-  width: number,
-  height: number,
-  background: string,
-): HTMLElement {
-  const wrapper = document.createElement("div");
-  wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  wrapper.style.cssText = [
-    `width:${width}px`,
-    `height:${height}px`,
-    `background:${background}`,
-    "overflow:hidden",
-    "margin:0",
-    "padding:0",
-  ].join(";");
-
-  wrapper.appendChild(clone);
-  return wrapper;
-}
-
-function serializeAsSvg(wrapper: HTMLElement, width: number, height: number): string {
-  const serialized = new XMLSerializer().serializeToString(wrapper);
-
-  return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
-    `<foreignObject x="0" y="0" width="100%" height="100%">${serialized}</foreignObject>`,
-    "</svg>",
-  ].join("");
-}
-
-async function renderSvgToPng(
-  svg: string,
-  width: number,
-  height: number,
-  background: string,
-): Promise<{ dataUrl: string; blob: Blob }> {
-  const scale = captureScale(width, height);
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(width * scale));
-  canvas.height = Math.max(1, Math.round(height * scale));
-
-  const context = canvas.getContext("2d");
-  if (!context) {
-    throw new Error("Studio could not create the PNG capture canvas.");
-  }
-
-  const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const objectUrl = URL.createObjectURL(svgBlob);
-
-  try {
-    const image = await loadImage(objectUrl);
-    context.fillStyle = background;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.scale(scale, scale);
-    context.drawImage(image, 0, 0, width, height);
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
-
-  const blob = await canvasToPngBlob(canvas);
-  const dataUrl = await blobToDataUrl(blob);
-  return { dataUrl, blob };
 }
 
 function captureScale(width: number, height: number): number {
@@ -238,51 +104,49 @@ function captureScale(width: number, height: number): number {
   return Math.min(2, scale);
 }
 
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Studio could not render the captured surface."));
-    image.src = url;
-  });
+function preserveScrollPosition(element: HTMLElement): () => void {
+  const top = element.scrollTop;
+  const left = element.scrollLeft;
+
+  return () => {
+    element.scrollTo({ top, left });
+  };
 }
 
-function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
+function applyTemporaryStyles(
+  element: HTMLElement,
+  styles: Record<string, string>,
+): () => void {
+  const previous = Object.entries(styles).map(([property, value]) => {
+    const previousValue = element.style.getPropertyValue(property);
+    const previousPriority = element.style.getPropertyPriority(property);
+    element.style.setProperty(property, value);
+    return [property, previousValue, previousPriority] as const;
+  });
+
+  return () => {
+    for (const [property, previousValue, previousPriority] of previous) {
+      if (previousValue) {
+        element.style.setProperty(property, previousValue, previousPriority);
       } else {
-        reject(new Error("Studio could not encode the captured surface as PNG."));
+        element.style.removeProperty(property);
       }
-    }, "image/png");
-  });
+    }
+  };
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-      } else {
-        reject(new Error("Studio could not encode the PNG for saving."));
-      }
-    };
-    reader.onerror = () => reject(new Error("Studio could not read the PNG capture."));
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function copyPngToClipboard(blob: Blob): Promise<boolean> {
+async function copyDataUrlToClipboard(dataUrl: string): Promise<boolean> {
   try {
     if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
       return false;
     }
 
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+
     await navigator.clipboard.write([
       new ClipboardItem({
-        "image/png": blob,
+        [blob.type || "image/png"]: blob,
       }),
     ]);
     return true;
@@ -302,7 +166,9 @@ async function waitForStableRendering(target: HTMLElement) {
 }
 
 function waitForImages(root: HTMLElement): Promise<void> {
-  const images = Array.from(root.querySelectorAll("img")).filter((image) => !image.complete);
+  const images = Array.from(root.querySelectorAll("img")).filter(
+    (image) => !image.complete,
+  );
 
   if (images.length === 0) {
     return Promise.resolve();
@@ -324,7 +190,11 @@ function captureBackgroundColor(): string {
   const candidate = surface ?? document.body;
   const background = window.getComputedStyle(candidate).backgroundColor;
 
-  if (background && background !== "rgba(0, 0, 0, 0)" && background !== "transparent") {
+  if (
+    background &&
+    background !== "rgba(0, 0, 0, 0)" &&
+    background !== "transparent"
+  ) {
     return background;
   }
 
