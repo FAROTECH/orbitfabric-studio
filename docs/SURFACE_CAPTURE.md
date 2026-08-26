@@ -40,6 +40,8 @@ Studio:
 5. composites edge paths, arrows and labels directly onto the final canvas;
 6. discards the clone when export completes.
 
+The capture preserves the graph layout already rendered by Studio; it does not recompute mission relationships or graph semantics for export.
+
 The live graph is not replaced or mutated. Selection, pan/zoom, Mission Model state and Core-owned semantic facts remain unchanged.
 
 A small capture-only tail reserve protects the final interactive row on long graph workspaces from bottom-edge clipping during WebView2/html2canvas export.
