@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { EntityRef } from "../../mission/entityRef";
-import { captureCurrentStudioSurface } from "./surfaceCapture";
+import { captureCurrentStudioSurface } from "./offscreenGraphCapture";
 
 interface SurfaceCaptureButtonProps {
   missionId: string;
