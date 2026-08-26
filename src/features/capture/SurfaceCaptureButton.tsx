@@ -66,9 +66,10 @@ export function SurfaceCaptureButton({
       });
       resetLater();
     } catch (error) {
+      console.error("[surface-capture] Capture failed", error);
       setCaptureState({
         phase: "failed",
-        detail: error instanceof Error ? error.message : String(error),
+        detail: captureErrorDetail(error),
       });
       resetLater();
     }
@@ -118,6 +119,35 @@ export function SurfaceCaptureButton({
       {captureLabel(captureState.phase)}
     </button>
   );
+}
+
+function captureErrorDetail(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error instanceof Event) {
+    const eventType = error.type || "error";
+    const target = error.target;
+    const targetDescription =
+      target instanceof Element ? ` from <${target.tagName.toLowerCase()}>` : "";
+    return `Capture renderer emitted an ${eventType} event${targetDescription}.`;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  try {
+    const serialized = JSON.stringify(error);
+    if (serialized && serialized !== "{}") {
+      return serialized;
+    }
+  } catch {
+    // Fall through to the stable generic message below.
+  }
+
+  return "Capture failed with an unrecognized renderer error.";
 }
 
 function captureLabel(phase: CapturePhase): string {
