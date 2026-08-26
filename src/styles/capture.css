@@ -6,15 +6,15 @@
  * needs the opposite behavior: while Capture is actively rendering, known
  * structural scroll boundaries must become content-sized and non-clipping.
  *
- * This mode is driven by SurfaceCaptureButton's data-capture-phase attribute and
- * exists only for the duration of a capture. It does not change normal Studio UX.
+ * The capture engine sets body[data-studio-capture="active"] synchronously
+ * before any measurement. This avoids depending on React state commit timing.
  */
 
-body:has(.capture-action[data-capture-phase="capturing"]) .studio-main-surface {
+body[data-studio-capture="active"] .studio-main-surface {
   overflow: visible !important;
 }
 
-body:has(.capture-action[data-capture-phase="capturing"]) .workspace-layout {
+body[data-studio-capture="active"] .workspace-layout {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -22,7 +22,7 @@ body:has(.capture-action[data-capture-phase="capturing"]) .workspace-layout {
   align-items: start !important;
 }
 
-body:has(.capture-action[data-capture-phase="capturing"]) .workspace-primary {
+body[data-studio-capture="active"] .workspace-primary {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -31,7 +31,7 @@ body:has(.capture-action[data-capture-phase="capturing"]) .workspace-primary {
   scrollbar-gutter: auto !important;
 }
 
-body:has(.capture-action[data-capture-phase="capturing"]) .entity-xray {
+body[data-studio-capture="active"] .entity-xray {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -40,7 +40,7 @@ body:has(.capture-action[data-capture-phase="capturing"]) .entity-xray {
   align-self: start !important;
 }
 
-body:has(.capture-action[data-capture-phase="capturing"]) .xray-scroll {
+body[data-studio-capture="active"] .xray-scroll {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
