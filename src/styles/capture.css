@@ -51,15 +51,25 @@ body[data-studio-capture="active"] .xray-scroll {
 /*
  * Off-screen graph capture uses a cloned workspace as a document layout surface.
  * The interactive workspace normally relies on min-height: 0 so grid children can
- * shrink into viewport-bounded scroll containers. Once the clone is assigned its
- * measured export height that same behavior can compress the single grid row and
- * leave the tail of the primary column outside the canvas. A max-content row makes
- * the capture clone content-driven instead: the row must remain at least as tall as
- * the longest column, independent of the final canvas height.
+ * shrink into viewport-bounded scroll containers. A max-content row keeps the
+ * capture clone content-driven instead.
  */
 body[data-studio-capture="active"]
   .workspace-layout[data-studio-capture-clone="true"] {
   grid-template-rows: max-content !important;
   grid-auto-rows: max-content !important;
   align-content: start !important;
+}
+
+/*
+ * WebView2/html2canvas can otherwise clip the final interactive row when a long
+ * viewport-oriented column is converted into an off-screen document layout. Keep
+ * a small export-only tail reserve below the primary column so the last row is
+ * guaranteed to remain inside the raster canvas. This affects only the temporary
+ * clone and is removed with it immediately after capture.
+ */
+body[data-studio-capture="active"]
+  .workspace-layout[data-studio-capture-clone="true"]
+  .workspace-primary {
+  padding-bottom: 96px !important;
 }
