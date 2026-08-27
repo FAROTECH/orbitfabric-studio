@@ -1,4 +1,5 @@
 mod capture;
+mod integrations;
 
 use serde::Serialize;
 use std::env;
@@ -432,6 +433,8 @@ pub fn run() {
             run_core_export_relationship_manifest,
             run_core_lint_mission,
             clear_core_request_temp,
+            integrations::read_integration_package_manifest,
+            integrations::read_integration_result_bundle,
             capture::save_surface_capture_png,
         ])
         .run(tauri::generate_context!())
