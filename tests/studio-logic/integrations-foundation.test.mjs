@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 import test from "node:test";
 
-import { evaluateIntegrationCompatibility, parseCoreIntegrationInputManifest } from "../../.test-dist/src/integrations/compatibility.js";
-import { parseIntegrationPackageManifest } from "../../.test-dist/src/integrations/manifest.js";
-import { parseIntegrationResult, validateIntegrationResult } from "../../.test-dist/src/integrations/result.js";
-import { IntegrationPackageRegistry } from "../../.test-dist/src/integrations/registry.js";
+const require = createRequire(import.meta.url);
+const {
+  evaluateIntegrationCompatibility,
+  parseCoreIntegrationInputManifest,
+} = require("../../.test-dist/integrations/compatibility.js");
+const { parseIntegrationPackageManifest } = require("../../.test-dist/integrations/manifest.js");
+const {
+  parseIntegrationResult,
+  validateIntegrationResult,
+} = require("../../.test-dist/integrations/result.js");
+const { IntegrationPackageRegistry } = require("../../.test-dist/integrations/registry.js");
 
 const PACKAGE = {
   kind: "orbitfabric.integration_package",
