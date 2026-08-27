@@ -28,7 +28,9 @@
     "src/integrations/manifest.ts",
     "src/integrations/compatibility.ts",
     "src/integrations/result.ts",
-    "src/integrations/registry.ts"
+    "src/integrations/registry.ts",
+    "src/integrations/profile.ts",
+    "src/integrations/sha256.ts"
   ],
   "include": []
 }
