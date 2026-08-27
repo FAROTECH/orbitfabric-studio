@@ -61,8 +61,7 @@ test("bundled OpenOBSW/OpenSVF plugin presents real Result target refs without r
 
   for (const mapping of result.mappings) {
     assert.ok(mapping.sources.length > 0, `${mapping.id} must have an explicit Core source`);
-    const source = mapping.sources[0];
-    const pluginContext = context(descriptor, result, source);
+    const pluginContext = context(descriptor, result, mapping.sources[0]);
 
     for (const target of mapping.targets) {
       if (
@@ -75,7 +74,7 @@ test("bundled OpenOBSW/OpenSVF plugin presents real Result target refs without r
       }
 
       observed.add(`${target.namespace}/${target.kind}`);
-      const dispatch = registry.inspectTarget({ source, mapping, target }, pluginContext);
+      const dispatch = registry.inspectTarget({ mapping, target }, pluginContext);
       assert.deepEqual(dispatch.failures, [], `${mapping.id} ${target.namespace}/${target.kind}`);
       assert.equal(dispatch.matches.length, 1, `${mapping.id} ${target.namespace}/${target.kind}`);
 
@@ -88,10 +87,23 @@ test("bundled OpenOBSW/OpenSVF plugin presents real Result target refs without r
         ),
         "presentation must retain explicit Result mapping identity",
       );
-      assert.ok(
-        model.actions?.some((action) => action.request.kind === "open_core_entity"),
-        "reference inspector must navigate through the explicit Core source ref",
-      );
+      for (const source of mapping.sources) {
+        assert.ok(
+          model.sections.some((section) =>
+            section.rows.some((row) => row.value === `${source.domain}/${source.id}`),
+          ),
+          `presentation must retain mapping source ${source.domain}/${source.id}`,
+        );
+        assert.ok(
+          model.actions?.some(
+            (action) =>
+              action.request.kind === "open_core_entity" &&
+              action.request.ref.domain === source.domain &&
+              action.request.ref.id === source.id,
+          ),
+          `reference inspector must expose navigation for ${source.domain}/${source.id}`,
+        );
+      }
 
       const linkedArtifacts = result.artifacts.filter((artifact) =>
         artifact.derivedFromMappings.includes(mapping.id),
