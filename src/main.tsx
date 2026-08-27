@@ -10,6 +10,7 @@ import "./styles/features.css";
 import "./styles/relations.css";
 import "./styles/context-map.css";
 import "./styles/operations.css";
+import "./styles/integrations.css";
 import "./styles/capture.css";
 import "./styles/responsive.css";
 
