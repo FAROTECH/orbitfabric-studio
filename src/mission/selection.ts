@@ -8,6 +8,7 @@ export type SelectionOrigin =
   | "validation"
   | "search"
   | "operations"
+  | "integrations"
   | "data-journey"
   | "replay";
 
