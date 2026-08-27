@@ -259,4 +259,42 @@ mod tests {
         assert!(!output.join("integration_result.json").exists());
         let _ = fs::remove_dir_all(root);
     }
+
+    #[cfg(unix)]
+    #[test]
+    fn external_adapter_acceptance_executes_through_studio_runner() {
+        let executable = match std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE") {
+            Ok(value) => value,
+            Err(_) => return,
+        };
+        let input = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST")
+            .expect("acceptance Input Manifest path must be provided with the executable");
+        let profile = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE")
+            .expect("acceptance Profile path must be provided with the executable");
+        let output = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR")
+            .expect("acceptance output path must be provided with the executable");
+
+        let invocation = run_integration_adapter_with_timeout(
+            vec![executable.clone()],
+            "project".to_string(),
+            input,
+            profile,
+            output,
+            Duration::from_secs(30),
+        )
+        .expect("real acceptance adapter should execute through Studio runner");
+
+        assert_eq!(invocation.executable, executable);
+        assert_eq!(invocation.exit_code, Some(0), "{}", invocation.stderr);
+        assert!(invocation.process_completed);
+        assert!(!invocation.timed_out);
+        assert_eq!(invocation.operation, "project");
+        assert_eq!(invocation.args.first().map(String::as_str), Some("run"));
+        assert!(invocation.args.windows(2).any(|items| items == ["--operation", "project"]));
+        let result = invocation
+            .result_text
+            .expect("successful real adapter invocation must leave Integration Result");
+        assert!(result.contains("\"kind\": \"orbitfabric.integration_result\""));
+        assert!(result.contains("\"result\": \"succeeded\""));
+    }
 }

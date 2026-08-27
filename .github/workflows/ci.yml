@@ -196,3 +196,80 @@ jobs:
         env:
           ORBITFABRIC_STUDIO_CORE_SURFACES: /tmp
         run: npm run test:logic
+
+  reference-integration:
+    name: Real reference Integration Package acceptance
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Studio
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned reference Integration Package
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          ref: 80034335d7dfca3a715de217d981983616944cc0
+          path: reference-poc
+
+      - name: Checkout pinned Core producer
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: 82c103a6dec32eeadc5acfcb01d1a9c641a54a42
+          path: reference-core
+
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned Core and reference adapter
+        run: |
+          python -m pip install -e ./reference-core
+          python -m pip install -e ./reference-poc/reference_adapter
+
+      - name: Export real coherent Core Integration Input Set
+        run: |
+          mkdir -p /tmp/orbitfabric-reference/input
+          orbitfabric export integration-input-set \
+            reference-poc/orbitfabric_models/mission \
+            --output-dir /tmp/orbitfabric-reference/input
+
+      - name: Execute real adapter through Studio Rust runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-reference/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/reference-poc/orbitfabric_models/profiles/openobsw_opensvf_poc_v0.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-reference/result
+        run: |
+          cargo test --locked --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked Studio dependencies
+        run: npm ci
+
+      - name: Consume real package and Result through Studio contracts
+        env:
+          ORBITFABRIC_STUDIO_REFERENCE_POC: ${{ github.workspace }}/reference-poc
+          ORBITFABRIC_STUDIO_REFERENCE_INPUT_MANIFEST: /tmp/orbitfabric-reference/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_REFERENCE_RESULT: /tmp/orbitfabric-reference/result/integration_result.json
+        run: npm run test:logic

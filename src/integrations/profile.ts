@@ -107,7 +107,11 @@ export function validateProjectionProfile(
     }
 
     try {
-      const ajv = new Ajv2020({ allErrors: true, strict: true });
+      // Keep AJV strict checks enabled, but do not impose its optional strictTypes
+      // authoring convention on package-owned Draft 2020-12 schemas. A valid schema
+      // may use properties in a conditional/allOf subschema without repeating
+      // type: object at that exact schema location.
+      const ajv = new Ajv2020({ allErrors: true, strict: true, strictTypes: false });
       const validate = ajv.compile(schema);
       if (!validate(profile.value)) {
         for (const error of validate.errors ?? []) {

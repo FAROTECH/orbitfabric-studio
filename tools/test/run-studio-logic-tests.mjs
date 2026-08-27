@@ -40,10 +40,20 @@ try {
     "tests/studio-logic/graph-layout-routing.test.mjs",
     "tests/studio-logic/integrations-foundation.test.mjs",
     "tests/studio-logic/integration-profile.test.mjs",
+    "tests/studio-logic/integration-execution.test.mjs",
+    "tests/studio-logic/integration-staleness.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
     tests.push("tests/studio-logic/context-map-core-regression.test.mjs");
+  }
+
+  if (
+    process.env.ORBITFABRIC_STUDIO_REFERENCE_POC &&
+    process.env.ORBITFABRIC_STUDIO_REFERENCE_INPUT_MANIFEST &&
+    process.env.ORBITFABRIC_STUDIO_REFERENCE_RESULT
+  ) {
+    tests.push("tests/studio-logic/reference-integration-acceptance.test.mjs");
   }
 
   run(process.execPath, ["--test", ...tests]);

@@ -32,7 +32,7 @@ const PACKAGE = {
   execution: { protocol: "orbitfabric.adapter_cli.v0", argv_prefix: ["example-adapter"] },
 };
 
-const SCHEMA = JSON.stringify({
+const SCHEMA_OBJECT = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   type: "object",
   required: ["kind", "profile_version", "profile", "integration", "settings", "bindings"],
@@ -58,6 +58,18 @@ const SCHEMA = JSON.stringify({
     bindings: { type: "array" },
   },
   additionalProperties: false,
+};
+
+const SCHEMA = JSON.stringify(SCHEMA_OBJECT);
+const COMPOSED_SCHEMA = JSON.stringify({
+  ...SCHEMA_OBJECT,
+  allOf: [
+    {
+      properties: {
+        settings: { type: "object" },
+      },
+    },
+  ],
 });
 
 const PROFILE = `kind: orbitfabric.projection_profile
@@ -95,19 +107,30 @@ function resultWithProfileSha(sha256) {
   }));
 }
 
-test("parses YAML 1.2 Profile and validates it with the package JSON Schema", async () => {
+async function validateWithSchema(schemaText) {
   const sha = await sha256Utf8(PROFILE);
   const profile = parseProjectionProfile("/tmp/profile.yaml", sha, PROFILE);
-  const schemaSha = await sha256Utf8(SCHEMA);
-  const validation = validateProjectionProfile(descriptor(), {
+  return validateProjectionProfile(descriptor(), {
     path: "/tmp/package/schemas/profile.json",
-    text: SCHEMA,
-    sha256: schemaSha,
+    text: schemaText,
+    sha256: await sha256Utf8(schemaText),
     contained: true,
     sha256Matches: true,
   }, profile);
+}
+
+test("parses YAML 1.2 Profile and validates it with the package JSON Schema", async () => {
+  const validation = await validateWithSchema(SCHEMA);
   assert.equal(validation.valid, true, validation.errors.join("\n"));
+
+  const sha = await sha256Utf8(PROFILE);
+  const profile = parseProjectionProfile("/tmp/profile.yaml", sha, PROFILE);
   assert.equal(profile.identity.integrationId, "example-integration");
+});
+
+test("accepts Draft 2020-12 composed schemas without imposing AJV strictTypes authoring style", async () => {
+  const validation = await validateWithSchema(COMPOSED_SCHEMA);
+  assert.equal(validation.valid, true, validation.errors.join("\n"));
 });
 
 test("rejects duplicate YAML keys instead of silently accepting authored ambiguity", async () => {
