@@ -56,6 +56,7 @@ try {
     process.env.ORBITFABRIC_STUDIO_REFERENCE_RESULT
   ) {
     tests.push("tests/studio-logic/reference-integration-acceptance.test.mjs");
+    tests.push("tests/studio-logic/reference-integration-plugin-acceptance.test.mjs");
   }
 
   run(process.execPath, ["--test", ...tests]);
