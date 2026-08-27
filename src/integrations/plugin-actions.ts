@@ -28,10 +28,11 @@ export async function executeIntegrationInspectorAction(
       if (!result) {
         throw new Error("Integration Plugin action cannot reveal an artifact without an Integration Result.");
       }
-      const artifact = result.artifacts.find((item) => item.id === action.request.artifactId);
+      const artifactId = action.request.artifactId;
+      const artifact = result.artifacts.find((item) => item.id === artifactId);
       if (!artifact) {
         throw new Error(
-          `Integration Plugin action references unknown Result artifact ${action.request.artifactId}.`,
+          `Integration Plugin action references unknown Result artifact ${artifactId}.`,
         );
       }
       if (!artifact.derivedFromMappings.includes(input.mapping.id)) {
