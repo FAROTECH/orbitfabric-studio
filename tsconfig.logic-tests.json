@@ -32,6 +32,7 @@
     "src/integrations/registry.ts",
     "src/integrations/profile.ts",
     "src/integrations/execution.ts",
+    "src/integrations/staleness.ts",
     "src/integrations/sha256.ts"
   ],
   "include": []

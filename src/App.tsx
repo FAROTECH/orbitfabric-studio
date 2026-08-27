@@ -10,6 +10,7 @@ import { TauriCoreGateway } from "./core/TauriCoreGateway";
 import { MissionAtlas } from "./features/atlas/MissionAtlas";
 import { SurfaceCaptureButton } from "./features/capture/SurfaceCaptureButton";
 import { EntityExplorer } from "./features/explorer/EntityExplorer";
+import { IntegrationsWorkspace } from "./features/integrations/IntegrationsWorkspace";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
 import { OperationsWorkspace } from "./features/operations/OperationsWorkspace";
 import { RelationsWorkspace } from "./features/relationships/RelationsWorkspace";
@@ -172,6 +173,7 @@ function App() {
   const mission = session.snapshot.mission;
   const isOpeningReplacement = state.opening !== null;
   const selectedEntity = state.selection.subject;
+  const supportsXRay = state.view !== "operations" && state.view !== "integrations";
 
   return (
     <main className="studio-shell">
@@ -222,6 +224,13 @@ function App() {
               Relations
             </button>
           ) : null}
+          <button
+            type="button"
+            className={state.view === "integrations" ? "is-active" : ""}
+            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "integrations" })}
+          >
+            Integrations
+          </button>
         </nav>
 
         <div className="topbar-actions">
@@ -281,9 +290,7 @@ function App() {
 
       <section className="studio-main-surface">
         <div
-          className={`workspace-layout${
-            selectedEntity && state.view !== "operations" ? " has-xray" : ""
-          }`}
+          className={`workspace-layout${selectedEntity && supportsXRay ? " has-xray" : ""}`}
         >
           <div className="workspace-primary">
             {state.view === "operations" ? (
@@ -327,6 +334,15 @@ function App() {
                   dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" })
                 }
               />
+            ) : state.view === "integrations" ? (
+              <IntegrationsWorkspace
+                session={session}
+                selectedEntity={selectedEntity}
+                onInspectEntity={(subject) => {
+                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" });
+                  dispatch({ type: "SELECTION_CHANGED", subject, origin: "integrations" });
+                }}
+              />
             ) : (
               <MissionAtlas
                 session={session}
@@ -338,7 +354,7 @@ function App() {
             )}
           </div>
 
-          {selectedEntity && state.view !== "operations" ? (
+          {selectedEntity && supportsXRay ? (
             <EntityXRay
               session={session}
               subject={selectedEntity}

@@ -44,6 +44,10 @@ export class TauriIntegrationGateway implements IntegrationGateway {
     return invoke<IntegrationTextRead>("read_integration_package_manifest", { path });
   }
 
+  async readTextFile(path: string): Promise<IntegrationTextRead> {
+    return invoke<IntegrationTextRead>("read_integration_text_file", { path });
+  }
+
   async readPackageProfileSchema(
     manifestPath: string,
     schemaPath: string,

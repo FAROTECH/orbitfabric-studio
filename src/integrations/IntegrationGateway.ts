@@ -13,6 +13,7 @@ export type IntegrationTextRead = {
 
 export interface IntegrationGateway {
   readPackageManifest(path: string): Promise<IntegrationTextRead>;
+  readTextFile(path: string): Promise<IntegrationTextRead>;
   readPackageProfileSchema(
     manifestPath: string,
     schemaPath: string,

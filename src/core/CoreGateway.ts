@@ -13,6 +13,12 @@ export interface CoreSurfaceResult<T> {
   surface: T;
 }
 
+export interface CoreIntegrationInputExport {
+  invocation: CoreInvocationResult;
+  manifestPath: string;
+  manifestText: string;
+}
+
 export interface CoreGateway {
   resolveMissionSource(selectedPath: string): Promise<MissionSource>;
 
@@ -41,6 +47,12 @@ export interface CoreGateway {
     source: MissionSource,
     requestId: string,
   ): Promise<CoreSurfaceResult<LintReportDto>>;
+
+  exportIntegrationInputSet(
+    executable: string,
+    source: MissionSource,
+    requestId: string,
+  ): Promise<CoreIntegrationInputExport>;
 
   clearRequestTemp(requestId: string): Promise<void>;
 }

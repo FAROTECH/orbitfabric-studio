@@ -1,5 +1,6 @@
 mod capture;
 mod integration_execution;
+mod integration_files;
 mod integrations;
 
 use serde::Serialize;
@@ -168,6 +169,40 @@ fn run_core_lint_mission(
             mission_display.as_str(),
             "--json",
             report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
+#[tauri::command]
+fn run_core_export_integration_input_set(
+    executable: String,
+    mission_dir: String,
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
+    let mission = canonicalize_existing_dir(&mission_dir)?;
+    let request_dir = core_request_temp_dir(&request_id);
+    if request_dir.exists() {
+        fs::remove_dir_all(&request_dir)
+            .map_err(|error| format!("Unable to reset Studio integration input request: {error}"))?;
+    }
+    let output_dir = request_dir.join("integration_input");
+    fs::create_dir_all(&output_dir)
+        .map_err(|error| format!("Unable to create Studio integration input directory: {error}"))?;
+
+    let report_path = output_dir.join("integration_input_manifest.json");
+    let mission_display = display_path(&mission);
+    let output_display = display_path(&output_dir);
+
+    run_core_command(
+        executable,
+        "integration-input-set",
+        &[
+            "export",
+            "integration-input-set",
+            mission_display.as_str(),
+            "--output-dir",
+            output_display.as_str(),
         ],
         Some(report_path),
     )
@@ -433,9 +468,11 @@ pub fn run() {
             run_core_export_entity_index,
             run_core_export_relationship_manifest,
             run_core_lint_mission,
+            run_core_export_integration_input_set,
             clear_core_request_temp,
             integrations::read_integration_package_manifest,
             integrations::read_integration_result_bundle,
+            integration_files::read_integration_text_file,
             integration_execution::run_integration_adapter,
             capture::save_surface_capture_png,
         ])
