@@ -4,6 +4,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { TauriCoreGateway } from "../../core/TauriCoreGateway";
 import type { MissionSession } from "../../mission/MissionSession";
 import type { EntityRef } from "../../mission/entityRef";
+import { createBundledIntegrationPluginRegistry } from "../../integrations/bundled-plugin-registry";
 import { evaluateIntegrationCompatibility, parseCoreIntegrationInputManifest } from "../../integrations/compatibility";
 import type {
   CoreIntegrationInputSet,
@@ -20,6 +21,8 @@ import {
   createExecutionAuthorization,
   executeIntegrationAdapter,
 } from "../../integrations/execution";
+import type { IntegrationPluginContext } from "../../integrations/plugin-api";
+import type { IntegrationPluginRegistry } from "../../integrations/plugin-registry";
 import { TauriIntegrationGateway } from "../../integrations/TauriIntegrationGateway";
 import { parseIntegrationPackageManifest } from "../../integrations/manifest";
 import {
@@ -30,6 +33,7 @@ import {
 import { parseIntegrationResult, validateIntegrationResult } from "../../integrations/result";
 import { sha256Utf8 } from "../../integrations/sha256";
 import { assessIntegrationFreshness } from "../../integrations/staleness";
+import { IntegrationTargetInspectorHost } from "./IntegrationTargetInspectorHost";
 
 const REGISTERED_PACKAGES_KEY = "orbitfabric-studio.integration-packages";
 const PROFILE_ASSOCIATIONS_KEY = "orbitfabric-studio.integration-profiles";
@@ -64,6 +68,7 @@ export function IntegrationsWorkspace({
 }) {
   const integrationGateway = useMemo(() => new TauriIntegrationGateway(), []);
   const coreGateway = useMemo(() => new TauriCoreGateway(), []);
+  const pluginRegistry = useMemo(() => createBundledIntegrationPluginRegistry(), []);
   const [entries, setEntries] = useState<PackageEntry[]>([]);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [inputSet, setInputSet] = useState<CoreIntegrationInputSet | null>(null);
@@ -335,6 +340,31 @@ export function IntegrationsWorkspace({
 
   const result = resultState?.result ?? null;
   const freshness = assessIntegrationFreshness(result, inputSet, profile?.document ?? null);
+  const pluginContext: IntegrationPluginContext | null = descriptor && compatibility && result
+    ? {
+        mission: { selectedEntity },
+        integration: {
+          package: descriptor,
+          profile: profile?.document ?? null,
+          result,
+          compatibility,
+          freshness,
+        },
+        actions: {
+          async openCoreEntity(ref) {
+            onInspectEntity(ref);
+          },
+          async revealResultArtifact(artifactId) {
+            const element = document.getElementById(artifactElementId(artifactId));
+            if (!element) {
+              throw new Error(`Result artifact ${artifactId} is not currently rendered.`);
+            }
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            element.focus({ preventScroll: true });
+          },
+        },
+      }
+    : null;
   const canRun = Boolean(
     descriptor &&
       authorization &&
@@ -478,7 +508,13 @@ export function IntegrationsWorkspace({
                 <CapabilityComparison descriptor={descriptor} operationId={result.operation.id} result={result} />
                 <Artifacts result={result} bundle={resultState!.bundle} />
                 <Coverage result={result} />
-                <Continuity result={result} selectedEntity={selectedEntity} onInspectEntity={onInspectEntity} />
+                <Continuity
+                  result={result}
+                  selectedEntity={selectedEntity}
+                  onInspectEntity={onInspectEntity}
+                  pluginRegistry={pluginRegistry}
+                  pluginContext={pluginContext}
+                />
               </>
             ) : (
               <p className="integration-empty">No Integration Result has been loaded for this package.</p>
@@ -612,7 +648,12 @@ function Artifacts({ result, bundle }: { result: IntegrationResult; bundle: Inte
           {result.artifacts.map((artifact) => {
             const check = checks.get(artifact.id);
             return (
-              <article key={artifact.id} className="artifact-row">
+              <article
+                key={artifact.id}
+                id={artifactElementId(artifact.id)}
+                className="artifact-row"
+                tabIndex={-1}
+              >
                 <div><strong>{artifact.id}</strong><code>{artifact.kind}</code></div>
                 <span>{artifact.status}</span>
                 <code>{artifact.path ?? "—"}</code>
@@ -654,10 +695,14 @@ function Continuity({
   result,
   selectedEntity,
   onInspectEntity,
+  pluginRegistry,
+  pluginContext,
 }: {
   result: IntegrationResult;
   selectedEntity: EntityRef | null;
   onInspectEntity: (subject: EntityRef) => void;
+  pluginRegistry: IntegrationPluginRegistry;
+  pluginContext: IntegrationPluginContext | null;
 }) {
   const mappings = selectedEntity
     ? result.mappings.filter((mapping) => mapping.sources.some((source) => sameRef(source, selectedEntity)))
@@ -684,11 +729,20 @@ function Continuity({
                 </div>
                 <span aria-hidden="true">→</span>
                 <div>
-                  <small>Opaque target refs</small>
+                  <small>Target refs</small>
                   {mapping.targets.map((target) => (
-                    <code key={`${target.namespace}/${target.kind}/${target.id}`}>
-                      {target.namespace} · {target.kind} · {target.id}
-                    </code>
+                    pluginContext ? (
+                      <IntegrationTargetInspectorHost
+                        key={`${target.namespace}/${target.kind}/${target.id}`}
+                        registry={pluginRegistry}
+                        input={{ mapping, target }}
+                        context={pluginContext}
+                      />
+                    ) : (
+                      <code key={`${target.namespace}/${target.kind}/${target.id}`}>
+                        {target.namespace} · {target.kind} · {target.id}
+                      </code>
+                    )
                   ))}
                 </div>
               </div>
@@ -726,6 +780,10 @@ async function loadPackageEntry(
 
 function sameRef(left: EntityRef, right: EntityRef): boolean {
   return left.domain === right.domain && left.id === right.id;
+}
+
+function artifactElementId(artifactId: string): string {
+  return `integration-artifact-${encodeURIComponent(artifactId)}`;
 }
 
 function shortSha(value: string | null): string {
