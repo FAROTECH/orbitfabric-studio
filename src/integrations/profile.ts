@@ -1,4 +1,5 @@
 import Ajv2020 from "ajv/dist/2020.js";
+import type { AnySchema } from "ajv";
 import { parseDocument } from "yaml";
 import type {
   IntegrationPackageDescriptor,
@@ -97,9 +98,9 @@ export function validateProjectionProfile(
   }
 
   if (errors.length === 0) {
-    let schema: unknown;
+    let schema: AnySchema;
     try {
-      schema = JSON.parse(schemaRead.text) as unknown;
+      schema = JSON.parse(schemaRead.text) as AnySchema;
     } catch (error) {
       errors.push(`Published Profile schema is not valid JSON: ${String(error)}`);
       return { valid: false, errors };
