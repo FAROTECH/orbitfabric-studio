@@ -121,6 +121,25 @@ fn check_artifact(
 
     let artifact_path = bundle_root.join(&relative);
     let exists = artifact_path.is_file();
+    let resolved_contained = if exists {
+        artifact_path
+            .canonicalize()
+            .map(|resolved| resolved.starts_with(bundle_root))
+            .unwrap_or(false)
+    } else {
+        true
+    };
+
+    if exists && !resolved_contained {
+        return Ok(IntegrationBundleFileCheck {
+            artifact_id: artifact.id,
+            path: Some(relative),
+            exists: Some(true),
+            sha256_matches: Some(false),
+            contained: Some(false),
+        });
+    }
+
     let sha256_matches = if exists {
         match artifact.sha256 {
             Some(expected) => file_sha256(&artifact_path)
@@ -356,5 +375,41 @@ mod tests {
         assert_eq!(check.sha256_matches, Some(false));
 
         let _ = fs::remove_dir_all(root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn result_reader_rejects_symlink_escape_from_bundle_root() {
+        use std::os::unix::fs::symlink;
+
+        let root = temp_dir("symlink-root");
+        let outside = temp_dir("symlink-outside");
+        let outside_file = outside.join("outside.txt");
+        fs::write(&outside_file, b"outside").unwrap();
+
+        let artifacts_dir = root.join("artifacts");
+        fs::create_dir_all(&artifacts_dir).unwrap();
+        let linked = artifacts_dir.join("linked.txt");
+        symlink(&outside_file, &linked).unwrap();
+
+        let result_path = root.join("integration_result.json");
+        let result = serde_json::json!({
+            "artifacts": [{
+                "id": "artifact.test",
+                "status": "generated",
+                "path": "artifacts/linked.txt",
+                "sha256": file_sha256(&outside_file).unwrap()
+            }]
+        });
+        fs::write(&result_path, serde_json::to_vec(&result).unwrap()).unwrap();
+
+        let read = read_integration_result_bundle(display_path(&result_path)).unwrap();
+        let check = &read.artifact_checks[0];
+        assert_eq!(check.exists, Some(true));
+        assert_eq!(check.contained, Some(false));
+        assert_eq!(check.sha256_matches, Some(false));
+
+        let _ = fs::remove_dir_all(root);
+        let _ = fs::remove_dir_all(outside);
     }
 }
