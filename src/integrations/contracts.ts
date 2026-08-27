@@ -48,6 +48,42 @@ export type IntegrationPackageDescriptor = {
   execution: IntegrationExecutionDescriptor;
 };
 
+export type IntegrationTextDigestRead = {
+  path: string;
+  text: string;
+  sha256: string;
+  contained: boolean | null;
+  sha256Matches: boolean | null;
+};
+
+export type IntegrationProfileIdentity = {
+  kind: string;
+  profileVersion: string;
+  id: string;
+  version: string;
+  integrationId: string;
+  schemaVersion: string;
+};
+
+export type IntegrationProfileDocument = {
+  path: string;
+  sha256: string;
+  identity: IntegrationProfileIdentity;
+  value: Record<string, unknown>;
+};
+
+export type IntegrationProfileValidation = {
+  valid: boolean;
+  errors: string[];
+};
+
+export type IntegrationProfileFreshness = "fresh" | "stale" | "unknown";
+
+export type IntegrationProfileFreshnessAssessment = {
+  state: IntegrationProfileFreshness;
+  reason: string;
+};
+
 export type CoreIntegrationInputSurface = {
   role: string;
   requirement: string;

@@ -1,4 +1,4 @@
-import type { IntegrationBundleRead } from "./contracts";
+import type { IntegrationBundleRead, IntegrationTextDigestRead } from "./contracts";
 
 export type IntegrationTextRead = {
   path: string;
@@ -7,5 +7,10 @@ export type IntegrationTextRead = {
 
 export interface IntegrationGateway {
   readPackageManifest(path: string): Promise<IntegrationTextRead>;
+  readPackageProfileSchema(
+    manifestPath: string,
+    schemaPath: string,
+    expectedSha256: string,
+  ): Promise<IntegrationTextDigestRead>;
   readResultBundle(path: string): Promise<IntegrationBundleRead>;
 }
