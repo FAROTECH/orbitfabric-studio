@@ -199,7 +199,7 @@ jobs:
 
   reference-integration:
     name: Real reference Integration Package acceptance
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Studio
         uses: actions/checkout@v4
@@ -218,6 +218,18 @@ jobs:
           ref: 82c103a6dec32eeadc5acfcb01d1a9c641a54a42
           path: reference-core
 
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -235,14 +247,16 @@ jobs:
             reference-poc/orbitfabric_models/mission \
             --output-dir /tmp/orbitfabric-reference/input
 
-      - name: Execute real adapter_cli v0 project operation
+      - name: Execute real adapter through Studio Rust runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-reference/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/reference-poc/orbitfabric_models/profiles/openobsw_opensvf_poc_v0.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-reference/result
         run: |
-          mkdir -p /tmp/orbitfabric-reference/result
-          orbitfabric-openobsw-opensvf run \
-            --operation project \
-            --input-set-manifest /tmp/orbitfabric-reference/input/integration_input_manifest.json \
-            --profile reference-poc/orbitfabric_models/profiles/openobsw_opensvf_poc_v0.yaml \
-            --output-dir /tmp/orbitfabric-reference/result
+          cargo test --locked --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
 
       - name: Set up Node
         uses: actions/setup-node@v4
