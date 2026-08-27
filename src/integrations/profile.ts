@@ -104,12 +104,17 @@ export function validateProjectionProfile(
       errors.push(`Published Profile schema is not valid JSON: ${String(error)}`);
       return { valid: false, errors };
     }
-    const ajv = new Ajv2020({ allErrors: true, strict: true });
-    const validate = ajv.compile(schema);
-    if (!validate(profile.value)) {
-      for (const error of validate.errors ?? []) {
-        errors.push(`${error.instancePath || "/"} ${error.message ?? "is invalid"}`);
+
+    try {
+      const ajv = new Ajv2020({ allErrors: true, strict: true });
+      const validate = ajv.compile(schema);
+      if (!validate(profile.value)) {
+        for (const error of validate.errors ?? []) {
+          errors.push(`${error.instancePath || "/"} ${error.message ?? "is invalid"}`);
+        }
       }
+    } catch (error) {
+      errors.push(`Published Profile schema cannot be compiled offline: ${String(error)}`);
     }
   }
 
