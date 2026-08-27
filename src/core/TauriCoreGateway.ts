@@ -1,6 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import type { CoreGateway, CoreSurfaceResult } from "./CoreGateway";
+import type {
+  CoreGateway,
+  CoreIntegrationInputExport,
+  CoreSurfaceResult,
+} from "./CoreGateway";
 import type {
   CoreInvocationResult,
   CoreProbeResult,
@@ -139,6 +143,33 @@ export class TauriCoreGateway implements CoreGateway {
     return {
       invocation,
       surface: parseLintReport(reportText),
+    };
+  }
+
+  async exportIntegrationInputSet(
+    executable: string,
+    source: MissionSource,
+    requestId: string,
+  ): Promise<CoreIntegrationInputExport> {
+    const invocation = await invoke<CoreInvocationResult>("run_core_export_integration_input_set", {
+      executable,
+      missionDir: source.missionDir,
+      requestId,
+    });
+
+    // Core may return a non-zero status while still emitting a coherent manifest that
+    // explains why the set is unavailable/incomplete. Preserve that structured evidence.
+    const manifestText = requireReportText("Integration Input Set", invocation);
+    if (!invocation.reportPath) {
+      throw new CoreTransportError(
+        "Integration Input Set did not expose its manifest path.",
+        invocation,
+      );
+    }
+    return {
+      invocation,
+      manifestPath: invocation.reportPath,
+      manifestText,
     };
   }
 
