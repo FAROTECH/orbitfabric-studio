@@ -18,11 +18,11 @@ function inspector(id, matches, inspect) {
   return { id, matches, inspect };
 }
 
+const source = { domain: "telemetry", id: "eps.voltage" };
 const input = {
-  source: { domain: "telemetry", id: "eps.voltage" },
   mapping: {
     id: "mapping.tm.voltage",
-    sources: [{ domain: "telemetry", id: "eps.voltage" }],
+    sources: [source],
     profileBindings: ["tm.voltage"],
     targets: [{ namespace: "example", kind: "parameter", id: "VOLTAGE" }],
   },
@@ -31,7 +31,7 @@ const input = {
 
 function context(integrationId = "example-integration") {
   return {
-    mission: { selectedEntity: input.source },
+    mission: { selectedEntity: source },
     integration: {
       package: {
         manifestPath: "/tmp/integration_package.json",
