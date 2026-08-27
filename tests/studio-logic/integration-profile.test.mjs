@@ -126,7 +126,7 @@ test("rejects untrusted or digest-mismatched published schemas", async () => {
     sha256Matches: false,
   }, profile);
   assert.equal(validation.valid, false);
-  assert.ok(validation.errors.some((item) => item.includes("package root")));
+  assert.ok(validation.errors.some((item) => /package root/i.test(item)));
   assert.ok(validation.errors.some((item) => item.includes("SHA-256")));
 });
 
