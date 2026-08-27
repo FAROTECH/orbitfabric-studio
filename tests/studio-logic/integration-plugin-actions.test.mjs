@@ -5,11 +5,11 @@ import test from "node:test";
 const require = createRequire(import.meta.url);
 const { executeIntegrationInspectorAction } = require("../../.test-dist/integrations/plugin-actions.js");
 
+const source = { domain: "telemetry", id: "eps.voltage" };
 const input = {
-  source: { domain: "telemetry", id: "eps.voltage" },
   mapping: {
     id: "mapping.tm.voltage",
-    sources: [{ domain: "telemetry", id: "eps.voltage" }],
+    sources: [source],
     profileBindings: [],
     targets: [{ namespace: "example", kind: "parameter", id: "VOLTAGE" }],
   },
@@ -21,7 +21,7 @@ function context() {
   return {
     calls,
     value: {
-      mission: { selectedEntity: input.source },
+      mission: { selectedEntity: source },
       integration: {
         package: {
           manifestPath: "/tmp/package.json",
@@ -95,9 +95,9 @@ test("open_core_entity is limited to sources of the inspected mapping", async ()
   await executeIntegrationInspectorAction({
     id: "open-source",
     label: "Open source",
-    request: { kind: "open_core_entity", ref: { domain: "telemetry", id: "eps.voltage" } },
+    request: { kind: "open_core_entity", ref: source },
   }, input, ctx.value);
-  assert.deepEqual(ctx.calls, [["core", { domain: "telemetry", id: "eps.voltage" }]]);
+  assert.deepEqual(ctx.calls, [["core", source]]);
 
   await assert.rejects(
     executeIntegrationInspectorAction({
