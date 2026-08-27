@@ -50,7 +50,6 @@ export type IntegrationPluginContext = {
 };
 
 export type IntegrationTargetInspectionInput = {
-  readonly source: IntegrationCoreRef;
   readonly mapping: IntegrationMapping;
   readonly target: IntegrationTargetRef;
 };
