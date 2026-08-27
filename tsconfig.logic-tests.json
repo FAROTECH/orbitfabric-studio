@@ -25,11 +25,13 @@
     "src/mission/relationshipPresentation.ts",
     "src/graph/contextMapEvidence.ts",
     "src/integrations/contracts.ts",
+    "src/integrations/IntegrationGateway.ts",
     "src/integrations/manifest.ts",
     "src/integrations/compatibility.ts",
     "src/integrations/result.ts",
     "src/integrations/registry.ts",
     "src/integrations/profile.ts",
+    "src/integrations/execution.ts",
     "src/integrations/sha256.ts"
   ],
   "include": []

@@ -1,5 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { IntegrationBundleRead, IntegrationTextDigestRead } from "./contracts";
+import type {
+  IntegrationAdapterInvocation,
+  IntegrationAdapterRunRequest,
+  IntegrationBundleRead,
+  IntegrationExecutionAuthorization,
+  IntegrationTextDigestRead,
+} from "./contracts";
 import type { IntegrationGateway, IntegrationTextRead } from "./IntegrationGateway";
 import { sha256Utf8 } from "./sha256";
 
@@ -59,5 +65,18 @@ export class TauriIntegrationGateway implements IntegrationGateway {
 
   async readResultBundle(path: string): Promise<IntegrationBundleRead> {
     return invoke<IntegrationBundleRead>("read_integration_result_bundle", { path });
+  }
+
+  async runAdapter(
+    authorization: IntegrationExecutionAuthorization,
+    request: IntegrationAdapterRunRequest,
+  ): Promise<IntegrationAdapterInvocation> {
+    return invoke<IntegrationAdapterInvocation>("run_integration_adapter", {
+      authorizedArgvPrefix: authorization.argvPrefix,
+      operation: request.operation,
+      inputSetManifest: request.inputSetManifestPath,
+      profile: request.profilePath,
+      outputDir: request.outputDir,
+    });
   }
 }

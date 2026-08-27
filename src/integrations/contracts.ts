@@ -248,3 +248,42 @@ export type IntegrationResultValidation = {
   usable: boolean;
   issues: IntegrationIntegrityIssue[];
 };
+
+export type IntegrationExecutionAuthorization = {
+  integrationId: string;
+  adapterId: string;
+  adapterVersion: string;
+  argvPrefix: string[];
+};
+
+export type IntegrationAdapterRunRequest = {
+  operation: string;
+  inputSetManifestPath: string;
+  profilePath: string;
+  outputDir: string;
+};
+
+export type IntegrationAdapterInvocation = {
+  operation: string;
+  executable: string;
+  args: string[];
+  exitCode: number | null;
+  processCompleted: boolean;
+  timedOut: boolean;
+  stdout: string;
+  stderr: string;
+  outputDir: string;
+  resultPath: string;
+  resultText: string | null;
+};
+
+export type IntegrationExecutionIssue = {
+  code: string;
+  message: string;
+};
+
+export type IntegrationExecutionAssessment = {
+  valid: boolean;
+  issues: IntegrationExecutionIssue[];
+  result: IntegrationResult | null;
+};
