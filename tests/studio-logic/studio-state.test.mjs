@@ -133,3 +133,23 @@ test("inspecting another entity preserves the last Operations Mode Focus", () =>
   assert.deepEqual(inspecting.selection.subject, command);
   assert.deepEqual(inspecting.operationsMode, mode);
 });
+
+test("Integrations is a first-class mission workspace view", () => {
+  const state = {
+    activeSession: session("active", ["NOMINAL"]),
+    opening: null,
+    openFailure: null,
+    selection: { subject: null, origin: null, contextPath: [] },
+    operationsMode: null,
+    view: "overview",
+  };
+
+  const next = studioReducer(state, {
+    type: "WORKSPACE_VIEW_CHANGED",
+    view: "integrations",
+  });
+
+  assert.equal(next.view, "integrations");
+  assert.equal(next.activeSession, state.activeSession);
+  assert.deepEqual(next.selection, state.selection);
+});
