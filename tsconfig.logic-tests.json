@@ -36,7 +36,9 @@
     "src/integrations/sha256.ts",
     "src/integrations/plugin-api.ts",
     "src/integrations/plugin-registry.ts",
-    "src/integrations/plugin-actions.ts"
+    "src/integrations/plugin-actions.ts",
+    "src/integrations/bundled-plugin-registry.ts",
+    "src/integration-plugins/openobsw-opensvf.ts"
   ],
   "include": []
 }
