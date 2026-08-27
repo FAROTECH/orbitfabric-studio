@@ -35,7 +35,8 @@
     "src/integrations/staleness.ts",
     "src/integrations/sha256.ts",
     "src/integrations/plugin-api.ts",
-    "src/integrations/plugin-registry.ts"
+    "src/integrations/plugin-registry.ts",
+    "src/integrations/plugin-actions.ts"
   ],
   "include": []
 }
