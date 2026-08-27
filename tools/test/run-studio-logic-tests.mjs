@@ -38,6 +38,7 @@ try {
     "tests/studio-logic/validation-findings.test.mjs",
     "tests/studio-logic/operations-model.test.mjs",
     "tests/studio-logic/graph-layout-routing.test.mjs",
+    "tests/studio-logic/integrations-foundation.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
