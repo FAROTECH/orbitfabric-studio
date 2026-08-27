@@ -142,6 +142,12 @@ export function assessAdapterInvocation(
       message: "Integration adapter process did not complete normally.",
     });
   }
+  if (invocation.exitCode === null) {
+    issues.push({
+      code: "transport.no_exit_status",
+      message: "Integration adapter process did not provide a normal exit status.",
+    });
+  }
 
   let result: IntegrationResult | null = null;
   if (invocation.resultText !== null) {
@@ -198,17 +204,23 @@ export async function executeIntegrationAdapter(
 
   const invocation = await gateway.runAdapter(authorization, request);
   let bundle: IntegrationBundleRead | null = null;
+  let bundleError: string | null = null;
   if (invocation.resultText !== null) {
     try {
       bundle = await gateway.readResultBundle(invocation.resultPath);
-    } catch {
-      // Parsing/integrity failure is assessed from the exact Result text below; filesystem
-      // bundle validation remains unavailable rather than being reconstructed from logs.
-      bundle = null;
+    } catch (error) {
+      bundleError = String(error);
     }
   }
-  return {
-    invocation,
-    assessment: assessAdapterInvocation(descriptor, request, invocation, bundle),
-  };
+
+  const assessment = assessAdapterInvocation(descriptor, request, invocation, bundle);
+  if (bundleError !== null) {
+    assessment.issues.push({
+      code: "result.bundle_read",
+      message: `Integration Result bundle could not be verified: ${bundleError}`,
+    });
+    assessment.valid = false;
+  }
+
+  return { invocation, assessment };
 }
