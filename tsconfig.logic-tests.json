@@ -23,7 +23,12 @@
     "src/graph/elkRouting.ts",
     "src/graph/contextGraphLayout.ts",
     "src/mission/relationshipPresentation.ts",
-    "src/graph/contextMapEvidence.ts"
+    "src/graph/contextMapEvidence.ts",
+    "src/integrations/contracts.ts",
+    "src/integrations/manifest.ts",
+    "src/integrations/compatibility.ts",
+    "src/integrations/result.ts",
+    "src/integrations/registry.ts"
   ],
   "include": []
 }
