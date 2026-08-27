@@ -21,7 +21,7 @@ import {
   type StudioSelection,
 } from "../mission/selection";
 
-export type MissionWorkspaceView = "overview" | "operations" | "explore" | "relations";
+export type MissionWorkspaceView = "overview" | "operations" | "explore" | "relations" | "integrations";
 
 export interface MissionOpeningState {
   requestId: string;
@@ -261,76 +261,50 @@ function reconcileSelectionWithPrimary(
     return selection;
   }
 
-  if (resolveEntityContract(session.snapshot, selection.subject) === null) {
-    return emptyStudioSelection();
-  }
-
-  if (selection.contextPath.length === 0) {
-    return selection;
-  }
-
-  const root = selection.contextPath[0].from;
-  if (resolveEntityContract(session.snapshot, root) === null) {
-    return emptyStudioSelection();
-  }
-
-  const validPath: ContextPathStep[] = [];
-  for (const step of selection.contextPath) {
-    if (
-      resolveEntityContract(session.snapshot, step.from) === null ||
-      resolveEntityContract(session.snapshot, step.to) === null
-    ) {
-      break;
-    }
-    validPath.push(step);
-  }
-
-  return {
-    subject: lastPathTarget(validPath, root),
-    origin: selection.origin,
-    contextPath: validPath,
-  };
+  return resolveEntityContract(session.snapshot, selection.subject) === null
+    ? emptyStudioSelection()
+    : selection;
 }
 
 function reconcileSelectionWithRelationships(
   selection: StudioSelection,
   session: MissionSession,
 ): StudioSelection {
-  if (selection.subject === null || selection.contextPath.length === 0) {
+  if (selection.subject === null) {
     return selection;
   }
 
-  const root = selection.contextPath[0].from;
+  const subjectRecord = session.readModel.entityRecordsByKey.get(
+    `${selection.subject.domain}/${selection.subject.id}`,
+  );
+  if (!subjectRecord) {
+    return emptyStudioSelection();
+  }
+
   const validPath: ContextPathStep[] = [];
+  let current = selection.contextPath[0]?.from ?? null;
 
   for (const step of selection.contextPath) {
+    if (current && !sameEntity(step.from, current)) {
+      break;
+    }
     const relationship = session.readModel.relationshipsById.get(step.relationshipId);
-    if (!relationship || !relationshipMatchesStep(relationship, step)) {
+    if (
+      !relationship ||
+      !sameEntity(relationship.from, step.from) ||
+      !sameEntity(relationship.to, step.to)
+    ) {
       break;
     }
     validPath.push(step);
+    current = step.to;
   }
 
   return {
-    subject: lastPathTarget(validPath, root),
+    subject: selection.subject,
     origin: selection.origin,
     contextPath: validPath,
   };
-}
-
-function lastPathTarget(path: readonly ContextPathStep[], fallback: EntityRef): EntityRef {
-  return path.length > 0 ? path[path.length - 1].to : fallback;
-}
-
-function relationshipMatchesStep(
-  relationship: RelationshipManifestDto["relationships"][number],
-  step: ContextPathStep,
-): boolean {
-  if (step.direction === "forward") {
-    return sameEntity(relationship.from, step.from) && sameEntity(relationship.to, step.to);
-  }
-
-  return sameEntity(relationship.to, step.from) && sameEntity(relationship.from, step.to);
 }
 
 function updateActiveSession(
