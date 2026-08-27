@@ -1,5 +1,6 @@
 import type {
   IntegrationInspectorAction,
+  IntegrationInspectorRow,
   IntegrationPluginContext,
   IntegrationPluginDefinition,
   IntegrationTargetInspectionInput,
@@ -73,13 +74,14 @@ function targetModel({
   input: IntegrationTargetInspectionInput;
   context: IntegrationPluginContext;
 }): IntegrationTargetInspectionModel {
-  const actions: IntegrationInspectorAction[] = [
-    {
-      id: "open-core-source",
-      label: "Open Core entity",
-      request: { kind: "open_core_entity", ref: input.source },
-    },
-  ];
+  const actions: IntegrationInspectorAction[] = input.mapping.sources.map((source, index) => ({
+    id: `open-core-source-${index}`,
+    label:
+      input.mapping.sources.length === 1
+        ? "Open Core entity"
+        : `Open ${source.domain}/${source.id}`,
+    request: { kind: "open_core_entity", ref: source },
+  }));
 
   const artifact = context.integration.result?.artifacts.find(
     (item) => item.id === artifactId && item.derivedFromMappings.includes(input.mapping.id),
@@ -91,6 +93,12 @@ function targetModel({
       request: { kind: "reveal_result_artifact", artifactId: artifact.id },
     });
   }
+
+  const sourceRows: IntegrationInspectorRow[] = input.mapping.sources.map((source, index) => ({
+    label: input.mapping.sources.length === 1 ? "Core source" : `Core source ${index + 1}`,
+    value: `${source.domain}/${source.id}`,
+    monospace: true,
+  }));
 
   return {
     title,
@@ -105,11 +113,7 @@ function targetModel({
         rows: [
           { label: targetLabel, value: input.target.id, monospace: true, emphasis: "strong" },
           { label: "Mapping", value: input.mapping.id, monospace: true },
-          {
-            label: "Core source",
-            value: `${input.source.domain}/${input.source.id}`,
-            monospace: true,
-          },
+          ...sourceRows,
         ],
       },
     ],
