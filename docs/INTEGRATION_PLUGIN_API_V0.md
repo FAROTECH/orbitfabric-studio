@@ -1,8 +1,8 @@
-# Integration Plugin API v0 — candidate design
+# Integration Plugin API v0 — reference-proven candidate
 
-Status: **candidate design for #332**  
+Status: **implemented candidate for #332; P1.A–P1.D reference proof complete pending final CI/ADR acceptance**  
 Mother architecture: #325  
-Depends on completed Phase 0B: #326
+Builds on completed Phase 0B: #326
 
 ## 1. Purpose
 
@@ -16,67 +16,55 @@ Integration Package
   -> generic Studio Integrations workspace
 ```
 
-The Integration Plugin API exists only for **target-aware user experience that cannot be expressed well by the generic workspace alone**.
+The Integration Plugin API exists only for **target-aware Studio UX that cannot be expressed well by the generic workspace alone**.
 
 It does not define another integration model and does not replace the Integration Package.
 
-The first v0 forcing function is deliberately narrow:
+The v0 forcing function is deliberately narrow:
 
-> Given an explicit Core -> target mapping from an Integration Result, allow a compatible plugin contribution to present the target in an ecosystem-aware way and offer Studio-gated navigation/actions.
+> Given an explicit mapping and opaque target ref from an Integration Result, allow a compatible plugin contribution to present that target in an ecosystem-aware way and request a small set of Studio-gated actions.
 
-This document calls that contribution a **Target Continuity Inspector**.
+The first and currently only contribution type is the **Target Continuity Inspector**.
 
 ---
 
-## 2. Design principles
-
-### 2.1 Generic truth remains outside the plugin
-
-The plugin receives already-resolved generic contract objects:
+## 2. Proven architecture
 
 ```text
-Core source ref
-Integration Result mapping
-opaque target ref
-artifact / provenance references where available
+OrbitFabric Core / Integration Package
+        |
+        | generic Phase 0B contracts
+        v
+Integration Result
+  mapping.sources[]
+  mapping.targets[]
+  artifacts[].derived_from_mappings
+        |
+        v
+Studio generic continuity UI
+        |
+        +-- always renders opaque target identity
+        |
+        +-- optional Integration Plugin dispatch
+                |
+                +-- target-aware presentation model
+                +-- declarative action requests
+                        |
+                        v
+                  Studio-owned gates
 ```
 
-It does not discover or reconstruct them.
-
-### 2.2 Studio owns rendering
-
-v0 contributions return a **presentation model**, not an arbitrary React component.
-
-This keeps:
-
-- layout and accessibility under Studio control;
-- visual consistency under Studio control;
-- the extension contract independent from React component internals;
-- future isolation options open;
-- plugin failure easier to contain.
-
-### 2.3 Plugins request actions; Studio performs them
-
-A plugin contribution may describe allowed actions, but does not receive filesystem/process/navigation internals.
+Normative distinction:
 
 ```text
-plugin contribution
-  -> action request
-  -> Studio validates capability + current context
-  -> Studio performs or rejects action
+Integration Package != Studio Integration Plugin
 ```
 
-### 2.4 No external plugin execution is required to prove v0
-
-Per proposed ADR 0002, the first implementation should register a bundled/in-tree reference contribution through the same public API.
-
-External plugin loading is a later runtime/trust decision.
+The Integration Package owns projection semantics, validation, artifact generation and target identities. The Studio plugin consumes those public records for presentation only.
 
 ---
 
 ## 3. Version identity
-
-Candidate public API identity:
 
 ```ts
 export type IntegrationPluginApiVersion = "0.1-candidate";
@@ -90,188 +78,136 @@ This version is independent from:
 - OrbitFabric Core package version;
 - target ecosystem version.
 
-A change to one does not imply a change to the others.
-
 ---
 
 ## 4. Plugin definition
 
-For the bundled proof, the runtime representation may be TypeScript while preserving the shape a future static manifest can describe.
+The bundled proof uses a TypeScript runtime representation:
 
 ```ts
-export interface IntegrationPluginDefinition {
+export type IntegrationPluginDefinition = {
   apiVersion: IntegrationPluginApiVersion;
-
   plugin: {
     id: string;
     version: string;
     displayName: string;
   };
-
   compatibility: {
     integrationIds: string[];
   };
-
   contributions: {
     targetInspectors: IntegrationTargetInspectorContribution[];
   };
-}
+};
 ```
 
 Rules:
 
 - `plugin.id` is Studio-plugin identity, not Integration Package identity;
-- `integrationIds` identifies Integration Package ecosystems the plugin knows how to present;
-- matching `integration.id` does **not** imply that the package itself is compatible with the current Core Input Set;
-- package compatibility remains the Phase 0B compatibility decision;
-- plugin compatibility never upgrades an incompatible package to compatible.
+- `integrationIds` declares which ecosystem integration IDs the plugin knows how to present;
+- plugin compatibility never changes the Phase 0B package/Core compatibility decision;
+- duplicate plugin IDs and duplicate contribution IDs are rejected;
+- multiple matching contributions are returned deterministically rather than silently collapsed.
 
-Future static plugin-manifest design may add Studio version compatibility and runtime metadata, but those are not required for the bundled API proof.
+No external plugin manifest, filesystem discovery or dynamic loader is defined by v0.
 
 ---
 
-## 5. Public PluginContext
+## 5. Public PluginContext after P1.D pruning
 
-The public context is intentionally capability-scoped and read-only.
+The initial design considered exposing selected mission entity, package descriptor, Profile, compatibility and freshness. The bundled OpenOBSW/OpenSVF forcing function did not need any of them.
+
+They were therefore removed from the public API rather than retained speculatively.
+
+The reference-proven context is:
 
 ```ts
-export interface IntegrationPluginContext {
-  readonly mission: IntegrationPluginMissionContext;
-  readonly integration: IntegrationPluginIntegrationContext;
+export type IntegrationPluginContext = {
+  readonly integration: {
+    readonly id: string;
+    readonly result: IntegrationResult | null;
+  };
   readonly actions: IntegrationPluginActions;
-}
-```
+};
 
-### 5.1 Mission context
-
-```ts
-export interface IntegrationPluginMissionContext {
-  readonly selectedEntity: IntegrationCoreRef | null;
-}
-```
-
-v0 does not expose the Mission Model, raw YAML or private Studio state.
-
-Additional Core-owned read-only surfaces should be added only when a concrete contribution needs them.
-
-### 5.2 Integration context
-
-```ts
-export interface IntegrationPluginIntegrationContext {
-  readonly package: IntegrationPackageDescriptor;
-  readonly profile: IntegrationProfileDocument | null;
-  readonly result: IntegrationResult | null;
-  readonly compatibility: IntegrationCompatibilityAssessment;
-  readonly freshness: IntegrationFreshnessAssessment;
-}
-```
-
-These are the existing generic Phase 0B models.
-
-The plugin does not receive private adapter IR or generated-artifact contents automatically.
-
-### 5.3 Studio-gated actions
-
-```ts
-export interface IntegrationPluginActions {
+export type IntegrationPluginActions = {
   openCoreEntity(ref: IntegrationCoreRef): Promise<void>;
   revealResultArtifact(artifactId: string): Promise<void>;
-}
+};
 ```
 
-The implementation is Studio-owned. A plugin receives callable capability wrappers, not reducer/Tauri/filesystem access.
+This is intentionally smaller than Studio's internal Phase 0B state.
 
-Candidate later actions, only if justified:
+The plugin does **not** receive:
 
 ```text
-requestIntegrationOperation(...)
-openProfileLocation(...)
-openEvidence(...)
+selectedEntity
+Mission Model
+raw mission YAML
+IntegrationPackageDescriptor
+Projection Profile
+compatibility assessment
+freshness assessment
+private adapter IR
+artifact file contents
+filesystem/process/Tauri/reducer/localStorage access
 ```
 
-No generic `executeCommand`, `spawn`, `readFile`, `writeFile` or arbitrary navigation API belongs in v0.
+If a future contribution demonstrates a real need for another public datum, it must be added deliberately and versioned intentionally.
 
 ---
 
 ## 6. Target Continuity Inspector
 
-### 6.1 Contribution identity and matching
+### 6.1 Input
 
 ```ts
-export interface IntegrationTargetInspectorContribution {
+export type IntegrationTargetInspectionInput = {
+  readonly mapping: IntegrationMapping;
+  readonly target: IntegrationTargetRef;
+};
+```
+
+There is deliberately no singular `source` field.
+
+`IntegrationMapping.sources[]` is the authoritative cardinality and supports one-to-one, one-to-many and many-to-one mappings. Studio and plugins must not promote the first source to an implicit primary source.
+
+Studio supplies `mapping + target` directly from the explicit Integration Result. The contribution does not search Profile text or generated artifacts to infer mappings.
+
+### 6.2 Contribution
+
+```ts
+export type IntegrationTargetInspectorContribution = {
   id: string;
-
   matches(input: IntegrationTargetInspectionInput): boolean;
-
   inspect(
     input: IntegrationTargetInspectionInput,
     context: IntegrationPluginContext,
   ): IntegrationTargetInspectionModel;
-}
+};
 ```
 
-Input:
+`matches()` is presentation dispatch only. A target-aware plugin may recognize namespace/kind tuples it owns; Studio Core continues to treat those tuples as opaque.
+
+### 6.3 Presentation model
 
 ```ts
-export interface IntegrationTargetInspectionInput {
-  readonly source: IntegrationCoreRef;
-  readonly mapping: IntegrationMapping;
-  readonly target: IntegrationTargetRef;
-}
-```
-
-Important:
-
-- Studio supplies the source/mapping/target from the explicit Integration Result;
-- the contribution does not search artifacts or Profile text to infer the mapping;
-- `matches()` is presentation dispatch, not semantic discovery.
-
-A plugin may recognize target namespaces/kinds it owns, for example conceptually:
-
-```ts
-return input.target.namespace === "opensvf"
-    && input.target.kind === "parameter";
-```
-
-Studio Core itself remains unaware of what those strings mean.
-
-### 6.2 Presentation model
-
-```ts
-export interface IntegrationTargetInspectionModel {
+export type IntegrationTargetInspectionModel = {
   title: string;
   subtitle?: string;
   badges?: IntegrationInspectorBadge[];
   sections: IntegrationInspectorSection[];
   actions?: IntegrationInspectorAction[];
-}
-
-export interface IntegrationInspectorSection {
-  id: string;
-  title?: string;
-  rows: IntegrationInspectorRow[];
-}
-
-export interface IntegrationInspectorRow {
-  label: string;
-  value: string;
-  emphasis?: "normal" | "strong" | "muted";
-  monospace?: boolean;
-}
-
-export interface IntegrationInspectorBadge {
-  label: string;
-  tone?: "neutral" | "info" | "success" | "warning" | "danger";
-}
+};
 ```
 
-The presentation model contains no HTML and no executable UI callbacks.
+The model contains no HTML, React components or executable UI callbacks. Studio owns rendering, accessibility and layout.
 
-Studio decides how it renders these values.
+---
 
-### 6.3 Actions
+## 7. Studio-gated actions
 
-Inspector actions are declarative requests:
+The reference proof exercises two declarative action kinds:
 
 ```ts
 export type IntegrationInspectorAction =
@@ -293,146 +229,121 @@ export type IntegrationInspectorAction =
     };
 ```
 
-Studio validates the request against the current Result/context before executing it.
+Studio validates both before execution.
 
-A plugin cannot manufacture an arbitrary local path and ask Studio to reveal it through this API.
+### `open_core_entity`
+
+The requested Core ref must be one of the inspected `mapping.sources[]` entries.
+
+A plugin cannot use this action as arbitrary Studio navigation.
+
+### `reveal_result_artifact`
+
+The requested artifact must:
+
+1. exist in the current Integration Result; and
+2. declare the inspected mapping ID in `derived_from_mappings`.
+
+The v0 Studio implementation then reveals/focuses the already-rendered artifact row. It does not give the plugin an arbitrary local path and does not expose raw filesystem access.
 
 ---
 
-## 7. Registry and dispatch
+## 8. Registry, zero-plugin fallback and failure isolation
 
-The first implementation may use an in-process bundled registry:
+The first implementation uses an in-process bundled registry.
 
-```ts
-registerIntegrationPlugin(definition: IntegrationPluginDefinition): void;
-```
-
-But the registry is an API proof, not a claim that arbitrary runtime registration is already safe.
-
-Dispatch algorithm:
+Dispatch is:
 
 ```text
-current registered Integration Package
+context.integration.id
         ↓
-find enabled plugin definitions compatible with integration.id
+compatible plugin definitions
         ↓
-for selected explicit target ref
+matching Target Inspector contributions
         ↓
-collect matching Target Inspector contributions
+guarded matches()/inspect()
         ↓
-execute contribution in guarded boundary
-        ↓
-Studio renders returned presentation model
+Studio-rendered presentation model
 ```
 
-Rules:
+Properties proved by logic tests:
 
-- zero matches is normal; generic target presentation remains available;
-- multiple matches must be deterministic and visible rather than silently choosing one;
-- a contribution exception becomes a plugin/contribution error state and falls back to generic presentation;
-- plugin failure never invalidates the Integration Result itself.
+- registry empty -> normal empty dispatch;
+- incompatible integration IDs are filtered before contribution matching;
+- multiple matches are deterministic and visible;
+- exceptions in `matches()` or `inspect()` become contribution failures;
+- a contribution failure does not invalidate the Integration Result;
+- generic opaque target presentation remains available independently of plugins.
+
+A plugin failure is a Studio extension/presentation failure, not a Core, adapter or Integration Result diagnostic.
 
 ---
 
-## 8. Failure isolation
+## 9. Bundled OpenOBSW/OpenSVF reference contribution
 
-Bundled contribution execution must be guarded even before external plugins exist.
-
-Conceptually:
-
-```ts
-try {
-  model = contribution.inspect(input, publicContext);
-  validateInspectionModel(model);
-} catch (error) {
-  recordContributionFailure(pluginId, contributionId, error);
-  renderGenericTargetFallback();
-}
-```
-
-The failure is a Studio extension/presentation failure, not:
-
-- Core diagnostic;
-- Integration Package diagnostic;
-- adapter execution diagnostic;
-- Integration Result diagnostic.
-
-These ownership domains must not be conflated.
-
----
-
-## 9. Reference OpenOBSW/OpenSVF contribution
-
-The first bundled reference contribution should be intentionally small.
-
-Candidate behavior:
+The first bundled plugin is registered through the same public API under:
 
 ```text
-Input:
-  Core telemetry source
-  explicit Result mapping
-  target {namespace: opensvf, kind: parameter, id: ...}
-
-Output:
-  title: OpenSVF parameter
-  rows:
-    Target ID       <opaque/displayed target id>
-    Mapping         <mapping id>
-    Source          telemetry:eps.obc.bus_voltage_mv
-
-  action:
-    Open Core entity
+plugin.id = orbitfabric-studio.openobsw-opensvf
+integration.id = orbitfabric-openobsw-opensvf
 ```
 
-If the current reference Result provides an OpenOBSW contract-symbol target and an OpenSVF parameter target for the same mapping, Studio can show separate target inspector cards supplied by the same plugin.
-
-The contribution must consume the real reference Integration Result used by Phase 0B acceptance.
-
-The first proof does **not** need to parse SRDB files, run OpenSVF or add YAMCS runtime behavior.
-
----
-
-## 10. Why the first API does not expose artifact contents
-
-Artifact inspection is a strong second contribution candidate, but reading artifact contents immediately would require a new capability boundary:
+It recognizes target tuples actually emitted by the reference Integration Package:
 
 ```text
-Result-declared artifact
-  -> contained path verification
-  -> explicit user/plugin request
-  -> controlled text/binary read policy
-  -> size/media-type limits
+openobsw / contract_symbol / <C symbol>
+opensvf  / srdb_parameter / <SRDB name>
 ```
 
-Phase 0B already validates artifact containment and digest. The plugin API should reuse that trust decision, not add a raw filesystem API.
+It does not teach Studio Core what those strings mean.
 
-Therefore artifact-content access is deferred until its controlled service is designed explicitly.
+The contribution presents:
+
+- target-aware title;
+- opaque target identifier;
+- explicit mapping ID;
+- every Core source in `mapping.sources[]`;
+- navigation actions for every mapping source;
+- artifact reveal actions only when the Result explicitly links the mapping to the corresponding artifact.
+
+Reference artifacts exercised today are:
+
+```text
+flight.mission_contract   kind=openobsw_contract_header
+ground.opensvf_srdb       kind=opensvf_srdb_yaml
+```
+
+The reference plugin does not parse the generated C header or SRDB YAML, does not run OpenSVF and does not add YAMCS runtime behavior.
 
 ---
 
-## 11. Why the first API does not expose Profile mutation
+## 10. Real reference acceptance
 
-The Projection Profile is an authoritative version-controlled text file owned by the Integration Package schema.
+The plugin proof is integrated into the existing real-reference CI path.
 
-A visual editor requires a write contract that preserves:
+That CI:
 
-- YAML/JSON document integrity;
-- schema validation;
-- source-control friendliness;
-- no hidden Studio-only mapping state;
-- deterministic relation between UI edit and file edit.
+1. checks out the pinned OpenOBSW/OpenSVF Integration Package;
+2. checks out the pinned Core producer;
+3. exports a real coherent Core Integration Input Set;
+4. executes the real adapter through the Studio Rust runner;
+5. parses and validates the real Integration Result through Studio contracts;
+6. dispatches the bundled Studio plugin against the real Result target refs;
+7. verifies target presentation, all mapping sources and Result-linked artifact actions.
 
-That should be designed as a separate contribution/service after the read-only target-inspector boundary is proven.
+This avoids a Studio-only synthetic semantic fixture as the acceptance authority.
 
 ---
 
-## 12. Explicit v0 exclusions
+## 11. Explicit v0 exclusions
 
-Integration Plugin API v0 candidate does not expose:
+The reference-proven v0 API does not expose:
 
 ```text
 raw Mission YAML
 Mission Model mutation
+Projection Profile mutation
+artifact-content read APIs
 arbitrary filesystem read/write
 process execution
 shell execution
@@ -448,60 +359,83 @@ commanding
 verification campaign execution
 ```
 
-Absence from v0 is deliberate, not a statement that every capability is permanently forbidden.
+Absence from v0 is deliberate, not a claim that every capability is permanently forbidden.
 
 ---
 
-## 13. Implementation slices
+## 12. Why no second contribution type is added yet
+
+P1.D reviewed the surface actually exercised by the reference plugin.
+
+The Target Inspector already proved:
+
+- ecosystem-aware presentation;
+- explicit Core-to-target continuity;
+- multi-source handling;
+- Studio-gated Core navigation;
+- Studio-gated artifact reveal;
+- deterministic dispatch;
+- failure isolation.
+
+Therefore there is no evidence-based need to add an artifact-inspector contribution, Profile-editor contribution or generic operation contribution to v0 yet.
+
+Artifact-content inspection would require a controlled read service with containment, media-type and size policy. Profile editing would require an explicit authoritative write contract. Those boundaries should be designed only when a concrete feature needs them.
+
+---
+
+## 13. Implementation status
 
 ### P1.A — public types and registry
 
-- introduce the public plugin API types;
-- add bundled registry;
-- add compatibility filter by `integration.id`;
-- add guarded contribution dispatch;
-- add unit tests proving zero-plugin fallback and failure isolation.
+Implemented and tested:
 
-No target-specific code in this slice.
+- public API types;
+- bundled registry;
+- exact `integration.id` filtering;
+- deterministic dispatch;
+- zero-plugin fallback;
+- guarded contribution failure isolation.
 
 ### P1.B — generic Target Inspector host
 
-- add generic target-inspection area to Integrations continuity UI;
-- render `IntegrationTargetInspectionModel`;
-- dispatch matching contributions;
-- keep existing generic tuple presentation as fallback.
+Implemented:
 
-Still no target-specific code in Studio Core.
+- generic host in Contract Continuity;
+- opaque tuple fallback always retained;
+- Studio-owned presentation rendering;
+- Studio-gated action execution;
+- dedicated minimal styling.
 
 ### P1.C — bundled OpenOBSW/OpenSVF reference contribution
 
-- register one bundled plugin definition through the public API;
-- match target namespaces/kinds owned by the reference ecosystem;
-- produce target-aware presentation models;
-- validate against the real pinned reference Result fixture;
-- prove no direct import of private Studio state.
+Implemented and reference-tested against the real Integration Result.
 
 ### P1.D — API review gate
 
-Before accepting ADR 0002 and before designing external plugin loading:
+Completed in code/design:
 
-- review which API members the reference contribution actually used;
-- remove speculative members;
-- document failure/trust behavior;
-- verify generic Phase 0B works with registry empty;
-- decide whether a second contribution type is justified.
+- removed singular `input.source` assumption;
+- preserved `mapping.sources[]` cardinality;
+- removed selected mission entity from public context;
+- removed package descriptor, Profile, compatibility and freshness from public context;
+- retained only `integration.id`, current Result and two proven gated actions;
+- decided not to add a second contribution family without new evidence.
+
+Final acceptance still requires green CI on the post-pruning head before ADR 0002 status is advanced.
 
 ---
 
-## 14. Acceptance criteria for this candidate
+## 14. Acceptance criteria
 
-The design is ready for implementation when:
+The v0 reference proof is acceptable when all of the following hold on the final head:
 
 - `Integration Package != Studio Integration Plugin` remains enforceable in code;
-- the first plugin context contains only existing generic Phase 0B contracts plus Studio-gated actions;
-- no target-specific field appears in public Studio API types;
-- the generic UI can render targets without any plugin;
-- a plugin can improve target presentation from explicit Result mappings only;
-- a plugin exception degrades only its contribution;
-- no arbitrary external plugin execution is required to prove the API;
-- the reference contribution can be tested against the real Phase 0B fixture without changing Core or Integration Result contracts.
+- no target-specific field appears in Studio public plugin API types;
+- the plugin receives only the minimal reference-proven context;
+- generic target presentation works with zero plugins;
+- the reference plugin improves presentation from explicit Result mappings only;
+- many-to-one mappings do not acquire an implicit primary source;
+- all privileged actions cross Studio-owned gates;
+- plugin exceptions degrade only the contribution;
+- no arbitrary external plugin execution is required;
+- real reference CI passes without changing Core or Integration Result contracts.
