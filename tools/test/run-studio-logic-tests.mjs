@@ -42,6 +42,8 @@ try {
     "tests/studio-logic/integration-profile.test.mjs",
     "tests/studio-logic/integration-execution.test.mjs",
     "tests/studio-logic/integration-staleness.test.mjs",
+    "tests/studio-logic/integration-plugin-registry.test.mjs",
+    "tests/studio-logic/integration-plugin-actions.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
@@ -54,6 +56,7 @@ try {
     process.env.ORBITFABRIC_STUDIO_REFERENCE_RESULT
   ) {
     tests.push("tests/studio-logic/reference-integration-acceptance.test.mjs");
+    tests.push("tests/studio-logic/reference-integration-plugin-acceptance.test.mjs");
   }
 
   run(process.execPath, ["--test", ...tests]);
