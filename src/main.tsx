@@ -11,6 +11,7 @@ import "./styles/relations.css";
 import "./styles/context-map.css";
 import "./styles/operations.css";
 import "./styles/integrations.css";
+import "./styles/integration-plugin.css";
 import "./styles/capture.css";
 import "./styles/responsive.css";
 
