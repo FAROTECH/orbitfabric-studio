@@ -340,15 +340,11 @@ export function IntegrationsWorkspace({
 
   const result = resultState?.result ?? null;
   const freshness = assessIntegrationFreshness(result, inputSet, profile?.document ?? null);
-  const pluginContext: IntegrationPluginContext | null = descriptor && compatibility && result
+  const pluginContext: IntegrationPluginContext | null = descriptor && result
     ? {
-        mission: { selectedEntity },
         integration: {
-          package: descriptor,
-          profile: profile?.document ?? null,
+          id: descriptor.integrationId,
           result,
-          compatibility,
-          freshness,
         },
         actions: {
           async openCoreEntity(ref) {
