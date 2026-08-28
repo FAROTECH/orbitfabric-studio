@@ -31,27 +31,9 @@ const input = {
 
 function context(integrationId = "example-integration") {
   return {
-    mission: { selectedEntity: source },
     integration: {
-      package: {
-        manifestPath: "/tmp/integration_package.json",
-        kind: "orbitfabric.integration_package",
-        manifestVersion: "0.1-candidate",
-        integrationId,
-        adapterId: "example-adapter",
-        adapterVersion: "1.0.0",
-        coreInputCompatibility: { inputSetVersions: [], surfaces: [], relationshipFamilies: [] },
-        profileCompatibility: { profileVersions: [] },
-        resultCompatibility: { resultVersions: [], defaultResultVersion: "0.1-candidate" },
-        advertisedCapabilities: [],
-        operations: [],
-        profileSchemas: [],
-        execution: { protocol: "orbitfabric.adapter_cli.v0", argvPrefix: ["example"] },
-      },
-      profile: null,
+      id: integrationId,
       result: null,
-      compatibility: { state: "compatible", reasons: [] },
-      freshness: { state: "unknown", reason: "fixture" },
     },
     actions: {
       async openCoreEntity() {},
