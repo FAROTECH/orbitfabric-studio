@@ -1,10 +1,6 @@
 import type {
-  IntegrationCompatibility,
   IntegrationCoreRef,
   IntegrationMapping,
-  IntegrationPackageDescriptor,
-  IntegrationProfileDocument,
-  IntegrationProfileFreshnessAssessment,
   IntegrationResult,
   IntegrationTargetRef,
 } from "./contracts";
@@ -26,16 +22,9 @@ export type IntegrationPluginDefinition = {
   };
 };
 
-export type IntegrationPluginMissionContext = {
-  readonly selectedEntity: IntegrationCoreRef | null;
-};
-
 export type IntegrationPluginIntegrationContext = {
-  readonly package: IntegrationPackageDescriptor;
-  readonly profile: IntegrationProfileDocument | null;
+  readonly id: string;
   readonly result: IntegrationResult | null;
-  readonly compatibility: IntegrationCompatibility;
-  readonly freshness: IntegrationProfileFreshnessAssessment;
 };
 
 export type IntegrationPluginActions = {
@@ -44,7 +33,6 @@ export type IntegrationPluginActions = {
 };
 
 export type IntegrationPluginContext = {
-  readonly mission: IntegrationPluginMissionContext;
   readonly integration: IntegrationPluginIntegrationContext;
   readonly actions: IntegrationPluginActions;
 };
