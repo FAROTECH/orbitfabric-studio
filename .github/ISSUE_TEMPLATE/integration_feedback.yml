@@ -1,0 +1,72 @@
+name: Integration / plugin feedback
+description: Report or propose behavior for Studio integrations and the Integration Plugin API
+title: "integration: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for the generic Integrations workspace, Integration Result consumption or Studio Integration Plugin behavior.
+
+        Keep the ownership boundary explicit:
+
+        `Integration Package != Studio Integration Plugin`
+
+        Integration Packages own projection and generation semantics. Studio plugins provide constrained target-aware presentation over explicit public integration records.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Integration area
+      options:
+        - Generic Integrations workspace
+        - Integration Package compatibility / execution boundary
+        - Integration Result consumption
+        - Contract Continuity
+        - Integration Plugin API
+        - Target Continuity Inspector
+        - Studio-gated plugin action
+        - Bundled OpenOBSW / OpenSVF reference contribution
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: integration-id
+    attributes:
+      label: Integration ID
+      description: If applicable, provide the explicit integration.id involved.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the problem, limitation or proposed improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: explicit-records
+    attributes:
+      label: Explicit integration records involved
+      description: Identify the relevant mapping IDs, target refs, artifact IDs or other public Integration Result fields using synthetic or public-safe data.
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Studio behavior
+      description: What should Studio present, validate, navigate or gate?
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Ownership boundary
+      description: Explain what belongs to the Integration Package/adapter and what belongs to Studio or the Studio plugin.
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+      description: Note any capabilities that should remain outside the Studio/plugin boundary, such as arbitrary filesystem access, shell execution, raw Mission Model access or target runtime control.
+  - type: checkboxes
+    id: clean-room
+    attributes:
+      label: Clean-room confirmation
+      options:
+        - label: This issue does not include proprietary adapters, confidential target data, export-controlled material or NDA-protected information.
+          required: true

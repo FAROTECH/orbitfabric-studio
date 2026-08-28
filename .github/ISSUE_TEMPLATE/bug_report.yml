@@ -1,0 +1,96 @@
+name: Bug report
+description: Report a reproducible problem in OrbitFabric Studio
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a Studio problem.
+
+        Do not use a public issue for security vulnerabilities or protected mission information. Use synthetic or otherwise safe reproduction data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Mission opening / Core hydration
+        - Mission Atlas
+        - Explore / Entity X-Ray
+        - Relations / Context Map
+        - Validation Findings
+        - Operations / Mode Focus
+        - Integrations workspace
+        - Integration Plugin presentation
+        - Capture / export
+        - Tauri / process / filesystem boundary
+        - Build / installation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: studio-version
+    attributes:
+      label: Studio version or commit
+      description: For example v0.15.0-preview.1 or a commit SHA from main.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Debian / Ubuntu Linux
+        - Other Linux
+        - macOS
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: core-version
+    attributes:
+      label: OrbitFabric Core version or commit
+      description: Include the configured Core baseline when the problem involves mission loading, validation or Core-owned surfaces.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reliable sequence that reproduces the problem.
+      placeholder: |
+        1. Start Studio with ...
+        2. Open a synthetic mission ...
+        3. Select ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Safe logs, screenshots or reproduction details
+      description: Redact local paths, credentials, proprietary mission data and any information you are not authorized to publish.
+  - type: checkboxes
+    id: clean-room
+    attributes:
+      label: Clean-room confirmation
+      options:
+        - label: This issue and any attached evidence contain no proprietary, confidential, export-controlled or NDA-protected material.
+          required: true
