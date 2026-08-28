@@ -1,6 +1,6 @@
 # Integration Plugin API v0 — reference-proven candidate
 
-Status: **implemented candidate for #332; P1.A–P1.D reference proof complete pending final CI/ADR acceptance**  
+Status: **implemented candidate for #332; P1.A–P1.D reference proof complete; ADR 0002 accepted**  
 Mother architecture: #325  
 Builds on completed Phase 0B: #326
 
@@ -421,7 +421,7 @@ Completed in code/design:
 - retained only `integration.id`, current Result and two proven gated actions;
 - decided not to add a second contribution family without new evidence.
 
-Final acceptance still requires green CI on the post-pruning head before ADR 0002 status is advanced.
+ADR 0002 is accepted. Merge remains subject to the repository policy that all required CI checks pass on the exact final PR head.
 
 ---
 
