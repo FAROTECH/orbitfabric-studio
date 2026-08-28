@@ -1,6 +1,6 @@
 # ADR 0002: Prove the Integration Plugin API before external plugin execution
 
-**Status:** proposed  
+**Status:** accepted  
 **Related:** #325, #326, #332
 
 ## Context
@@ -29,9 +29,7 @@ OrbitFabric Studio
 
 The OpenOBSW/OpenSVF reference package is exercised through the actual Studio Rust runner in CI. Studio therefore already has an explicit external-code execution boundary for integration adapters.
 
-The next product need is different: target-aware Studio presentation such as richer continuity inspection, artifact inspection and Profile editing assistance.
-
-A Studio Integration Plugin can provide those capabilities, but introducing a general external plugin loader at the same time would combine two independent design problems:
+The next product need is different: target-aware Studio presentation. A Studio Integration Plugin can provide that UX, but introducing a general external plugin loader at the same time would combine two independent design problems:
 
 1. defining the **public Studio extension API**;
 2. safely loading and executing **third-party UI/plugin code**.
@@ -40,9 +38,9 @@ The second problem introduces trust, isolation, packaging, lifecycle, compatibil
 
 ## Decision
 
-Integration Plugin API v0 will be designed and proven **before** Studio enables arbitrary external plugin-code loading.
+Integration Plugin API v0 is designed and proven **before** Studio enables arbitrary external plugin-code loading.
 
-The first implementation will use one or more **bundled/in-tree reference contributions** that consume only the same constrained public plugin context intended for future external plugins.
+The first implementation uses a **bundled/in-tree reference contribution** that consumes only the constrained public plugin context.
 
 Conceptually:
 
@@ -54,7 +52,7 @@ Studio private internals
         |
 Studio public Integration Plugin API v0
         |
-        +-- read-only typed context
+        +-- minimal read-only integration context
         +-- declarative contribution registration
         +-- Studio-gated actions
         |
@@ -63,9 +61,9 @@ Bundled reference contribution
 (OpenOBSW/OpenSVF target-aware UX)
 ```
 
-The reference contribution must not receive privileged access merely because it is bundled. It must exercise the public boundary rather than importing private application state or bypassing generic integration services.
+The reference contribution receives no privileged access merely because it is bundled. It exercises the same public boundary rather than importing private application state or bypassing generic integration services.
 
-External plugin discovery/loading/execution remains a **separate follow-on decision**. Enabling it requires an explicit review of the trust and runtime model and may require a subsequent ADR.
+External plugin discovery/loading/execution remains a **separate follow-on decision**. Acceptance of this ADR does not authorize arbitrary third-party plugin execution.
 
 ## Why this sequence
 
@@ -84,7 +82,7 @@ without prematurely committing to:
 - permissions;
 - marketplace/distribution policy.
 
-It also prevents the plugin runtime mechanism from shaping the API before the reference use case proves which contribution points are needed.
+The implementation also allowed the candidate API to be reduced after evidence from the real reference use case, instead of preserving speculative surface.
 
 ## Integration Package boundary remains unchanged
 
@@ -115,78 +113,152 @@ Studio Integration Plugins may consume those public records for presentation and
 - write authoritative integration state outside the Profile/Package/Result contracts;
 - interpret target IDs through assumptions hidden from the integration contract.
 
-## Public-context principle
+## Reference-proven public context
 
-The bundled reference contribution must use a constrained context shaped around capabilities, not a mutable application singleton.
+P1.D removed candidate fields that the bundled reference contribution did not need.
 
-Candidate context families are:
+The accepted v0 boundary is intentionally small:
 
 ```text
-mission
-  selected Core entity identity
-  public entity / relationship navigation data
-
 integration
-  IntegrationPackageDescriptor
-  current compatibility assessment
-  Profile identity / validation state
+  integration.id
   current Integration Result
-  current freshness assessment
 
-navigation
+actions
   request Core entity navigation
-  request artifact reveal/open
-
-operations
-  request Studio-owned generic integration operations
+  request Result artifact reveal
 ```
 
-Direct access to React reducer internals, Tauri internals, process spawning, arbitrary filesystem APIs, localStorage and private persistence is outside the v0 boundary.
+The implementation shape is conceptually:
+
+```ts
+IntegrationPluginContext {
+  integration: {
+    id
+    result
+  }
+  actions: {
+    openCoreEntity(ref)
+    revealResultArtifact(artifactId)
+  }
+}
+```
+
+The plugin does not receive:
+
+```text
+selected mission entity
+Mission Model
+raw Mission YAML
+IntegrationPackageDescriptor
+Projection Profile
+compatibility assessment
+freshness assessment
+private adapter IR
+artifact file contents
+React reducer internals
+Tauri internals
+process spawning
+arbitrary filesystem APIs
+localStorage / private persistence
+```
+
+A future contribution may justify extending this context, but such additions must be explicit and intentionally versioned.
 
 ## Contribution principle
 
-v0 contribution points will be added only when justified by a concrete reference-plugin requirement.
+v0 contribution points are admitted only when justified by a concrete reference-plugin requirement.
 
-The preferred first forcing function is a **target-aware Contract Continuity Inspector**:
+The first and currently only contribution family is a **target-aware Contract Continuity Inspector**:
 
 ```text
-Core entity
-  -> explicit generic Result mapping
-  -> opaque target refs
-  -> target-aware plugin presentation/actions
+explicit Result mapping
+  mapping.sources[]
+  mapping.targets[]
+        ↓
+opaque target ref
+        ↓
+target-aware plugin presentation/actions
 ```
+
+There is deliberately no singular implicit source. `mapping.sources[]` preserves the Integration Result cardinality, including many-to-one cases.
 
 Studio Core continues to treat `namespace + kind + id` as opaque target identity. The bundled reference contribution may understand target namespaces/kinds it explicitly owns.
 
-Other possible contribution families — artifact inspectors and schema-backed Profile editing assistance — should be admitted only after their data/action boundary is similarly explicit.
+No second contribution family is added merely because artifact inspection or Profile editing may become useful later. Those features require their own explicit capability boundaries when a concrete need exists.
+
+## Studio-gated actions
+
+The accepted v0 proof exercises two declarative actions.
+
+### Core entity navigation
+
+A plugin may request navigation to a Core ref, but Studio accepts it only when that ref is one of the inspected mapping's explicit `sources[]` entries.
+
+### Result artifact reveal
+
+A plugin may request reveal of an artifact ID, but Studio accepts it only when:
+
+1. the artifact exists in the current Integration Result; and
+2. `derived_from_mappings` explicitly contains the inspected mapping ID.
+
+The current implementation reveals/focuses the already-rendered artifact row. It does not expose an arbitrary local path or raw filesystem access to the plugin.
 
 ## Failure-isolation consequence
 
-The generic Phase 0B Integrations workspace remains the baseline product path and must work with zero plugins/contributions enabled.
+The generic Phase 0B Integrations workspace remains the baseline product path and works with zero plugins/contributions enabled.
 
-Failure or disablement of a reference contribution must not prevent:
+The reference proof demonstrates that:
 
-- mission loading;
-- normal mission exploration;
-- package registration;
-- generic Profile validation;
-- generic adapter execution;
-- generic Result inspection.
+- empty registry is a normal state;
+- incompatible integration IDs are filtered before contribution dispatch;
+- multiple matches are deterministic;
+- exceptions in plugin `matches()` or `inspect()` are isolated as contribution failures;
+- plugin failure does not invalidate the Integration Result;
+- generic opaque target presentation remains available independently of plugin success.
+
+A Studio plugin failure is therefore not a Core, Integration Package, adapter or Integration Result diagnostic.
+
+## Reference proof
+
+The bundled OpenOBSW/OpenSVF contribution is registered through the public API and recognizes only target tuples actually emitted by the real reference Integration Package:
+
+```text
+openobsw / contract_symbol / <C symbol>
+opensvf  / srdb_parameter / <SRDB name>
+```
+
+It presents explicit mapping identity and every `mapping.sources[]` entry, and requests artifact reveal only for Result-linked artifacts such as:
+
+```text
+flight.mission_contract
+ground.opensvf_srdb
+```
+
+The reference acceptance path uses the real pinned Integration Package and Core producer, exports a real coherent Core Input Set, executes the adapter through the Studio Rust runner and consumes the real Integration Result through Studio contracts before dispatching the plugin.
+
+CI run #276 on head `9a329e46782d230711e891373d6680588cd22b58` passed:
+
+- Frontend build and Studio logic tests;
+- Pinned Core acceptance matrix;
+- Real reference Integration Package acceptance;
+- Rust tests and check;
+- Tauri production-path debug build.
 
 ## Compatibility consequence
 
-The public plugin API must be versioned independently from:
+The public plugin API is versioned independently from:
 
 - OrbitFabric Core Integration contracts;
 - Integration Package manifest versions;
 - adapter versions;
 - target ecosystem versions.
 
-A future external plugin manifest may declare compatibility with the Studio plugin API and with one or more `integration.id` values, but it must not redefine package compatibility with Core inputs.
+A future external plugin manifest may declare compatibility with the Studio plugin API and one or more `integration.id` values, but it must not redefine Integration Package compatibility with Core inputs.
 
 ## Trust consequence
 
-The following trust decisions remain separate:
+The trust decisions remain separate:
 
 ```text
 Integration Package manifest validation
@@ -197,15 +269,17 @@ Integration Package manifest validation
 
 This ADR makes no claim that a validated future plugin manifest is sufficient authorization to execute third-party plugin code.
 
-## Acceptance for moving beyond bundled contributions
+## Consequence for future external plugins
 
-External plugin loading should not be implemented until the bundled reference contribution demonstrates that:
+The bundled proof has now demonstrated that:
 
-- the API provides useful target-aware UX without private Studio access;
+- useful target-aware UX is possible without private Studio access;
 - the generic Phase 0B path remains independent;
-- target-specific fields have not leaked into Studio Core contracts;
-- all privileged actions cross Studio-owned gates;
-- plugin failure can be isolated;
-- the contribution model is stable enough to version intentionally.
+- target-specific fields have not leaked into Studio public contracts;
+- privileged actions cross Studio-owned gates;
+- plugin failure is isolated;
+- the contribution model can be versioned intentionally.
 
-At that point Studio can make a separate, evidence-based decision about external plugin packaging and execution.
+Studio may therefore make a **separate, evidence-based architectural decision** about external plugin packaging, discovery, trust, isolation and execution.
+
+That future decision is not made by this ADR.
