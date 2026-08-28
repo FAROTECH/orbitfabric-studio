@@ -69,7 +69,7 @@ export class IntegrationPluginRegistry {
     const matches: IntegrationTargetInspectorMatch[] = [];
     const failures: IntegrationPluginContributionFailure[] = [];
 
-    for (const entry of this.targetInspectorContributions(context.integration.package.integrationId)) {
+    for (const entry of this.targetInspectorContributions(context.integration.id)) {
       let accepted = false;
       try {
         accepted = entry.contribution.matches(input);
