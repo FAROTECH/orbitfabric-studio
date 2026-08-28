@@ -21,24 +21,8 @@ function context() {
   return {
     calls,
     value: {
-      mission: { selectedEntity: source },
       integration: {
-        package: {
-          manifestPath: "/tmp/package.json",
-          kind: "orbitfabric.integration_package",
-          manifestVersion: "0.1-candidate",
-          integrationId: "example-integration",
-          adapterId: "adapter",
-          adapterVersion: "1",
-          coreInputCompatibility: { inputSetVersions: [], surfaces: [], relationshipFamilies: [] },
-          profileCompatibility: { profileVersions: [] },
-          resultCompatibility: { resultVersions: [], defaultResultVersion: "0.1-candidate" },
-          advertisedCapabilities: [],
-          operations: [],
-          profileSchemas: [],
-          execution: { protocol: "orbitfabric.adapter_cli.v0", argvPrefix: ["adapter"] },
-        },
-        profile: null,
+        id: "example-integration",
         result: {
           kind: "orbitfabric.integration_result",
           resultVersion: "0.1-candidate",
@@ -79,8 +63,6 @@ function context() {
           coverage: { status: "complete", scope: { domains: [] }, reason: null, summary: {}, records: [] },
           evidence: [], externalTools: [],
         },
-        compatibility: { state: "compatible", reasons: [] },
-        freshness: { state: "fresh", reason: "fixture" },
       },
       actions: {
         async openCoreEntity(ref) { calls.push(["core", ref]); },
