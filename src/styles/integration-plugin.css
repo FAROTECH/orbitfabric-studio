@@ -1,0 +1,133 @@
+.integration-target-inspector-host {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.integration-target-fallback {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.integration-target-fallback small,
+.integration-target-inspector header small,
+.integration-target-inspector-section dt,
+.integration-plugin-failures small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.integration-target-fallback code,
+.integration-target-inspector code,
+.integration-target-inspector .is-monospace {
+  color: var(--text-code);
+  overflow-wrap: anywhere;
+}
+
+.integration-target-inspector {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-canvas);
+}
+
+.integration-target-inspector > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.integration-target-inspector > header > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.integration-target-inspector > header strong,
+.integration-target-inspector > header span {
+  overflow-wrap: anywhere;
+}
+
+.integration-target-inspector > header span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.integration-target-inspector-badges,
+.integration-target-inspector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.integration-target-inspector-section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.integration-target-inspector-section h3 {
+  margin: 0;
+  font-size: 12px;
+}
+
+.integration-target-inspector-section dl {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.integration-target-inspector-section dl > div {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.35fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.integration-target-inspector-section dt,
+.integration-target-inspector-section dd {
+  margin: 0;
+}
+
+.integration-target-inspector-section dd {
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.integration-target-inspector-section dd.emphasis-strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.integration-target-inspector-section dd.emphasis-muted {
+  color: var(--text-muted);
+}
+
+.integration-plugin-failures {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-canvas);
+}
+
+.artifact-row:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .integration-target-inspector > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .integration-target-inspector-section dl > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
