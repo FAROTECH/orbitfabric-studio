@@ -1,0 +1,60 @@
+name: Feature request
+description: Propose a Studio capability or product improvement
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Studio is a mission-understanding workbench. OrbitFabric Core remains the authority for Mission Data Contract semantics.
+
+        If the requested capability requires new mission meaning that Core does not expose, describe that dependency explicitly rather than asking Studio to infer it privately.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Engineering problem or user need
+      description: What should become easier to understand, inspect or accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the behavior or workflow you would like to see.
+    validations:
+      required: true
+  - type: dropdown
+    id: ownership
+    attributes:
+      label: Likely ownership
+      options:
+        - Studio presentation / interaction
+        - OrbitFabric Core semantic surface
+        - Generic Integrations workspace
+        - Integration Plugin API
+        - Integration Package / adapter
+        - Packaging / distribution
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Existing authoritative inputs
+      description: Which Core surface, Integration Result record or other explicit contract could support the feature today?
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Boundary and non-goals
+      description: State what the feature should not infer, mutate or turn Studio into.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional. Describe current workarounds or other approaches.
+  - type: checkboxes
+    id: clean-room
+    attributes:
+      label: Clean-room confirmation
+      options:
+        - label: This request does not include proprietary, confidential, export-controlled or NDA-protected material.
+          required: true
