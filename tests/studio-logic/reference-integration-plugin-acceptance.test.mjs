@@ -29,15 +29,11 @@ function readText(path) {
   return readFileSync(path, "utf8");
 }
 
-function context(descriptor, result, selectedEntity) {
+function context(descriptor, result) {
   return {
-    mission: { selectedEntity },
     integration: {
-      package: descriptor,
-      profile: null,
+      id: descriptor.integrationId,
       result,
-      compatibility: { state: "compatible", reasons: [] },
-      freshness: { state: "unknown", reason: "Reference plugin acceptance does not recompute freshness." },
     },
     actions: {
       async openCoreEntity() {},
@@ -58,10 +54,10 @@ test("bundled OpenOBSW/OpenSVF plugin presents real Result target refs without r
 
   const observed = new Set();
   let inspected = 0;
+  const pluginContext = context(descriptor, result);
 
   for (const mapping of result.mappings) {
     assert.ok(mapping.sources.length > 0, `${mapping.id} must have an explicit Core source`);
-    const pluginContext = context(descriptor, result, mapping.sources[0]);
 
     for (const target of mapping.targets) {
       if (
