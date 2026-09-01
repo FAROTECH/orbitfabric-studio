@@ -53,12 +53,15 @@ function operationRequirement(
   operationIndex: number,
   requirementIndex: number,
 ): IntegrationOperationInputRequirement {
-  return {
-    ...record(
-      item,
-      `operations[${operationIndex}].input_requirements[${requirementIndex}]`,
-    ),
-  };
+  const label = `operations[${operationIndex}].input_requirements[${requirementIndex}]`;
+  const value = record(item, label);
+  const keys = Object.keys(value).sort();
+  if (keys.length !== 1 || keys[0] !== "role") {
+    throw new Error(
+      `${label} must contain exactly the G4 Lab role field; received ${keys.join(", ") || "no fields"}.`,
+    );
+  }
+  return { role: stringValue(value.role, `${label}.role`) };
 }
 
 function operation(
@@ -81,10 +84,14 @@ function operation(
       `operations[${index}].input_requirements`,
     ).map((entry, requirementIndex) => operationRequirement(entry, index, requirementIndex));
 
-    if (inputRequirements.length > 0) {
-      throw new Error(
-        `operations[${index}] declares operation inputs that this zero-input vNext control does not support yet.`,
-      );
+    const seen = new Set<string>();
+    for (const requirement of inputRequirements) {
+      if (seen.has(requirement.role)) {
+        throw new Error(
+          `operations[${index}].input_requirements contains duplicate role ${requirement.role}.`,
+        );
+      }
+      seen.add(requirement.role);
     }
   }
 
@@ -178,8 +185,13 @@ export function parseIntegrationPackageManifest(
     throw new Error("execution.argv_prefix must contain at least the adapter executable.");
   }
 
+  const operationIds = new Set<string>();
   const packageCapabilities = new Set(descriptor.advertisedCapabilities);
   for (const item of descriptor.operations) {
+    if (operationIds.has(item.id)) {
+      throw new Error(`Integration Package contains duplicate operation id ${item.id}.`);
+    }
+    operationIds.add(item.id);
     for (const capability of item.capabilities) {
       if (!packageCapabilities.has(capability)) {
         throw new Error(
