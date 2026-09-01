@@ -6,9 +6,32 @@ export type IntegrationSurfaceCompatibility = {
   formatVersions: string[];
 };
 
+export type IntegrationOperationInputRequirement = {
+  role: string;
+};
+
+export type IntegrationOperationInputBinding = {
+  role: string;
+  path: string;
+};
+
+export type IntegrationConsumedOperationInput = {
+  role: string;
+  status: "available" | "unavailable";
+  id: string | null;
+  sha256: string | null;
+  reason: string | null;
+};
+
+export type IntegrationCurrentOperationInput = {
+  role: string;
+  sha256: string | null;
+};
+
 export type IntegrationPackageOperation = {
   id: string;
   capabilities: string[];
+  inputRequirements: IntegrationOperationInputRequirement[];
 };
 
 export type IntegrationProfileSchema = {
@@ -214,6 +237,7 @@ export type IntegrationResult = {
   inputs: {
     coreInputSet: Record<string, unknown>;
     profile: Record<string, unknown>;
+    operationInputs: IntegrationConsumedOperationInput[];
   };
   capabilities: string[];
   artifacts: IntegrationArtifact[];
@@ -253,6 +277,7 @@ export type IntegrationExecutionAuthorization = {
   integrationId: string;
   adapterId: string;
   adapterVersion: string;
+  protocol: string;
   argvPrefix: string[];
 };
 
@@ -260,6 +285,7 @@ export type IntegrationAdapterRunRequest = {
   operation: string;
   inputSetManifestPath: string;
   profilePath: string;
+  operationInputs?: IntegrationOperationInputBinding[];
   outputDir: string;
 };
 

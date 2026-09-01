@@ -1,6 +1,7 @@
 import type {
   IntegrationArtifact,
   IntegrationBundleRead,
+  IntegrationConsumedOperationInput,
   IntegrationCoreRef,
   IntegrationCoverage,
   IntegrationCoverageRecord,
@@ -11,6 +12,9 @@ import type {
   IntegrationResultValidation,
   IntegrationTargetRef,
 } from "./contracts";
+
+const RESULT_V0 = "0.1-candidate";
+const RESULT_V1 = "0.2-candidate";
 
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -30,6 +34,12 @@ function nullableString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+function strictNullableString(value: unknown, label: string): string | null {
+  if (value === null) return null;
+  if (typeof value === "string" && value.length > 0) return value;
+  throw new Error(`${label} must be null or a non-empty string.`);
+}
+
 function strings(value: unknown, label: string): string[] {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     throw new Error(`${label} must be an array of strings.`);
@@ -42,6 +52,77 @@ function items(value: unknown, label: string): unknown[] {
     throw new Error(`${label} must be an array.`);
   }
   return value;
+}
+
+function consumedOperationInput(value: unknown, index: number): IntegrationConsumedOperationInput {
+  const label = `inputs.operation_inputs[${index}]`;
+  const item = record(value, label);
+  const keys = Object.keys(item).sort();
+  const expected = ["id", "reason", "role", "sha256", "status"];
+  if (JSON.stringify(keys) !== JSON.stringify(expected)) {
+    throw new Error(`${label} must contain exactly role, status, id, sha256 and reason.`);
+  }
+
+  const status = stringValue(item.status, `${label}.status`);
+  if (status !== "available" && status !== "unavailable") {
+    throw new Error(`${label}.status must be available or unavailable.`);
+  }
+
+  const parsed: IntegrationConsumedOperationInput = {
+    role: stringValue(item.role, `${label}.role`),
+    status,
+    id: strictNullableString(item.id, `${label}.id`),
+    sha256: strictNullableString(item.sha256, `${label}.sha256`),
+    reason: strictNullableString(item.reason, `${label}.reason`),
+  };
+
+  if (status === "available") {
+    if (!parsed.id || !parsed.sha256 || parsed.reason !== null) {
+      throw new Error(
+        `${label} available provenance requires id and sha256 and requires reason=null.`,
+      );
+    }
+  } else if (parsed.id !== null || parsed.sha256 !== null || parsed.reason === null) {
+    throw new Error(
+      `${label} unavailable provenance requires id=null, sha256=null and a non-empty reason.`,
+    );
+  }
+
+  return parsed;
+}
+
+function operationInputs(
+  inputs: Record<string, unknown>,
+  resultVersion: string,
+): IntegrationConsumedOperationInput[] {
+  if (resultVersion === RESULT_V0) {
+    if (inputs.operation_inputs !== undefined) {
+      throw new Error("inputs.operation_inputs is not part of frozen Integration Result v0.");
+    }
+    return [];
+  }
+
+  if (resultVersion === RESULT_V1) {
+    const values = items(inputs.operation_inputs, "inputs.operation_inputs").map(
+      consumedOperationInput,
+    );
+    if (values.length > 1) {
+      throw new Error("inputs.operation_inputs supports at most one role.");
+    }
+    if (values.some((item) => item.role !== "scenario")) {
+      throw new Error("inputs.operation_inputs role must be scenario.");
+    }
+    const seen = new Set<string>();
+    for (const item of values) {
+      if (seen.has(item.role)) {
+        throw new Error(`inputs.operation_inputs contains duplicate role ${item.role}.`);
+      }
+      seen.add(item.role);
+    }
+    return values;
+  }
+
+  throw new Error(`Unsupported Result version: ${resultVersion}.`);
 }
 
 function coreRef(value: unknown, label: string): IntegrationCoreRef {
@@ -163,6 +244,7 @@ function coverage(value: unknown): IntegrationCoverage {
 
 export function parseIntegrationResult(text: string): IntegrationResult {
   const root = record(JSON.parse(text) as unknown, "Integration Result");
+  const resultVersion = stringValue(root.result_version, "result_version");
   const integration = record(root.integration, "integration");
   const adapter = record(root.adapter, "adapter");
   const operation = record(root.operation, "operation");
@@ -170,7 +252,7 @@ export function parseIntegrationResult(text: string): IntegrationResult {
 
   return {
     kind: stringValue(root.kind, "kind"),
-    resultVersion: stringValue(root.result_version, "result_version"),
+    resultVersion,
     result: stringValue(root.result, "result"),
     integration: {
       id: stringValue(integration.id, "integration.id"),
@@ -185,6 +267,7 @@ export function parseIntegrationResult(text: string): IntegrationResult {
     inputs: {
       coreInputSet: record(inputs.core_input_set, "inputs.core_input_set"),
       profile: record(inputs.profile, "inputs.profile"),
+      operationInputs: operationInputs(inputs, resultVersion),
     },
     capabilities: strings(root.capabilities, "capabilities"),
     artifacts: items(root.artifacts, "artifacts").map(artifact),
@@ -213,7 +296,7 @@ export function validateIntegrationResult(
   if (result.kind !== "orbitfabric.integration_result") {
     issues.push({ code: "result.kind", message: `Unsupported Result kind: ${result.kind}.` });
   }
-  if (result.resultVersion !== "0.1-candidate") {
+  if (![RESULT_V0, RESULT_V1].includes(result.resultVersion)) {
     issues.push({
       code: "result.version",
       message: `Unsupported Result version: ${result.resultVersion}.`,
@@ -221,6 +304,30 @@ export function validateIntegrationResult(
   }
   if (!["succeeded", "succeeded_with_warnings", "failed"].includes(result.result)) {
     issues.push({ code: "result.state", message: `Unsupported Result state: ${result.result}.` });
+  }
+
+  if (result.resultVersion === RESULT_V1) {
+    for (const input of result.inputs.operationInputs) {
+      if (input.status === "available") {
+        if (!input.id || !input.sha256 || input.reason !== null) {
+          issues.push({
+            code: "operation_input.available_provenance",
+            message: `Operation input ${input.role} has incomplete available provenance.`,
+          });
+        }
+      } else if (input.id !== null || input.sha256 !== null || !input.reason) {
+        issues.push({
+          code: "operation_input.unavailable_provenance",
+          message: `Operation input ${input.role} has invalid unavailable provenance.`,
+        });
+      }
+      if (result.result !== "failed" && input.status !== "available") {
+        issues.push({
+          code: "operation_input.success_without_provenance",
+          message: `Successful Result cannot claim unavailable required operation input ${input.role}.`,
+        });
+      }
+    }
   }
 
   const mappingIds = new Set<string>();

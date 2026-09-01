@@ -47,6 +47,19 @@ const PACKAGE = {
   execution: { protocol: "orbitfabric.adapter_cli.v0", argv_prefix: ["example-adapter"] },
 };
 
+function vNextPackage() {
+  const value = structuredClone(PACKAGE);
+  value.manifest_version = "0.2-candidate";
+  value.adapter.version = "0.2.0.dev1";
+  value.result_compatibility = {
+    result_versions: ["0.2-candidate"],
+    default_result_version: "0.2-candidate",
+  };
+  value.operations[0].input_requirements = [];
+  value.execution.protocol = "orbitfabric.adapter_cli.v1";
+  return value;
+}
+
 const INPUT = {
   kind: "orbitfabric.integration_input_set",
   input_set_version: "0.1-candidate",
@@ -161,6 +174,76 @@ test("parses generic Integration Package manifest without target-specific semant
   assert.equal(descriptor.integrationId, "example-integration");
   assert.equal(descriptor.execution.protocol, "orbitfabric.adapter_cli.v0");
   assert.deepEqual(descriptor.operations[0].capabilities, descriptor.advertisedCapabilities);
+  assert.deepEqual(descriptor.operations[0].inputRequirements, []);
+});
+
+test("accepts the explicit zero-input vNext lab package lane", () => {
+  const descriptor = parseIntegrationPackageManifest(
+    "/tmp/integration_package.json",
+    JSON.stringify(vNextPackage()),
+  );
+  assert.equal(descriptor.manifestVersion, "0.2-candidate");
+  assert.equal(descriptor.execution.protocol, "orbitfabric.adapter_cli.v1");
+  assert.deepEqual(descriptor.operations[0].inputRequirements, []);
+});
+
+test("accepts the minimal G4 role-only operation-input requirement", () => {
+  const value = vNextPackage();
+  value.operations.push({
+    id: "verification_projection",
+    capabilities: ["projection", "artifact_generation", "traceability"],
+    input_requirements: [{ role: "scenario" }],
+  });
+  const descriptor = parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(value));
+  assert.deepEqual(descriptor.operations[1].inputRequirements, [{ role: "scenario" }]);
+});
+
+test("G4 does not silently generalize the operation-input requirement shape", () => {
+  const overStructured = vNextPackage();
+  overStructured.operations[0].input_requirements = [{ role: "scenario", required: true }];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(overStructured)),
+    /must contain exactly the v1 role field/,
+  );
+
+  const duplicate = vNextPackage();
+  duplicate.operations[0].input_requirements = [{ role: "scenario" }, { role: "scenario" }];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(duplicate)),
+    /at most one role/,
+  );
+
+  const unknownRole = vNextPackage();
+  unknownRole.operations[0].input_requirements = [{ role: "adapter_private" }];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/v1.json", JSON.stringify(unknownRole)),
+    /role must be scenario/,
+  );
+});
+
+test("keeps frozen v0 and vNext protocol identities isolated", () => {
+  const v0WithVNextProtocol = structuredClone(PACKAGE);
+  v0WithVNextProtocol.execution.protocol = "orbitfabric.adapter_cli.v1";
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/v0.json", JSON.stringify(v0WithVNextProtocol)),
+    /requires execution protocol orbitfabric\.adapter_cli\.v0/,
+  );
+
+  const vNextWithV0Protocol = vNextPackage();
+  vNextWithV0Protocol.execution.protocol = "orbitfabric.adapter_cli.v0";
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/vnext.json", JSON.stringify(vNextWithV0Protocol)),
+    /requires execution protocol orbitfabric\.adapter_cli\.v1/,
+  );
+});
+
+test("does not silently extend frozen v0 with operation-input declarations", () => {
+  const invalid = structuredClone(PACKAGE);
+  invalid.operations[0].input_requirements = [];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/v0.json", JSON.stringify(invalid)),
+    /not part of frozen Integration Package manifest v0/,
+  );
 });
 
 test("rejects escaping Profile schema paths before package execution", () => {
@@ -207,8 +290,96 @@ test("complete coverage accounting can contain not_projected entities", () => {
   };
   const validation = validateIntegrationResult(parsed, bundle);
   assert.equal(validation.usable, true);
+  assert.deepEqual(parsed.inputs.operationInputs, []);
   assert.equal(parsed.coverage.status, "complete");
   assert.deepEqual(parsed.coverage.summary, { projected: 1, not_projected: 1 });
+});
+
+test("accepts explicit empty operation-input provenance only in vNext Result", () => {
+  const next = resultFixture();
+  next.result_version = "0.2-candidate";
+  next.adapter.version = "0.2.0.dev1";
+  next.inputs.operation_inputs = [];
+
+  const parsed = parseIntegrationResult(JSON.stringify(next));
+  assert.equal(parsed.resultVersion, "0.2-candidate");
+  assert.deepEqual(parsed.inputs.operationInputs, []);
+  assert.equal(validateIntegrationResult(parsed).usable, true);
+});
+
+test("accepts exact available G4 consumed Scenario provenance", () => {
+  const next = resultFixture();
+  next.result_version = "0.2-candidate";
+  next.adapter.version = "0.2.0.dev2";
+  next.operation = { id: "verification_projection" };
+  next.inputs.operation_inputs = [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: "abc123",
+      reason: null,
+    },
+  ];
+
+  const parsed = parseIntegrationResult(JSON.stringify(next));
+  assert.deepEqual(parsed.inputs.operationInputs, [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: "abc123",
+      reason: null,
+    },
+  ]);
+  assert.equal(validateIntegrationResult(parsed).usable, true);
+});
+
+test("G4 consumed provenance fails closed on invented fields and invalid availability", () => {
+  const extra = resultFixture();
+  extra.result_version = "0.2-candidate";
+  extra.inputs.operation_inputs = [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: "abc123",
+      reason: null,
+      path: "/tmp/scenario.yaml",
+    },
+  ];
+  assert.throws(
+    () => parseIntegrationResult(JSON.stringify(extra)),
+    /must contain exactly role, status, id, sha256 and reason/,
+  );
+
+  const unavailableSuccess = resultFixture();
+  unavailableSuccess.result_version = "0.2-candidate";
+  unavailableSuccess.inputs.operation_inputs = [
+    {
+      role: "scenario",
+      status: "unavailable",
+      id: null,
+      sha256: null,
+      reason: "not resolved",
+    },
+  ];
+  const validation = validateIntegrationResult(
+    parseIntegrationResult(JSON.stringify(unavailableSuccess)),
+  );
+  assert.equal(validation.usable, false);
+  assert.ok(
+    validation.issues.some((issue) => issue.code === "operation_input.success_without_provenance"),
+  );
+});
+
+test("does not silently extend frozen Result v0 with operation-input provenance", () => {
+  const invalid = resultFixture();
+  invalid.inputs.operation_inputs = [];
+  assert.throws(
+    () => parseIntegrationResult(JSON.stringify(invalid)),
+    /not part of frozen Integration Result v0/,
+  );
 });
 
 test("Result integrity detects broken mapping and artifact references", () => {

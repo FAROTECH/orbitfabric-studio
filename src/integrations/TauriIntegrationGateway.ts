@@ -77,9 +77,11 @@ export class TauriIntegrationGateway implements IntegrationGateway {
   ): Promise<IntegrationAdapterInvocation> {
     return invoke<IntegrationAdapterInvocation>("run_integration_adapter", {
       authorizedArgvPrefix: authorization.argvPrefix,
+      authorizedProtocol: authorization.protocol,
       operation: request.operation,
       inputSetManifest: request.inputSetManifestPath,
       profile: request.profilePath,
+      operationInputs: request.operationInputs ?? [],
       outputDir: request.outputDir,
     });
   }

@@ -1,0 +1,277 @@
+name: Architecture Lab operation-input vNext Studio control
+
+on:
+  push:
+    branches:
+      - architecture/operation-input-vnext-pressure-test
+  workflow_dispatch:
+
+jobs:
+  studio-dual-lane-zero-input-control:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Studio vNext experiment
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked Studio dependencies
+        run: npm ci
+
+      - name: Run Studio generic logic regression
+        run: npm run test:logic
+
+      - name: Build Studio TypeScript and Vite surfaces
+        run: npm run build
+
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Studio Rust regression
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Checkout pinned OrbitFabric Core
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: b1aa95408710f697b0ee144a7b41f2376395e01f
+          path: .work/orbitfabric-core
+
+      - name: Checkout accepted OpenSVF v0 package control
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          ref: 59a235b428a63449bbdb6a1b6c7acda582606090
+          path: .work/openobsw-v0
+
+      - name: Checkout OpenSVF vNext zero-input producer
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          ref: 061e4903b50d80863384903c4d9f268ea3d2ae4e
+          path: .work/openobsw-vnext
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build isolated v0 and vNext adapter environments
+        run: |
+          python -m venv /tmp/orbitfabric-studio-v0-venv
+          python -m venv /tmp/orbitfabric-studio-vnext-venv
+
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install --upgrade pip
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install -e ./.work/orbitfabric-core
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install -r ./.work/openobsw-v0/requirements-stage7.txt
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install -e ./.work/openobsw-v0
+
+          /tmp/orbitfabric-studio-vnext-venv/bin/python -m pip install --upgrade pip
+          /tmp/orbitfabric-studio-vnext-venv/bin/python -m pip install -e ./.work/orbitfabric-core
+          /tmp/orbitfabric-studio-vnext-venv/bin/python -m pip install -r ./.work/openobsw-vnext/requirements-stage7.txt
+          /tmp/orbitfabric-studio-vnext-venv/bin/python -m pip install -e ./.work/openobsw-vnext
+
+      - name: Export one exact Core Integration Input Set
+        run: |
+          rm -rf /tmp/orbitfabric-studio-vnext
+          mkdir -p /tmp/orbitfabric-studio-vnext/input
+          /tmp/orbitfabric-studio-vnext-venv/bin/orbitfabric export integration-input-set \
+            "$GITHUB_WORKSPACE/.work/openobsw-vnext/orbitfabric_models/mission" \
+            --output-dir /tmp/orbitfabric-studio-vnext/input
+
+      - name: Execute vNext package through real Studio Rust runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: /tmp/orbitfabric-studio-vnext-venv/bin/orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL: orbitfabric.adapter_cli.vnext-lab
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-studio-vnext/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/.work/openobsw-vnext/projection_profiles/poc_openobsw_opensvf.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-studio-vnext/vnext-result
+        run: |
+          rm -rf /tmp/orbitfabric-studio-vnext/vnext-result
+          cargo test --locked \
+            --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
+
+      - name: Execute frozen v0 package through same Studio Rust runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: /tmp/orbitfabric-studio-v0-venv/bin/orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL: orbitfabric.adapter_cli.v0
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-studio-vnext/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/.work/openobsw-vnext/projection_profiles/poc_openobsw_opensvf.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-studio-vnext/v0-result
+        run: |
+          rm -rf /tmp/orbitfabric-studio-vnext/v0-result
+          cargo test --locked \
+            --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
+
+      - name: Compile Studio generic integration modules for cross-repository gate
+        run: |
+          node node_modules/typescript/bin/tsc -p tsconfig.logic-tests.json
+          mkdir -p .test-dist
+          printf '{ "type": "commonjs" }\n' > .test-dist/package.json
+
+      - name: Create dual-lane cross-repository Studio gate
+        run: |
+          cat > tests/studio-logic/operation-input-vnext-cross-repo-gate.mjs <<'JS'
+          import assert from "node:assert/strict";
+          import { createHash } from "node:crypto";
+          import { readFileSync } from "node:fs";
+          import { createRequire } from "node:module";
+          import { resolve } from "node:path";
+
+          const require = createRequire(import.meta.url);
+          const { parseIntegrationPackageManifest } = require("../../.test-dist/integrations/manifest.js");
+          const {
+            evaluateIntegrationCompatibility,
+            parseCoreIntegrationInputManifest,
+          } = require("../../.test-dist/integrations/compatibility.js");
+          const {
+            parseProjectionProfile,
+            selectProfileSchema,
+            validateProjectionProfile,
+          } = require("../../.test-dist/integrations/profile.js");
+          const {
+            createExecutionAuthorization,
+            validateAdapterRunPreflight,
+          } = require("../../.test-dist/integrations/execution.js");
+          const {
+            parseIntegrationResult,
+            validateIntegrationResult,
+          } = require("../../.test-dist/integrations/result.js");
+          const { assessIntegrationFreshness } = require("../../.test-dist/integrations/staleness.js");
+
+          const root = process.cwd();
+          const v0Root = resolve(root, ".work/openobsw-v0");
+          const vNextRoot = resolve(root, ".work/openobsw-vnext");
+          const inputPath = "/tmp/orbitfabric-studio-vnext/input/integration_input_manifest.json";
+          const profilePath = resolve(vNextRoot, "projection_profiles/poc_openobsw_opensvf.yaml");
+          const v0ResultPath = "/tmp/orbitfabric-studio-vnext/v0-result/integration_result.json";
+          const vNextResultPath = "/tmp/orbitfabric-studio-vnext/vnext-result/integration_result.json";
+
+          const read = (path) => readFileSync(path, "utf8");
+          const sha256 = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
+
+          const v0Descriptor = parseIntegrationPackageManifest(
+            resolve(v0Root, "integration_package/integration_package.json"),
+            read(resolve(v0Root, "integration_package/integration_package.json")),
+          );
+          const vNextDescriptor = parseIntegrationPackageManifest(
+            resolve(vNextRoot, "integration_package/integration_package.json"),
+            read(resolve(vNextRoot, "integration_package/integration_package.json")),
+          );
+
+          assert.equal(v0Descriptor.manifestVersion, "0.1-candidate");
+          assert.equal(v0Descriptor.execution.protocol, "orbitfabric.adapter_cli.v0");
+          assert.deepEqual(v0Descriptor.operations.map((item) => item.inputRequirements), [[]]);
+          assert.equal(vNextDescriptor.manifestVersion, "0.2-lab");
+          assert.equal(vNextDescriptor.execution.protocol, "orbitfabric.adapter_cli.vnext-lab");
+          assert.deepEqual(vNextDescriptor.operations.map((item) => item.inputRequirements), [[]]);
+
+          const input = parseCoreIntegrationInputManifest(read(inputPath));
+          assert.equal(evaluateIntegrationCompatibility(v0Descriptor, input).state, "compatible");
+          assert.equal(evaluateIntegrationCompatibility(vNextDescriptor, input).state, "compatible");
+
+          const profile = parseProjectionProfile(profilePath, sha256(profilePath), read(profilePath));
+          for (const descriptor of [v0Descriptor, vNextDescriptor]) {
+            const selected = selectProfileSchema(descriptor, profile.identity.schemaVersion);
+            const packageRoot = descriptor.manifestPath.replace(/[/\\]integration_package\.json$/, "");
+            const schemaPath = resolve(packageRoot, selected.path);
+            const schemaRead = {
+              path: schemaPath,
+              text: read(schemaPath),
+              sha256: sha256(schemaPath),
+              contained: true,
+              sha256Matches: sha256(schemaPath).toLowerCase() === selected.sha256.toLowerCase(),
+            };
+            const validation = validateProjectionProfile(descriptor, schemaRead, profile);
+            assert.equal(validation.valid, true, validation.errors.join("\n"));
+          }
+
+          const request = {
+            operation: "project",
+            inputSetManifestPath: inputPath,
+            profilePath,
+            outputDir: "/tmp/orbitfabric-studio-vnext/gate-output",
+          };
+          assert.deepEqual(
+            validateAdapterRunPreflight(v0Descriptor, createExecutionAuthorization(v0Descriptor), request),
+            [],
+          );
+          assert.deepEqual(
+            validateAdapterRunPreflight(vNextDescriptor, createExecutionAuthorization(vNextDescriptor), request),
+            [],
+          );
+
+          const v0 = parseIntegrationResult(read(v0ResultPath));
+          const vNext = parseIntegrationResult(read(vNextResultPath));
+          assert.equal(validateIntegrationResult(v0).usable, true);
+          assert.equal(validateIntegrationResult(vNext).usable, true);
+          assert.equal(v0.resultVersion, "0.1-candidate");
+          assert.equal(vNext.resultVersion, "0.2-lab");
+          assert.deepEqual(v0.inputs.operationInputs, []);
+          assert.deepEqual(vNext.inputs.operationInputs, []);
+
+          assert.equal(v0.integration.id, v0Descriptor.integrationId);
+          assert.equal(vNext.integration.id, vNextDescriptor.integrationId);
+          assert.equal(v0.adapter.id, v0Descriptor.adapterId);
+          assert.equal(vNext.adapter.id, vNextDescriptor.adapterId);
+          assert.equal(v0.adapter.version, v0Descriptor.adapterVersion);
+          assert.equal(vNext.adapter.version, vNextDescriptor.adapterVersion);
+          assert.equal(v0.operation.id, "project");
+          assert.equal(vNext.operation.id, "project");
+
+          assert.equal(assessIntegrationFreshness(v0, input, profile).state, "fresh");
+          assert.equal(assessIntegrationFreshness(vNext, input, profile).state, "fresh");
+
+          assert.deepEqual(v0.capabilities, vNext.capabilities);
+          assert.deepEqual(v0.mappings, vNext.mappings);
+          assert.deepEqual(v0.resolutions, vNext.resolutions);
+          assert.deepEqual(v0.coverage, vNext.coverage);
+
+          const artifactSemantics = (result) => result.artifacts.map((item) => ({
+            id: item.id,
+            kind: item.kind,
+            status: item.status,
+            path: item.path,
+            sha256: item.sha256,
+            derivedFromMappings: item.derivedFromMappings,
+          }));
+          assert.deepEqual(artifactSemantics(v0), artifactSemantics(vNext));
+          JS
+
+      - name: Run dual-lane cross-repository Studio gate
+        run: node --test tests/studio-logic/operation-input-vnext-cross-repo-gate.mjs
+
+      - name: Prove Studio Plugin API remains untouched
+        run: |
+          git diff 05785a51acb726da48ebf1498d716c9a45a971c4...HEAD -- src/integrations/plugin-api.ts src/integrations/plugin-registry.ts src/integration-plugins
+          test -z "$(git diff --name-only 05785a51acb726da48ebf1498d716c9a45a971c4...HEAD -- src/integrations/plugin-api.ts src/integrations/plugin-registry.ts src/integration-plugins)"
+
+      - name: Retain Studio G3 acceptance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: operation-input-vnext-studio-control
+          path: |
+            /tmp/orbitfabric-studio-vnext/input
+            /tmp/orbitfabric-studio-vnext/v0-result
+            /tmp/orbitfabric-studio-vnext/vnext-result
+          if-no-files-found: error

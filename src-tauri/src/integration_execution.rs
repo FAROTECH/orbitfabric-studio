@@ -1,4 +1,5 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -8,6 +9,15 @@ use std::time::{Duration, Instant};
 
 const ADAPTER_DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
 const ADAPTER_POLL_INTERVAL: Duration = Duration::from_millis(25);
+const ADAPTER_CLI_V0: &str = "orbitfabric.adapter_cli.v0";
+const ADAPTER_CLI_V1: &str = "orbitfabric.adapter_cli.v1";
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IntegrationOperationInputBinding {
+    role: String,
+    path: String,
+}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,29 +38,76 @@ pub struct IntegrationAdapterInvocation {
 #[tauri::command]
 pub fn run_integration_adapter(
     authorized_argv_prefix: Vec<String>,
+    authorized_protocol: String,
     operation: String,
     input_set_manifest: String,
     profile: String,
+    operation_inputs: Vec<IntegrationOperationInputBinding>,
     output_dir: String,
 ) -> Result<IntegrationAdapterInvocation, String> {
     run_integration_adapter_with_timeout(
         authorized_argv_prefix,
+        authorized_protocol,
         operation,
         input_set_manifest,
         profile,
+        operation_inputs,
         output_dir,
         ADAPTER_DEFAULT_TIMEOUT,
     )
 }
 
+fn validate_authorized_protocol(protocol: &str) -> Result<(), String> {
+    match protocol {
+        ADAPTER_CLI_V0 | ADAPTER_CLI_V1 => Ok(()),
+        _ => Err(format!(
+            "Unsupported authorized integration protocol: {protocol}."
+        )),
+    }
+}
+
+fn canonicalize_operation_inputs(
+    bindings: Vec<IntegrationOperationInputBinding>,
+) -> Result<Vec<(String, PathBuf)>, String> {
+    if bindings.len() > 1 {
+        return Err("Integration protocol v1 supports at most one operation input.".to_string());
+    }
+    if bindings.iter().any(|binding| binding.role.trim() != "scenario") {
+        return Err("Integration protocol v1 operation-input role must be scenario.".to_string());
+    }
+    let mut seen = HashSet::new();
+    let mut resolved = Vec::with_capacity(bindings.len());
+    for binding in bindings {
+        let role = binding.role.trim();
+        if role.is_empty() {
+            return Err("Integration operation-input role is empty.".to_string());
+        }
+        if !seen.insert(role.to_string()) {
+            return Err(format!(
+                "Integration operation-input role {role} is bound more than once."
+            ));
+        }
+        let path = canonicalize_existing_file(
+            &binding.path,
+            &format!("Integration operation input {role}"),
+        )?;
+        resolved.push((role.to_string(), path));
+    }
+    Ok(resolved)
+}
+
 fn run_integration_adapter_with_timeout(
     authorized_argv_prefix: Vec<String>,
+    authorized_protocol: String,
     operation: String,
     input_set_manifest: String,
     profile: String,
+    operation_inputs: Vec<IntegrationOperationInputBinding>,
     output_dir: String,
     timeout: Duration,
 ) -> Result<IntegrationAdapterInvocation, String> {
+    validate_authorized_protocol(&authorized_protocol)?;
+
     let executable = authorized_argv_prefix
         .first()
         .map(|value| value.trim())
@@ -61,8 +118,12 @@ fn run_integration_adapter_with_timeout(
         return Err("Integration operation id is empty.".to_string());
     }
 
-    let input_manifest = canonicalize_existing_file(&input_set_manifest, "Core Integration Input Set manifest")?;
+    let input_manifest = canonicalize_existing_file(
+        &input_set_manifest,
+        "Core Integration Input Set manifest",
+    )?;
     let profile_path = canonicalize_existing_file(&profile, "Projection Profile")?;
+    let resolved_operation_inputs = canonicalize_operation_inputs(operation_inputs)?;
     let output_root = prepare_output_dir(&output_dir)?;
     let result_path = output_root.join("integration_result.json");
 
@@ -85,9 +146,15 @@ fn run_integration_adapter_with_timeout(
         input_display,
         "--profile".to_string(),
         profile_display,
-        "--output-dir".to_string(),
-        output_display.clone(),
     ]);
+    for (role, path) in resolved_operation_inputs {
+        args.extend([
+            "--operation-input".to_string(),
+            role,
+            display_path(&path),
+        ]);
+    }
+    args.extend(["--output-dir".to_string(), output_display.clone()]);
 
     let mut child = Command::new(&executable)
         .args(&args)
@@ -218,9 +285,11 @@ mod tests {
 
         let invocation = run_integration_adapter_with_timeout(
             vec!["/bin/echo".to_string(), "prefix".to_string()],
+            ADAPTER_CLI_V0.to_string(),
             "project".to_string(),
             display_path(&input),
             display_path(&profile),
+            vec![],
             display_path(&output),
             Duration::from_secs(1),
         )
@@ -229,6 +298,105 @@ mod tests {
         assert_eq!(invocation.exit_code, Some(0));
         assert!(invocation.stdout.contains("prefix run --operation project"));
         assert!(invocation.result_text.is_none());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn adapter_runner_passes_operation_input_as_direct_argv() {
+        let root = temp_dir("operation-input");
+        let input = root.join("input.json");
+        let profile = root.join("profile.yaml");
+        let scenario = root.join("scenario.yaml");
+        let output = root.join("out");
+        fs::write(&input, b"{}").unwrap();
+        fs::write(&profile, b"kind: test\n").unwrap();
+        fs::write(&scenario, b"scenario: {}\n").unwrap();
+
+        let invocation = run_integration_adapter_with_timeout(
+            vec!["/bin/echo".to_string()],
+            ADAPTER_CLI_V1.to_string(),
+            "verification_projection".to_string(),
+            display_path(&input),
+            display_path(&profile),
+            vec![IntegrationOperationInputBinding {
+                role: "scenario".to_string(),
+                path: display_path(&scenario),
+            }],
+            display_path(&output),
+            Duration::from_secs(1),
+        )
+        .expect("echo adapter fixture should execute");
+
+        let canonical_scenario = display_path(&scenario.canonicalize().unwrap());
+        assert!(invocation.args.windows(3).any(|items| {
+            items[0] == "--operation-input"
+                && items[1] == "scenario"
+                && items[2] == canonical_scenario
+        }));
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn adapter_runner_rejects_duplicate_operation_input_roles() {
+        let root = temp_dir("duplicate-operation-input");
+        let input = root.join("input.json");
+        let profile = root.join("profile.yaml");
+        let scenario = root.join("scenario.yaml");
+        let output = root.join("out");
+        fs::write(&input, b"{}").unwrap();
+        fs::write(&profile, b"kind: test\n").unwrap();
+        fs::write(&scenario, b"scenario: {}\n").unwrap();
+
+        let error = run_integration_adapter_with_timeout(
+            vec!["/bin/echo".to_string()],
+            ADAPTER_CLI_V1.to_string(),
+            "verification_projection".to_string(),
+            display_path(&input),
+            display_path(&profile),
+            vec![
+                IntegrationOperationInputBinding {
+                    role: "scenario".to_string(),
+                    path: display_path(&scenario),
+                },
+                IntegrationOperationInputBinding {
+                    role: "scenario".to_string(),
+                    path: display_path(&scenario),
+                },
+            ],
+            display_path(&output),
+            Duration::from_secs(1),
+        )
+        .expect_err("duplicate operation-input roles must fail before adapter execution");
+
+        assert!(error.contains("at most one operation input"));
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn adapter_runner_rejects_unknown_authorized_protocol() {
+        let root = temp_dir("protocol");
+        let input = root.join("input.json");
+        let profile = root.join("profile.yaml");
+        let output = root.join("out");
+        fs::write(&input, b"{}").unwrap();
+        fs::write(&profile, b"kind: test\n").unwrap();
+
+        let error = run_integration_adapter_with_timeout(
+            vec!["/bin/echo".to_string()],
+            "future.protocol".to_string(),
+            "project".to_string(),
+            display_path(&input),
+            display_path(&profile),
+            vec![],
+            display_path(&output),
+            Duration::from_secs(1),
+        )
+        .expect_err("unknown protocol must fail before adapter execution");
+
+        assert!(error.contains("Unsupported authorized integration protocol"));
         let _ = fs::remove_dir_all(root);
     }
 
@@ -246,9 +414,11 @@ mod tests {
 
         let invocation = run_integration_adapter_with_timeout(
             vec!["/bin/false".to_string()],
+            ADAPTER_CLI_V0.to_string(),
             "project".to_string(),
             display_path(&input),
             display_path(&profile),
+            vec![],
             display_path(&output),
             Duration::from_secs(1),
         )
@@ -267,6 +437,10 @@ mod tests {
             Ok(value) => value,
             Err(_) => return,
         };
+        let protocol = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL")
+            .unwrap_or_else(|_| ADAPTER_CLI_V0.to_string());
+        let operation = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION")
+            .unwrap_or_else(|_| "project".to_string());
         let input = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST")
             .expect("acceptance Input Manifest path must be provided with the executable");
         let profile = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE")
@@ -274,11 +448,22 @@ mod tests {
         let output = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR")
             .expect("acceptance output path must be provided with the executable");
 
+        let role = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION_INPUT_ROLE").ok();
+        let path = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION_INPUT_PATH").ok();
+        let operation_inputs = match (role, path) {
+            (None, None) => vec![],
+            (Some(role), Some(path)) => vec![IntegrationOperationInputBinding { role, path }],
+            _ => panic!("acceptance operation-input role and path must be provided together"),
+        };
+
+        let expected_input = operation_inputs.first().map(|item| item.role.clone());
         let invocation = run_integration_adapter_with_timeout(
             vec![executable.clone()],
-            "project".to_string(),
+            protocol,
+            operation.clone(),
             input,
             profile,
+            operation_inputs,
             output,
             Duration::from_secs(30),
         )
@@ -288,9 +473,22 @@ mod tests {
         assert_eq!(invocation.exit_code, Some(0), "{}", invocation.stderr);
         assert!(invocation.process_completed);
         assert!(!invocation.timed_out);
-        assert_eq!(invocation.operation, "project");
+        assert_eq!(invocation.operation, operation);
         assert_eq!(invocation.args.first().map(String::as_str), Some("run"));
-        assert!(invocation.args.windows(2).any(|items| items == ["--operation", "project"]));
+        assert!(
+            invocation
+                .args
+                .windows(2)
+                .any(|items| items == ["--operation", operation.as_str()])
+        );
+        if let Some(role) = expected_input {
+            assert!(
+                invocation
+                    .args
+                    .windows(3)
+                    .any(|items| items[0] == "--operation-input" && items[1] == role)
+            );
+        }
         let result = invocation
             .result_text
             .expect("successful real adapter invocation must leave Integration Result");

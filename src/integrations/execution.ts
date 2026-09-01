@@ -4,16 +4,66 @@ import type {
   IntegrationBundleRead,
   IntegrationExecutionAssessment,
   IntegrationExecutionAuthorization,
+  IntegrationOperationInputBinding,
   IntegrationPackageDescriptor,
+  IntegrationPackageOperation,
   IntegrationResult,
 } from "./contracts";
 import type { IntegrationGateway } from "./IntegrationGateway";
 import { parseIntegrationResult, validateIntegrationResult } from "./result";
 
 const ADAPTER_CLI_V0 = "orbitfabric.adapter_cli.v0";
+const ADAPTER_CLI_V1 = "orbitfabric.adapter_cli.v1";
+const SUPPORTED_PROTOCOLS = new Set([ADAPTER_CLI_V0, ADAPTER_CLI_V1]);
 
 function arraysEqual(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((item, index) => item === right[index]);
+}
+
+function sortedUnique(values: string[]): string[] {
+  return [...new Set(values)].sort();
+}
+
+function requestBindings(request: IntegrationAdapterRunRequest): IntegrationOperationInputBinding[] {
+  return request.operationInputs ?? [];
+}
+
+function operationBindingIssues(
+  operation: IntegrationPackageOperation,
+  bindings: IntegrationOperationInputBinding[],
+): string[] {
+  const errors: string[] = [];
+  const seen = new Set<string>();
+  const suppliedRoles: string[] = [];
+
+  for (const [index, binding] of bindings.entries()) {
+    if (!binding.role) {
+      errors.push(`Operation input binding ${index} has an empty role.`);
+      continue;
+    }
+    if (!binding.path) {
+      errors.push(`Operation input binding ${binding.role} has an empty path.`);
+    }
+    if (seen.has(binding.role)) {
+      errors.push(`Operation input role ${binding.role} is bound more than once.`);
+    }
+    seen.add(binding.role);
+    suppliedRoles.push(binding.role);
+  }
+
+  const requiredRoles = sortedUnique(operation.inputRequirements.map((item) => item.role));
+  const actualRoles = sortedUnique(suppliedRoles);
+  const missing = requiredRoles.filter((role) => !actualRoles.includes(role));
+  const unexpected = actualRoles.filter((role) => !requiredRoles.includes(role));
+
+  if (missing.length > 0) {
+    errors.push(`Operation ${operation.id} is missing required input roles: ${missing.join(", ")}.`);
+  }
+  if (unexpected.length > 0) {
+    errors.push(`Operation ${operation.id} received unexpected input roles: ${unexpected.join(", ")}.`);
+  }
+
+  return errors;
 }
 
 export function createExecutionAuthorization(
@@ -23,6 +73,7 @@ export function createExecutionAuthorization(
     integrationId: descriptor.integrationId,
     adapterId: descriptor.adapterId,
     adapterVersion: descriptor.adapterVersion,
+    protocol: descriptor.execution.protocol,
     argvPrefix: [...descriptor.execution.argvPrefix],
   };
 }
@@ -41,6 +92,9 @@ export function validateExecutionAuthorization(
   if (authorization.adapterVersion !== descriptor.adapterVersion) {
     errors.push("Execution authorization adapter version does not match the package.");
   }
+  if (authorization.protocol !== descriptor.execution.protocol) {
+    errors.push("Execution authorization protocol does not exactly match the package declaration.");
+  }
   if (!arraysEqual(authorization.argvPrefix, descriptor.execution.argvPrefix)) {
     errors.push("Execution authorization argv prefix does not exactly match the package declaration.");
   }
@@ -53,7 +107,7 @@ export function validateAdapterRunPreflight(
   request: IntegrationAdapterRunRequest,
 ): string[] {
   const errors = validateExecutionAuthorization(descriptor, authorization);
-  if (descriptor.execution.protocol !== ADAPTER_CLI_V0) {
+  if (!SUPPORTED_PROTOCOLS.has(descriptor.execution.protocol)) {
     errors.push(`Unsupported integration execution protocol: ${descriptor.execution.protocol}.`);
   }
   if (descriptor.execution.argvPrefix.length === 0) {
@@ -64,6 +118,8 @@ export function validateAdapterRunPreflight(
     errors.push(
       `Requested integration operation must match exactly one advertised operation; found ${operationMatches.length}.`,
     );
+  } else {
+    errors.push(...operationBindingIssues(operationMatches[0], requestBindings(request)));
   }
   if (!request.inputSetManifestPath) {
     errors.push("Core Integration Input Set manifest path is empty.");
@@ -116,9 +172,29 @@ function resultIdentityIssues(
   if (result.resultVersion !== descriptor.resultCompatibility.defaultResultVersion) {
     issues.push({
       code: "protocol.default_result_version",
-      message: `Adapter emitted Result version ${result.resultVersion} instead of declared v0 default ${descriptor.resultCompatibility.defaultResultVersion}.`,
+      message: `Adapter emitted Result version ${result.resultVersion} instead of declared default ${descriptor.resultCompatibility.defaultResultVersion}.`,
     });
   }
+
+  if (result.result !== "failed") {
+    const boundRoles = sortedUnique(requestBindings(request).map((item) => item.role));
+    const consumedRoles = sortedUnique(result.inputs.operationInputs.map((item) => item.role));
+    if (!arraysEqual(boundRoles, consumedRoles)) {
+      issues.push({
+        code: "protocol.operation_input_roles",
+        message: `Successful Result operation-input roles ${consumedRoles.join(", ") || "<none>"} do not match bound roles ${boundRoles.join(", ") || "<none>"}.`,
+      });
+    }
+    for (const input of result.inputs.operationInputs) {
+      if (input.status !== "available" || !input.id || !input.sha256) {
+        issues.push({
+          code: "protocol.operation_input_provenance",
+          message: `Successful Result does not provide complete consumed provenance for operation input ${input.role}.`,
+        });
+      }
+    }
+  }
+
   return issues;
 }
 

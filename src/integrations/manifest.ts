@@ -1,9 +1,15 @@
 import type {
+  IntegrationOperationInputRequirement,
   IntegrationPackageDescriptor,
   IntegrationPackageOperation,
   IntegrationProfileSchema,
   IntegrationSurfaceCompatibility,
 } from "./contracts";
+
+const MANIFEST_V0 = "0.1-candidate";
+const PROTOCOL_V0 = "orbitfabric.adapter_cli.v0";
+const MANIFEST_V1 = "0.2-candidate";
+const PROTOCOL_V1 = "orbitfabric.adapter_cli.v1";
 
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -42,11 +48,64 @@ function surface(item: unknown, index: number): IntegrationSurfaceCompatibility 
   };
 }
 
-function operation(item: unknown, index: number): IntegrationPackageOperation {
+function operationRequirement(
+  item: unknown,
+  operationIndex: number,
+  requirementIndex: number,
+): IntegrationOperationInputRequirement {
+  const label = `operations[${operationIndex}].input_requirements[${requirementIndex}]`;
+  const value = record(item, label);
+  const keys = Object.keys(value).sort();
+  if (keys.length !== 1 || keys[0] !== "role") {
+    throw new Error(
+      `${label} must contain exactly the v1 role field; received ${keys.join(", ") || "no fields"}.`,
+    );
+  }
+  const role = stringValue(value.role, `${label}.role`);
+  if (role !== "scenario") {
+    throw new Error(`${label}.role must be scenario for manifest 0.2-candidate.`);
+  }
+  return { role };
+}
+
+function operation(
+  item: unknown,
+  index: number,
+  manifestVersion: string,
+): IntegrationPackageOperation {
   const value = record(item, `operations[${index}]`);
+  let inputRequirements: IntegrationOperationInputRequirement[] = [];
+
+  if (manifestVersion === MANIFEST_V0) {
+    if (value.input_requirements !== undefined) {
+      throw new Error(
+        `operations[${index}].input_requirements is not part of frozen Integration Package manifest v0.`,
+      );
+    }
+  } else if (manifestVersion === MANIFEST_V1) {
+    inputRequirements = arrayValue(
+      value.input_requirements,
+      `operations[${index}].input_requirements`,
+    ).map((entry, requirementIndex) => operationRequirement(entry, index, requirementIndex));
+    if (inputRequirements.length > 1) {
+      throw new Error(`operations[${index}].input_requirements supports at most one role.`);
+    }
+
+    const seen = new Set<string>();
+    for (const requirement of inputRequirements) {
+      if (seen.has(requirement.role)) {
+        throw new Error(
+          `operations[${index}].input_requirements contains duplicate role ${requirement.role}.`,
+        );
+      }
+      seen.add(requirement.role);
+    }
+  }
+
   return {
     id: stringValue(value.id, `operations[${index}].id`),
     capabilities: stringArray(value.capabilities, `operations[${index}].capabilities`),
+    inputRequirements,
   };
 }
 
@@ -70,6 +129,11 @@ export function parseIntegrationPackageManifest(
 ): IntegrationPackageDescriptor {
   const parsed = JSON.parse(text) as unknown;
   const root = record(parsed, "Integration Package manifest");
+  const manifestVersion = stringValue(root.manifest_version, "manifest_version");
+  if (![MANIFEST_V0, MANIFEST_V1].includes(manifestVersion)) {
+    throw new Error(`Unsupported Integration Package manifest version: ${manifestVersion}`);
+  }
+
   const integration = record(root.integration, "integration");
   const adapter = record(root.adapter, "adapter");
   const core = record(root.core_input_compatibility, "core_input_compatibility");
@@ -80,7 +144,7 @@ export function parseIntegrationPackageManifest(
   const descriptor: IntegrationPackageDescriptor = {
     manifestPath,
     kind: stringValue(root.kind, "kind"),
-    manifestVersion: stringValue(root.manifest_version, "manifest_version"),
+    manifestVersion,
     integrationId: stringValue(integration.id, "integration.id"),
     adapterId: stringValue(adapter.id, "adapter.id"),
     adapterVersion: stringValue(adapter.version, "adapter.version"),
@@ -103,7 +167,9 @@ export function parseIntegrationPackageManifest(
       ),
     },
     advertisedCapabilities: stringArray(root.capabilities, "capabilities"),
-    operations: arrayValue(root.operations, "operations").map(operation),
+    operations: arrayValue(root.operations, "operations").map((item, index) =>
+      operation(item, index, manifestVersion),
+    ),
     profileSchemas: arrayValue(root.profile_schemas, "profile_schemas").map(profileSchema),
     execution: {
       protocol: stringValue(execution.protocol, "execution.protocol"),
@@ -114,18 +180,25 @@ export function parseIntegrationPackageManifest(
   if (descriptor.kind !== "orbitfabric.integration_package") {
     throw new Error(`Unsupported Integration Package kind: ${descriptor.kind}`);
   }
-  if (descriptor.manifestVersion !== "0.1-candidate") {
-    throw new Error(`Unsupported Integration Package manifest version: ${descriptor.manifestVersion}`);
-  }
-  if (descriptor.execution.protocol !== "orbitfabric.adapter_cli.v0") {
-    throw new Error(`Unsupported integration execution protocol: ${descriptor.execution.protocol}`);
+
+  const expectedProtocol =
+    descriptor.manifestVersion === MANIFEST_V0 ? PROTOCOL_V0 : PROTOCOL_V1;
+  if (descriptor.execution.protocol !== expectedProtocol) {
+    throw new Error(
+      `Integration Package manifest ${descriptor.manifestVersion} requires execution protocol ${expectedProtocol}; received ${descriptor.execution.protocol}.`,
+    );
   }
   if (descriptor.execution.argvPrefix.length === 0) {
     throw new Error("execution.argv_prefix must contain at least the adapter executable.");
   }
 
+  const operationIds = new Set<string>();
   const packageCapabilities = new Set(descriptor.advertisedCapabilities);
   for (const item of descriptor.operations) {
+    if (operationIds.has(item.id)) {
+      throw new Error(`Integration Package contains duplicate operation id ${item.id}.`);
+    }
+    operationIds.add(item.id);
     for (const capability of item.capabilities) {
       if (!packageCapabilities.has(capability)) {
         throw new Error(
