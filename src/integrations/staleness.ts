@@ -20,6 +20,12 @@ export function assessIntegrationFreshness(
   if (!result) {
     return { state: "unknown", reason: "No Integration Result is available." };
   }
+  if (result.resultVersion === "0.2-lab" && result.inputs.operationInputs.length > 0) {
+    return {
+      state: "unknown",
+      reason: "Result consumed operation-specific semantic inputs whose current bindings are not modeled by this Studio control yet.",
+    };
+  }
   if (!inputSet?.inputSetSha256) {
     return {
       state: "unknown",
