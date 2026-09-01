@@ -8,6 +8,8 @@ use std::time::{Duration, Instant};
 
 const ADAPTER_DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
 const ADAPTER_POLL_INTERVAL: Duration = Duration::from_millis(25);
+const ADAPTER_CLI_V0: &str = "orbitfabric.adapter_cli.v0";
+const ADAPTER_CLI_VNEXT_LAB: &str = "orbitfabric.adapter_cli.vnext-lab";
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +30,7 @@ pub struct IntegrationAdapterInvocation {
 #[tauri::command]
 pub fn run_integration_adapter(
     authorized_argv_prefix: Vec<String>,
+    authorized_protocol: String,
     operation: String,
     input_set_manifest: String,
     profile: String,
@@ -35,6 +38,7 @@ pub fn run_integration_adapter(
 ) -> Result<IntegrationAdapterInvocation, String> {
     run_integration_adapter_with_timeout(
         authorized_argv_prefix,
+        authorized_protocol,
         operation,
         input_set_manifest,
         profile,
@@ -43,14 +47,26 @@ pub fn run_integration_adapter(
     )
 }
 
+fn validate_authorized_protocol(protocol: &str) -> Result<(), String> {
+    match protocol {
+        ADAPTER_CLI_V0 | ADAPTER_CLI_VNEXT_LAB => Ok(()),
+        _ => Err(format!(
+            "Unsupported authorized integration protocol: {protocol}."
+        )),
+    }
+}
+
 fn run_integration_adapter_with_timeout(
     authorized_argv_prefix: Vec<String>,
+    authorized_protocol: String,
     operation: String,
     input_set_manifest: String,
     profile: String,
     output_dir: String,
     timeout: Duration,
 ) -> Result<IntegrationAdapterInvocation, String> {
+    validate_authorized_protocol(&authorized_protocol)?;
+
     let executable = authorized_argv_prefix
         .first()
         .map(|value| value.trim())
@@ -218,6 +234,7 @@ mod tests {
 
         let invocation = run_integration_adapter_with_timeout(
             vec!["/bin/echo".to_string(), "prefix".to_string()],
+            ADAPTER_CLI_V0.to_string(),
             "project".to_string(),
             display_path(&input),
             display_path(&profile),
@@ -229,6 +246,31 @@ mod tests {
         assert_eq!(invocation.exit_code, Some(0));
         assert!(invocation.stdout.contains("prefix run --operation project"));
         assert!(invocation.result_text.is_none());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn adapter_runner_rejects_unknown_authorized_protocol() {
+        let root = temp_dir("protocol");
+        let input = root.join("input.json");
+        let profile = root.join("profile.yaml");
+        let output = root.join("out");
+        fs::write(&input, b"{}").unwrap();
+        fs::write(&profile, b"kind: test\n").unwrap();
+
+        let error = run_integration_adapter_with_timeout(
+            vec!["/bin/echo".to_string()],
+            "future.protocol".to_string(),
+            "project".to_string(),
+            display_path(&input),
+            display_path(&profile),
+            display_path(&output),
+            Duration::from_secs(1),
+        )
+        .expect_err("unknown protocol must fail before adapter execution");
+
+        assert!(error.contains("Unsupported authorized integration protocol"));
         let _ = fs::remove_dir_all(root);
     }
 
@@ -246,6 +288,7 @@ mod tests {
 
         let invocation = run_integration_adapter_with_timeout(
             vec!["/bin/false".to_string()],
+            ADAPTER_CLI_V0.to_string(),
             "project".to_string(),
             display_path(&input),
             display_path(&profile),
@@ -267,6 +310,8 @@ mod tests {
             Ok(value) => value,
             Err(_) => return,
         };
+        let protocol = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL")
+            .unwrap_or_else(|_| ADAPTER_CLI_V0.to_string());
         let input = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST")
             .expect("acceptance Input Manifest path must be provided with the executable");
         let profile = std::env::var("ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE")
@@ -276,6 +321,7 @@ mod tests {
 
         let invocation = run_integration_adapter_with_timeout(
             vec![executable.clone()],
+            protocol,
             "project".to_string(),
             input,
             profile,
