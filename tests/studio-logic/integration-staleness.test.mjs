@@ -27,6 +27,20 @@ function vNextResult(coreSha = "core-sha", profileSha = "profile-sha") {
   };
 }
 
+function g4Result(scenarioSha = "scenario-sha") {
+  const value = vNextResult();
+  value.inputs.operationInputs = [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: scenarioSha,
+      reason: null,
+    },
+  ];
+  return value;
+}
+
 function inputSet(sha = "core-sha") {
   return { inputSetSha256: sha };
 }
@@ -55,19 +69,78 @@ test("zero-input vNext uses the same exact Core/Profile freshness rule", () => {
   );
 });
 
-test("vNext freshness is unknown when operation-specific provenance is not yet modeled", () => {
-  const value = vNextResult();
-  value.inputs.operationInputs = [
+test("G4 is fresh only when current Scenario bytes match consumed provenance", () => {
+  assert.deepEqual(
+    assessIntegrationFreshness(
+      g4Result("ABCDEF"),
+      inputSet(),
+      profile(),
+      [{ role: "scenario", sha256: "abcdef" }],
+    ),
+    {
+      state: "fresh",
+      reason:
+        "Result matches the exact current Core Input Set, Projection Profile and operation-specific input bytes.",
+    },
+  );
+});
+
+test("G4 is stale when Scenario bytes change while Core and Profile remain current", () => {
+  const assessment = assessIntegrationFreshness(
+    g4Result("old-scenario"),
+    inputSet(),
+    profile(),
+    [{ role: "scenario", sha256: "new-scenario" }],
+  );
+  assert.equal(assessment.state, "stale");
+  assert.match(assessment.reason, /Operation input scenario changed/);
+});
+
+test("G4 freshness is unknown without exact current Scenario identity", () => {
+  assert.equal(
+    assessIntegrationFreshness(g4Result(), inputSet(), profile()).state,
+    "unknown",
+  );
+  assert.equal(
+    assessIntegrationFreshness(
+      g4Result(),
+      inputSet(),
+      profile(),
+      [{ role: "scenario", sha256: null }],
+    ).state,
+    "unknown",
+  );
+
+  const unavailable = g4Result();
+  unavailable.inputs.operationInputs = [
     {
       role: "scenario",
-      status: "available",
-      sha256: "scenario-sha",
+      status: "unavailable",
+      id: null,
+      sha256: null,
+      reason: "not resolved",
     },
   ];
+  assert.equal(
+    assessIntegrationFreshness(
+      unavailable,
+      inputSet(),
+      profile(),
+      [{ role: "scenario", sha256: "scenario-sha" }],
+    ).state,
+    "unknown",
+  );
+});
 
-  const assessment = assessIntegrationFreshness(value, inputSet(), profile());
+test("vNext freshness is unknown when current bindings exist but Result omitted them", () => {
+  const assessment = assessIntegrationFreshness(
+    vNextResult(),
+    inputSet(),
+    profile(),
+    [{ role: "scenario", sha256: "scenario-sha" }],
+  );
   assert.equal(assessment.state, "unknown");
-  assert.match(assessment.reason, /operation-specific semantic inputs/);
+  assert.match(assessment.reason, /Result contains no consumed operation-input provenance/);
 });
 
 test("integration freshness is stale when the Core Input Set changes", () => {
