@@ -1,9 +1,15 @@
 import type {
+  IntegrationOperationInputRequirement,
   IntegrationPackageDescriptor,
   IntegrationPackageOperation,
   IntegrationProfileSchema,
   IntegrationSurfaceCompatibility,
 } from "./contracts";
+
+const MANIFEST_V0 = "0.1-candidate";
+const PROTOCOL_V0 = "orbitfabric.adapter_cli.v0";
+const MANIFEST_VNEXT_LAB = "0.2-lab";
+const PROTOCOL_VNEXT_LAB = "orbitfabric.adapter_cli.vnext-lab";
 
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -42,11 +48,50 @@ function surface(item: unknown, index: number): IntegrationSurfaceCompatibility 
   };
 }
 
-function operation(item: unknown, index: number): IntegrationPackageOperation {
+function operationRequirement(
+  item: unknown,
+  operationIndex: number,
+  requirementIndex: number,
+): IntegrationOperationInputRequirement {
+  return {
+    ...record(
+      item,
+      `operations[${operationIndex}].input_requirements[${requirementIndex}]`,
+    ),
+  };
+}
+
+function operation(
+  item: unknown,
+  index: number,
+  manifestVersion: string,
+): IntegrationPackageOperation {
   const value = record(item, `operations[${index}]`);
+  let inputRequirements: IntegrationOperationInputRequirement[] = [];
+
+  if (manifestVersion === MANIFEST_V0) {
+    if (value.input_requirements !== undefined) {
+      throw new Error(
+        `operations[${index}].input_requirements is not part of frozen Integration Package manifest v0.`,
+      );
+    }
+  } else if (manifestVersion === MANIFEST_VNEXT_LAB) {
+    inputRequirements = arrayValue(
+      value.input_requirements,
+      `operations[${index}].input_requirements`,
+    ).map((entry, requirementIndex) => operationRequirement(entry, index, requirementIndex));
+
+    if (inputRequirements.length > 0) {
+      throw new Error(
+        `operations[${index}] declares operation inputs that this zero-input vNext control does not support yet.`,
+      );
+    }
+  }
+
   return {
     id: stringValue(value.id, `operations[${index}].id`),
     capabilities: stringArray(value.capabilities, `operations[${index}].capabilities`),
+    inputRequirements,
   };
 }
 
@@ -70,6 +115,11 @@ export function parseIntegrationPackageManifest(
 ): IntegrationPackageDescriptor {
   const parsed = JSON.parse(text) as unknown;
   const root = record(parsed, "Integration Package manifest");
+  const manifestVersion = stringValue(root.manifest_version, "manifest_version");
+  if (![MANIFEST_V0, MANIFEST_VNEXT_LAB].includes(manifestVersion)) {
+    throw new Error(`Unsupported Integration Package manifest version: ${manifestVersion}`);
+  }
+
   const integration = record(root.integration, "integration");
   const adapter = record(root.adapter, "adapter");
   const core = record(root.core_input_compatibility, "core_input_compatibility");
@@ -80,7 +130,7 @@ export function parseIntegrationPackageManifest(
   const descriptor: IntegrationPackageDescriptor = {
     manifestPath,
     kind: stringValue(root.kind, "kind"),
-    manifestVersion: stringValue(root.manifest_version, "manifest_version"),
+    manifestVersion,
     integrationId: stringValue(integration.id, "integration.id"),
     adapterId: stringValue(adapter.id, "adapter.id"),
     adapterVersion: stringValue(adapter.version, "adapter.version"),
@@ -103,7 +153,9 @@ export function parseIntegrationPackageManifest(
       ),
     },
     advertisedCapabilities: stringArray(root.capabilities, "capabilities"),
-    operations: arrayValue(root.operations, "operations").map(operation),
+    operations: arrayValue(root.operations, "operations").map((item, index) =>
+      operation(item, index, manifestVersion),
+    ),
     profileSchemas: arrayValue(root.profile_schemas, "profile_schemas").map(profileSchema),
     execution: {
       protocol: stringValue(execution.protocol, "execution.protocol"),
@@ -114,11 +166,13 @@ export function parseIntegrationPackageManifest(
   if (descriptor.kind !== "orbitfabric.integration_package") {
     throw new Error(`Unsupported Integration Package kind: ${descriptor.kind}`);
   }
-  if (descriptor.manifestVersion !== "0.1-candidate") {
-    throw new Error(`Unsupported Integration Package manifest version: ${descriptor.manifestVersion}`);
-  }
-  if (descriptor.execution.protocol !== "orbitfabric.adapter_cli.v0") {
-    throw new Error(`Unsupported integration execution protocol: ${descriptor.execution.protocol}`);
+
+  const expectedProtocol =
+    descriptor.manifestVersion === MANIFEST_V0 ? PROTOCOL_V0 : PROTOCOL_VNEXT_LAB;
+  if (descriptor.execution.protocol !== expectedProtocol) {
+    throw new Error(
+      `Integration Package manifest ${descriptor.manifestVersion} requires execution protocol ${expectedProtocol}; received ${descriptor.execution.protocol}.`,
+    );
   }
   if (descriptor.execution.argvPrefix.length === 0) {
     throw new Error("execution.argv_prefix must contain at least the adapter executable.");
