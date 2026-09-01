@@ -12,6 +12,9 @@ import type {
   IntegrationTargetRef,
 } from "./contracts";
 
+const RESULT_V0 = "0.1-candidate";
+const RESULT_VNEXT_LAB = "0.2-lab";
+
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`${label} must be an object.`);
@@ -42,6 +45,32 @@ function items(value: unknown, label: string): unknown[] {
     throw new Error(`${label} must be an array.`);
   }
   return value;
+}
+
+function operationInputs(
+  inputs: Record<string, unknown>,
+  resultVersion: string,
+): Record<string, unknown>[] {
+  if (resultVersion === RESULT_V0) {
+    if (inputs.operation_inputs !== undefined) {
+      throw new Error("inputs.operation_inputs is not part of frozen Integration Result v0.");
+    }
+    return [];
+  }
+
+  if (resultVersion === RESULT_VNEXT_LAB) {
+    const values = items(inputs.operation_inputs, "inputs.operation_inputs").map((item, index) => ({
+      ...record(item, `inputs.operation_inputs[${index}]`),
+    }));
+    if (values.length > 0) {
+      throw new Error(
+        "inputs.operation_inputs is non-empty but this zero-input vNext control has no binding model yet.",
+      );
+    }
+    return values;
+  }
+
+  throw new Error(`Unsupported Result version: ${resultVersion}.`);
 }
 
 function coreRef(value: unknown, label: string): IntegrationCoreRef {
@@ -163,6 +192,7 @@ function coverage(value: unknown): IntegrationCoverage {
 
 export function parseIntegrationResult(text: string): IntegrationResult {
   const root = record(JSON.parse(text) as unknown, "Integration Result");
+  const resultVersion = stringValue(root.result_version, "result_version");
   const integration = record(root.integration, "integration");
   const adapter = record(root.adapter, "adapter");
   const operation = record(root.operation, "operation");
@@ -170,7 +200,7 @@ export function parseIntegrationResult(text: string): IntegrationResult {
 
   return {
     kind: stringValue(root.kind, "kind"),
-    resultVersion: stringValue(root.result_version, "result_version"),
+    resultVersion,
     result: stringValue(root.result, "result"),
     integration: {
       id: stringValue(integration.id, "integration.id"),
@@ -185,6 +215,7 @@ export function parseIntegrationResult(text: string): IntegrationResult {
     inputs: {
       coreInputSet: record(inputs.core_input_set, "inputs.core_input_set"),
       profile: record(inputs.profile, "inputs.profile"),
+      operationInputs: operationInputs(inputs, resultVersion),
     },
     capabilities: strings(root.capabilities, "capabilities"),
     artifacts: items(root.artifacts, "artifacts").map(artifact),
@@ -213,10 +244,16 @@ export function validateIntegrationResult(
   if (result.kind !== "orbitfabric.integration_result") {
     issues.push({ code: "result.kind", message: `Unsupported Result kind: ${result.kind}.` });
   }
-  if (result.resultVersion !== "0.1-candidate") {
+  if (![RESULT_V0, RESULT_VNEXT_LAB].includes(result.resultVersion)) {
     issues.push({
       code: "result.version",
       message: `Unsupported Result version: ${result.resultVersion}.`,
+    });
+  }
+  if (result.resultVersion === RESULT_VNEXT_LAB && result.inputs.operationInputs.length > 0) {
+    issues.push({
+      code: "operation_input.unsupported",
+      message: "This vNext control cannot validate consumed operation inputs yet.",
     });
   }
   if (!["succeeded", "succeeded_with_warnings", "failed"].includes(result.result)) {
