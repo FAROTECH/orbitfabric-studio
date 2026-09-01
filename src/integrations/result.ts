@@ -1,6 +1,7 @@
 import type {
   IntegrationArtifact,
   IntegrationBundleRead,
+  IntegrationConsumedOperationInput,
   IntegrationCoreRef,
   IntegrationCoverage,
   IntegrationCoverageRecord,
@@ -33,6 +34,12 @@ function nullableString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+function strictNullableString(value: unknown, label: string): string | null {
+  if (value === null) return null;
+  if (typeof value === "string" && value.length > 0) return value;
+  throw new Error(`${label} must be null or a non-empty string.`);
+}
+
 function strings(value: unknown, label: string): string[] {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     throw new Error(`${label} must be an array of strings.`);
@@ -47,10 +54,47 @@ function items(value: unknown, label: string): unknown[] {
   return value;
 }
 
+function consumedOperationInput(value: unknown, index: number): IntegrationConsumedOperationInput {
+  const label = `inputs.operation_inputs[${index}]`;
+  const item = record(value, label);
+  const keys = Object.keys(item).sort();
+  const expected = ["id", "reason", "role", "sha256", "status"];
+  if (JSON.stringify(keys) !== JSON.stringify(expected)) {
+    throw new Error(`${label} must contain exactly role, status, id, sha256 and reason.`);
+  }
+
+  const status = stringValue(item.status, `${label}.status`);
+  if (status !== "available" && status !== "unavailable") {
+    throw new Error(`${label}.status must be available or unavailable.`);
+  }
+
+  const parsed: IntegrationConsumedOperationInput = {
+    role: stringValue(item.role, `${label}.role`),
+    status,
+    id: strictNullableString(item.id, `${label}.id`),
+    sha256: strictNullableString(item.sha256, `${label}.sha256`),
+    reason: strictNullableString(item.reason, `${label}.reason`),
+  };
+
+  if (status === "available") {
+    if (!parsed.id || !parsed.sha256 || parsed.reason !== null) {
+      throw new Error(
+        `${label} available provenance requires id and sha256 and requires reason=null.`,
+      );
+    }
+  } else if (parsed.id !== null || parsed.sha256 !== null || parsed.reason === null) {
+    throw new Error(
+      `${label} unavailable provenance requires id=null, sha256=null and a non-empty reason.`,
+    );
+  }
+
+  return parsed;
+}
+
 function operationInputs(
   inputs: Record<string, unknown>,
   resultVersion: string,
-): Record<string, unknown>[] {
+): IntegrationConsumedOperationInput[] {
   if (resultVersion === RESULT_V0) {
     if (inputs.operation_inputs !== undefined) {
       throw new Error("inputs.operation_inputs is not part of frozen Integration Result v0.");
@@ -59,13 +103,15 @@ function operationInputs(
   }
 
   if (resultVersion === RESULT_VNEXT_LAB) {
-    const values = items(inputs.operation_inputs, "inputs.operation_inputs").map((item, index) => ({
-      ...record(item, `inputs.operation_inputs[${index}]`),
-    }));
-    if (values.length > 0) {
-      throw new Error(
-        "inputs.operation_inputs is non-empty but this zero-input vNext control has no binding model yet.",
-      );
+    const values = items(inputs.operation_inputs, "inputs.operation_inputs").map(
+      consumedOperationInput,
+    );
+    const seen = new Set<string>();
+    for (const item of values) {
+      if (seen.has(item.role)) {
+        throw new Error(`inputs.operation_inputs contains duplicate role ${item.role}.`);
+      }
+      seen.add(item.role);
     }
     return values;
   }
@@ -250,14 +296,32 @@ export function validateIntegrationResult(
       message: `Unsupported Result version: ${result.resultVersion}.`,
     });
   }
-  if (result.resultVersion === RESULT_VNEXT_LAB && result.inputs.operationInputs.length > 0) {
-    issues.push({
-      code: "operation_input.unsupported",
-      message: "This vNext control cannot validate consumed operation inputs yet.",
-    });
-  }
   if (!["succeeded", "succeeded_with_warnings", "failed"].includes(result.result)) {
     issues.push({ code: "result.state", message: `Unsupported Result state: ${result.result}.` });
+  }
+
+  if (result.resultVersion === RESULT_VNEXT_LAB) {
+    for (const input of result.inputs.operationInputs) {
+      if (input.status === "available") {
+        if (!input.id || !input.sha256 || input.reason !== null) {
+          issues.push({
+            code: "operation_input.available_provenance",
+            message: `Operation input ${input.role} has incomplete available provenance.`,
+          });
+        }
+      } else if (input.id !== null || input.sha256 !== null || !input.reason) {
+        issues.push({
+          code: "operation_input.unavailable_provenance",
+          message: `Operation input ${input.role} has invalid unavailable provenance.`,
+        });
+      }
+      if (result.result !== "failed" && input.status !== "available") {
+        issues.push({
+          code: "operation_input.success_without_provenance",
+          message: `Successful Result cannot claim unavailable required operation input ${input.role}.`,
+        });
+      }
+    }
   }
 
   const mappingIds = new Set<string>();
