@@ -1,0 +1,51 @@
+name: Architecture operation-input v1 G9 Studio conformance
+
+on:
+  push:
+    branches:
+      - architecture/operation-input-v1-contract-promotion
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Promoted frontend contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout promoted Studio
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Studio logic tests
+        run: npm run test:logic
+      - name: TypeScript and Vite build
+        run: npm run build
+
+  rust:
+    name: Promoted direct-argv runner
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout promoted Studio
+        uses: actions/checkout@v4
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Rust format
+        run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
+      - name: Rust tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - name: Rust check
+        run: cargo check --locked --manifest-path src-tauri/Cargo.toml
