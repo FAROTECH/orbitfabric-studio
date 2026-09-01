@@ -1,5 +1,6 @@
 import type {
   CoreIntegrationInputSet,
+  IntegrationCurrentOperationInput,
   IntegrationProfileDocument,
   IntegrationProfileFreshnessAssessment,
   IntegrationResult,
@@ -16,15 +17,10 @@ export function assessIntegrationFreshness(
   result: IntegrationResult | null,
   inputSet: CoreIntegrationInputSet | null,
   profile: IntegrationProfileDocument | null,
+  currentOperationInputs: IntegrationCurrentOperationInput[] = [],
 ): IntegrationProfileFreshnessAssessment {
   if (!result) {
     return { state: "unknown", reason: "No Integration Result is available." };
-  }
-  if (result.resultVersion === "0.2-lab" && result.inputs.operationInputs.length > 0) {
-    return {
-      state: "unknown",
-      reason: "Result consumed operation-specific semantic inputs whose current bindings are not modeled by this Studio control yet.",
-    };
   }
   if (!inputSet?.inputSetSha256) {
     return {
@@ -56,6 +52,70 @@ export function assessIntegrationFreshness(
       state: "stale",
       reason: "Projection Profile changed after this Result was produced.",
     };
+  }
+
+  if (result.resultVersion === "0.2-lab") {
+    const consumed = result.inputs.operationInputs;
+    if (consumed.length === 0 && currentOperationInputs.length > 0) {
+      return {
+        state: "unknown",
+        reason: "Current operation-input bindings exist but the Result contains no consumed operation-input provenance.",
+      };
+    }
+
+    if (consumed.length > 0) {
+      const currentByRole = new Map<string, string>();
+      for (const input of currentOperationInputs) {
+        if (!input.role || !input.sha256) {
+          return {
+            state: "unknown",
+            reason: "Current operation-input identity is incomplete.",
+          };
+        }
+        if (currentByRole.has(input.role)) {
+          return {
+            state: "unknown",
+            reason: `Current operation-input role ${input.role} is represented more than once.`,
+          };
+        }
+        currentByRole.set(input.role, input.sha256);
+      }
+
+      if (currentByRole.size !== consumed.length) {
+        return {
+          state: "unknown",
+          reason: "Current operation-input bindings do not exactly correspond to the Result provenance roles.",
+        };
+      }
+
+      for (const input of consumed) {
+        if (input.status !== "available" || !input.sha256) {
+          return {
+            state: "unknown",
+            reason: `Integration Result does not provide reliable provenance for operation input ${input.role}.`,
+          };
+        }
+        const currentSha = currentByRole.get(input.role);
+        if (!currentSha) {
+          return {
+            state: "unknown",
+            reason: `No current operation-input identity is available for role ${input.role}.`,
+          };
+        }
+        if (currentSha.toLowerCase() !== input.sha256.toLowerCase()) {
+          return {
+            state: "stale",
+            reason: `Operation input ${input.role} changed after this Result was produced.`,
+          };
+        }
+      }
+
+      return {
+        state: "fresh",
+        reason:
+          "Result matches the exact current Core Input Set, Projection Profile and operation-specific input bytes.",
+      };
+    }
   }
 
   return {
