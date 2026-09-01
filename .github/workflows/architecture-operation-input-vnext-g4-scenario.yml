@@ -1,0 +1,374 @@
+name: Architecture Lab operation-input vNext G4 Scenario Studio
+
+on:
+  push:
+    branches:
+      - architecture/operation-input-vnext-g4-scenario
+  workflow_dispatch:
+
+jobs:
+  studio-g4-scenario-consumer:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Studio G4 experiment
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked Studio dependencies
+        run: npm ci
+
+      - name: Run Studio generic logic regression
+        run: npm run test:logic
+
+      - name: Build Studio TypeScript and Vite surfaces
+        run: npm run build
+
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Studio Rust regression
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Checkout pinned OrbitFabric Core
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: b1aa95408710f697b0ee144a7b41f2376395e01f
+          path: .work/orbitfabric-core
+
+      - name: Checkout frozen v0 producer control
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          ref: 59a235b428a63449bbdb6a1b6c7acda582606090
+          path: .work/openobsw-v0
+
+      - name: Checkout accepted G4 Scenario producer
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          ref: a27b50510e6e38a220a46b579bf71d949ed64117
+          path: .work/openobsw-g4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build isolated v0 and G4 adapter environments
+        run: |
+          python -m venv /tmp/orbitfabric-studio-v0-venv
+          python -m venv /tmp/orbitfabric-studio-g4-venv
+
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install --upgrade pip
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install -e ./.work/orbitfabric-core
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install -r ./.work/openobsw-v0/requirements-stage7.txt
+          /tmp/orbitfabric-studio-v0-venv/bin/python -m pip install -e ./.work/openobsw-v0
+
+          /tmp/orbitfabric-studio-g4-venv/bin/python -m pip install --upgrade pip
+          /tmp/orbitfabric-studio-g4-venv/bin/python -m pip install -e ./.work/orbitfabric-core
+          /tmp/orbitfabric-studio-g4-venv/bin/python -m pip install -r ./.work/openobsw-g4/requirements-stage7.txt
+          /tmp/orbitfabric-studio-g4-venv/bin/python -m pip install -e ./.work/openobsw-g4
+
+      - name: Export one exact Core Integration Input Set
+        run: |
+          rm -rf /tmp/orbitfabric-studio-g4
+          mkdir -p /tmp/orbitfabric-studio-g4/input
+          /tmp/orbitfabric-studio-g4-venv/bin/orbitfabric export integration-input-set \
+            "$GITHUB_WORKSPACE/.work/openobsw-g4/orbitfabric_models/mission" \
+            --output-dir /tmp/orbitfabric-studio-g4/input
+
+      - name: Execute G4 project through real Studio Rust runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: /tmp/orbitfabric-studio-g4-venv/bin/orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL: orbitfabric.adapter_cli.vnext-lab
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION: project
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-studio-g4/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/.work/openobsw-g4/projection_profiles/poc_openobsw_opensvf.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-studio-g4/g4-project
+        run: |
+          rm -rf /tmp/orbitfabric-studio-g4/g4-project
+          cargo test --locked \
+            --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
+
+      - name: Execute G4 verification projection with Scenario through same Studio runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: /tmp/orbitfabric-studio-g4-venv/bin/orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL: orbitfabric.adapter_cli.vnext-lab
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION: verification_projection
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION_INPUT_ROLE: scenario
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION_INPUT_PATH: ${{ github.workspace }}/.work/openobsw-g4/orbitfabric_models/scenarios/stage7_10_ping_verification.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-studio-g4/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/.work/openobsw-g4/projection_profiles/poc_openobsw_opensvf.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-studio-g4/g4-verification
+        run: |
+          rm -rf /tmp/orbitfabric-studio-g4/g4-verification
+          cargo test --locked \
+            --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
+
+      - name: Execute frozen v0 package through same Studio Rust runner
+        env:
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_EXECUTABLE: /tmp/orbitfabric-studio-v0-venv/bin/orbitfabric-openobsw-opensvf
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROTOCOL: orbitfabric.adapter_cli.v0
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OPERATION: project
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_INPUT_MANIFEST: /tmp/orbitfabric-studio-g4/input/integration_input_manifest.json
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_PROFILE: ${{ github.workspace }}/.work/openobsw-g4/projection_profiles/poc_openobsw_opensvf.yaml
+          ORBITFABRIC_STUDIO_ADAPTER_ACCEPTANCE_OUTPUT_DIR: /tmp/orbitfabric-studio-g4/v0-project
+        run: |
+          rm -rf /tmp/orbitfabric-studio-g4/v0-project
+          cargo test --locked \
+            --manifest-path src-tauri/Cargo.toml \
+            external_adapter_acceptance_executes_through_studio_runner \
+            -- --nocapture
+
+      - name: Compile Studio generic integration modules for cross-repository gate
+        run: |
+          node node_modules/typescript/bin/tsc -p tsconfig.logic-tests.json
+          mkdir -p .test-dist
+          printf '{ "type": "commonjs" }\n' > .test-dist/package.json
+
+      - name: Create G4 cross-repository Studio semantic gate
+        run: |
+          cat > tests/studio-logic/operation-input-vnext-g4-cross-repo-gate.mjs <<'JS'
+          import assert from "node:assert/strict";
+          import { createHash } from "node:crypto";
+          import { readFileSync } from "node:fs";
+          import { createRequire } from "node:module";
+          import { resolve } from "node:path";
+
+          const require = createRequire(import.meta.url);
+          const { parseIntegrationPackageManifest } = require("../../.test-dist/integrations/manifest.js");
+          const {
+            evaluateIntegrationCompatibility,
+            parseCoreIntegrationInputManifest,
+          } = require("../../.test-dist/integrations/compatibility.js");
+          const {
+            parseProjectionProfile,
+            selectProfileSchema,
+            validateProjectionProfile,
+          } = require("../../.test-dist/integrations/profile.js");
+          const {
+            assessAdapterInvocation,
+            createExecutionAuthorization,
+            validateAdapterRunPreflight,
+          } = require("../../.test-dist/integrations/execution.js");
+          const {
+            parseIntegrationResult,
+            validateIntegrationResult,
+          } = require("../../.test-dist/integrations/result.js");
+          const { assessIntegrationFreshness } = require("../../.test-dist/integrations/staleness.js");
+
+          const root = process.cwd();
+          const v0Root = resolve(root, ".work/openobsw-v0");
+          const g4Root = resolve(root, ".work/openobsw-g4");
+          const inputPath = "/tmp/orbitfabric-studio-g4/input/integration_input_manifest.json";
+          const profilePath = resolve(g4Root, "projection_profiles/poc_openobsw_opensvf.yaml");
+          const scenarioPath = resolve(g4Root, "orbitfabric_models/scenarios/stage7_10_ping_verification.yaml");
+          const v0ResultPath = "/tmp/orbitfabric-studio-g4/v0-project/integration_result.json";
+          const g4ProjectResultPath = "/tmp/orbitfabric-studio-g4/g4-project/integration_result.json";
+          const g4VerificationResultPath = "/tmp/orbitfabric-studio-g4/g4-verification/integration_result.json";
+
+          const read = (path) => readFileSync(path, "utf8");
+          const sha256 = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
+
+          const v0Descriptor = parseIntegrationPackageManifest(
+            resolve(v0Root, "integration_package/integration_package.json"),
+            read(resolve(v0Root, "integration_package/integration_package.json")),
+          );
+          const g4Descriptor = parseIntegrationPackageManifest(
+            resolve(g4Root, "integration_package/integration_package.json"),
+            read(resolve(g4Root, "integration_package/integration_package.json")),
+          );
+
+          assert.equal(v0Descriptor.manifestVersion, "0.1-candidate");
+          assert.equal(v0Descriptor.execution.protocol, "orbitfabric.adapter_cli.v0");
+          assert.deepEqual(v0Descriptor.operations.map((item) => item.inputRequirements), [[]]);
+
+          assert.equal(g4Descriptor.manifestVersion, "0.2-lab");
+          assert.equal(g4Descriptor.execution.protocol, "orbitfabric.adapter_cli.vnext-lab");
+          assert.equal(g4Descriptor.adapterVersion, "0.2.0.dev2");
+          const operations = Object.fromEntries(g4Descriptor.operations.map((item) => [item.id, item]));
+          assert.deepEqual(operations.project.inputRequirements, []);
+          assert.deepEqual(operations.verification_projection.inputRequirements, [{ role: "scenario" }]);
+
+          const input = parseCoreIntegrationInputManifest(read(inputPath));
+          assert.equal(evaluateIntegrationCompatibility(v0Descriptor, input).state, "compatible");
+          assert.equal(evaluateIntegrationCompatibility(g4Descriptor, input).state, "compatible");
+
+          const profile = parseProjectionProfile(profilePath, sha256(profilePath), read(profilePath));
+          for (const descriptor of [v0Descriptor, g4Descriptor]) {
+            const selected = selectProfileSchema(descriptor, profile.identity.schemaVersion);
+            const packageRoot = descriptor.manifestPath.replace(/[/\\]integration_package\.json$/, "");
+            const schemaPath = resolve(packageRoot, selected.path);
+            const schemaDigest = sha256(schemaPath);
+            const validation = validateProjectionProfile(
+              descriptor,
+              {
+                path: schemaPath,
+                text: read(schemaPath),
+                sha256: schemaDigest,
+                contained: true,
+                sha256Matches: schemaDigest.toLowerCase() === selected.sha256.toLowerCase(),
+              },
+              profile,
+            );
+            assert.equal(validation.valid, true, validation.errors.join("\n"));
+          }
+
+          const projectRequest = {
+            operation: "project",
+            inputSetManifestPath: inputPath,
+            profilePath,
+            outputDir: "/tmp/orbitfabric-studio-g4/gate-project",
+          };
+          const verificationRequest = {
+            operation: "verification_projection",
+            inputSetManifestPath: inputPath,
+            profilePath,
+            operationInputs: [{ role: "scenario", path: scenarioPath }],
+            outputDir: "/tmp/orbitfabric-studio-g4/gate-verification",
+          };
+
+          assert.deepEqual(
+            validateAdapterRunPreflight(g4Descriptor, createExecutionAuthorization(g4Descriptor), projectRequest),
+            [],
+          );
+          assert.deepEqual(
+            validateAdapterRunPreflight(g4Descriptor, createExecutionAuthorization(g4Descriptor), verificationRequest),
+            [],
+          );
+          assert.ok(
+            validateAdapterRunPreflight(
+              g4Descriptor,
+              createExecutionAuthorization(g4Descriptor),
+              { ...verificationRequest, operationInputs: [] },
+            ).some((item) => item.includes("missing required input roles: scenario")),
+          );
+          assert.ok(
+            validateAdapterRunPreflight(
+              g4Descriptor,
+              createExecutionAuthorization(g4Descriptor),
+              { ...projectRequest, operationInputs: [{ role: "scenario", path: scenarioPath }] },
+            ).some((item) => item.includes("unexpected input roles: scenario")),
+          );
+
+          const v0 = parseIntegrationResult(read(v0ResultPath));
+          const g4Project = parseIntegrationResult(read(g4ProjectResultPath));
+          const verificationText = read(g4VerificationResultPath);
+          const verification = parseIntegrationResult(verificationText);
+          assert.equal(validateIntegrationResult(v0).usable, true);
+          assert.equal(validateIntegrationResult(g4Project).usable, true);
+          assert.equal(validateIntegrationResult(verification).usable, true);
+          assert.deepEqual(v0.inputs.operationInputs, []);
+          assert.deepEqual(g4Project.inputs.operationInputs, []);
+
+          const scenarioDigest = sha256(scenarioPath);
+          assert.deepEqual(verification.inputs.operationInputs, [{
+            role: "scenario",
+            status: "available",
+            id: "stage7_10_ping_verification",
+            sha256: scenarioDigest,
+            reason: null,
+          }]);
+
+          const invocation = {
+            operation: "verification_projection",
+            executable: "orbitfabric-openobsw-opensvf",
+            args: [],
+            exitCode: 0,
+            processCompleted: true,
+            timedOut: false,
+            stdout: "",
+            stderr: "",
+            outputDir: "/tmp/orbitfabric-studio-g4/g4-verification",
+            resultPath: g4VerificationResultPath,
+            resultText: verificationText,
+          };
+          const assessment = assessAdapterInvocation(
+            g4Descriptor,
+            verificationRequest,
+            invocation,
+            null,
+          );
+          assert.equal(assessment.valid, true, assessment.issues.map((item) => item.message).join("\n"));
+
+          assert.equal(assessIntegrationFreshness(v0, input, profile).state, "fresh");
+          assert.equal(assessIntegrationFreshness(g4Project, input, profile).state, "fresh");
+          assert.equal(
+            assessIntegrationFreshness(
+              verification,
+              input,
+              profile,
+              [{ role: "scenario", sha256: scenarioDigest }],
+            ).state,
+            "fresh",
+          );
+          assert.equal(
+            assessIntegrationFreshness(
+              verification,
+              input,
+              profile,
+              [{ role: "scenario", sha256: "changed-scenario-bytes" }],
+            ).state,
+            "stale",
+          );
+          assert.equal(
+            assessIntegrationFreshness(verification, input, profile, []).state,
+            "unknown",
+          );
+
+          assert.deepEqual(v0.capabilities, g4Project.capabilities);
+          assert.deepEqual(v0.mappings, g4Project.mappings);
+          assert.deepEqual(v0.resolutions, g4Project.resolutions);
+          assert.deepEqual(v0.coverage, g4Project.coverage);
+
+          const artifactSemantics = (result) => result.artifacts.map((item) => ({
+            id: item.id,
+            kind: item.kind,
+            status: item.status,
+            path: item.path,
+            sha256: item.sha256,
+            derivedFromMappings: item.derivedFromMappings,
+          }));
+          assert.deepEqual(artifactSemantics(v0), artifactSemantics(g4Project));
+          JS
+
+      - name: Run G4 cross-repository Studio semantic gate
+        run: node --test tests/studio-logic/operation-input-vnext-g4-cross-repo-gate.mjs
+
+      - name: Prove Studio Plugin API remains untouched
+        run: |
+          git diff 6335a704a8b3678a9bb921495617f35410410df2...HEAD -- src/integrations/plugin-api.ts src/integrations/plugin-registry.ts src/integration-plugins
+          test -z "$(git diff --name-only 6335a704a8b3678a9bb921495617f35410410df2...HEAD -- src/integrations/plugin-api.ts src/integrations/plugin-registry.ts src/integration-plugins)"
+
+      - name: Retain Studio G4 acceptance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: operation-input-vnext-g4-scenario-studio
+          path: |
+            /tmp/orbitfabric-studio-g4/input
+            /tmp/orbitfabric-studio-g4/v0-project
+            /tmp/orbitfabric-studio-g4/g4-project
+            /tmp/orbitfabric-studio-g4/g4-verification
+          if-no-files-found: error
