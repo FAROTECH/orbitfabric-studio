@@ -7,9 +7,22 @@ const { assessIntegrationFreshness } = require("../../.test-dist/integrations/st
 
 function result(coreSha = "core-sha", profileSha = "profile-sha") {
   return {
+    resultVersion: "0.1-candidate",
     inputs: {
       coreInputSet: { status: "available", sha256: coreSha },
       profile: { status: "available", sha256: profileSha },
+      operationInputs: [],
+    },
+  };
+}
+
+function vNextResult(coreSha = "core-sha", profileSha = "profile-sha") {
+  return {
+    resultVersion: "0.2-lab",
+    inputs: {
+      coreInputSet: { status: "available", sha256: coreSha },
+      profile: { status: "available", sha256: profileSha },
+      operationInputs: [],
     },
   };
 }
@@ -30,6 +43,31 @@ test("integration freshness is fresh only when both exact fingerprints match", (
       reason: "Result matches the exact current Core Input Set and Projection Profile bytes.",
     },
   );
+});
+
+test("zero-input vNext uses the same exact Core/Profile freshness rule", () => {
+  assert.deepEqual(
+    assessIntegrationFreshness(vNextResult(), inputSet(), profile()),
+    {
+      state: "fresh",
+      reason: "Result matches the exact current Core Input Set and Projection Profile bytes.",
+    },
+  );
+});
+
+test("vNext freshness is unknown when operation-specific provenance is not yet modeled", () => {
+  const value = vNextResult();
+  value.inputs.operationInputs = [
+    {
+      role: "scenario",
+      status: "available",
+      sha256: "scenario-sha",
+    },
+  ];
+
+  const assessment = assessIntegrationFreshness(value, inputSet(), profile());
+  assert.equal(assessment.state, "unknown");
+  assert.match(assessment.reason, /operation-specific semantic inputs/);
 });
 
 test("integration freshness is stale when the Core Input Set changes", () => {
