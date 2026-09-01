@@ -81,6 +81,7 @@ export class TauriIntegrationGateway implements IntegrationGateway {
       operation: request.operation,
       inputSetManifest: request.inputSetManifestPath,
       profile: request.profilePath,
+      operationInputs: request.operationInputs ?? [],
       outputDir: request.outputDir,
     });
   }
