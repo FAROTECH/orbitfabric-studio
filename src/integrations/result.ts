@@ -14,7 +14,7 @@ import type {
 } from "./contracts";
 
 const RESULT_V0 = "0.1-candidate";
-const RESULT_VNEXT_LAB = "0.2-lab";
+const RESULT_V1 = "0.2-candidate";
 
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -102,10 +102,16 @@ function operationInputs(
     return [];
   }
 
-  if (resultVersion === RESULT_VNEXT_LAB) {
+  if (resultVersion === RESULT_V1) {
     const values = items(inputs.operation_inputs, "inputs.operation_inputs").map(
       consumedOperationInput,
     );
+    if (values.length > 1) {
+      throw new Error("inputs.operation_inputs supports at most one role.");
+    }
+    if (values.some((item) => item.role !== "scenario")) {
+      throw new Error("inputs.operation_inputs role must be scenario.");
+    }
     const seen = new Set<string>();
     for (const item of values) {
       if (seen.has(item.role)) {
@@ -290,7 +296,7 @@ export function validateIntegrationResult(
   if (result.kind !== "orbitfabric.integration_result") {
     issues.push({ code: "result.kind", message: `Unsupported Result kind: ${result.kind}.` });
   }
-  if (![RESULT_V0, RESULT_VNEXT_LAB].includes(result.resultVersion)) {
+  if (![RESULT_V0, RESULT_V1].includes(result.resultVersion)) {
     issues.push({
       code: "result.version",
       message: `Unsupported Result version: ${result.resultVersion}.`,
@@ -300,7 +306,7 @@ export function validateIntegrationResult(
     issues.push({ code: "result.state", message: `Unsupported Result state: ${result.result}.` });
   }
 
-  if (result.resultVersion === RESULT_VNEXT_LAB) {
+  if (result.resultVersion === RESULT_V1) {
     for (const input of result.inputs.operationInputs) {
       if (input.status === "available") {
         if (!input.id || !input.sha256 || input.reason !== null) {

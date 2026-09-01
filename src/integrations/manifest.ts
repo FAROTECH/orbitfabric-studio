@@ -8,8 +8,8 @@ import type {
 
 const MANIFEST_V0 = "0.1-candidate";
 const PROTOCOL_V0 = "orbitfabric.adapter_cli.v0";
-const MANIFEST_VNEXT_LAB = "0.2-lab";
-const PROTOCOL_VNEXT_LAB = "orbitfabric.adapter_cli.vnext-lab";
+const MANIFEST_V1 = "0.2-candidate";
+const PROTOCOL_V1 = "orbitfabric.adapter_cli.v1";
 
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -58,10 +58,14 @@ function operationRequirement(
   const keys = Object.keys(value).sort();
   if (keys.length !== 1 || keys[0] !== "role") {
     throw new Error(
-      `${label} must contain exactly the G4 Lab role field; received ${keys.join(", ") || "no fields"}.`,
+      `${label} must contain exactly the v1 role field; received ${keys.join(", ") || "no fields"}.`,
     );
   }
-  return { role: stringValue(value.role, `${label}.role`) };
+  const role = stringValue(value.role, `${label}.role`);
+  if (role !== "scenario") {
+    throw new Error(`${label}.role must be scenario for manifest 0.2-candidate.`);
+  }
+  return { role };
 }
 
 function operation(
@@ -78,11 +82,14 @@ function operation(
         `operations[${index}].input_requirements is not part of frozen Integration Package manifest v0.`,
       );
     }
-  } else if (manifestVersion === MANIFEST_VNEXT_LAB) {
+  } else if (manifestVersion === MANIFEST_V1) {
     inputRequirements = arrayValue(
       value.input_requirements,
       `operations[${index}].input_requirements`,
     ).map((entry, requirementIndex) => operationRequirement(entry, index, requirementIndex));
+    if (inputRequirements.length > 1) {
+      throw new Error(`operations[${index}].input_requirements supports at most one role.`);
+    }
 
     const seen = new Set<string>();
     for (const requirement of inputRequirements) {
@@ -123,7 +130,7 @@ export function parseIntegrationPackageManifest(
   const parsed = JSON.parse(text) as unknown;
   const root = record(parsed, "Integration Package manifest");
   const manifestVersion = stringValue(root.manifest_version, "manifest_version");
-  if (![MANIFEST_V0, MANIFEST_VNEXT_LAB].includes(manifestVersion)) {
+  if (![MANIFEST_V0, MANIFEST_V1].includes(manifestVersion)) {
     throw new Error(`Unsupported Integration Package manifest version: ${manifestVersion}`);
   }
 
@@ -175,7 +182,7 @@ export function parseIntegrationPackageManifest(
   }
 
   const expectedProtocol =
-    descriptor.manifestVersion === MANIFEST_V0 ? PROTOCOL_V0 : PROTOCOL_VNEXT_LAB;
+    descriptor.manifestVersion === MANIFEST_V0 ? PROTOCOL_V0 : PROTOCOL_V1;
   if (descriptor.execution.protocol !== expectedProtocol) {
     throw new Error(
       `Integration Package manifest ${descriptor.manifestVersion} requires execution protocol ${expectedProtocol}; received ${descriptor.execution.protocol}.`,

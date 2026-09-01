@@ -13,8 +13,8 @@ import type { IntegrationGateway } from "./IntegrationGateway";
 import { parseIntegrationResult, validateIntegrationResult } from "./result";
 
 const ADAPTER_CLI_V0 = "orbitfabric.adapter_cli.v0";
-const ADAPTER_CLI_VNEXT_LAB = "orbitfabric.adapter_cli.vnext-lab";
-const SUPPORTED_PROTOCOLS = new Set([ADAPTER_CLI_V0, ADAPTER_CLI_VNEXT_LAB]);
+const ADAPTER_CLI_V1 = "orbitfabric.adapter_cli.v1";
+const SUPPORTED_PROTOCOLS = new Set([ADAPTER_CLI_V0, ADAPTER_CLI_V1]);
 
 function arraysEqual(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((item, index) => item === right[index]);

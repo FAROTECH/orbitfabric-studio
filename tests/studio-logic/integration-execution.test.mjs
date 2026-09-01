@@ -39,16 +39,16 @@ const DESCRIPTOR = {
 function vNextDescriptor() {
   return {
     ...DESCRIPTOR,
-    manifestVersion: "0.2-lab",
+    manifestVersion: "0.2-candidate",
     adapterVersion: "2.0.0-dev.1",
     resultCompatibility: {
-      resultVersions: ["0.2-lab"],
-      defaultResultVersion: "0.2-lab",
+      resultVersions: ["0.2-candidate"],
+      defaultResultVersion: "0.2-candidate",
     },
     operations: [{ id: "project", capabilities: ["projection"], inputRequirements: [] }],
     execution: {
       ...DESCRIPTOR.execution,
-      protocol: "orbitfabric.adapter_cli.vnext-lab",
+      protocol: "orbitfabric.adapter_cli.v1",
     },
   };
 }
@@ -137,7 +137,7 @@ test("execution authorization is bound to exact package identity, protocol and a
     validateExecutionAuthorization(DESCRIPTOR, changedArgv).some((item) => item.includes("argv prefix")),
   );
 
-  const changedProtocol = { ...authorization, protocol: "orbitfabric.adapter_cli.vnext-lab" };
+  const changedProtocol = { ...authorization, protocol: "orbitfabric.adapter_cli.v1" };
   assert.ok(
     validateExecutionAuthorization(DESCRIPTOR, changedProtocol).some((item) => item.includes("protocol")),
   );
@@ -267,7 +267,7 @@ test("Result identity must match exact requested operation and executed adapter"
 test("vNext Result with explicit empty operation provenance is accepted by its vNext package", () => {
   const descriptor = vNextDescriptor();
   const text = resultText("succeeded", {
-    result_version: "0.2-lab",
+    result_version: "0.2-candidate",
     adapter: { id: "example-adapter", version: "2.0.0-dev.1" },
     inputs: {
       core_input_set: { status: "available" },
@@ -283,7 +283,7 @@ test("vNext Result with explicit empty operation provenance is accepted by its v
 test("G4 successful Result must correlate exact consumed operation-input roles", () => {
   const descriptor = g4Descriptor();
   const text = resultText("succeeded", {
-    result_version: "0.2-lab",
+    result_version: "0.2-candidate",
     adapter: { id: "example-adapter", version: "0.2.0.dev2" },
     operation: { id: "verification_projection" },
     inputs: {

@@ -49,14 +49,14 @@ const PACKAGE = {
 
 function vNextPackage() {
   const value = structuredClone(PACKAGE);
-  value.manifest_version = "0.2-lab";
+  value.manifest_version = "0.2-candidate";
   value.adapter.version = "0.2.0.dev1";
   value.result_compatibility = {
-    result_versions: ["0.2-lab"],
-    default_result_version: "0.2-lab",
+    result_versions: ["0.2-candidate"],
+    default_result_version: "0.2-candidate",
   };
   value.operations[0].input_requirements = [];
-  value.execution.protocol = "orbitfabric.adapter_cli.vnext-lab";
+  value.execution.protocol = "orbitfabric.adapter_cli.v1";
   return value;
 }
 
@@ -182,8 +182,8 @@ test("accepts the explicit zero-input vNext lab package lane", () => {
     "/tmp/integration_package.json",
     JSON.stringify(vNextPackage()),
   );
-  assert.equal(descriptor.manifestVersion, "0.2-lab");
-  assert.equal(descriptor.execution.protocol, "orbitfabric.adapter_cli.vnext-lab");
+  assert.equal(descriptor.manifestVersion, "0.2-candidate");
+  assert.equal(descriptor.execution.protocol, "orbitfabric.adapter_cli.v1");
   assert.deepEqual(descriptor.operations[0].inputRequirements, []);
 });
 
@@ -203,20 +203,27 @@ test("G4 does not silently generalize the operation-input requirement shape", ()
   overStructured.operations[0].input_requirements = [{ role: "scenario", required: true }];
   assert.throws(
     () => parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(overStructured)),
-    /must contain exactly the G4 Lab role field/,
+    /must contain exactly the v1 role field/,
   );
 
   const duplicate = vNextPackage();
   duplicate.operations[0].input_requirements = [{ role: "scenario" }, { role: "scenario" }];
   assert.throws(
     () => parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(duplicate)),
-    /duplicate role scenario/,
+    /at most one role/,
+  );
+
+  const unknownRole = vNextPackage();
+  unknownRole.operations[0].input_requirements = [{ role: "adapter_private" }];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/v1.json", JSON.stringify(unknownRole)),
+    /role must be scenario/,
   );
 });
 
 test("keeps frozen v0 and vNext protocol identities isolated", () => {
   const v0WithVNextProtocol = structuredClone(PACKAGE);
-  v0WithVNextProtocol.execution.protocol = "orbitfabric.adapter_cli.vnext-lab";
+  v0WithVNextProtocol.execution.protocol = "orbitfabric.adapter_cli.v1";
   assert.throws(
     () => parseIntegrationPackageManifest("/tmp/v0.json", JSON.stringify(v0WithVNextProtocol)),
     /requires execution protocol orbitfabric\.adapter_cli\.v0/,
@@ -226,7 +233,7 @@ test("keeps frozen v0 and vNext protocol identities isolated", () => {
   vNextWithV0Protocol.execution.protocol = "orbitfabric.adapter_cli.v0";
   assert.throws(
     () => parseIntegrationPackageManifest("/tmp/vnext.json", JSON.stringify(vNextWithV0Protocol)),
-    /requires execution protocol orbitfabric\.adapter_cli\.vnext-lab/,
+    /requires execution protocol orbitfabric\.adapter_cli\.v1/,
   );
 });
 
@@ -290,19 +297,19 @@ test("complete coverage accounting can contain not_projected entities", () => {
 
 test("accepts explicit empty operation-input provenance only in vNext Result", () => {
   const next = resultFixture();
-  next.result_version = "0.2-lab";
+  next.result_version = "0.2-candidate";
   next.adapter.version = "0.2.0.dev1";
   next.inputs.operation_inputs = [];
 
   const parsed = parseIntegrationResult(JSON.stringify(next));
-  assert.equal(parsed.resultVersion, "0.2-lab");
+  assert.equal(parsed.resultVersion, "0.2-candidate");
   assert.deepEqual(parsed.inputs.operationInputs, []);
   assert.equal(validateIntegrationResult(parsed).usable, true);
 });
 
 test("accepts exact available G4 consumed Scenario provenance", () => {
   const next = resultFixture();
-  next.result_version = "0.2-lab";
+  next.result_version = "0.2-candidate";
   next.adapter.version = "0.2.0.dev2";
   next.operation = { id: "verification_projection" };
   next.inputs.operation_inputs = [
@@ -330,7 +337,7 @@ test("accepts exact available G4 consumed Scenario provenance", () => {
 
 test("G4 consumed provenance fails closed on invented fields and invalid availability", () => {
   const extra = resultFixture();
-  extra.result_version = "0.2-lab";
+  extra.result_version = "0.2-candidate";
   extra.inputs.operation_inputs = [
     {
       role: "scenario",
@@ -347,7 +354,7 @@ test("G4 consumed provenance fails closed on invented fields and invalid availab
   );
 
   const unavailableSuccess = resultFixture();
-  unavailableSuccess.result_version = "0.2-lab";
+  unavailableSuccess.result_version = "0.2-candidate";
   unavailableSuccess.inputs.operation_inputs = [
     {
       role: "scenario",

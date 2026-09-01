@@ -54,7 +54,7 @@ export function assessIntegrationFreshness(
     };
   }
 
-  if (result.resultVersion === "0.2-lab") {
+  if (result.resultVersion === "0.2-candidate") {
     const consumed = result.inputs.operationInputs;
     if (consumed.length === 0 && currentOperationInputs.length > 0) {
       return {

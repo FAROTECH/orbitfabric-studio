@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 const ADAPTER_DEFAULT_TIMEOUT: Duration = Duration::from_secs(120);
 const ADAPTER_POLL_INTERVAL: Duration = Duration::from_millis(25);
 const ADAPTER_CLI_V0: &str = "orbitfabric.adapter_cli.v0";
-const ADAPTER_CLI_VNEXT_LAB: &str = "orbitfabric.adapter_cli.vnext-lab";
+const ADAPTER_CLI_V1: &str = "orbitfabric.adapter_cli.v1";
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,7 +59,7 @@ pub fn run_integration_adapter(
 
 fn validate_authorized_protocol(protocol: &str) -> Result<(), String> {
     match protocol {
-        ADAPTER_CLI_V0 | ADAPTER_CLI_VNEXT_LAB => Ok(()),
+        ADAPTER_CLI_V0 | ADAPTER_CLI_V1 => Ok(()),
         _ => Err(format!(
             "Unsupported authorized integration protocol: {protocol}."
         )),
@@ -69,6 +69,12 @@ fn validate_authorized_protocol(protocol: &str) -> Result<(), String> {
 fn canonicalize_operation_inputs(
     bindings: Vec<IntegrationOperationInputBinding>,
 ) -> Result<Vec<(String, PathBuf)>, String> {
+    if bindings.len() > 1 {
+        return Err("Integration protocol v1 supports at most one operation input.".to_string());
+    }
+    if bindings.iter().any(|binding| binding.role.trim() != "scenario") {
+        return Err("Integration protocol v1 operation-input role must be scenario.".to_string());
+    }
     let mut seen = HashSet::new();
     let mut resolved = Vec::with_capacity(bindings.len());
     for binding in bindings {
@@ -309,7 +315,7 @@ mod tests {
 
         let invocation = run_integration_adapter_with_timeout(
             vec!["/bin/echo".to_string()],
-            ADAPTER_CLI_VNEXT_LAB.to_string(),
+            ADAPTER_CLI_V1.to_string(),
             "verification_projection".to_string(),
             display_path(&input),
             display_path(&profile),
@@ -345,7 +351,7 @@ mod tests {
 
         let error = run_integration_adapter_with_timeout(
             vec!["/bin/echo".to_string()],
-            ADAPTER_CLI_VNEXT_LAB.to_string(),
+            ADAPTER_CLI_V1.to_string(),
             "verification_projection".to_string(),
             display_path(&input),
             display_path(&profile),
@@ -364,7 +370,7 @@ mod tests {
         )
         .expect_err("duplicate operation-input roles must fail before adapter execution");
 
-        assert!(error.contains("bound more than once"));
+        assert!(error.contains("at most one operation input"));
         let _ = fs::remove_dir_all(root);
     }
 

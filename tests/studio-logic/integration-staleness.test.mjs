@@ -18,7 +18,7 @@ function result(coreSha = "core-sha", profileSha = "profile-sha") {
 
 function vNextResult(coreSha = "core-sha", profileSha = "profile-sha") {
   return {
-    resultVersion: "0.2-lab",
+    resultVersion: "0.2-candidate",
     inputs: {
       coreInputSet: { status: "available", sha256: coreSha },
       profile: { status: "available", sha256: profileSha },
