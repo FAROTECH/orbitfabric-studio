@@ -187,6 +187,33 @@ test("accepts the explicit zero-input vNext lab package lane", () => {
   assert.deepEqual(descriptor.operations[0].inputRequirements, []);
 });
 
+test("accepts the minimal G4 role-only operation-input requirement", () => {
+  const value = vNextPackage();
+  value.operations.push({
+    id: "verification_projection",
+    capabilities: ["projection", "artifact_generation", "traceability"],
+    input_requirements: [{ role: "scenario" }],
+  });
+  const descriptor = parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(value));
+  assert.deepEqual(descriptor.operations[1].inputRequirements, [{ role: "scenario" }]);
+});
+
+test("G4 does not silently generalize the operation-input requirement shape", () => {
+  const overStructured = vNextPackage();
+  overStructured.operations[0].input_requirements = [{ role: "scenario", required: true }];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(overStructured)),
+    /must contain exactly the G4 Lab role field/,
+  );
+
+  const duplicate = vNextPackage();
+  duplicate.operations[0].input_requirements = [{ role: "scenario" }, { role: "scenario" }];
+  assert.throws(
+    () => parseIntegrationPackageManifest("/tmp/g4.json", JSON.stringify(duplicate)),
+    /duplicate role scenario/,
+  );
+});
+
 test("keeps frozen v0 and vNext protocol identities isolated", () => {
   const v0WithVNextProtocol = structuredClone(PACKAGE);
   v0WithVNextProtocol.execution.protocol = "orbitfabric.adapter_cli.vnext-lab";
@@ -209,15 +236,6 @@ test("does not silently extend frozen v0 with operation-input declarations", () 
   assert.throws(
     () => parseIntegrationPackageManifest("/tmp/v0.json", JSON.stringify(invalid)),
     /not part of frozen Integration Package manifest v0/,
-  );
-});
-
-test("vNext remains fail-closed until operation-input binding exists", () => {
-  const invalid = vNextPackage();
-  invalid.operations[0].input_requirements = [{ role: "scenario", required: true }];
-  assert.throws(
-    () => parseIntegrationPackageManifest("/tmp/vnext.json", JSON.stringify(invalid)),
-    /zero-input vNext control does not support yet/,
   );
 });
 
@@ -280,6 +298,72 @@ test("accepts explicit empty operation-input provenance only in vNext Result", (
   assert.equal(parsed.resultVersion, "0.2-lab");
   assert.deepEqual(parsed.inputs.operationInputs, []);
   assert.equal(validateIntegrationResult(parsed).usable, true);
+});
+
+test("accepts exact available G4 consumed Scenario provenance", () => {
+  const next = resultFixture();
+  next.result_version = "0.2-lab";
+  next.adapter.version = "0.2.0.dev2";
+  next.operation = { id: "verification_projection" };
+  next.inputs.operation_inputs = [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: "abc123",
+      reason: null,
+    },
+  ];
+
+  const parsed = parseIntegrationResult(JSON.stringify(next));
+  assert.deepEqual(parsed.inputs.operationInputs, [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: "abc123",
+      reason: null,
+    },
+  ]);
+  assert.equal(validateIntegrationResult(parsed).usable, true);
+});
+
+test("G4 consumed provenance fails closed on invented fields and invalid availability", () => {
+  const extra = resultFixture();
+  extra.result_version = "0.2-lab";
+  extra.inputs.operation_inputs = [
+    {
+      role: "scenario",
+      status: "available",
+      id: "scenario.ping",
+      sha256: "abc123",
+      reason: null,
+      path: "/tmp/scenario.yaml",
+    },
+  ];
+  assert.throws(
+    () => parseIntegrationResult(JSON.stringify(extra)),
+    /must contain exactly role, status, id, sha256 and reason/,
+  );
+
+  const unavailableSuccess = resultFixture();
+  unavailableSuccess.result_version = "0.2-lab";
+  unavailableSuccess.inputs.operation_inputs = [
+    {
+      role: "scenario",
+      status: "unavailable",
+      id: null,
+      sha256: null,
+      reason: "not resolved",
+    },
+  ];
+  const validation = validateIntegrationResult(
+    parseIntegrationResult(JSON.stringify(unavailableSuccess)),
+  );
+  assert.equal(validation.usable, false);
+  assert.ok(
+    validation.issues.some((issue) => issue.code === "operation_input.success_without_provenance"),
+  );
 });
 
 test("does not silently extend frozen Result v0 with operation-input provenance", () => {
