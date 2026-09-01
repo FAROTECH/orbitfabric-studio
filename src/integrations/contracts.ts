@@ -6,9 +6,12 @@ export type IntegrationSurfaceCompatibility = {
   formatVersions: string[];
 };
 
+export type IntegrationOperationInputRequirement = Record<string, unknown>;
+
 export type IntegrationPackageOperation = {
   id: string;
   capabilities: string[];
+  inputRequirements: IntegrationOperationInputRequirement[];
 };
 
 export type IntegrationProfileSchema = {
@@ -214,6 +217,7 @@ export type IntegrationResult = {
   inputs: {
     coreInputSet: Record<string, unknown>;
     profile: Record<string, unknown>;
+    operationInputs: Record<string, unknown>[];
   };
   capabilities: string[];
   artifacts: IntegrationArtifact[];
@@ -253,6 +257,7 @@ export type IntegrationExecutionAuthorization = {
   integrationId: string;
   adapterId: string;
   adapterVersion: string;
+  protocol: string;
   argvPrefix: string[];
 };
 
