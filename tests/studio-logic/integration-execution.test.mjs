@@ -28,13 +28,30 @@ const DESCRIPTOR = {
     defaultResultVersion: "0.1-candidate",
   },
   advertisedCapabilities: ["projection"],
-  operations: [{ id: "project", capabilities: ["projection"] }],
+  operations: [{ id: "project", capabilities: ["projection"], inputRequirements: [] }],
   profileSchemas: [],
   execution: {
     protocol: "orbitfabric.adapter_cli.v0",
     argvPrefix: ["example-adapter", "--fixed-prefix"],
   },
 };
+
+function vNextDescriptor() {
+  return {
+    ...DESCRIPTOR,
+    manifestVersion: "0.2-lab",
+    adapterVersion: "2.0.0-dev.1",
+    resultCompatibility: {
+      resultVersions: ["0.2-lab"],
+      defaultResultVersion: "0.2-lab",
+    },
+    operations: [{ id: "project", capabilities: ["projection"], inputRequirements: [] }],
+    execution: {
+      ...DESCRIPTOR.execution,
+      protocol: "orbitfabric.adapter_cli.vnext-lab",
+    },
+  };
+}
 
 const REQUEST = {
   operation: "project",
@@ -91,17 +108,31 @@ function invocation(exitCode, text) {
   };
 }
 
-test("execution authorization is bound to exact package identity and argv prefix", () => {
+test("execution authorization is bound to exact package identity, protocol and argv prefix", () => {
   const authorization = createExecutionAuthorization(DESCRIPTOR);
   assert.deepEqual(validateExecutionAuthorization(DESCRIPTOR, authorization), []);
 
-  const changed = { ...authorization, argvPrefix: ["other-adapter"] };
+  const changedArgv = { ...authorization, argvPrefix: ["other-adapter"] };
   assert.ok(
-    validateExecutionAuthorization(DESCRIPTOR, changed).some((item) => item.includes("argv prefix")),
+    validateExecutionAuthorization(DESCRIPTOR, changedArgv).some((item) => item.includes("argv prefix")),
+  );
+
+  const changedProtocol = { ...authorization, protocol: "orbitfabric.adapter_cli.vnext-lab" };
+  assert.ok(
+    validateExecutionAuthorization(DESCRIPTOR, changedProtocol).some((item) => item.includes("protocol")),
   );
 });
 
-test("preflight rejects unknown operations and unsupported protocols without guessing", () => {
+test("preflight accepts both frozen v0 and explicit zero-input vNext lanes", () => {
+  const v0Authorization = createExecutionAuthorization(DESCRIPTOR);
+  assert.deepEqual(validateAdapterRunPreflight(DESCRIPTOR, v0Authorization, REQUEST), []);
+
+  const vNext = vNextDescriptor();
+  const vNextAuthorization = createExecutionAuthorization(vNext);
+  assert.deepEqual(validateAdapterRunPreflight(vNext, vNextAuthorization, REQUEST), []);
+});
+
+test("preflight rejects unknown operations, unsupported protocols and unbound semantic inputs", () => {
   const authorization = createExecutionAuthorization(DESCRIPTOR);
   const unknown = validateAdapterRunPreflight(
     DESCRIPTOR,
@@ -116,6 +147,21 @@ test("preflight rejects unknown operations and unsupported protocols without gue
   };
   const protocolErrors = validateAdapterRunPreflight(wrongProtocol, authorization, REQUEST);
   assert.ok(protocolErrors.some((item) => item.includes("Unsupported integration execution protocol")));
+
+  const vNext = vNextDescriptor();
+  vNext.operations = [
+    {
+      id: "project",
+      capabilities: ["projection"],
+      inputRequirements: [{ role: "scenario", required: true }],
+    },
+  ];
+  const inputErrors = validateAdapterRunPreflight(
+    vNext,
+    createExecutionAuthorization(vNext),
+    REQUEST,
+  );
+  assert.ok(inputErrors.some((item) => item.includes("requires additional semantic inputs")));
 });
 
 test("exit zero without Integration Result is a protocol violation", () => {
@@ -166,6 +212,22 @@ test("Result identity must match exact requested operation and executed adapter"
   assert.equal(assessment.valid, false);
   assert.ok(assessment.issues.some((item) => item.code === "protocol.adapter_identity"));
   assert.ok(assessment.issues.some((item) => item.code === "protocol.operation_identity"));
+});
+
+test("vNext Result with explicit empty operation provenance is accepted by its vNext package", () => {
+  const descriptor = vNextDescriptor();
+  const text = resultText("succeeded", {
+    result_version: "0.2-lab",
+    adapter: { id: "example-adapter", version: "2.0.0-dev.1" },
+    inputs: {
+      core_input_set: { status: "available" },
+      profile: { status: "available", sha256: "profile-sha" },
+      operation_inputs: [],
+    },
+  });
+  const assessment = assessAdapterInvocation(descriptor, REQUEST, invocation(0, text), null);
+  assert.equal(assessment.valid, true, assessment.issues.map((item) => item.message).join("\n"));
+  assert.deepEqual(assessment.result.inputs.operationInputs, []);
 });
 
 test("timeout remains a transport failure and is not inferred from stdout or stderr", () => {
