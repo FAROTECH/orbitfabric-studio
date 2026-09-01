@@ -11,6 +11,8 @@ import type { IntegrationGateway } from "./IntegrationGateway";
 import { parseIntegrationResult, validateIntegrationResult } from "./result";
 
 const ADAPTER_CLI_V0 = "orbitfabric.adapter_cli.v0";
+const ADAPTER_CLI_VNEXT_LAB = "orbitfabric.adapter_cli.vnext-lab";
+const SUPPORTED_PROTOCOLS = new Set([ADAPTER_CLI_V0, ADAPTER_CLI_VNEXT_LAB]);
 
 function arraysEqual(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((item, index) => item === right[index]);
@@ -23,6 +25,7 @@ export function createExecutionAuthorization(
     integrationId: descriptor.integrationId,
     adapterId: descriptor.adapterId,
     adapterVersion: descriptor.adapterVersion,
+    protocol: descriptor.execution.protocol,
     argvPrefix: [...descriptor.execution.argvPrefix],
   };
 }
@@ -41,6 +44,9 @@ export function validateExecutionAuthorization(
   if (authorization.adapterVersion !== descriptor.adapterVersion) {
     errors.push("Execution authorization adapter version does not match the package.");
   }
+  if (authorization.protocol !== descriptor.execution.protocol) {
+    errors.push("Execution authorization protocol does not exactly match the package declaration.");
+  }
   if (!arraysEqual(authorization.argvPrefix, descriptor.execution.argvPrefix)) {
     errors.push("Execution authorization argv prefix does not exactly match the package declaration.");
   }
@@ -53,7 +59,7 @@ export function validateAdapterRunPreflight(
   request: IntegrationAdapterRunRequest,
 ): string[] {
   const errors = validateExecutionAuthorization(descriptor, authorization);
-  if (descriptor.execution.protocol !== ADAPTER_CLI_V0) {
+  if (!SUPPORTED_PROTOCOLS.has(descriptor.execution.protocol)) {
     errors.push(`Unsupported integration execution protocol: ${descriptor.execution.protocol}.`);
   }
   if (descriptor.execution.argvPrefix.length === 0) {
@@ -63,6 +69,10 @@ export function validateAdapterRunPreflight(
   if (operationMatches.length !== 1) {
     errors.push(
       `Requested integration operation must match exactly one advertised operation; found ${operationMatches.length}.`,
+    );
+  } else if (operationMatches[0].inputRequirements.length > 0) {
+    errors.push(
+      `Operation ${request.operation} requires additional semantic inputs that this zero-input vNext control cannot bind yet.`,
     );
   }
   if (!request.inputSetManifestPath) {
@@ -116,7 +126,7 @@ function resultIdentityIssues(
   if (result.resultVersion !== descriptor.resultCompatibility.defaultResultVersion) {
     issues.push({
       code: "protocol.default_result_version",
-      message: `Adapter emitted Result version ${result.resultVersion} instead of declared v0 default ${descriptor.resultCompatibility.defaultResultVersion}.`,
+      message: `Adapter emitted Result version ${result.resultVersion} instead of declared default ${descriptor.resultCompatibility.defaultResultVersion}.`,
     });
   }
   return issues;
