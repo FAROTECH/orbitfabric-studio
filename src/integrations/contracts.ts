@@ -6,7 +6,27 @@ export type IntegrationSurfaceCompatibility = {
   formatVersions: string[];
 };
 
-export type IntegrationOperationInputRequirement = Record<string, unknown>;
+export type IntegrationOperationInputRequirement = {
+  role: string;
+};
+
+export type IntegrationOperationInputBinding = {
+  role: string;
+  path: string;
+};
+
+export type IntegrationConsumedOperationInput = {
+  role: string;
+  status: "available" | "unavailable";
+  id: string | null;
+  sha256: string | null;
+  reason: string | null;
+};
+
+export type IntegrationCurrentOperationInput = {
+  role: string;
+  sha256: string | null;
+};
 
 export type IntegrationPackageOperation = {
   id: string;
@@ -217,7 +237,7 @@ export type IntegrationResult = {
   inputs: {
     coreInputSet: Record<string, unknown>;
     profile: Record<string, unknown>;
-    operationInputs: Record<string, unknown>[];
+    operationInputs: IntegrationConsumedOperationInput[];
   };
   capabilities: string[];
   artifacts: IntegrationArtifact[];
@@ -265,6 +285,7 @@ export type IntegrationAdapterRunRequest = {
   operation: string;
   inputSetManifestPath: string;
   profilePath: string;
+  operationInputs?: IntegrationOperationInputBinding[];
   outputDir: string;
 };
 
