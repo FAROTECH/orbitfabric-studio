@@ -23,30 +23,39 @@ export class ScenarioHydrator {
     requestToken: string,
   ): Promise<ScenarioHydrationResult> {
     const requestId = `${session.sessionId}-scenario-${requestToken}`;
-    const result = await this.core.exportScenarioDeclaration(
-      session.core.executable,
-      targetPath,
-      requestId,
-    );
-    const declaration = result.surface;
 
-    if (declaration.result === "loaded") {
-      const primary = session.snapshot.mission;
-      if (!primary) {
-        throw new ScenarioConsistencyError(
-          "Scenario Declaration cannot bind to a MissionSession without primary mission identity.",
-        );
+    try {
+      const result = await this.core.exportScenarioDeclaration(
+        session.core.executable,
+        targetPath,
+        requestId,
+      );
+      const declaration = result.surface;
+
+      if (declaration.result === "loaded") {
+        const primary = session.snapshot.mission;
+        if (!primary) {
+          throw new ScenarioConsistencyError(
+            "Scenario Declaration cannot bind to a MissionSession without primary mission identity.",
+          );
+        }
+        if (
+          declaration.mission.id !== primary.id ||
+          declaration.mission.modelVersion !== primary.model_version
+        ) {
+          throw new ScenarioConsistencyError(
+            `Scenario Declaration identifies ${declaration.mission.id}@${declaration.mission.modelVersion}, expected ${primary.id}@${primary.model_version}.`,
+          );
+        }
       }
-      if (
-        declaration.mission.id !== primary.id ||
-        declaration.mission.modelVersion !== primary.model_version
-      ) {
-        throw new ScenarioConsistencyError(
-          `Scenario Declaration identifies ${declaration.mission.id}@${declaration.mission.modelVersion}, expected ${primary.id}@${primary.model_version}.`,
-        );
+
+      return { targetPath, declaration };
+    } finally {
+      try {
+        await this.core.clearRequestTemp(requestId);
+      } catch {
+        // Cleanup must never replace the actual Scenario hydration outcome.
       }
     }
-
-    return { targetPath, declaration };
   }
 }
