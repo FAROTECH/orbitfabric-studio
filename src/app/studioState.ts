@@ -1,5 +1,13 @@
 import type { ScenarioDeclaration } from "../convergence/consumer-contracts";
 import {
+  emptyIntegrationSlot,
+  reduceIntegrationSlot,
+  type IntegrationContextRequest,
+  type IntegrationHydrationFailure,
+  type IntegrationResultObservation,
+  type IntegrationSlotState,
+} from "../convergence/integrationSlot";
+import {
   emptyScenarioSlot,
   reduceScenarioSlot,
   type ScenarioHydrationFailure,
@@ -48,6 +56,7 @@ export interface StudioState {
   opening: MissionOpeningState | null;
   openFailure: MissionOpenFailure | null;
   scenario: ScenarioSlotState;
+  integration: IntegrationSlotState;
   selection: StudioSelection;
   operationsMode: EntityRef | null;
   view: MissionWorkspaceView;
@@ -103,6 +112,20 @@ export type StudioAction =
       failure: ScenarioHydrationFailure;
     }
   | {
+      type: "INTEGRATION_RESULT_REQUESTED";
+      request: IntegrationContextRequest;
+    }
+  | {
+      type: "INTEGRATION_RESULT_READY";
+      request: IntegrationContextRequest;
+      observation: IntegrationResultObservation;
+    }
+  | {
+      type: "INTEGRATION_RESULT_HYDRATION_FAILED";
+      request: IntegrationContextRequest;
+      failure: IntegrationHydrationFailure;
+    }
+  | {
       type: "SELECTION_CHANGED";
       subject: EntityRef | null;
       origin: SelectionOrigin | null;
@@ -134,6 +157,7 @@ export const initialStudioState: StudioState = {
   opening: null,
   openFailure: null,
   scenario: emptyScenarioSlot(),
+  integration: emptyIntegrationSlot(),
   selection: emptyStudioSelection(),
   operationsMode: null,
   view: "overview",
@@ -162,6 +186,7 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         opening: null,
         openFailure: null,
         scenario: emptyScenarioSlot(),
+        integration: emptyIntegrationSlot(),
         selection: replacingSameMission
           ? reconcileSelectionWithPrimary(state.selection, action.session)
           : emptyStudioSelection(),
@@ -230,6 +255,32 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
     case "SCENARIO_HYDRATION_FAILED":
       return updateScenarioSlot(state, (active) =>
         reduceScenarioSlot(state.scenario, active, {
+          type: "hydration_failed",
+          request: action.request,
+          failure: action.failure,
+        }),
+      );
+
+    case "INTEGRATION_RESULT_REQUESTED":
+      return updateIntegrationSlot(state, (active) =>
+        reduceIntegrationSlot(state.integration, active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "INTEGRATION_RESULT_READY":
+      return updateIntegrationSlot(state, (active) =>
+        reduceIntegrationSlot(state.integration, active, {
+          type: "ready",
+          request: action.request,
+          observation: action.observation,
+        }),
+      );
+
+    case "INTEGRATION_RESULT_HYDRATION_FAILED":
+      return updateIntegrationSlot(state, (active) =>
+        reduceIntegrationSlot(state.integration, active, {
           type: "hydration_failed",
           request: action.request,
           failure: action.failure,
@@ -412,4 +463,19 @@ function updateScenarioSlot(
   if (scenario === state.scenario) return state;
 
   return { ...state, scenario };
+}
+
+function updateIntegrationSlot(
+  state: StudioState,
+  update: (active: { sessionId: string; generation: number }) => IntegrationSlotState,
+): StudioState {
+  if (!state.activeSession) return state;
+
+  const integration = update({
+    sessionId: state.activeSession.sessionId,
+    generation: state.activeSession.generation,
+  });
+  if (integration === state.integration) return state;
+
+  return { ...state, integration };
 }
