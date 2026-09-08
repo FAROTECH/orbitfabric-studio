@@ -54,6 +54,7 @@ try {
     "tests/studio-logic/evidence-slot-reducer.test.mjs",
     "tests/studio-logic/adapter-lifecycle.test.mjs",
     "tests/studio-logic/adapter-lifecycle-exit-code.test.mjs",
+    "tests/studio-logic/session-spine-acceptance.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
