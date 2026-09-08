@@ -41,6 +41,7 @@ try {
     "tests/studio-logic/integrations-foundation.test.mjs",
     "tests/studio-logic/integration-profile.test.mjs",
     "tests/studio-logic/integration-execution.test.mjs",
+    "tests/studio-logic/integration-result-state-lanes.test.mjs",
     "tests/studio-logic/integration-staleness.test.mjs",
     "tests/studio-logic/integration-plugin-registry.test.mjs",
     "tests/studio-logic/integration-plugin-actions.test.mjs",
