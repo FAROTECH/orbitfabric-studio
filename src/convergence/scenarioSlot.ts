@@ -1,8 +1,13 @@
-import type { ScenarioDeclaration } from "./consumer-contracts";
+import type { ScenarioDeclaration, ScenarioDeclarationLoaded } from "./consumer-contracts";
 
 export interface ScenarioGenerationMembership {
   sessionId: string;
   generation: number;
+}
+
+export interface ScenarioExactIdentity {
+  scenarioId: string;
+  scenarioSha256: string;
 }
 
 export type ScenarioRequestMode = "replace" | "refresh";
@@ -50,6 +55,15 @@ export function emptyScenarioSlot(): ScenarioSlotState {
     accepted: null,
     pending: null,
     hydrationFailure: null,
+  };
+}
+
+export function scenarioExactIdentity(
+  declaration: ScenarioDeclarationLoaded,
+): ScenarioExactIdentity {
+  return {
+    scenarioId: declaration.scenario.id,
+    scenarioSha256: declaration.source.scenarioSha256,
   };
 }
 
