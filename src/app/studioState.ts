@@ -1,4 +1,25 @@
 import type { ScenarioDeclaration } from "../convergence/consumer-contracts";
+import type {
+  AdapterVerificationReport,
+  ExactCatalogReleaseSelection,
+  InstalledAdapterRecord,
+  ProjectLockCheckReport,
+} from "../convergence/adapterLifecycleContracts";
+import {
+  emptyAdapterLifecycleState,
+  reduceCatalogFacet,
+  reduceInstalledFacet,
+  reducePackageBindingFacet,
+  reduceProjectLockFacet,
+  reduceVerifyFacet,
+  type AdapterLifecycleState,
+  type CatalogLifecycleRequest,
+  type LifecycleHydrationFailure,
+  type LifecycleRequest,
+  type PackageBindingObservation,
+  type PackageBindingRequest,
+  type TargetedLifecycleRequest,
+} from "../convergence/adapterLifecycleSlot";
 import {
   emptyEvidenceSlot,
   recomputeEvidenceCorrelations,
@@ -67,6 +88,7 @@ export interface StudioState {
   scenario: ScenarioSlotState;
   integration: IntegrationSlotState;
   evidence: EvidenceSlotState;
+  lifecycle: AdapterLifecycleState;
   selection: StudioSelection;
   operationsMode: EntityRef | null;
   view: MissionWorkspaceView;
@@ -150,6 +172,76 @@ export type StudioAction =
       failure: EvidenceHydrationFailure;
     }
   | {
+      type: "ADAPTER_LIFECYCLE_INSTALLED_REQUESTED";
+      request: LifecycleRequest;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_INSTALLED_READY";
+      request: LifecycleRequest;
+      records: InstalledAdapterRecord[];
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_INSTALLED_FAILED";
+      request: LifecycleRequest;
+      failure: LifecycleHydrationFailure;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_VERIFY_REQUESTED";
+      request: TargetedLifecycleRequest;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_VERIFY_READY";
+      request: TargetedLifecycleRequest;
+      report: AdapterVerificationReport;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_VERIFY_FAILED";
+      request: TargetedLifecycleRequest;
+      failure: LifecycleHydrationFailure;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_PROJECT_LOCK_REQUESTED";
+      request: TargetedLifecycleRequest;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_PROJECT_LOCK_READY";
+      request: TargetedLifecycleRequest;
+      report: ProjectLockCheckReport;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_PROJECT_LOCK_FAILED";
+      request: TargetedLifecycleRequest;
+      failure: LifecycleHydrationFailure;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_CATALOG_REQUESTED";
+      request: CatalogLifecycleRequest;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_CATALOG_READY";
+      request: CatalogLifecycleRequest;
+      selection: ExactCatalogReleaseSelection;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_CATALOG_FAILED";
+      request: CatalogLifecycleRequest;
+      failure: LifecycleHydrationFailure;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_PACKAGE_BINDING_REQUESTED";
+      request: PackageBindingRequest;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_PACKAGE_BINDING_READY";
+      request: PackageBindingRequest;
+      observation: PackageBindingObservation;
+    }
+  | {
+      type: "ADAPTER_LIFECYCLE_PACKAGE_BINDING_FAILED";
+      request: PackageBindingRequest;
+      failure: LifecycleHydrationFailure;
+    }
+  | {
       type: "SELECTION_CHANGED";
       subject: EntityRef | null;
       origin: SelectionOrigin | null;
@@ -183,6 +275,7 @@ export const initialStudioState: StudioState = {
   scenario: emptyScenarioSlot(),
   integration: emptyIntegrationSlot(),
   evidence: emptyEvidenceSlot(),
+  lifecycle: emptyAdapterLifecycleState(),
   selection: emptyStudioSelection(),
   operationsMode: null,
   view: "overview",
@@ -213,6 +306,7 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         scenario: emptyScenarioSlot(),
         integration: emptyIntegrationSlot(),
         evidence: emptyEvidenceSlot(),
+        lifecycle: emptyAdapterLifecycleState(),
         selection: replacingSameMission
           ? reconcileSelectionWithPrimary(state.selection, action.session)
           : emptyStudioSelection(),
@@ -344,6 +438,136 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           state.integration ?? emptyIntegrationSlot(),
           { type: "hydration_failed", request: action.request, failure: action.failure },
         ),
+      );
+
+    case "ADAPTER_LIFECYCLE_INSTALLED_REQUESTED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceInstalledFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_INSTALLED_READY":
+      return updateLifecycleSlot(state, (active) =>
+        reduceInstalledFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "ready",
+          request: action.request,
+          records: action.records,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_INSTALLED_FAILED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceInstalledFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "failed",
+          request: action.request,
+          failure: action.failure,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_VERIFY_REQUESTED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceVerifyFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_VERIFY_READY":
+      return updateLifecycleSlot(state, (active) =>
+        reduceVerifyFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "ready",
+          request: action.request,
+          report: action.report,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_VERIFY_FAILED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceVerifyFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "failed",
+          request: action.request,
+          failure: action.failure,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_PROJECT_LOCK_REQUESTED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceProjectLockFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_PROJECT_LOCK_READY":
+      return updateLifecycleSlot(state, (active) =>
+        reduceProjectLockFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "ready",
+          request: action.request,
+          report: action.report,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_PROJECT_LOCK_FAILED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceProjectLockFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "failed",
+          request: action.request,
+          failure: action.failure,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_CATALOG_REQUESTED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceCatalogFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_CATALOG_READY":
+      return updateLifecycleSlot(state, (active) =>
+        reduceCatalogFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "ready",
+          request: action.request,
+          selection: action.selection,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_CATALOG_FAILED":
+      return updateLifecycleSlot(state, (active) =>
+        reduceCatalogFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "failed",
+          request: action.request,
+          failure: action.failure,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_PACKAGE_BINDING_REQUESTED":
+      return updateLifecycleSlot(state, (active) =>
+        reducePackageBindingFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_PACKAGE_BINDING_READY":
+      return updateLifecycleSlot(state, (active) =>
+        reducePackageBindingFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "ready",
+          request: action.request,
+          observation: action.observation,
+        }),
+      );
+
+    case "ADAPTER_LIFECYCLE_PACKAGE_BINDING_FAILED":
+      return updateLifecycleSlot(state, (active) =>
+        reducePackageBindingFacet(state.lifecycle ?? emptyAdapterLifecycleState(), active, {
+          type: "failed",
+          request: action.request,
+          failure: action.failure,
+        }),
       );
 
     case "SELECTION_CHANGED":
@@ -562,4 +786,19 @@ function updateEvidenceSlot(
   if (evidence === state.evidence) return state;
 
   return { ...state, evidence };
+}
+
+function updateLifecycleSlot(
+  state: StudioState,
+  update: (active: { sessionId: string; generation: number }) => AdapterLifecycleState,
+): StudioState {
+  if (!state.activeSession) return state;
+
+  const lifecycle = update({
+    sessionId: state.activeSession.sessionId,
+    generation: state.activeSession.generation,
+  });
+  if (lifecycle === state.lifecycle) return state;
+
+  return { ...state, lifecycle };
 }
