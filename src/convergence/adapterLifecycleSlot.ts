@@ -12,6 +12,7 @@ export interface LifecycleMembership {
 }
 
 export type LifecycleFailureClass = "transport" | "protocol" | "consistency";
+export type LifecycleRequestMode = "replace" | "refresh";
 
 export interface LifecycleHydrationFailure {
   class: LifecycleFailureClass;
@@ -21,6 +22,7 @@ export interface LifecycleHydrationFailure {
 export interface LifecycleRequest {
   membership: LifecycleMembership;
   requestToken: string;
+  mode: LifecycleRequestMode;
 }
 
 export interface TargetedLifecycleRequest extends LifecycleRequest {
@@ -181,7 +183,11 @@ function reduceFacet<T, R extends LifecycleRequest>(
   readyValue: T | null,
 ): LifecycleFacetState<T, R> {
   if (action.type === "requested") {
-    return { accepted: facet.accepted, pending: action.request, failure: null };
+    return {
+      accepted: action.request.mode === "refresh" ? facet.accepted : null,
+      pending: action.request,
+      failure: null,
+    };
   }
   if (!samePending(facet.pending, action.request)) return facet;
   if (action.type === "ready") {
