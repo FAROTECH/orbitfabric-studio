@@ -105,5 +105,5 @@ test("Studio consumes exact Core v1.3.0 Adapter Lifecycle surfaces without reint
     expectedManifestSha256: record.manifestSha256,
   });
   assert.equal(binding.manifestSha256, record.manifestSha256);
-  assert.equal(binding.descriptor.integrationId, "fixture-zero-input");
+  assert.equal(binding.descriptor.integrationId, "fixture-zero");
 });
