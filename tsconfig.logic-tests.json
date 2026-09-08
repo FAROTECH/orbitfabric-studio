@@ -11,7 +11,10 @@
   },
   "files": [
     "src/core/contracts.ts",
+    "src/core/CoreGateway.ts",
     "src/convergence/consumer-contracts.ts",
+    "src/convergence/scenarioSlot.ts",
+    "src/convergence/ScenarioHydrator.ts",
     "src/mission/entityRef.ts",
     "src/mission/selection.ts",
     "src/mission/MissionSession.ts",

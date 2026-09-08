@@ -1,3 +1,11 @@
+import type { ScenarioDeclaration } from "../convergence/consumer-contracts";
+import {
+  emptyScenarioSlot,
+  reduceScenarioSlot,
+  type ScenarioHydrationFailure,
+  type ScenarioSlotRequest,
+  type ScenarioSlotState,
+} from "../convergence/scenarioSlot";
 import type {
   CoreDiagnosticDto,
   EntityIndexDto,
@@ -39,6 +47,7 @@ export interface StudioState {
   activeSession: MissionSession | null;
   opening: MissionOpeningState | null;
   openFailure: MissionOpenFailure | null;
+  scenario: ScenarioSlotState;
   selection: StudioSelection;
   operationsMode: EntityRef | null;
   view: MissionWorkspaceView;
@@ -80,6 +89,20 @@ export type StudioAction =
       message: string;
     }
   | {
+      type: "SCENARIO_REQUESTED";
+      request: ScenarioSlotRequest;
+    }
+  | {
+      type: "SCENARIO_DECLARATION_READY";
+      request: ScenarioSlotRequest;
+      declaration: ScenarioDeclaration;
+    }
+  | {
+      type: "SCENARIO_HYDRATION_FAILED";
+      request: ScenarioSlotRequest;
+      failure: ScenarioHydrationFailure;
+    }
+  | {
       type: "SELECTION_CHANGED";
       subject: EntityRef | null;
       origin: SelectionOrigin | null;
@@ -110,6 +133,7 @@ export const initialStudioState: StudioState = {
   activeSession: null,
   opening: null,
   openFailure: null,
+  scenario: emptyScenarioSlot(),
   selection: emptyStudioSelection(),
   operationsMode: null,
   view: "overview",
@@ -137,6 +161,7 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         activeSession: action.session,
         opening: null,
         openFailure: null,
+        scenario: emptyScenarioSlot(),
         selection: replacingSameMission
           ? reconcileSelectionWithPrimary(state.selection, action.session)
           : emptyStudioSelection(),
@@ -183,6 +208,32 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
     case "MISSION_SECONDARY_FAILED":
       return updateActiveSession(state, action.sessionId, (session) =>
         withSecondaryFailure(session, action.surface, action.message),
+      );
+
+    case "SCENARIO_REQUESTED":
+      return updateScenarioSlot(state, (active) =>
+        reduceScenarioSlot(state.scenario, active, {
+          type: "requested",
+          request: action.request,
+        }),
+      );
+
+    case "SCENARIO_DECLARATION_READY":
+      return updateScenarioSlot(state, (active) =>
+        reduceScenarioSlot(state.scenario, active, {
+          type: "ready",
+          request: action.request,
+          declaration: action.declaration,
+        }),
+      );
+
+    case "SCENARIO_HYDRATION_FAILED":
+      return updateScenarioSlot(state, (active) =>
+        reduceScenarioSlot(state.scenario, active, {
+          type: "hydration_failed",
+          request: action.request,
+          failure: action.failure,
+        }),
       );
 
     case "SELECTION_CHANGED":
@@ -346,4 +397,19 @@ function updateActiveSession(
     ...state,
     activeSession: update(state.activeSession),
   };
+}
+
+function updateScenarioSlot(
+  state: StudioState,
+  update: (active: { sessionId: string; generation: number }) => ScenarioSlotState,
+): StudioState {
+  if (!state.activeSession) return state;
+
+  const scenario = update({
+    sessionId: state.activeSession.sessionId,
+    generation: state.activeSession.generation,
+  });
+  if (scenario === state.scenario) return state;
+
+  return { ...state, scenario };
 }

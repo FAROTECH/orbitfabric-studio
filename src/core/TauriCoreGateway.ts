@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import { parseScenarioDeclaration } from "../convergence/consumer-contracts";
 import type {
   CoreGateway,
   CoreIntegrationInputExport,
@@ -138,11 +139,28 @@ export class TauriCoreGateway implements CoreGateway {
       requestId,
     });
 
-    // Lint deliberately may exit non-zero while still producing a valid semantic report.
     const reportText = requireReportText("Lint Report", invocation);
     return {
       invocation,
       surface: parseLintReport(reportText),
+    };
+  }
+
+  async exportScenarioDeclaration(
+    executable: string,
+    scenarioPath: string,
+    requestId: string,
+  ) {
+    const invocation = await invoke<CoreInvocationResult>("run_core_export_scenario_declaration", {
+      executable,
+      scenarioPath,
+      requestId,
+    });
+
+    const reportText = requireReportText("Scenario Declaration", invocation);
+    return {
+      invocation,
+      surface: parseScenarioDeclaration(reportText),
     };
   }
 
@@ -157,8 +175,6 @@ export class TauriCoreGateway implements CoreGateway {
       requestId,
     });
 
-    // Core may return a non-zero status while still emitting a coherent manifest that
-    // explains why the set is unavailable/incomplete. Preserve that structured evidence.
     const manifestText = requireReportText("Integration Input Set", invocation);
     if (!invocation.reportPath) {
       throw new CoreTransportError(
