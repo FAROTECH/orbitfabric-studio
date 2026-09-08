@@ -133,11 +133,22 @@ export class AdapterLifecycleHydrator {
 function requireJsonStdout(
   label: string,
   invocation: CoreInvocationResult,
-  allowNonZeroDomainResult: boolean,
+  allowDomainFailureExit: boolean,
 ): string {
   if (!invocation.processCompleted || invocation.timedOut) {
     throw new AdapterLifecycleTransportError(
       `${label} process did not complete.`,
+      invocation,
+    );
+  }
+
+  const allowedExit =
+    invocation.exitCode === 0 ||
+    (allowDomainFailureExit && invocation.exitCode === 1);
+  if (!allowedExit) {
+    const detail = invocation.stderr.trim();
+    throw new AdapterLifecycleTransportError(
+      `${label} failed with exit ${invocation.exitCode ?? "unknown"}${detail ? `: ${detail}` : "."}`,
       invocation,
     );
   }
@@ -147,14 +158,6 @@ function requireJsonStdout(
     const detail = invocation.stderr.trim();
     throw new AdapterLifecycleTransportError(
       `${label} did not produce structured JSON${detail ? `: ${detail}` : "."}`,
-      invocation,
-    );
-  }
-
-  if (!allowNonZeroDomainResult && invocation.exitCode !== 0) {
-    const detail = invocation.stderr.trim();
-    throw new AdapterLifecycleTransportError(
-      `${label} failed with exit ${invocation.exitCode ?? "unknown"}${detail ? `: ${detail}` : "."}`,
       invocation,
     );
   }
