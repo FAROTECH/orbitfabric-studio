@@ -57,6 +57,16 @@ test("R1 Scenario Declaration consumes the exact eight-source-atom contract", ()
   });
 });
 
+test("Scenario consumer does not over-constrain Core nullable description", () => {
+  const value = JSON.parse(fixture(R1_SCENARIO_PATH));
+  value.scenario.description = null;
+  value.atoms[0].declaration.description = null;
+
+  const declaration = parseScenarioDeclaration(JSON.stringify(value));
+  assert.equal(declaration.result, "loaded");
+  assert.equal(declaration.scenario.description, null);
+});
+
 test("Scenario consumer preserves multi-atom steps without inventing micro-timing", () => {
   const value = JSON.parse(fixture(R1_SCENARIO_PATH));
   value.atoms.push({
