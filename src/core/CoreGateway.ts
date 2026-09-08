@@ -1,3 +1,4 @@
+import type { ScenarioDeclaration } from "../convergence/consumer-contracts";
 import type {
   CoreInvocationResult,
   CoreProbeResult,
@@ -47,6 +48,12 @@ export interface CoreGateway {
     source: MissionSource,
     requestId: string,
   ): Promise<CoreSurfaceResult<LintReportDto>>;
+
+  exportScenarioDeclaration(
+    executable: string,
+    scenarioPath: string,
+    requestId: string,
+  ): Promise<CoreSurfaceResult<ScenarioDeclaration>>;
 
   exportIntegrationInputSet(
     executable: string,
