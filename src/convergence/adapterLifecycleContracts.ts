@@ -1,6 +1,12 @@
 export type LifecycleEvidenceStatus = "PASS" | "FAIL" | "UNKNOWN";
 export type ProjectAdapterState = "MATCH" | "MISSING" | "MISMATCH";
 export type ProjectOverallState = "MATCH" | "NOT_SATISFIED";
+export type ProjectMismatchDimension =
+  | "release_version"
+  | "release_descriptor_sha256"
+  | "artifact_id"
+  | "artifact_sha256"
+  | "backend_id";
 
 export interface AdapterSourceCoordinate {
   authority: string;
@@ -41,7 +47,7 @@ export interface AdapterVerificationReport {
 
 export interface ProjectLockCandidateMismatch {
   instanceId: string;
-  dimensions: string[];
+  dimensions: ProjectMismatchDimension[];
 }
 
 export interface ProjectAdapterStateReport {
@@ -84,6 +90,13 @@ export interface ExactCatalogReleaseSelection {
 }
 
 const SHA256 = /^[0-9a-f]{64}$/;
+const PROJECT_MISMATCH_DIMENSIONS = [
+  "release_version",
+  "release_descriptor_sha256",
+  "artifact_id",
+  "artifact_sha256",
+  "backend_id",
+] as const;
 
 function object(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -115,8 +128,18 @@ function array(value: unknown, label: string): unknown[] {
   return value;
 }
 
+function nonEmptyArray(value: unknown, label: string): unknown[] {
+  const result = array(value, label);
+  if (result.length === 0) throw new Error(`${label} must not be empty.`);
+  return result;
+}
+
 function stringArray(value: unknown, label: string): string[] {
   return array(value, label).map((item, index) => stringValue(item, `${label}[${index}]`));
+}
+
+function nonEmptyStringArray(value: unknown, label: string): string[] {
+  return nonEmptyArray(value, label).map((item, index) => stringValue(item, `${label}[${index}]`));
 }
 
 function sourceCoordinate(value: unknown, label: string): AdapterSourceCoordinate {
@@ -161,7 +184,7 @@ function installedAdapterRecord(value: unknown, label: string): InstalledAdapter
     installRoot: stringValue(item.install_root, `${label}.install_root`),
     manifestPath: stringValue(item.manifest_path, `${label}.manifest_path`),
     manifestSha256: sha256(item.manifest_sha256, `${label}.manifest_sha256`),
-    executionArgvPrefix: stringArray(item.execution_argv_prefix, `${label}.execution_argv_prefix`),
+    executionArgvPrefix: nonEmptyStringArray(item.execution_argv_prefix, `${label}.execution_argv_prefix`),
     acceptancePolicy: stringValue(item.acceptance_policy, `${label}.acceptance_policy`),
     acceptanceWarnings: stringArray(item.acceptance_warnings, `${label}.acceptance_warnings`),
   };
@@ -193,7 +216,7 @@ export function parseProjectLockCheckReport(text: string): ProjectLockCheckRepor
     lockPath: stringValue(item.lock_path, "lock.lock_path"),
     lockVersion: stringValue(item.lock_version, "lock.lock_version"),
     status: exactEnum(item.status, ["MATCH", "NOT_SATISFIED"] as const, "lock.status"),
-    adapters: array(item.adapters, "lock.adapters").map((entry, index) => projectAdapterState(entry, index)),
+    adapters: nonEmptyArray(item.adapters, "lock.adapters").map((entry, index) => projectAdapterState(entry, index)),
   };
 }
 
@@ -207,10 +230,17 @@ function projectAdapterState(value: unknown, index: number): ProjectAdapterState
     matchingInstanceIds: stringArray(item.matching_instance_ids, `${label}.matching_instance_ids`),
     candidateInstanceIds: stringArray(item.candidate_instance_ids, `${label}.candidate_instance_ids`),
     candidateMismatches: array(item.candidate_mismatches, `${label}.candidate_mismatches`).map((entry, mismatchIndex) => {
-      const mismatch = object(entry, `${label}.candidate_mismatches[${mismatchIndex}]`);
+      const mismatchLabel = `${label}.candidate_mismatches[${mismatchIndex}]`;
+      const mismatch = object(entry, mismatchLabel);
       return {
-        instanceId: stringValue(mismatch.instance_id, `${label}.candidate_mismatches[${mismatchIndex}].instance_id`),
-        dimensions: stringArray(mismatch.dimensions, `${label}.candidate_mismatches[${mismatchIndex}].dimensions`),
+        instanceId: stringValue(mismatch.instance_id, `${mismatchLabel}.instance_id`),
+        dimensions: nonEmptyArray(mismatch.dimensions, `${mismatchLabel}.dimensions`).map((dimension, dimensionIndex) =>
+          exactEnum(
+            dimension,
+            PROJECT_MISMATCH_DIMENSIONS,
+            `${mismatchLabel}.dimensions[${dimensionIndex}]`,
+          ),
+        ),
       };
     }),
   };
@@ -226,7 +256,7 @@ export function parseExactCatalogReleaseSelection(text: string): ExactCatalogRel
       algorithm: exactEnum(digest.algorithm, ["sha256"] as const, "catalog.release_descriptor_digest.algorithm"),
       value: sha256(digest.value, "catalog.release_descriptor_digest.value"),
     },
-    sources: array(item.sources, "catalog.sources").map((entry, index) => {
+    sources: nonEmptyArray(item.sources, "catalog.sources").map((entry, index) => {
       const source = object(entry, `catalog.sources[${index}]`);
       const binding = object(source.binding, `catalog.sources[${index}].binding`);
       return {
