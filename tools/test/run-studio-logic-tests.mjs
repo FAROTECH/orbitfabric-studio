@@ -59,6 +59,10 @@ try {
     tests.push("tests/studio-logic/context-map-core-regression.test.mjs");
   }
 
+  if (process.env.ORBITFABRIC_STUDIO_LIFECYCLE_SURFACES) {
+    tests.push("tests/studio-logic/adapter-lifecycle-core-acceptance.test.mjs");
+  }
+
   if (
     process.env.ORBITFABRIC_STUDIO_REFERENCE_POC &&
     process.env.ORBITFABRIC_STUDIO_REFERENCE_INPUT_MANIFEST &&
