@@ -6,12 +6,14 @@ const require = createRequire(import.meta.url);
 const {
   emptyScenarioSlot,
   reduceScenarioSlot,
+  scenarioExactIdentity,
   scenarioSlotReadiness,
 } = require("../../.test-dist/convergence/scenarioSlot.js");
 const {
   ScenarioConsistencyError,
   ScenarioHydrator,
 } = require("../../.test-dist/convergence/ScenarioHydrator.js");
+const { studioReducer } = require("../../.test-dist/app/studioState.js");
 const { emptyMissionReadModel } = require("../../.test-dist/mission/MissionSession.js");
 
 const SHA = "b19ff6e1cf3c45cdb81e239d30aad97e8b6f037703c06f27102b762e69a1146a";
@@ -110,6 +112,18 @@ function missionSession(sessionId = "session-1", generation = 1) {
   };
 }
 
+function studioState(session) {
+  return {
+    activeSession: session,
+    opening: null,
+    openFailure: null,
+    scenario: emptyScenarioSlot(),
+    selection: { subject: null, origin: null, contextPath: [] },
+    operationsMode: null,
+    view: "overview",
+  };
+}
+
 test("late response from generation N cannot mutate generation N+1", () => {
   const gen1 = membership("session-1", 1);
   const gen2 = membership("session-2", 2);
@@ -124,6 +138,37 @@ test("late response from generation N cannot mutate generation N+1", () => {
 
   assert.equal(after, slot);
   assert.equal(after.accepted, null);
+});
+
+test("Studio reducer resets Scenario on primary generation replacement and rejects late old response", () => {
+  const firstSession = missionSession("session-1", 1);
+  const oldRequest = request(membership("session-1", 1), "S1");
+  let state = studioState(firstSession);
+  state = studioReducer(state, { type: "SCENARIO_REQUESTED", request: oldRequest });
+  assert.equal(state.scenario.pending.requestToken, "S1");
+
+  const secondSession = missionSession("session-2", 2);
+  state = studioReducer(state, {
+    type: "MISSION_OPEN_REQUESTED",
+    opening: {
+      requestId: "session-2",
+      generation: 2,
+      selectedPath: "/tmp",
+      isRefresh: true,
+    },
+  });
+  state = studioReducer(state, {
+    type: "MISSION_PRIMARY_COMMITTED",
+    session: secondSession,
+  });
+  assert.equal(scenarioSlotReadiness(state.scenario), "unselected");
+
+  const afterLate = studioReducer(state, {
+    type: "SCENARIO_DECLARATION_READY",
+    request: oldRequest,
+    declaration: loadedDeclaration(),
+  });
+  assert.equal(afterLate, state);
 });
 
 test("same-generation superseded request token is reject-only", () => {
@@ -186,6 +231,13 @@ test("same-target failed refresh preserves the previously accepted observation",
   assert.equal(slot.hydrationFailure.class, "transport");
 });
 
+test("Scenario exact identity is scenario id plus exact consumed-byte SHA", () => {
+  assert.deepEqual(scenarioExactIdentity(loadedDeclaration()), {
+    scenarioId: "scenario-1",
+    scenarioSha256: SHA,
+  });
+});
+
 test("ScenarioHydrator preserves Core EntityRefs and exact identity", async () => {
   const declaration = loadedDeclaration();
   const gateway = {
@@ -196,12 +248,30 @@ test("ScenarioHydrator preserves Core EntityRefs and exact identity", async () =
   const hydrator = new ScenarioHydrator(gateway);
   const result = await hydrator.hydrate(missionSession(), "/tmp/scenario.yaml", "S1");
 
-  assert.equal(result.declaration.scenario.id, "scenario-1");
-  assert.equal(result.declaration.source.scenarioSha256, SHA);
+  assert.deepEqual(scenarioExactIdentity(result.declaration), {
+    scenarioId: "scenario-1",
+    scenarioSha256: SHA,
+  });
   assert.deepEqual(result.declaration.atoms[0].references[0].entity, {
     domain: "commands",
     id: "payload.stop",
   });
+});
+
+test("ScenarioHydrator accepts nullable Scenario description", async () => {
+  const declaration = loadedDeclaration();
+  assert.equal(declaration.scenario.description, null);
+  const gateway = {
+    async exportScenarioDeclaration() {
+      return { invocation: {}, surface: declaration };
+    },
+  };
+  const result = await new ScenarioHydrator(gateway).hydrate(
+    missionSession(),
+    "/tmp/scenario.yaml",
+    "S1",
+  );
+  assert.equal(result.declaration.scenario.description, null);
 });
 
 test("ScenarioHydrator fails closed on Mission binding mismatch", async () => {
