@@ -37,7 +37,7 @@ export type ScenarioDeclarationLoaded = {
   scenario: {
     id: string;
     name: string;
-    description: string;
+    description: string | null;
   };
   mission: {
     id: string;
@@ -160,9 +160,21 @@ function stringValue(value: unknown, label: string): string {
   return value;
 }
 
+function textValue(value: unknown, label: string): string {
+  if (typeof value !== "string") {
+    throw new Error(`${label} must be a string.`);
+  }
+  return value;
+}
+
 function nullableString(value: unknown, label: string): string | null {
   if (value === null) return null;
   return stringValue(value, label);
+}
+
+function nullableText(value: unknown, label: string): string | null {
+  if (value === null) return null;
+  return textValue(value, label);
 }
 
 function nullableNumber(value: unknown, label: string): number | null {
@@ -337,7 +349,7 @@ export function parseScenarioDeclaration(text: string): ScenarioDeclaration {
     scenario: {
       id: stringValue(scenario.id, "scenario.id"),
       name: stringValue(scenario.name, "scenario.name"),
-      description: stringValue(scenario.description, "scenario.description"),
+      description: nullableText(scenario.description, "scenario.description"),
     },
     mission: {
       id: stringValue(mission.id, "mission.id"),
