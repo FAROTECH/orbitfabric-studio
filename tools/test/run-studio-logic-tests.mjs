@@ -45,6 +45,7 @@ try {
     "tests/studio-logic/integration-staleness.test.mjs",
     "tests/studio-logic/integration-plugin-registry.test.mjs",
     "tests/studio-logic/integration-plugin-actions.test.mjs",
+    "tests/studio-logic/convergence-contract-consumer.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
