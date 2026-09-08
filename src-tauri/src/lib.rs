@@ -175,6 +175,31 @@ fn run_core_lint_mission(
 }
 
 #[tauri::command]
+fn run_core_export_scenario_declaration(
+    executable: String,
+    scenario_path: String,
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
+    let scenario = canonicalize_existing_file(&scenario_path)?;
+    let report_path = request_report_path(&request_id, "scenario_declaration.json", true)?;
+    let scenario_display = display_path(&scenario);
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        "scenario-declaration",
+        &[
+            "export",
+            "scenario-declaration",
+            scenario_display.as_str(),
+            "--json",
+            report_display.as_str(),
+        ],
+        Some(report_path),
+    )
+}
+
+#[tauri::command]
 fn run_core_export_integration_input_set(
     executable: String,
     mission_dir: String,
@@ -390,6 +415,18 @@ fn canonicalize_existing_dir(path: &str) -> Result<PathBuf, String> {
         .map_err(|error| format!("Unable to resolve selected directory: {error}"))
 }
 
+fn canonicalize_existing_file(path: &str) -> Result<PathBuf, String> {
+    let candidate = PathBuf::from(path);
+
+    if !candidate.is_file() {
+        return Err("Selected path is not an existing file.".to_string());
+    }
+
+    candidate
+        .canonicalize()
+        .map_err(|error| format!("Unable to resolve selected file: {error}"))
+}
+
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().to_string()
 }
@@ -468,6 +505,7 @@ pub fn run() {
             run_core_export_entity_index,
             run_core_export_relationship_manifest,
             run_core_lint_mission,
+            run_core_export_scenario_declaration,
             run_core_export_integration_input_set,
             clear_core_request_temp,
             integrations::read_integration_package_manifest,
