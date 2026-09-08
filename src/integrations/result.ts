@@ -16,6 +16,23 @@ import type {
 const RESULT_V0 = "0.1-candidate";
 const RESULT_V1 = "0.2-candidate";
 
+function allowedIntegrationResultStates(resultVersion: string): readonly string[] {
+  if (resultVersion === RESULT_V0) {
+    return ["succeeded", "succeeded_with_warnings", "failed"];
+  }
+  if (resultVersion === RESULT_V1) {
+    return ["succeeded", "failed"];
+  }
+  return [];
+}
+
+export function isSuccessfulIntegrationResultState(
+  result: Pick<IntegrationResult, "resultVersion" | "result">,
+): boolean {
+  if (result.result === "succeeded") return true;
+  return result.resultVersion === RESULT_V0 && result.result === "succeeded_with_warnings";
+}
+
 function record(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`${label} must be an object.`);
@@ -302,7 +319,8 @@ export function validateIntegrationResult(
       message: `Unsupported Result version: ${result.resultVersion}.`,
     });
   }
-  if (!["succeeded", "succeeded_with_warnings", "failed"].includes(result.result)) {
+  const allowedResultStates = allowedIntegrationResultStates(result.resultVersion);
+  if (allowedResultStates.length > 0 && !allowedResultStates.includes(result.result)) {
     issues.push({ code: "result.state", message: `Unsupported Result state: ${result.result}.` });
   }
 
