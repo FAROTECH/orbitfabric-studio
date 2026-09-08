@@ -11,6 +11,7 @@
   },
   "files": [
     "src/core/contracts.ts",
+    "src/convergence/consumer-contracts.ts",
     "src/mission/entityRef.ts",
     "src/mission/selection.ts",
     "src/mission/MissionSession.ts",
