@@ -52,10 +52,16 @@ try {
     "tests/studio-logic/evidence-slot.test.mjs",
     "tests/studio-logic/evidence-slot-r1.test.mjs",
     "tests/studio-logic/evidence-slot-reducer.test.mjs",
+    "tests/studio-logic/adapter-lifecycle.test.mjs",
+    "tests/studio-logic/adapter-lifecycle-exit-code.test.mjs",
   ];
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
     tests.push("tests/studio-logic/context-map-core-regression.test.mjs");
+  }
+
+  if (process.env.ORBITFABRIC_STUDIO_LIFECYCLE_SURFACES) {
+    tests.push("tests/studio-logic/adapter-lifecycle-core-acceptance.test.mjs");
   }
 
   if (

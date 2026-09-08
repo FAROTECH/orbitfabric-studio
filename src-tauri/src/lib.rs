@@ -1,3 +1,4 @@
+mod adapter_lifecycle;
 mod capture;
 mod integration_execution;
 mod integration_files;
@@ -507,6 +508,10 @@ pub fn run() {
             run_core_lint_mission,
             run_core_export_scenario_declaration,
             run_core_export_integration_input_set,
+            adapter_lifecycle::run_core_adapter_list,
+            adapter_lifecycle::run_core_adapter_verify,
+            adapter_lifecycle::run_core_adapter_lock_check,
+            adapter_lifecycle::run_core_adapter_catalog_select,
             clear_core_request_temp,
             integrations::read_integration_package_manifest,
             integrations::read_integration_result_bundle,

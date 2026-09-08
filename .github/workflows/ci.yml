@@ -197,6 +197,212 @@ jobs:
           ORBITFABRIC_STUDIO_CORE_SURFACES: /tmp
         run: npm run test:logic
 
+  adapter-lifecycle-contract:
+    name: Pinned Core v1.3.0 Adapter Lifecycle acceptance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Studio
+        uses: actions/checkout@v4
+
+      - name: Checkout OrbitFabric Core v1.3.0 release commit
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: a25917e81c90396df2b189834e83cf852fa4da5f
+          path: orbitfabric-core
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned Core v1.3.0
+        run: python -m pip install -e ./orbitfabric-core
+
+      - name: Create Core-owned lifecycle fixture state
+        env:
+          ORBITFABRIC_STATE_DIR: /tmp/orbitfabric-lifecycle/state
+        run: |
+          set -euo pipefail
+          root=/tmp/orbitfabric-lifecycle
+          mkdir -p "$root/instance" "$ORBITFABRIC_STATE_DIR"
+          cp orbitfabric-core/conformance/fixtures/integration-v1/valid/manifest-zero-input.json \
+            "$root/instance/integration_package.json"
+
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          from orbitfabric.adapter_manager.inventory import InstalledAdapterInventory
+          from orbitfabric.adapter_manager.models import AdapterSourceCoordinate, InstalledAdapterRecord
+
+          root = Path('/tmp/orbitfabric-lifecycle')
+          state_root = Path(os.environ['ORBITFABRIC_STATE_DIR'])
+          instance_root = root / 'instance'
+          manifest_path = instance_root / 'integration_package.json'
+          manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+
+          source = {
+              'authority': 'test.local',
+              'publisher': 'fixture',
+              'name': 'studio-lifecycle',
+          }
+          descriptor = {
+              'kind': 'orbitfabric.adapter_release',
+              'descriptor_version': '0.1-candidate',
+              'source_coordinate': source,
+              'release_version': '1.0.0',
+              'source_provenance': {'commit': 'studio-lifecycle-fixture'},
+              'artifacts': [
+                  {
+                      'id': 'fixture-wheel',
+                      'artifact_type': 'python-wheel',
+                      'filename': 'fixture.whl',
+                      'sha256': '2' * 64,
+                      'size': 0,
+                      'selectors': {},
+                  }
+              ],
+              'integration_package': {'sha256': manifest_sha},
+          }
+          descriptor_path = instance_root / 'release_descriptor.json'
+          descriptor_path.write_text(json.dumps(descriptor, indent=2) + '\n', encoding='utf-8')
+          descriptor_sha = hashlib.sha256(descriptor_path.read_bytes()).hexdigest()
+
+          endpoint = instance_root / 'adapter-endpoint'
+          endpoint.write_text('#!/bin/sh\nexit 0\n', encoding='utf-8')
+          endpoint.chmod(0o755)
+
+          record = InstalledAdapterRecord(
+              instance_id='studio-lifecycle-fixture',
+              source_coordinate=AdapterSourceCoordinate(**source),
+              release_version='1.0.0',
+              release_descriptor_path=descriptor_path,
+              release_descriptor_sha256=descriptor_sha,
+              artifact_id='fixture-wheel',
+              artifact_sha256='2' * 64,
+              backend_id='python-wheel-managed-env',
+              install_root=instance_root,
+              manifest_path=manifest_path,
+              manifest_sha256=manifest_sha,
+              execution_argv_prefix=[str(endpoint.resolve())],
+              acceptance_policy='development-explicit-source',
+              acceptance_warnings=[],
+          )
+          InstalledAdapterInventory(state_root).add(record)
+
+          lock = {
+              'kind': 'orbitfabric.adapter_project_lock',
+              'lock_version': '0.1-candidate',
+              'adapters': [
+                  {
+                      'source_coordinate': source,
+                      'release_version': '1.0.0',
+                      'release_descriptor': {'sha256': descriptor_sha},
+                      'artifact': {'id': 'fixture-wheel', 'sha256': '0' * 64},
+                      'installation_backend': {'id': 'python-wheel-managed-env'},
+                  }
+              ],
+          }
+          (root / 'adapter-project-lock.json').write_text(
+              json.dumps(lock, indent=2) + '\n', encoding='utf-8'
+          )
+
+          catalog = {
+              'kind': 'orbitfabric.adapter_catalog',
+              'catalog_version': '0.1-candidate',
+              'adapters': [
+                  {
+                      'source_coordinate': source,
+                      'releases': [
+                          {
+                              'version': '1.0.0',
+                              'release_descriptor_digest': {
+                                  'algorithm': 'sha256',
+                                  'value': descriptor_sha,
+                              },
+                              'sources': [
+                                  {'binding': 'fixture-source', 'release_ref': 'v1.0.0'}
+                              ],
+                          }
+                      ],
+                  }
+              ],
+              'source_bindings': [
+                  {'id': 'fixture-source', 'provider': 'fixture', 'config': {}}
+              ],
+          }
+          (root / 'adapter-catalog.json').write_text(
+              json.dumps(catalog, indent=2) + '\n', encoding='utf-8'
+          )
+          PY
+
+      - name: Export real Core Adapter Lifecycle surfaces
+        env:
+          ORBITFABRIC_STATE_DIR: /tmp/orbitfabric-lifecycle/state
+        run: |
+          set -euo pipefail
+          root=/tmp/orbitfabric-lifecycle
+
+          orbitfabric adapter list --json > "$root/installed.json"
+
+          set +e
+          orbitfabric adapter verify studio-lifecycle-fixture --json > "$root/verify.json"
+          verify_rc=$?
+          orbitfabric adapter lock check "$root/adapter-project-lock.json" --json > "$root/lock.json"
+          lock_rc=$?
+          set -e
+
+          test "$verify_rc" -eq 1
+          test "$lock_rc" -eq 1
+
+          orbitfabric adapter catalog select \
+            "$root/adapter-catalog.json" \
+            test.local:fixture/studio-lifecycle \
+            --version 1.0.0 \
+            --json > "$root/catalog.json"
+
+      - name: Assert Core lifecycle producer facts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('/tmp/orbitfabric-lifecycle')
+          installed = json.loads((root / 'installed.json').read_text())
+          verify = json.loads((root / 'verify.json').read_text())
+          lock = json.loads((root / 'lock.json').read_text())
+          catalog = json.loads((root / 'catalog.json').read_text())
+
+          assert len(installed) == 1
+          assert installed[0]['instance_id'] == 'studio-lifecycle-fixture'
+          assert verify['release_descriptor_integrity']['status'] == 'PASS'
+          assert verify['manifest_integrity']['status'] == 'PASS'
+          assert verify['manifest_conformance']['status'] == 'PASS'
+          assert verify['execution_binding']['status'] == 'PASS'
+          assert verify['backend_materialization']['status'] == 'FAIL'
+          assert lock['status'] == 'NOT_SATISFIED'
+          assert lock['adapters'][0]['status'] == 'MISMATCH'
+          assert lock['adapters'][0]['candidate_mismatches'][0]['dimensions'] == ['artifact_sha256']
+          assert catalog['release_version'] == '1.0.0'
+          PY
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked Studio dependencies
+        run: npm ci
+
+      - name: Consume Core v1.3.0 lifecycle surfaces through Studio contracts
+        env:
+          ORBITFABRIC_STUDIO_LIFECYCLE_SURFACES: /tmp/orbitfabric-lifecycle
+        run: npm run test:logic
+
   reference-integration:
     name: Real reference Integration Package acceptance
     runs-on: ubuntu-22.04
