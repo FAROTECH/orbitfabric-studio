@@ -40,6 +40,11 @@ export type ScenarioSlotReadiness =
   | "declared_failed"
   | "hydration_failed";
 
+export type ScenarioSlotAction =
+  | { type: "requested"; request: ScenarioSlotRequest }
+  | { type: "ready"; request: ScenarioSlotRequest; declaration: ScenarioDeclaration }
+  | { type: "hydration_failed"; request: ScenarioSlotRequest; failure: ScenarioHydrationFailure };
+
 export function emptyScenarioSlot(): ScenarioSlotState {
   return {
     accepted: null,
@@ -54,6 +59,25 @@ export function scenarioSlotReadiness(slot: ScenarioSlotState): ScenarioSlotRead
   if (slot.accepted?.declaration.result === "failed") return "declared_failed";
   if (slot.hydrationFailure) return "hydration_failed";
   return "unselected";
+}
+
+export function reduceScenarioSlot(
+  slot: ScenarioSlotState,
+  activeMembership: ScenarioGenerationMembership,
+  action: ScenarioSlotAction,
+): ScenarioSlotState {
+  if (!sameScenarioMembership(activeMembership, action.request.membership)) {
+    return slot;
+  }
+
+  switch (action.type) {
+    case "requested":
+      return beginScenarioRequest(slot, action.request);
+    case "ready":
+      return acceptScenarioObservation(slot, action.request, action.declaration);
+    case "hydration_failed":
+      return failScenarioHydration(slot, action.request, action.failure);
+  }
 }
 
 export function beginScenarioRequest(
