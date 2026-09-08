@@ -1,5 +1,14 @@
 import type { ScenarioDeclaration } from "../convergence/consumer-contracts";
 import {
+  emptyEvidenceSlot,
+  recomputeEvidenceCorrelations,
+  reduceEvidenceSlot,
+  type EvidenceHydrationFailure,
+  type EvidenceManifestObservation,
+  type EvidenceSlotRequest,
+  type EvidenceSlotState,
+} from "../convergence/evidenceSlot";
+import {
   emptyIntegrationSlot,
   reduceIntegrationSlot,
   type IntegrationContextRequest,
@@ -57,6 +66,7 @@ export interface StudioState {
   openFailure: MissionOpenFailure | null;
   scenario: ScenarioSlotState;
   integration: IntegrationSlotState;
+  evidence: EvidenceSlotState;
   selection: StudioSelection;
   operationsMode: EntityRef | null;
   view: MissionWorkspaceView;
@@ -126,6 +136,20 @@ export type StudioAction =
       failure: IntegrationHydrationFailure;
     }
   | {
+      type: "EVIDENCE_SET_REQUESTED";
+      request: EvidenceSlotRequest;
+    }
+  | {
+      type: "EVIDENCE_SET_READY";
+      request: EvidenceSlotRequest;
+      observation: EvidenceManifestObservation;
+    }
+  | {
+      type: "EVIDENCE_SET_HYDRATION_FAILED";
+      request: EvidenceSlotRequest;
+      failure: EvidenceHydrationFailure;
+    }
+  | {
       type: "SELECTION_CHANGED";
       subject: EntityRef | null;
       origin: SelectionOrigin | null;
@@ -158,6 +182,7 @@ export const initialStudioState: StudioState = {
   openFailure: null,
   scenario: emptyScenarioSlot(),
   integration: emptyIntegrationSlot(),
+  evidence: emptyEvidenceSlot(),
   selection: emptyStudioSelection(),
   operationsMode: null,
   view: "overview",
@@ -187,6 +212,7 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
         openFailure: null,
         scenario: emptyScenarioSlot(),
         integration: emptyIntegrationSlot(),
+        evidence: emptyEvidenceSlot(),
         selection: replacingSameMission
           ? reconcileSelectionWithPrimary(state.selection, action.session)
           : emptyStudioSelection(),
@@ -285,6 +311,39 @@ export function studioReducer(state: StudioState, action: StudioAction): StudioS
           request: action.request,
           failure: action.failure,
         }),
+      );
+
+    case "EVIDENCE_SET_REQUESTED":
+      return updateEvidenceSlot(state, (active) =>
+        reduceEvidenceSlot(
+          state.evidence ?? emptyEvidenceSlot(),
+          active,
+          state.scenario ?? emptyScenarioSlot(),
+          state.integration ?? emptyIntegrationSlot(),
+          { type: "requested", request: action.request },
+        ),
+      );
+
+    case "EVIDENCE_SET_READY":
+      return updateEvidenceSlot(state, (active) =>
+        reduceEvidenceSlot(
+          state.evidence ?? emptyEvidenceSlot(),
+          active,
+          state.scenario ?? emptyScenarioSlot(),
+          state.integration ?? emptyIntegrationSlot(),
+          { type: "ready", request: action.request, observation: action.observation },
+        ),
+      );
+
+    case "EVIDENCE_SET_HYDRATION_FAILED":
+      return updateEvidenceSlot(state, (active) =>
+        reduceEvidenceSlot(
+          state.evidence ?? emptyEvidenceSlot(),
+          active,
+          state.scenario ?? emptyScenarioSlot(),
+          state.integration ?? emptyIntegrationSlot(),
+          { type: "hydration_failed", request: action.request, failure: action.failure },
+        ),
       );
 
     case "SELECTION_CHANGED":
@@ -462,7 +521,12 @@ function updateScenarioSlot(
   });
   if (scenario === state.scenario) return state;
 
-  return { ...state, scenario };
+  const evidence = recomputeEvidenceCorrelations(
+    state.evidence ?? emptyEvidenceSlot(),
+    scenario,
+    state.integration ?? emptyIntegrationSlot(),
+  );
+  return { ...state, scenario, evidence };
 }
 
 function updateIntegrationSlot(
@@ -477,5 +541,25 @@ function updateIntegrationSlot(
   });
   if (integration === state.integration) return state;
 
-  return { ...state, integration };
+  const evidence = recomputeEvidenceCorrelations(
+    state.evidence ?? emptyEvidenceSlot(),
+    state.scenario ?? emptyScenarioSlot(),
+    integration,
+  );
+  return { ...state, integration, evidence };
+}
+
+function updateEvidenceSlot(
+  state: StudioState,
+  update: (active: { sessionId: string; generation: number }) => EvidenceSlotState,
+): StudioState {
+  if (!state.activeSession) return state;
+
+  const evidence = update({
+    sessionId: state.activeSession.sessionId,
+    generation: state.activeSession.generation,
+  });
+  if (evidence === state.evidence) return state;
+
+  return { ...state, evidence };
 }
