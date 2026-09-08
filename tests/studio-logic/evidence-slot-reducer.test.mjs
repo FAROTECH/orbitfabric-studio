@@ -5,10 +5,19 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const { studioReducer } = require("../../.test-dist/app/studioState.js");
 const { emptyMissionReadModel } = require("../../.test-dist/mission/MissionSession.js");
+const { integrationOperationContextKey } = require(
+  "../../.test-dist/convergence/integrationSlot.js",
+);
 
 const OLD_SCENARIO_SHA = "1".repeat(64);
 const OLD_RESULT_SHA = "2".repeat(64);
 const NEW_RESULT_SHA = "3".repeat(64);
+const INTEGRATION_CONTEXT = {
+  integrationId: "int",
+  adapterId: "adapter",
+  adapterVersion: "1",
+  operationId: "project",
+};
 
 function membership() {
   return { sessionId: "session-1", generation: 1 };
@@ -72,7 +81,7 @@ function scenarioSlot() {
 function integrationObservation(sha) {
   return {
     membership: membership(),
-    context: { integrationId: "int", adapterId: "adapter", adapterVersion: "1", operationId: "project" },
+    context: INTEGRATION_CONTEXT,
     resultPath: `/tmp/${sha}.json`,
     resultSha256: sha,
     result: { mappings: [], artifacts: [] },
@@ -84,7 +93,7 @@ function integrationSlot() {
   return {
     contexts: new Map([
       [
-        "ctx",
+        integrationOperationContextKey(INTEGRATION_CONTEXT),
         { accepted: integrationObservation(OLD_RESULT_SHA), pending: null, hydrationFailure: null },
       ],
     ]),
@@ -162,11 +171,10 @@ test("Studio reducer recomputes Evidence correlations when Scenario target is re
 
 test("Studio reducer recomputes Evidence Result correlation after a new exact Result is accepted", () => {
   let state = baseState();
-  const context = { integrationId: "int", adapterId: "adapter", adapterVersion: "1", operationId: "project" };
   const request = {
     membership: membership(),
     requestToken: "new-result",
-    context,
+    context: INTEGRATION_CONTEXT,
     resultPath: "/tmp/new-result.json",
   };
 
@@ -176,7 +184,11 @@ test("Studio reducer recomputes Evidence Result correlation after a new exact Re
   state = studioReducer(state, {
     type: "INTEGRATION_RESULT_READY",
     request,
-    observation: { ...integrationObservation(NEW_RESULT_SHA), context, resultPath: request.resultPath },
+    observation: {
+      ...integrationObservation(NEW_RESULT_SHA),
+      context: INTEGRATION_CONTEXT,
+      resultPath: request.resultPath,
+    },
   });
   assert.equal(state.evidence.accepted.records[0].subjects[1].state, "unresolved");
 });
