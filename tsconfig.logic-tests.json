@@ -17,6 +17,8 @@
     "src/convergence/ScenarioHydrator.ts",
     "src/convergence/scenarioUnderstanding.ts",
     "src/convergence/scenarioProtocol.ts",
+    "src/convergence/requestScenario.ts",
+    "src/features/scenarios/scenarioPresentation.ts",
     "src/convergence/integrationSlot.ts",
     "src/convergence/IntegrationResultHydrator.ts",
     "src/convergence/evidenceSlot.ts",

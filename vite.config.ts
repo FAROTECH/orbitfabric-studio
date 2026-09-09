@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   clearScreen: false,
   server: {
+    allowedHosts: ["terminal.local"],
     port: 1420,
     strictPort: true,
     watch: {

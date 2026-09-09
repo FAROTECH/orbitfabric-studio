@@ -17,6 +17,10 @@ import { RelationsWorkspace } from "./features/relationships/RelationsWorkspace"
 import { ValidationFindingsDrawer } from "./features/validation/ValidationFindingsDrawer";
 import { EntityXRay } from "./features/xray/EntityXRay";
 import { MissionHydrator, MissionStructuralInvalidError } from "./mission/MissionHydrator";
+import { ScenarioHydrator } from "./convergence/ScenarioHydrator";
+import { requestScenario } from "./convergence/requestScenario";
+import { buildScenarioUnderstanding } from "./convergence/scenarioUnderstanding";
+import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 
 const CORE_EXECUTABLE_KEY = "orbitfabric-studio.core-executable";
 const RECENT_MISSIONS_KEY = "orbitfabric-studio.recent-missions";
@@ -30,6 +34,29 @@ function App() {
   const [recentMissions, setRecentMissions] = useState<string[]>(loadRecentMissions);
   const [validationOpen, setValidationOpen] = useState(false);
   const generationRef = useRef(0);
+  const [scenarioPickerFailure, setScenarioPickerFailure] = useState<string | null>(null);
+  const scenarioHydrator = useMemo(() => new ScenarioHydrator(new TauriCoreGateway()), []);
+  const scenarioModel = useMemo(() => buildScenarioUnderstanding(state.scenario), [state.scenario]);
+
+  async function chooseScenario() {
+    const capturedSession = state.activeSession;
+    if (!capturedSession) return;
+    setScenarioPickerFailure(null);
+    try {
+      const selected = await open({ multiple: false, directory: false, title: "Choose OrbitFabric Scenario",
+        filters: [{ name: "Scenario", extensions: ["yaml", "yml"] }] });
+      if (typeof selected !== "string") return;
+      await requestScenario(scenarioHydrator, dispatch, capturedSession, selected, "replace", createRequestId(capturedSession.generation));
+    } catch (error) {
+      setScenarioPickerFailure(errorMessage(error));
+    }
+  }
+
+  async function refreshScenario() {
+    if (!state.activeSession || !state.scenario.accepted) return;
+    await requestScenario(scenarioHydrator, dispatch, state.activeSession,
+      state.scenario.accepted.targetPath, "refresh", createRequestId(state.activeSession.generation));
+  }
 
   const hydrator = useMemo(
     () => new MissionHydrator(new TauriCoreGateway()),
@@ -57,6 +84,7 @@ function App() {
 
   async function beginOpen(selectedPath: string, isRefresh: boolean) {
     setValidationOpen(false);
+    setScenarioPickerFailure(null);
     const generation = ++generationRef.current;
     const requestId = createRequestId(generation);
 
@@ -226,6 +254,13 @@ function App() {
           ) : null}
           <button
             type="button"
+            className={state.view === "scenarios" ? "is-active" : ""}
+            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "scenarios" })}
+          >
+            Scenarios
+          </button>
+          <button
+            type="button"
             className={state.view === "integrations" ? "is-active" : ""}
             onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "integrations" })}
           >
@@ -293,7 +328,13 @@ function App() {
           className={`workspace-layout${selectedEntity && supportsXRay ? " has-xray" : ""}`}
         >
           <div className="workspace-primary">
-            {state.view === "operations" ? (
+            {state.view === "scenarios" ? (
+              <ScenarioWorkspace model={scenarioModel} session={session}
+                disabled={isOpeningReplacement} pickerFailure={scenarioPickerFailure}
+                onChoose={chooseScenario} onRefresh={refreshScenario}
+                onInspectEntity={(subject) => dispatch({ type: "SELECTION_CHANGED", subject, origin: "scenarios" })}
+              />
+            ) : state.view === "operations" ? (
               <OperationsWorkspace
                 session={session}
                 selectedEntity={selectedEntity}
