@@ -39,6 +39,8 @@ venv/
 
 # Node / frontend artifacts
 node_modules/
+.test-dist/
+.sp2-acceptance/
 dist/
 build/
 coverage/

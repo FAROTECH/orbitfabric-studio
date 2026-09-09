@@ -9,6 +9,7 @@ export type SelectionOrigin =
   | "search"
   | "operations"
   | "integrations"
+  | "scenarios"
   | "data-journey"
   | "replay";
 
