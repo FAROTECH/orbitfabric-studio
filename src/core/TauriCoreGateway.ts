@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { parseScenarioDeclaration } from "../convergence/consumer-contracts";
+import { consumeScenarioReport } from "../convergence/scenarioProtocol";
 import type {
   CoreGateway,
   CoreIntegrationInputExport,
@@ -160,7 +160,7 @@ export class TauriCoreGateway implements CoreGateway {
     const reportText = requireReportText("Scenario Declaration", invocation);
     return {
       invocation,
-      surface: parseScenarioDeclaration(reportText),
+      surface: consumeScenarioReport(reportText),
     };
   }
 

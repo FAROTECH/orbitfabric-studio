@@ -48,6 +48,7 @@ try {
     "tests/studio-logic/convergence-contract-consumer.test.mjs",
     "tests/studio-logic/scenario-slot.test.mjs",
     "tests/studio-logic/scenario-slot-r1.test.mjs",
+    "tests/studio-logic/scenario-understanding.test.mjs",
     "tests/studio-logic/integration-slot.test.mjs",
     "tests/studio-logic/evidence-slot.test.mjs",
     "tests/studio-logic/evidence-slot-r1.test.mjs",
