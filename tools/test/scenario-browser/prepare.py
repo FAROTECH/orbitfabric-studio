@@ -36,6 +36,24 @@ with tempfile.TemporaryDirectory(prefix="sp2-export-") as temporary:
             "stdout": process.stdout, "stderr": process.stderr,
             "reportPath": str(report), "reportText": text,
         }
+    invalid_source = scenario.read_text().replace(
+        "path: ../mission", "path: " + json.dumps(str(mission))
+    ).replace("command: payload.stop_acquisition", "command: payload.nonexistent_sp2_fixture")
+    invalid = Path(temporary) / "invalid-scenario.yaml"
+    invalid.write_text(invalid_source)
+    failure_report = Path(temporary) / "failed.json"
+    failed = subprocess.run(
+        [args.core, "export", "scenario-declaration", str(invalid), "--json", str(failure_report)],
+        capture_output=True, text=True, timeout=60,
+    )
+    failure_text = failure_report.read_text()
+    if failed.returncode == 0 or json.loads(failure_text)["result"] != "failed":
+        raise RuntimeError("The negative fixture must produce a real Core declaration failure")
+    reports["failedScenarioInvocation"] = {
+        **reports["invocations"]["run_core_export_scenario_declaration"],
+        "exitCode": failed.returncode, "reportPath": str(failure_report),
+        "reportText": failure_text, "stdout": failed.stdout, "stderr": failed.stderr,
+    }
 destination = Path(".sp2-acceptance")
 destination.mkdir(exist_ok=True)
 (destination / "reports.json").write_text(json.dumps(reports, indent=2) + "\n")

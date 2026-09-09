@@ -14,3 +14,5 @@ The Tauri test API substitutes IPC responses with freshly exported, retained Cor
 This is browser interaction and presentation evidence, not a native IPC or live subprocess proof. The separate pinned R1 acceptance gate must exercise the native Scenario command and consume its actual report before SP2-G closes.
 
 Inspect empty selection, eight-atom accounting, initial state, action, expected false/READY/PASSED, exact digest, entity navigation, refresh, and mission-generation reset. Check that no display implies runtime timing or a run verdict. The production entrypoint does not import this harness.
+
+Open the same test entry with `?scenario=failed` to inspect a real Core declaration failure. The preparation script exports this negative fixture from a temporary copy containing a nonexistent command. The canonical Reference Mission stays unchanged.
