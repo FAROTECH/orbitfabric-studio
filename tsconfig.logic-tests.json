@@ -12,6 +12,7 @@
   "files": [
     "src/core/contracts.ts",
     "src/core/CoreGateway.ts",
+    "src/core/TauriCoreGateway.ts",
     "src/convergence/consumer-contracts.ts",
     "src/convergence/scenarioSlot.ts",
     "src/convergence/ScenarioHydrator.ts",
@@ -31,6 +32,7 @@
     "src/mission/entityRef.ts",
     "src/mission/selection.ts",
     "src/mission/MissionSession.ts",
+    "src/mission/MissionHydrator.ts",
     "src/mission/resolveEntityContract.ts",
     "src/app/studioState.ts",
     "src/features/validation/validationModel.ts",

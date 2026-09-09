@@ -7,10 +7,15 @@ const reports = await fetch("/.sp2-acceptance/reports.json").then(response => {
   if (!response.ok) throw new Error("Generate .sp2-acceptance/reports.json before browser acceptance");
   return response.json();
 });
+const scenarioCase = new URLSearchParams(location.search).get("scenario");
 mockIPC((command, args: any) => {
   if (command === "plugin:dialog|open") return args.options.directory ? reports.missionPath : reports.scenarioPath;
   if (command === "resolve_mission_source") return { selectedPath: reports.missionPath, missionDir: reports.missionPath };
   if (command === "clear_core_request_temp") return null;
+  if (command === "run_core_export_scenario_declaration" && scenarioCase === "failed") {
+    if (!reports.failedScenarioInvocation) throw new Error("Regenerate reports with the failed Scenario fixture");
+    return reports.failedScenarioInvocation;
+  }
   if (Object.hasOwn(reports.invocations, command)) return reports.invocations[command];
   throw new Error(`Outside browser Scenario acceptance scope: ${command}`);
 });

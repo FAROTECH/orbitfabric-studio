@@ -68,6 +68,55 @@ jobs:
       - name: Cargo test
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml
 
+      - name: Checkout SP2 pinned Core
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: 760f364875515c4f4ac0675b5545a2ee0ebc22ad
+          path: scenario-core
+
+      - name: Checkout SP2 pinned Reference Mission
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric-reference-mission
+          ref: 75c6e336755430584c0cc39d15190193e255c4a0
+          path: scenario-reference
+
+      - name: Set up Python for SP2
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install SP2 pinned Core without adapters
+        run: python -m pip install -e ./scenario-core
+
+      - name: R1 through the native Scenario command
+        env:
+          ORBITFABRIC_STUDIO_R1_CORE: orbitfabric
+          ORBITFABRIC_STUDIO_R1_SCENARIO: ${{ github.workspace }}/scenario-reference/scenarios/payload_stop_acquisition_verification.yaml
+          ORBITFABRIC_STUDIO_R1_OUTPUT: ${{ github.workspace }}/.sp2-acceptance/native
+        run: |
+          cargo test --locked --manifest-path src-tauri/Cargo.toml \
+            scenario_r1_acceptance_through_native_command -- --ignored --nocapture
+
+      - name: Export R1 mission reports from pinned Core
+        run: python tools/test/scenario-browser/prepare.py scenario-reference
+
+      - name: Native R1 reports through Studio gateway and understanding
+        env:
+          ORBITFABRIC_STUDIO_R1_OUTPUT: ${{ github.workspace }}/.sp2-acceptance/native
+        run: npm run test:logic
+
+      - name: Retain SP2 native acceptance reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: sp2-r1-native-acceptance
+          include-hidden-files: true
+          path: |
+            .sp2-acceptance/reports.json
+            .sp2-acceptance/native/native-loaded.json
+            .sp2-acceptance/native/native-failed.json
+
       - name: Cargo check
         run: cargo check --locked --manifest-path src-tauri/Cargo.toml
 

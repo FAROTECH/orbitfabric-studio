@@ -437,6 +437,48 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "requires pinned Core and Reference Mission; explicitly run by SP2 CI"]
+    fn scenario_r1_acceptance_through_native_command() {
+        let executable = env::var("ORBITFABRIC_STUDIO_R1_CORE").expect("R1 Core executable required");
+        let source = env::var("ORBITFABRIC_STUDIO_R1_SCENARIO").expect("R1 Scenario path required");
+        let output = PathBuf::from(env::var("ORBITFABRIC_STUDIO_R1_OUTPUT").expect("R1 output required"));
+        fs::create_dir_all(&output).expect("acceptance output directory");
+        let request_id = format!("sp2-r1-{}", std::process::id());
+        let invocation = run_core_export_scenario_declaration(executable.clone(), source.clone(), request_id.clone())
+            .expect("native Scenario command");
+        assert!(invocation.process_completed);
+        assert!(!invocation.timed_out);
+        assert_eq!(invocation.exit_code, Some(0));
+        let report: serde_json::Value = serde_json::from_str(invocation.report_text.as_ref().expect("report text")).unwrap();
+        assert_eq!(report["result"], "loaded");
+        assert_eq!(report["atom_count"], 8);
+        assert_eq!(report["source"]["scenario_sha256"], "b19ff6e1cf3c45cdb81e239d30aad97e8b6f037703c06f27102b762e69a1146a");
+        assert_eq!(report["atoms"][3]["references"][0]["entity"]["domain"], "commands");
+        assert_eq!(report["atoms"][5]["references"][0]["entity"]["domain"], "telemetry");
+        fs::write(output.join("native-loaded.json"), serde_json::to_vec_pretty(&invocation).unwrap()).unwrap();
+
+        // A real Core-declared failure must still cross the native command boundary
+        // as a structured report. This fixture mutation belongs only to the test.
+        let scenario = PathBuf::from(source);
+        let mission = scenario.parent().unwrap().parent().unwrap().join("mission").canonicalize().unwrap();
+        let invalid_source = fs::read_to_string(&scenario).unwrap()
+            .replace("path: ../mission", &format!("path: {}", serde_json::to_string(&display_path(&mission)).unwrap()))
+            .replace("command: payload.stop_acquisition", "command: payload.nonexistent_sp2_fixture");
+        let invalid_path = output.join("invalid-scenario.yaml");
+        fs::write(&invalid_path, invalid_source).unwrap();
+        let failed = run_core_export_scenario_declaration(executable, display_path(&invalid_path), request_id.clone()).unwrap();
+        assert!(failed.process_completed);
+        assert_ne!(failed.exit_code, Some(0));
+        let failed_report: serde_json::Value = serde_json::from_str(failed.report_text.as_ref().expect("structured failure")).unwrap();
+        assert_eq!(failed_report["result"], "failed");
+        assert!(failed_report["atoms"].is_null());
+        assert!(failed_report["scenario"].is_null());
+        assert!(!failed_report["diagnostics"].as_array().unwrap().is_empty());
+        fs::write(output.join("native-failed.json"), serde_json::to_vec_pretty(&failed).unwrap()).unwrap();
+        clear_core_request_temp(request_id).unwrap();
+    }
+
+    #[test]
     fn sanitize_request_id_keeps_only_safe_characters() {
         assert_eq!(sanitize_request_id("abc DEF/../123_-"), "abcDEF123_-");
         assert_eq!(sanitize_request_id("///"), "request");
