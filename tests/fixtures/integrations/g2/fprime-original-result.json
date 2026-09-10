@@ -1,0 +1,605 @@
+{
+  "adapter": {
+    "id": "orbitfabric-fprime",
+    "version": "0.1.1"
+  },
+  "artifacts": [
+    {
+      "derived_from_mappings": [
+        "mapping.payload-stop"
+      ],
+      "id": "fprime.fpp_commands.0",
+      "kind": "fprime.fpp_commands",
+      "media_type": "text/plain",
+      "path": "components/Reference_PayloadComponent/OF_Commands.fppi",
+      "reason": null,
+      "requirement": "required",
+      "retained_partial": false,
+      "sha256": "78a915fc66976f089233b3429c92988fbba5e32c3087657ed459a89b4dc9365b",
+      "status": "generated"
+    },
+    {
+      "derived_from_mappings": [
+        "mapping.payload-active"
+      ],
+      "id": "fprime.fpp_telemetry.0",
+      "kind": "fprime.fpp_telemetry",
+      "media_type": "text/plain",
+      "path": "components/Reference_PayloadComponent/OF_Telemetry.fppi",
+      "reason": null,
+      "requirement": "required",
+      "retained_partial": false,
+      "sha256": "a28c417487f71532d71f0b2aef6d6a76e172e97cb39dfceb1fc539e8e8ca22f4",
+      "status": "generated"
+    }
+  ],
+  "capabilities": [
+    "profile_validation",
+    "projection",
+    "artifact_generation",
+    "traceability"
+  ],
+  "coverage": {
+    "reason": null,
+    "records": [
+      {
+        "profile_binding": "payload-stop",
+        "semantic_disposition": "PARTIAL",
+        "source": {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        },
+        "target_kind": "command",
+        "unrepresented_source_fields": [
+          "allowed_modes",
+          "preconditions",
+          "requires_ack",
+          "timeout_ms",
+          "risk",
+          "emits",
+          "expected_effects"
+        ]
+      },
+      {
+        "profile_binding": "payload-active",
+        "semantic_disposition": "PARTIAL",
+        "source": {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        },
+        "target_kind": "telemetry",
+        "unrepresented_source_fields": [
+          "unit",
+          "sampling",
+          "criticality",
+          "persistence",
+          "downlink_priority",
+          "quality"
+        ]
+      }
+    ],
+    "scope": {
+      "domains": [
+        "commands",
+        "telemetry"
+      ]
+    },
+    "status": "complete",
+    "summary": {
+      "mapping_records": 2,
+      "partial_records": 2,
+      "unrepresented_field_instances": 13
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-001",
+      "message": "Source field allowed_modes is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-002",
+      "message": "Source field preconditions is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-003",
+      "message": "Source field requires_ack is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-004",
+      "message": "Source field timeout_ms is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-005",
+      "message": "Source field risk is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-006",
+      "message": "Source field emits is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-007",
+      "message": "Source field expected_effects is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-008",
+      "message": "Source field unit is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-009",
+      "message": "Source field sampling is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-010",
+      "message": "Source field criticality is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-011",
+      "message": "Source field persistence is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-012",
+      "message": "Source field downlink_priority is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": []
+    },
+    {
+      "code": "OF_FPRIME_FIELD_NOT_PROJECTED",
+      "id": "diag-013",
+      "message": "Source field quality is not represented by the current FPP contract projection.",
+      "owner": "integration",
+      "phase": "projection",
+      "producer": "orbitfabric-fprime",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "severity": "INFO",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": []
+    }
+  ],
+  "evidence": [
+    {
+      "id": "core-input-integrity",
+      "kind": "core_input_set_integrity",
+      "producer": "orbitfabric-fprime",
+      "sha256": "4bbdca769e4b8fdee51719a47acaa49e9a552b4360f96d8664947514b074ef34",
+      "status": "passed"
+    },
+    {
+      "id": "profile-validation",
+      "kind": "projection_profile_validation",
+      "producer": "orbitfabric-fprime",
+      "sha256": "74c8afca41223417a5c424d847cda92fdcc8fd78ed188b8547f811df0307dc24",
+      "status": "passed"
+    }
+  ],
+  "external_tools": [],
+  "inputs": {
+    "core_input_set": {
+      "kind": "orbitfabric.integration_input_set",
+      "reason": null,
+      "sha256": "4bbdca769e4b8fdee51719a47acaa49e9a552b4360f96d8664947514b074ef34",
+      "status": "available",
+      "version": "0.1-candidate"
+    },
+    "operation_inputs": [],
+    "profile": {
+      "id": "engineering-story-flight-ground-fprime",
+      "kind": "orbitfabric.projection_profile",
+      "profile_version": "0.1-candidate",
+      "reason": null,
+      "sha256": "74c8afca41223417a5c424d847cda92fdcc8fd78ed188b8547f811df0307dc24",
+      "status": "available",
+      "version": "0.1.0"
+    }
+  },
+  "integration": {
+    "id": "orbitfabric-fprime",
+    "schema_version": "0.1-candidate"
+  },
+  "kind": "orbitfabric.integration_result",
+  "mappings": [
+    {
+      "id": "mapping.payload-stop",
+      "profile_bindings": [
+        "payload-stop"
+      ],
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": [
+        {
+          "id": "payload.OF_StopAcquisition",
+          "kind": "command",
+          "namespace": "fprime"
+        }
+      ]
+    },
+    {
+      "id": "mapping.payload-active",
+      "profile_bindings": [
+        "payload-active"
+      ],
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": [
+        {
+          "id": "payload.OF_AcquisitionActive",
+          "kind": "telemetry",
+          "namespace": "fprime"
+        }
+      ]
+    }
+  ],
+  "mission": {
+    "id": "of-rm-1",
+    "model_version": "0.1.0-reference-skeleton",
+    "reason": null,
+    "status": "available"
+  },
+  "operation": {
+    "id": "fpp_contract_projection"
+  },
+  "resolutions": [
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.host_component",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "host_component",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": "Reference.PayloadComponent"
+    },
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.host_instance",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "host_instance",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": "payload"
+    },
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.symbol",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "symbol",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": "OF_StopAcquisition"
+    },
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.local_opcode",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "local_opcode",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": 33
+    },
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.command_kind",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "command_kind",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": "async"
+    },
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.priority",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "priority",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": 0
+    },
+    {
+      "binding": "payload-stop",
+      "id": "resolution.payload-stop.queue_full_behavior",
+      "mapping": "mapping.payload-stop",
+      "origin": "profile",
+      "property": "queue_full_behavior",
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "value": "drop"
+    },
+    {
+      "binding": "payload-active",
+      "id": "resolution.payload-active.host_component",
+      "mapping": "mapping.payload-active",
+      "origin": "profile",
+      "property": "host_component",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "value": "Reference.PayloadComponent"
+    },
+    {
+      "binding": "payload-active",
+      "id": "resolution.payload-active.host_instance",
+      "mapping": "mapping.payload-active",
+      "origin": "profile",
+      "property": "host_instance",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "value": "payload"
+    },
+    {
+      "binding": "payload-active",
+      "id": "resolution.payload-active.symbol",
+      "mapping": "mapping.payload-active",
+      "origin": "profile",
+      "property": "symbol",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "value": "OF_AcquisitionActive"
+    },
+    {
+      "binding": "payload-active",
+      "id": "resolution.payload-active.local_id",
+      "mapping": "mapping.payload-active",
+      "origin": "profile",
+      "property": "local_id",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "value": 16
+    },
+    {
+      "binding": "payload-active",
+      "id": "resolution.payload-active.update",
+      "mapping": "mapping.payload-active",
+      "origin": "profile",
+      "property": "update",
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "value": "on_change"
+    }
+  ],
+  "result": "succeeded",
+  "result_version": "0.2-candidate"
+}

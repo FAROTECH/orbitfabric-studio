@@ -208,7 +208,8 @@ export type IntegrationCoverageRecord = {
   reason: string | null;
 };
 
-export type IntegrationCoverage = {
+export type IntegrationGenericCoverage = {
+  mode: "generic-v0";
   status: string;
   scope: {
     domains: string[];
@@ -217,6 +218,15 @@ export type IntegrationCoverage = {
   summary: Record<string, number>;
   records: IntegrationCoverageRecord[];
 };
+
+export type IntegrationProducerCoverage = {
+  mode: "producer-owned-v1";
+  genericInterpretation: "unavailable";
+  content: Record<string, unknown>;
+  sourceJson: string;
+};
+
+export type IntegrationCoverage = IntegrationGenericCoverage | IntegrationProducerCoverage;
 
 export type IntegrationResult = {
   kind: string;
