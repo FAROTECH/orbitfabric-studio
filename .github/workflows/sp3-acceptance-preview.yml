@@ -1,24 +1,20 @@
 name: SP3 acceptance preview
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
-    types:
-      - opened
-      - synchronize
-      - reopened
+      - feature/sp3-evidence-replay
 
 permissions: {}
 
 concurrency:
-  group: sp3-acceptance-preview-${{ github.event.pull_request.number }}
+  group: sp3-acceptance-preview-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     name: Build exact SP3 acceptance preview
-    if: github.event.pull_request.number == 348 && github.head_ref == 'feature/sp3-evidence-replay'
+    if: github.repository == 'FAROTECH/orbitfabric-studio' && github.ref == 'refs/heads/feature/sp3-evidence-replay'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,13 +22,13 @@ jobs:
       - name: Checkout exact PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Verify exact candidate identity and diff
         env:
-          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_BASE_SHA: a73a824c4180bc86b8408d75eae814a21c378612
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD_SHA"
@@ -86,9 +82,9 @@ jobs:
       - name: Assemble exact acceptance preview
         env:
           SP3_REPOSITORY: ${{ github.repository }}
-          SP3_PR_NUMBER: ${{ github.event.pull_request.number }}
-          SP3_BRANCH: ${{ github.head_ref }}
-          SP3_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SP3_PR_NUMBER: "348"
+          SP3_BRANCH: ${{ github.ref_name }}
+          SP3_HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           mkdir -p .sp3-browser-dist/.sp2-acceptance
@@ -112,7 +108,7 @@ jobs:
 
       - name: Verify Pages artifact identity and route
         env:
-          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           test -f .sp3-browser-dist/tools/test/scenario-browser/index.html
