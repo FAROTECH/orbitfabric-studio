@@ -251,12 +251,92 @@ function coverage(value: unknown): IntegrationCoverage {
     summary[key] = count;
   }
   return {
+    mode: "generic-v0",
     status: stringValue(item.status, "coverage.status"),
     scope: { domains: strings(scope.domains, "coverage.scope.domains") },
     reason: nullableString(item.reason),
     summary,
     records: items(item.records, "coverage.records").map(coverageRecord),
   };
+}
+
+function rootPropertySource(text: string, property: string): string {
+  const whitespace = (start: number): number => {
+    let index = start;
+    while (index < text.length && /\s/.test(text[index])) index += 1;
+    return index;
+  };
+  const stringEnd = (start: number): number => {
+    let index = start + 1;
+    while (index < text.length) {
+      if (text[index] === "\\") {
+        index += 2;
+        continue;
+      }
+      if (text[index] === '"') return index + 1;
+      index += 1;
+    }
+    throw new Error("Integration Result contains an unterminated JSON string.");
+  };
+  const valueEnd = (start: number): number => {
+    if (text[start] === '"') return stringEnd(start);
+    if (text[start] === "{" || text[start] === "[") {
+      let depth = 0;
+      let index = start;
+      do {
+        if (text[index] === '"') {
+          index = stringEnd(index);
+          continue;
+        }
+        if (text[index] === "{" || text[index] === "[") depth += 1;
+        if (text[index] === "}" || text[index] === "]") depth -= 1;
+        index += 1;
+      } while (depth > 0 && index < text.length);
+      return index;
+    }
+    let index = start;
+    while (index < text.length && !/[\s,}]/.test(text[index])) index += 1;
+    return index;
+  };
+
+  let index = whitespace(0);
+  if (text[index] !== "{") throw new Error("Integration Result must be a JSON object.");
+  index += 1;
+  const keys = new Set<string>();
+  let found: string | null = null;
+  while ((index = whitespace(index)) < text.length && text[index] !== "}") {
+    if (text[index] !== '"') throw new Error("Integration Result root key must be a string.");
+    const end = stringEnd(index);
+    const key = JSON.parse(text.slice(index, end)) as string;
+    if (keys.has(key)) throw new Error(`Integration Result contains duplicate root key ${key}.`);
+    keys.add(key);
+    index = whitespace(end);
+    if (text[index] !== ":") throw new Error("Integration Result root property is malformed.");
+    const start = whitespace(index + 1);
+    index = valueEnd(start);
+    if (key === property) found = text.slice(start, index);
+    index = whitespace(index);
+    if (text[index] === ",") index += 1;
+  }
+  if (found === null) throw new Error(`Integration Result is missing ${property}.`);
+  return found;
+}
+
+function coverageForVersion(
+  value: unknown,
+  resultVersion: string,
+  resultText: string,
+): IntegrationCoverage {
+  if (resultVersion === RESULT_V0) return coverage(value);
+  if (resultVersion === RESULT_V1) {
+    return {
+      mode: "producer-owned-v1",
+      genericInterpretation: "unavailable",
+      content: record(value, "coverage"),
+      sourceJson: rootPropertySource(resultText, "coverage"),
+    };
+  }
+  throw new Error(`Unsupported Result version: ${resultVersion}.`);
 }
 
 export function parseIntegrationResult(text: string): IntegrationResult {
@@ -291,7 +371,7 @@ export function parseIntegrationResult(text: string): IntegrationResult {
     mappings: items(root.mappings, "mappings").map(mapping),
     resolutions: items(root.resolutions, "resolutions").map(resolution),
     diagnostics: items(root.diagnostics, "diagnostics").map(diagnostic),
-    coverage: coverage(root.coverage),
+    coverage: coverageForVersion(root.coverage, resultVersion, text),
     evidence: items(root.evidence, "evidence").map((item, index) =>
       record(item, `evidence[${index}]`),
     ),
@@ -419,9 +499,10 @@ export function validateIntegrationResult(
     }
   }
 
-  const seenCoverage = new Set<string>();
-  const coverageCounts: Record<string, number> = {};
-  for (const item of result.coverage.records) {
+  if (result.coverage.mode === "generic-v0") {
+    const seenCoverage = new Set<string>();
+    const coverageCounts: Record<string, number> = {};
+    for (const item of result.coverage.records) {
     const sourceKey = `${item.source.domain}\u0000${item.source.id}`;
     if (seenCoverage.has(sourceKey)) {
       issues.push({
@@ -459,16 +540,17 @@ export function validateIntegrationResult(
         message: `Coverage source ${item.source.id} exists while Core provenance is unavailable.`,
       });
     }
-  }
+    }
 
-  if (Object.keys(result.coverage.summary).length > 0) {
-    const expected = JSON.stringify(Object.entries(coverageCounts).sort());
-    const actual = JSON.stringify(Object.entries(result.coverage.summary).sort());
-    if (actual !== expected) {
-      issues.push({
-        code: "coverage.summary",
-        message: "Coverage summary is not exactly derivable from coverage records.",
-      });
+    if (Object.keys(result.coverage.summary).length > 0) {
+      const expected = JSON.stringify(Object.entries(coverageCounts).sort());
+      const actual = JSON.stringify(Object.entries(result.coverage.summary).sort());
+      if (actual !== expected) {
+        issues.push({
+          code: "coverage.summary",
+          message: "Coverage summary is not exactly derivable from coverage records.",
+        });
+      }
     }
   }
 

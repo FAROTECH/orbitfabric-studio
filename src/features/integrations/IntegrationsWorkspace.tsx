@@ -665,6 +665,21 @@ function Artifacts({ result, bundle }: { result: IntegrationResult; bundle: Inte
 }
 
 function Coverage({ result }: { result: IntegrationResult }) {
+  if (result.coverage.mode === "producer-owned-v1") {
+    return (
+      <section className="integration-subsection">
+        <div className="subsection-heading">
+          <h2>Producer Coverage</h2>
+          <span className="status-pill">producer owned</span>
+        </div>
+        <p className="integration-muted">
+          Generic coverage interpretation is unavailable for this Result version.
+          The structured producer content is retained without conversion.
+        </p>
+        <pre className="integration-json">{result.coverage.sourceJson}</pre>
+      </section>
+    );
+  }
   const states = new Map<string, number>();
   for (const record of result.coverage.records) {
     states.set(record.state, (states.get(record.state) ?? 0) + 1);
