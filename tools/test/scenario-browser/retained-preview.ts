@@ -9,10 +9,20 @@ import r1EvidenceText from "../../../tests/fixtures/sp3-r1/evidence-set.json?raw
 // Browser-only inspection of the real App with retained, freshly exported Core
 // reports. This substitutes IPC and file selection, not the product consumer path.
 // It is not a native runtime proof. The production entrypoint never imports it.
-const reports = await fetch("/.sp2-acceptance/reports.json").then(response => {
+const acceptanceBaseUrl = import.meta.env.BASE_URL;
+const reports = await fetch(`${acceptanceBaseUrl}.sp2-acceptance/reports.json`).then(response => {
   if (!response.ok) throw new Error("Generate .sp2-acceptance/reports.json before browser acceptance");
   return response.json();
 });
+const sourceCommit = await readSourceCommit();
+if (sourceCommit) {
+  const identity = document.createElement("aside");
+  identity.id = "sp3-acceptance-source";
+  identity.setAttribute("role", "note");
+  identity.style.cssText = "box-sizing:border-box;width:100%;padding:8px 16px;background:#111827;color:#f9fafb;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere";
+  identity.textContent = `SP3 acceptance preview · ${sourceCommit.repository} · PR #${sourceCommit.pullRequest} · ${sourceCommit.commitSha}`;
+  document.body.prepend(identity);
+}
 const scenarioCase = new URLSearchParams(location.search).get("scenario");
 const evidenceCase = new URLSearchParams(location.search).get("evidence") === "r1";
 const resultPath = "/retained/sp3-r1/cosmos/integration_result.json";
@@ -31,6 +41,21 @@ const evidenceReferences = new Map([
 async function sha256(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
+}
+
+async function readSourceCommit(): Promise<{ repository: string; pullRequest: number; commitSha: string } | null> {
+  try {
+    const response = await fetch(`${acceptanceBaseUrl}source-commit.json`);
+    if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) return null;
+    const value = await response.json();
+    if (typeof value?.repository !== "string" || typeof value?.pull_request !== "number" || !/^[0-9a-f]{40}$/.test(value?.commit_sha)) {
+      throw new Error("Invalid SP3 acceptance source identity");
+    }
+    return { repository: value.repository, pullRequest: value.pull_request, commitSha: value.commit_sha };
+  } catch (error) {
+    if (acceptanceBaseUrl !== "/") throw error;
+    return null;
+  }
 }
 
 mockIPC((command, args: any) => {

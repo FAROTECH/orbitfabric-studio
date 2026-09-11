@@ -25,3 +25,15 @@ For a static browser build:
 npx vite build --config tools/test/scenario-browser/vite.config.ts
 python -m http.server 1420 --bind 127.0.0.1 --directory .sp3-browser-dist
 ```
+
+## SP3 acceptance-only GitHub Pages preview
+
+Pull request #348 may publish this harness through the dedicated `SP3 acceptance preview` workflow. The workflow is restricted to `feature/sp3-evidence-replay`, builds the exact pull-request head and verifies the checked-out SHA before running the normal logic, TypeScript and minified production-build gates. The build job has read-only repository permission. A separate deployment job receives only the static Pages artifact and cannot execute candidate application code.
+
+The deployed R1 route is:
+
+```text
+https://farotech.github.io/orbitfabric-studio/tools/test/scenario-browser/?evidence=r1
+```
+
+The page displays the complete source commit SHA together with the repository and pull-request identity. The same values are retained in `/orbitfabric-studio/source-commit.json`. This preview is an acceptance facility only: it grants no product runtime authority, executes no adapter and is not part of the production entrypoint.
