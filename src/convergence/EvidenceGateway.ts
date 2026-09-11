@@ -5,4 +5,6 @@ export type EvidenceTextRead = {
 
 export interface EvidenceGateway {
   readTextFile(path: string): Promise<EvidenceTextRead>;
+  readRetainedReference?(request: RetainedReferenceRequest): Promise<RetainedReferenceRead>;
 }
+import type { RetainedReferenceRead, RetainedReferenceRequest } from "./retainedReference";

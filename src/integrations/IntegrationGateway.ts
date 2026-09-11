@@ -12,6 +12,7 @@ export type IntegrationTextRead = {
 };
 
 export interface IntegrationGateway {
+  readRetainedReference?(request: RetainedReferenceRequest): Promise<RetainedReferenceRead>;
   readPackageManifest(path: string): Promise<IntegrationTextRead>;
   readTextFile(path: string): Promise<IntegrationTextRead>;
   readPackageProfileSchema(
@@ -25,3 +26,4 @@ export interface IntegrationGateway {
     request: IntegrationAdapterRunRequest,
   ): Promise<IntegrationAdapterInvocation>;
 }
+import type { RetainedReferenceRead, RetainedReferenceRequest } from "../convergence/retainedReference";

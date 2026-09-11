@@ -40,6 +40,9 @@ function packageAssetPath(manifestPath: string, relativePath: string): string {
 }
 
 export class TauriIntegrationGateway implements IntegrationGateway {
+  async readRetainedReference(request: RetainedReferenceRequest): Promise<RetainedReferenceRead> {
+    return invoke<RetainedReferenceRead>("read_retained_reference", { ...request });
+  }
   async readPackageManifest(path: string): Promise<IntegrationTextRead> {
     return invoke<IntegrationTextRead>("read_integration_package_manifest", { path });
   }
@@ -86,3 +89,4 @@ export class TauriIntegrationGateway implements IntegrationGateway {
     });
   }
 }
+import type { RetainedReferenceRead, RetainedReferenceRequest } from "../convergence/retainedReference";
