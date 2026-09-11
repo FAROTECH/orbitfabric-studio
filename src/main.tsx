@@ -15,6 +15,7 @@ import "./styles/integration-plugin.css";
 import "./styles/capture.css";
 import "./styles/responsive.css";
 import "./styles/scenarios.css";
+import "./styles/evidence.css";
 
 // Studio owns contextual actions. Never expose the browser/WebView menu.
 document.addEventListener("contextmenu", (event) => {
