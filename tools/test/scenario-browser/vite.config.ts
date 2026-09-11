@@ -1,20 +1,19 @@
-import { defineConfig } from "vite";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+const root = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 
 export default defineConfig({
+  root,
   plugins: [react()],
-  clearScreen: false,
-  server: {
-    allowedHosts: ["terminal.local"],
-    port: 1420,
-    strictPort: true,
-    watch: {
-      ignored: ["**/src-tauri/target/**"],
-    },
-  },
-  envPrefix: ["VITE_", "TAURI_"],
   build: {
+    target: "esnext",
+    outDir: resolve(root, ".sp3-browser-dist"),
+    emptyOutDir: true,
     rollupOptions: {
+      input: resolve(root, "tools/test/scenario-browser/index.html"),
       output: {
         manualChunks(id) {
           if (id.includes("/node_modules/elkjs/")) return "elk";

@@ -21,6 +21,7 @@ export function EvidenceReplayWorkspace({
     }
   }, [model.atoms, selectedAtomId]);
   const selected = model.atoms.find((atom) => atom.atomId === selectedAtomId) ?? null;
+  const scenario = model.scenario;
 
   return <section className="evidence-workspace" aria-label="Evidence Replay">
     <header className="evidence-toolbar">
@@ -32,9 +33,9 @@ export function EvidenceReplayWorkspace({
     </header>
     <p className="evidence-boundary">Replay follows retained identities and explicit correlations. It does not re-execute, simulate, infer timing or invent causality.</p>
     {failure ? <p role="alert" className="evidence-notice evidence-failure">{failure}</p> : null}
-    {!model.scenario ? <div className="evidence-empty"><h2>Choose a Scenario first</h2><p>The replay root is an exact Core Scenario Declaration.</p></div> : <>
+    {!scenario ? <div className="evidence-empty"><h2>Choose a Scenario first</h2><p>The replay root is an exact Core Scenario Declaration.</p></div> : <>
       <section className="evidence-summary">
-        <div><small>DECLARED</small><strong>{model.scenario.id}</strong><code>{shortSha(model.scenario.sha256)}</code></div>
+        <div><small>DECLARED</small><strong>{scenario.id}</strong><code title={scenario.sha256}>{shortSha(scenario.sha256)}</code></div>
         <div><small>RESULTS</small><strong>{model.results.length}</strong><span>{model.results.length ? "exact identities loaded" : "unavailable"}</span></div>
         <div><small>EVIDENCE SET</small><strong>{model.evidenceSet?.id ?? "unavailable"}</strong><span>{model.evidenceSet ? `${model.evidenceSet.recordCount} retained records` : "no curator manifest loaded"}</span></div>
       </section>
@@ -46,10 +47,10 @@ export function EvidenceReplayWorkspace({
           {!selected.projections.length ? <p className="evidence-empty">Projection disposition unavailable: no Integration Result is loaded.</p> : null}
           {selected.projections.map((projection) => <article className="replay-lane" key={projection.resultSha256}>
             <div className="replay-stage"><small>PROJECTED</small><strong>{projection.disposition}</strong><span className={`evidence-state ${projection.availability}`}>{projection.availability}</span><p>{projection.reason}</p><code>{projection.integrationId} · {projection.operationId}</code></div>
-            <div className="replay-stage"><small>PRODUCER MAPPING IDS</small>{projection.mappings.length ? projection.mappings.map((mapping) => <code key={mapping.id}>{mapping.id}</code>) : <strong>{projection.availability === "current" ? "Producer declared []" : "unavailable"}</strong>}</div>
-            <div className="replay-stage"><small>GENERATED</small>{projection.artifacts.length ? projection.artifacts.map((artifact) => <code key={artifact.id}>{artifact.id} · {artifact.status}</code>) : <strong>unavailable</strong>}</div>
+            <div className="replay-stage"><small>PRODUCER MAPPING IDS</small>{projection.mappings.length ? projection.mappings.map((mapping) => <div key={mapping.id}><code>{mapping.id}</code><p>{mapping.targets.length} explicit downstream path{mapping.targets.length === 1 ? "" : "s"}</p>{mapping.targets.map((target, index) => <code key={`${mapping.id}:${index}`}>{target.namespace} · {target.kind} · {target.id}</code>)}</div>) : <strong>{projection.availability === "current" ? "Producer declared [] · 0 downstream paths" : "unavailable"}</strong>}</div>
+            <div className="replay-stage"><small>RESULT ARTIFACT RELATIONS</small>{projection.artifacts.length ? projection.artifacts.map((artifact) => <code key={artifact.id}>{artifact.id} · {artifact.status}</code>) : <strong>{projection.availability === "current" ? "0 explicit artifact relations" : "unavailable"}</strong>}</div>
             <div className="replay-stage"><small>CURATOR-LINKED EVIDENCE</small>{projection.evidence.length ? projection.evidence.map((record) => <EvidenceRecord key={record.id} record={record} />) : <strong>No explicit mapping or artifact subject</strong>}</div>
-            <details><summary>Exact provenance</summary><dl><div><dt>Result SHA-256</dt><dd><code>{projection.resultSha256}</code></dd></div><div><dt>Adapter</dt><dd>{projection.adapterId}@{projection.adapterVersion}</dd></div></dl></details>
+            <details><summary>Exact provenance</summary><dl><div><dt>Result SHA-256</dt><dd><code>{projection.resultSha256}</code></dd></div><div><dt>Scenario SHA-256</dt><dd><code>{scenario.sha256}</code></dd></div><div><dt>Atom id</dt><dd><code>{selected.atomId}</code></dd></div>{projection.accountingArtifact ? <><div><dt>Accounting artifact id</dt><dd><code>{projection.accountingArtifact.id}</code></dd></div><div><dt>Accounting SHA-256</dt><dd><code>{projection.accountingArtifact.sha256}</code></dd></div></> : null}<div><dt>Adapter</dt><dd>{projection.adapterId}@{projection.adapterVersion}</dd></div></dl></details>
           </article>)}
           {selected.directEvidence.length ? <section className="direct-evidence"><h3>Curator-linked atom evidence</h3><p>These subjects identify this exact atom. They do not assert an edge to any Result, mapping or artifact.</p>{selected.directEvidence.map((record) => <EvidenceRecord key={record.id} record={record} />)}</section> : null}
         </> : null}</section>

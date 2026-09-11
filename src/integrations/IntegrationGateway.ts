@@ -5,6 +5,7 @@ import type {
   IntegrationExecutionAuthorization,
   IntegrationTextDigestRead,
 } from "./contracts";
+import type { RetainedReferenceRead, RetainedReferenceRequest } from "../convergence/retainedReference";
 
 export type IntegrationTextRead = {
   path: string;
@@ -26,4 +27,3 @@ export interface IntegrationGateway {
     request: IntegrationAdapterRunRequest,
   ): Promise<IntegrationAdapterInvocation>;
 }
-import type { RetainedReferenceRead, RetainedReferenceRequest } from "../convergence/retainedReference";

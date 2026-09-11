@@ -16,3 +16,12 @@ This is browser interaction and presentation evidence, not a native IPC or live 
 Inspect empty selection, eight-atom accounting, initial state, action, expected false/READY/PASSED, exact digest, entity navigation, refresh, and mission-generation reset. Check that no display implies runtime timing or a run verdict. The production entrypoint does not import this harness.
 
 Open the same test entry with `?scenario=failed` to inspect a real Core declaration failure. The preparation script exports this negative fixture from a temporary copy containing a nonexistent command. The canonical Reference Mission stays unchanged.
+
+Open with `?evidence=r1` to exercise the product Evidence workspace against the exact changed COSMOS R1 Result, its Result-owned accounting artifact and a curator-authored Evidence Set. Select the Scenario first, then load the Result and Evidence Set. The fixture preserves the exact generated Result and sidecar bytes; the mock returns bounded native-reader observations computed from those bytes.
+
+For a static browser build:
+
+```sh
+npx vite build --config tools/test/scenario-browser/vite.config.ts
+python -m http.server 1420 --bind 127.0.0.1 --directory .sp3-browser-dist
+```

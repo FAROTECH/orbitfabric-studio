@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import {
@@ -29,11 +29,11 @@ import { EvidenceManifestHydrator, EvidenceManifestProtocolError } from "./conve
 import { TauriEvidenceGateway } from "./convergence/TauriEvidenceGateway";
 import { sha256Utf8 } from "./integrations/sha256";
 import { ReplayRequestGuard } from "./convergence/replayRequestGuard";
+import { EvidenceReplayWorkspace } from "./features/evidence/EvidenceReplayWorkspace";
 
 const CORE_EXECUTABLE_KEY = "orbitfabric-studio.core-executable";
 const RECENT_MISSIONS_KEY = "orbitfabric-studio.recent-missions";
 const MAX_RECENTS = 8;
-const EvidenceReplayWorkspace = lazy(() => import("./features/evidence/EvidenceReplayWorkspace").then((module) => ({ default: module.EvidenceReplayWorkspace })));
 
 function App() {
   const [state, dispatch] = useReducer(studioReducer, initialStudioState);
@@ -407,10 +407,8 @@ function App() {
         >
           <div className="workspace-primary">
             {state.view === "evidence" ? (
-              <Suspense fallback={<p role="status">Preparing evidence workspace…</p>}>
-                <EvidenceReplayWorkspace key={`${session.sessionId}:${session.generation}:${evidenceModel.scenario?.sha256 ?? "none"}`} model={evidenceModel} busy={state.opening ? "mission" : evidenceBusy} failure={evidenceFailure}
-                  onChooseResult={chooseReplayResult} onChooseEvidence={chooseEvidenceSet} />
-              </Suspense>
+              <EvidenceReplayWorkspace key={`${session.sessionId}:${session.generation}:${evidenceModel.scenario?.sha256 ?? "none"}`} model={evidenceModel} busy={state.opening ? "mission" : evidenceBusy} failure={evidenceFailure}
+                onChooseResult={chooseReplayResult} onChooseEvidence={chooseEvidenceSet} />
             ) : state.view === "scenarios" ? (
               <ScenarioWorkspace model={scenarioModel} session={session}
                 disabled={isOpeningReplacement} pickerFailure={scenarioPickerFailure}
