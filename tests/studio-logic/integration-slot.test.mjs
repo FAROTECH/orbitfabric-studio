@@ -299,3 +299,138 @@ test("Integration observation freshness reuses exact Core, Profile and Scenario 
   );
   assert.equal(freshness.state, "fresh");
 });
+
+const sha256 = (text) => createHash("sha256").update(text).digest("hex");
+
+function accountingFixture(content = null) {
+  const ctx = context("generic-producer", "projection");
+  const req = request(membership(), "accounting", ctx);
+  const text = content ?? JSON.stringify({
+    kind: "orbitfabric.scenario_projection_accounting", accounting_version: "0.1-candidate",
+    scenario: { id: "scenario-1", sha256: "1".repeat(64) }, completeness: "complete",
+    records: [{ atom_id: "atom-1", disposition: "projected", mapping_ids: [] }],
+  });
+  const raw = JSON.parse(resultText(ctx, "succeeded", "1".repeat(64)));
+  raw.artifacts = [{ id: "producer-owned-id", kind: "orbitfabric.scenario_projection_accounting", status: "generated",
+    requirement: "optional", media_type: "application/json", path: "nested/accounting.json", sha256: sha256(text), derived_from_mappings: [] }];
+  raw.evidence = [{ producer_statement: "unclassified observation" }];
+  const resultBytes = JSON.stringify(raw);
+  const checkedBundle = { ...bundle(req.resultPath, resultBytes), artifactChecks: [{ artifactId: "producer-owned-id", path: "nested/accounting.json", contained: true, exists: true, sha256Matches: true }] };
+  return { req, text, raw, checkedBundle };
+}
+
+test("accounting hydration reads only the explicit parent-owned reference and exact digests", async () => {
+  const fixture = accountingFixture();
+  const { req, text, checkedBundle } = fixture;
+  const calls = [];
+  const hydrated = await new IntegrationResultHydrator({
+    async readResultBundle() { return checkedBundle; },
+    async readRetainedReference(reference) {
+      calls.push(reference);
+      return { status: "verified", path: "/tmp/nested/accounting.json", sha256: sha256(text), text, reason: null };
+    },
+    async readTextFile() { assert.fail("No guessed sibling or unbounded fallback is permitted"); },
+  }).hydrate(req);
+  assert.deepEqual(calls, [{ parentPath: req.resultPath, parentSha256: sha256(checkedBundle.resultText), relativePath: "nested/accounting.json", expectedSha256: sha256(text) }]);
+  assert.equal(hydrated.scenarioAccounting.resultSha256, hydrated.resultSha256);
+  assert.equal(hydrated.scenarioAccounting.artifactId, "producer-owned-id");
+  assert.deepEqual(hydrated.scenarioAccounting.accounting.records[0].mappingIds, []);
+});
+
+test("unsupported or invalid accounting content is localized to its interpretation", async () => {
+  const future = JSON.stringify({ kind: "orbitfabric.scenario_projection_accounting", accounting_version: "future", new_format: { opaque: true } });
+  for (const [text, state] of [[future, "unsupported"], ["invalid JSON", "failure"]]) {
+    const { req, checkedBundle } = accountingFixture(text);
+    const hydrated = await new IntegrationResultHydrator({
+      async readResultBundle() { return checkedBundle; },
+      async readRetainedReference() { return { status: "verified", path: "/tmp/content", sha256: sha256(text), text, reason: null }; },
+    }).hydrate(req);
+    assert.equal(hydrated.accountingIssue.state, state);
+    assert.equal(hydrated.scenarioAccounting, null);
+    assert.equal(hydrated.accountingReference.status, "verified");
+    assert.equal(hydrated.accountingReference.text, text);
+    assert.equal(hydrated.result.result, "succeeded");
+    assert.deepEqual(hydrated.result.evidence, [{ producer_statement: "unclassified observation" }]);
+  }
+});
+
+test("accounting reference availability and byte integrity remain separate from content meaning", async () => {
+  const { req, text, checkedBundle } = accountingFixture();
+  for (const status of ["missing", "digest_mismatch", "failure"]) {
+    const hydrated = await new IntegrationResultHydrator({
+      async readResultBundle() { return checkedBundle; },
+      async readRetainedReference() { return { status, path: null, sha256: null, text: null, reason: `reference ${status}` }; },
+    }).hydrate(req);
+    assert.equal(hydrated.accountingIssue.state, status);
+    assert.equal(hydrated.accountingReference.status, status);
+    assert.equal(hydrated.result.result, "succeeded");
+    assert.equal(hydrated.scenarioAccounting, null);
+  }
+  const binary = await new IntegrationResultHydrator({
+    async readResultBundle() { return checkedBundle; },
+    async readRetainedReference() { return { status: "verified", path: "/tmp/content", sha256: sha256(text), text: null, reason: null }; },
+  }).hydrate(req);
+  assert.equal(binary.accountingReference.status, "verified");
+  assert.equal(binary.accountingIssue.state, "unsupported");
+  const unavailable = await new IntegrationResultHydrator({ async readResultBundle() { return checkedBundle; } }).hydrate(req);
+  assert.equal(unavailable.accountingIssue.state, "unavailable");
+});
+
+test("accounting digest mismatch cannot consume bytes even when a gateway reports verified", async () => {
+  const { req, text, checkedBundle } = accountingFixture();
+  const hydrated = await new IntegrationResultHydrator({
+    async readResultBundle() { return checkedBundle; },
+    async readRetainedReference() { return { status: "verified", path: "/tmp/content", sha256: sha256(text), text: `${text} `, reason: null }; },
+  }).hydrate(req);
+  assert.equal(hydrated.scenarioAccounting, null);
+  assert.equal(hydrated.accountingIssue.state, "failure");
+  assert.match(hydrated.accountingIssue.reason, /digest/);
+});
+
+test("unknown artifact kind is not interpreted by matching content shape", async () => {
+  const { req, raw, checkedBundle } = accountingFixture();
+  raw.artifacts[0].kind = "producer.opaque";
+  checkedBundle.resultText = JSON.stringify(raw);
+  const hydrated = await new IntegrationResultHydrator({
+    async readResultBundle() { return checkedBundle; },
+    async readRetainedReference() { assert.fail("No shape-based discovery"); },
+  }).hydrate(req);
+  assert.equal(hydrated.scenarioAccounting, null);
+  assert.equal(hydrated.accountingIssue, null);
+});
+
+test("multiple accounting identities localize ambiguity without rejecting the valid Result", async () => {
+  const { req, raw, checkedBundle } = accountingFixture();
+  raw.artifacts.push({ ...raw.artifacts[0], id: "second-id", path: "other.json" });
+  checkedBundle.artifactChecks.push({ ...checkedBundle.artifactChecks[0], artifactId: "second-id", path: "other.json" });
+  checkedBundle.resultText = JSON.stringify(raw);
+  const hydrated = await new IntegrationResultHydrator({
+    async readResultBundle() { return checkedBundle; },
+    async readRetainedReference() { assert.fail("Ambiguous identities must not select the first artifact"); },
+  }).hydrate(req);
+  assert.equal(hydrated.accountingIssue.state, "failure");
+  assert.equal(hydrated.result.artifacts.length, 2);
+  assert.equal(hydrated.scenarioAccounting, null);
+});
+
+test("Result byte changes between picker preview and hydration fail exact binding", async () => {
+  const { req, checkedBundle } = accountingFixture();
+  req.expectedResultSha256 = sha256(checkedBundle.resultText);
+  checkedBundle.resultText += "\n";
+  await assert.rejects(() => new IntegrationResultHydrator({ async readResultBundle() { return checkedBundle; } }).hydrate(req), /Selected Result bytes changed/);
+});
+
+test("ready observations reject mismatched membership, context and selected digest", () => {
+  const ctx = context("generic", "project");
+  const req = { ...request(membership(), "token", ctx), expectedResultSha256: "a".repeat(64) };
+  const slot = reduceIntegrationSlot(emptyIntegrationSlot(), membership(), { type: "requested", request: req });
+  for (const mutate of [
+    (o) => { o.membership = membership("other", 1); },
+    (o) => { o.membership = membership("session-1", 2); },
+    (o) => { o.context = context("other", "project"); },
+    (o) => { o.resultSha256 = "b".repeat(64); },
+  ]) {
+    const candidate = observation(req, { result: "succeeded" }); mutate(candidate);
+    assert.equal(reduceIntegrationSlot(slot, membership(), { type: "ready", request: req, observation: candidate }), slot);
+  }
+});

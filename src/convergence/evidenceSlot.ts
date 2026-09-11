@@ -32,6 +32,16 @@ export interface EvidenceManifestObservation {
   targetPath: string;
   manifestSha256: string;
   manifest: EvidenceSetManifest;
+  references?: EvidenceReferenceObservation[];
+}
+
+export interface EvidenceReferenceObservation {
+  recordId: string;
+  status: "verified" | "missing" | "digest_mismatch" | "failure" | "unavailable";
+  path: string | null;
+  sha256: string | null;
+  text: string | null;
+  reason: string | null;
 }
 
 export type EvidenceCorrelationState = "current" | "stale" | "unresolved";
@@ -162,6 +172,7 @@ export function recomputeEvidenceCorrelations(
     targetPath: slot.accepted.targetPath,
     manifestSha256: slot.accepted.manifestSha256,
     manifest: slot.accepted.manifest,
+    references: slot.accepted.references,
   };
   return {
     ...slot,

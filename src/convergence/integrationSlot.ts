@@ -7,6 +7,8 @@ import type {
   IntegrationResult,
 } from "../integrations/contracts";
 import { assessIntegrationFreshness } from "../integrations/staleness";
+import type { ScenarioProjectionAccountingObservation } from "./scenarioProjectionAccounting";
+import type { RetainedReferenceRead } from "./retainedReference";
 
 export interface IntegrationGenerationMembership {
   sessionId: string;
@@ -27,6 +29,9 @@ export interface IntegrationResultObservation {
   resultSha256: string;
   result: IntegrationResult;
   bundle: IntegrationBundleRead;
+  scenarioAccounting?: ScenarioProjectionAccountingObservation | null;
+  accountingIssue?: { state: "unavailable" | "missing" | "digest_mismatch" | "unsupported" | "failure"; reason: string } | null;
+  accountingReference?: RetainedReferenceRead | null;
 }
 
 export interface IntegrationContextRequest {
@@ -34,6 +39,7 @@ export interface IntegrationContextRequest {
   requestToken: string;
   context: IntegrationOperationContextIdentity;
   resultPath: string;
+  expectedResultSha256?: string;
 }
 
 export type IntegrationHydrationFailureClass = "transport" | "protocol" | "consistency";
@@ -113,6 +119,9 @@ export function reduceIntegrationSlot(
       break;
     case "ready":
       if (!samePendingRequest(current.pending, action.request)) return slot;
+      if (!sameIntegrationMembership(action.observation.membership, action.request.membership) ||
+          integrationOperationContextKey(action.observation.context) !== key ||
+          (action.request.expectedResultSha256 !== undefined && action.observation.resultSha256 !== action.request.expectedResultSha256)) return slot;
       next = {
         accepted: action.observation,
         pending: null,
@@ -164,7 +173,8 @@ function samePendingRequest(
       sameIntegrationMembership(pending.membership, request.membership) &&
       pending.requestToken === request.requestToken &&
       integrationOperationContextKey(pending.context) === integrationOperationContextKey(request.context) &&
-      pending.resultPath === request.resultPath,
+      pending.resultPath === request.resultPath &&
+      pending.expectedResultSha256 === request.expectedResultSha256,
   );
 }
 

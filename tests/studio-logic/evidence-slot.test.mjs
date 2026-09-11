@@ -283,7 +283,7 @@ test("Evidence hydrator parses the accepted manifest and fingerprints the exact 
   });
   const hydrator = new EvidenceManifestHydrator({
     async readTextFile(path) {
-      return { path, text };
+      return { path, text: path.endsWith("evidence.txt") ? "evidence bytes" : text };
     },
   });
 
@@ -303,6 +303,76 @@ test("Evidence hydrator keeps protocol failure distinct from transport failure",
   });
 
   await assert.rejects(() => hydrator.hydrate(request("bad")), EvidenceManifestProtocolError);
+});
+
+function retainedManifestText() {
+  return JSON.stringify({
+    kind: "orbitfabric.evidence_set_manifest", manifest_version: "0.1-candidate",
+    evidence_set: { id: "retained-set" }, curator: { id: "curator" },
+    records: ["one", "two"].map((id) => ({ id, content: {
+      kind: "producer.opaque", producer: { id: "producer" }, reference: { path: `${id}.bin`, sha256: SHA_CONTENT },
+    }, subjects: [{ type: "integration_result", result_sha256: SHA_RESULT }] })),
+  });
+}
+
+test("missing, mismatched and failed retained files stay localized and preserve the manifest", async () => {
+  const text = retainedManifestText();
+  const manifestSha = createHash("sha256").update(text).digest("hex");
+  for (const status of ["missing", "digest_mismatch", "failure", "throw"]) {
+    const calls = [];
+    const hydrated = await new EvidenceManifestHydrator({
+      async readTextFile(path) { return { path, text }; },
+      async readRetainedReference(reference) {
+        calls.push(reference);
+        if (reference.relativePath === "one.bin") {
+          if (status === "throw") throw new Error("localized read failure");
+          return { status, path: null, sha256: null, text: null, reason: `retained ${status}` };
+        }
+        return { status: "verified", path: "/tmp/two.bin", sha256: SHA_CONTENT, text: null, reason: null };
+      },
+    }).hydrate(request());
+    assert.equal(hydrated.manifest.records.length, 2);
+    assert.equal(hydrated.manifestSha256, manifestSha);
+    assert.deepEqual(calls, ["one", "two"].map((id) => ({ parentPath: "/tmp/evidence.json", parentSha256: manifestSha, relativePath: `${id}.bin`, expectedSha256: SHA_CONTENT })));
+    assert.equal(hydrated.references[0].status, status === "throw" ? "failure" : status);
+    assert.equal(hydrated.references[1].status, "verified");
+    assert.equal(hydrated.references[1].text, null); // Binary integrity does not imply a text interpretation.
+    const pending = reduceEvidenceSlot(emptyEvidenceSlot(), membership(), emptyScenarioSlot(), integrationWithResult(), { type: "requested", request: request() });
+    const accepted = reduceEvidenceSlot(pending, membership(), emptyScenarioSlot(), integrationWithResult(), { type: "ready", request: request(), observation: hydrated });
+    assert.equal(accepted.hydrationFailure, null);
+    assert.equal(accepted.accepted.records[0].subjects[0].state, "current");
+    assert.equal(accepted.accepted.references[0].status, status === "throw" ? "failure" : status);
+    const recomputed = recomputeEvidenceCorrelations(accepted, emptyScenarioSlot(), emptyIntegrationSlot());
+    assert.equal(recomputed.accepted.references, accepted.accepted.references);
+    assert.equal(recomputed.accepted.records[0].subjects[0].state, "unresolved");
+  }
+});
+
+test("unavailable retained reader never falls back to unbounded text reads", async () => {
+  const calls = [];
+  const hydrated = await new EvidenceManifestHydrator({
+    async readTextFile(path) { calls.push(path); return { path, text: retainedManifestText() }; },
+  }).hydrate(request());
+  assert.deepEqual(calls, ["/tmp/evidence.json"]);
+  assert.deepEqual(hydrated.references.map((reference) => reference.status), ["unavailable", "unavailable"]);
+});
+
+test("late retained-content completion cannot overwrite a newer request or Mission generation", async () => {
+  let release;
+  const completion = new Promise((resolve) => { release = resolve; });
+  const oldRequest = request("old");
+  const newerRequest = request("new");
+  const late = new EvidenceManifestHydrator({
+    async readTextFile(path) { return { path, text: retainedManifestText() }; },
+    async readRetainedReference() { await completion; return { status: "missing", path: null, sha256: null, text: null, reason: "missing" }; },
+  }).hydrate(oldRequest);
+  let slot = reduceEvidenceSlot(emptyEvidenceSlot(), membership(), emptyScenarioSlot(), emptyIntegrationSlot(), { type: "requested", request: oldRequest });
+  slot = reduceEvidenceSlot(slot, membership(), emptyScenarioSlot(), emptyIntegrationSlot(), { type: "requested", request: newerRequest });
+  release();
+  const lateObservation = await late;
+  assert.equal(reduceEvidenceSlot(slot, membership(), emptyScenarioSlot(), emptyIntegrationSlot(), { type: "ready", request: oldRequest, observation: lateObservation }), slot);
+  const replacement = emptyEvidenceSlot();
+  assert.equal(reduceEvidenceSlot(replacement, membership("new-session", 2), emptyScenarioSlot(), emptyIntegrationSlot(), { type: "ready", request: oldRequest, observation: lateObservation }), replacement);
 });
 
 test("primary generation replacement clears Evidence state through studioReducer", () => {

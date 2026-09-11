@@ -43,6 +43,7 @@ try {
     "tests/studio-logic/integration-execution.test.mjs",
     "tests/studio-logic/integration-result-state-lanes.test.mjs",
     "tests/studio-logic/integration-coverage-versioning.test.mjs",
+    "tests/studio-logic/scenario-accounting-replay.test.mjs",
     "tests/studio-logic/integration-staleness.test.mjs",
     "tests/studio-logic/integration-plugin-registry.test.mjs",
     "tests/studio-logic/integration-plugin-actions.test.mjs",
