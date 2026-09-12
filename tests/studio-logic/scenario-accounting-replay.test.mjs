@@ -12,6 +12,9 @@ const { parseIntegrationResult } = require("../../.test-dist/integrations/result
 const { parseScenarioDeclaration } = require("../../.test-dist/convergence/consumer-contracts.js");
 const { EvidenceManifestHydrator } = require("../../.test-dist/convergence/EvidenceManifestHydrator.js");
 const { emptyEvidenceSlot, reduceEvidenceSlot } = require("../../.test-dist/convergence/evidenceSlot.js");
+const React = require("react");
+const { renderToStaticMarkup } = require("react-dom/server");
+const { ExactProjectionProvenance } = require("../../.test-dist/features/evidence/EvidenceReplayWorkspace.js");
 
 const SHA = "a".repeat(64);
 const RESULT_SHA = "b".repeat(64);
@@ -196,8 +199,10 @@ test("picker/preview completions reject old session, generation and request toke
   guard.invalidate(); assert.equal(guard.accepts(second, membership), false);
 });
 
-test("Scenario-free Result stays unavailable and expected intent never becomes observed PASS", () => {
-  const scenarioFree = { resultSha256: RESULT_SHA, result: { ...result("f".repeat(64)), inputs: { operationInputs: [] } }, scenarioAccounting: null };
+test("Scenario-free Result stays unavailable and expected intent never becomes observed PASS", async () => {
+  const scenarioFreeResult = { ...result("f".repeat(64)), inputs: { operationInputs: [] } };
+  scenarioFreeResult.adapter = { id: "orbitfabric-fprime", version: "0.1.1" };
+  const scenarioFree = { resultSha256: RESULT_SHA, result: scenarioFreeResult, scenarioAccounting: null };
   const declared = declaration();
   declared.atoms[2].declaration = { expected: "PASSED" };
   const model = buildEvidenceUnderstanding({ accepted: { declaration: declared } }, { contexts: new Map([["fprime", { accepted: scenarioFree }]]) }, { accepted: null });
@@ -207,6 +212,36 @@ test("Scenario-free Result stays unavailable and expected intent never becomes o
   assert.equal(JSON.stringify(model).includes('"verdict":"PASS"'), false);
   assert.equal("executionState" in model.atoms[2], false);
   assert.equal("timestamp" in model.atoms[2].projections[0], false);
+
+  const fprimeProvenance = renderToStaticMarkup(React.createElement(ExactProjectionProvenance, {
+    projection: model.atoms[2].projections[0], scenarioSha256: SHA, atomId: "atom-0003",
+  }));
+  assert.match(fprimeProvenance, new RegExp(RESULT_SHA));
+  assert.match(fprimeProvenance, /orbitfabric-fprime@0\.1\.1/);
+  assert.doesNotMatch(fprimeProvenance, /Scenario SHA-256/);
+  assert.doesNotMatch(fprimeProvenance, /Atom id/);
+
+  const currentObservation = await observed();
+  currentObservation.result.adapter = { id: "orbitfabric-openc3-cosmos", version: "0.2.0" };
+  const currentProjection = modelFor(currentObservation).atoms[2].projections[0];
+  const cosmosProvenance = renderToStaticMarkup(React.createElement(ExactProjectionProvenance, {
+    projection: currentProjection, scenarioSha256: SHA, atomId: "atom-0003",
+  }));
+  assert.match(cosmosProvenance, /Scenario SHA-256/);
+  assert.match(cosmosProvenance, new RegExp(SHA));
+  assert.match(cosmosProvenance, /Atom id/);
+  assert.match(cosmosProvenance, /atom-0003/);
+
+  const staleDeclaration = declaration();
+  staleDeclaration.source.scenarioSha256 = "f".repeat(64);
+  const staleProjection = modelFor(currentObservation, [], staleDeclaration).atoms[2].projections[0];
+  assert.equal(staleProjection.accountingArtifact !== null, true);
+  assert.equal(staleProjection.disposition, "unavailable");
+  const staleProvenance = renderToStaticMarkup(React.createElement(ExactProjectionProvenance, {
+    projection: staleProjection, scenarioSha256: staleDeclaration.source.scenarioSha256, atomId: "atom-0003",
+  }));
+  assert.doesNotMatch(staleProvenance, /Scenario SHA-256/);
+  assert.doesNotMatch(staleProvenance, /Atom id/);
 });
 
 test("asynchronous picker failure and finalizer cannot replace newer UI state", async () => {

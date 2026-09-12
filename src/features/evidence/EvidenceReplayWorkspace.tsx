@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { EvidenceUnderstandingModel, ReplayEvidenceRecord } from "../../convergence/evidenceUnderstanding";
+import type { EvidenceUnderstandingModel, ReplayEvidenceRecord, ReplayProjection } from "../../convergence/evidenceUnderstanding";
 
 export function EvidenceReplayWorkspace({
   model,
@@ -50,7 +50,7 @@ export function EvidenceReplayWorkspace({
             <div className="replay-stage"><small>PRODUCER MAPPING IDS</small>{projection.mappings.length ? projection.mappings.map((mapping) => <div key={mapping.id}><code>{mapping.id}</code><p>{mapping.targets.length} explicit downstream path{mapping.targets.length === 1 ? "" : "s"}</p>{mapping.targets.map((target, index) => <code key={`${mapping.id}:${index}`}>{target.namespace} · {target.kind} · {target.id}</code>)}</div>) : <strong>{projection.availability === "current" ? "Producer declared [] · 0 downstream paths" : "unavailable"}</strong>}</div>
             <div className="replay-stage"><small>RESULT ARTIFACT RELATIONS</small>{projection.artifacts.length ? projection.artifacts.map((artifact) => <code key={artifact.id}>{artifact.id} · {artifact.status}</code>) : <strong>{projection.availability === "current" ? "0 explicit artifact relations" : "unavailable"}</strong>}</div>
             <div className="replay-stage"><small>CURATOR-LINKED EVIDENCE</small>{projection.evidence.length ? projection.evidence.map((record) => <EvidenceRecord key={record.id} record={record} />) : <strong>No explicit mapping or artifact subject</strong>}</div>
-            <details><summary>Exact provenance</summary><dl><div><dt>Result SHA-256</dt><dd><code>{projection.resultSha256}</code></dd></div><div><dt>Scenario SHA-256</dt><dd><code>{scenario.sha256}</code></dd></div><div><dt>Atom id</dt><dd><code>{selected.atomId}</code></dd></div>{projection.accountingArtifact ? <><div><dt>Accounting artifact id</dt><dd><code>{projection.accountingArtifact.id}</code></dd></div><div><dt>Accounting SHA-256</dt><dd><code>{projection.accountingArtifact.sha256}</code></dd></div></> : null}<div><dt>Adapter</dt><dd>{projection.adapterId}@{projection.adapterVersion}</dd></div></dl></details>
+            <ExactProjectionProvenance projection={projection} scenarioSha256={scenario.sha256} atomId={selected.atomId} />
           </article>)}
           {selected.directEvidence.length ? <section className="direct-evidence"><h3>Curator-linked atom evidence</h3><p>These subjects identify this exact atom. They do not assert an edge to any Result, mapping or artifact.</p>{selected.directEvidence.map((record) => <EvidenceRecord key={record.id} record={record} />)}</section> : null}
         </> : null}</section>
@@ -61,6 +61,31 @@ export function EvidenceReplayWorkspace({
     </section>
     <section className="direct-evidence"><h2>Retained Evidence Set records</h2><p>OBSERVED meaning and verdicts remain producer-owned. Co-membership does not establish pairwise relations.</p>{model.records.map((record) => <EvidenceRecord key={record.id} record={record} />)}</section>
   </section>;
+}
+
+export function ExactProjectionProvenance({
+  projection,
+  scenarioSha256,
+  atomId,
+}: {
+  projection: ReplayProjection;
+  scenarioSha256: string;
+  atomId: string;
+}) {
+  const hasExactAtomAccounting = projection.accountingArtifact !== null && projection.disposition !== "unavailable";
+
+  return <details><summary>Exact provenance</summary><dl>
+    <div><dt>Result SHA-256</dt><dd><code>{projection.resultSha256}</code></dd></div>
+    {hasExactAtomAccounting ? <>
+      <div><dt>Scenario SHA-256</dt><dd><code>{scenarioSha256}</code></dd></div>
+      <div><dt>Atom id</dt><dd><code>{atomId}</code></dd></div>
+    </> : null}
+    {projection.accountingArtifact ? <>
+      <div><dt>Accounting artifact id</dt><dd><code>{projection.accountingArtifact.id}</code></dd></div>
+      <div><dt>Accounting SHA-256</dt><dd><code>{projection.accountingArtifact.sha256}</code></dd></div>
+    </> : null}
+    <div><dt>Adapter</dt><dd>{projection.adapterId}@{projection.adapterVersion}</dd></div>
+  </dl></details>;
 }
 
 function shortSha(value: string): string { return `${value.slice(0, 12)}…`; }

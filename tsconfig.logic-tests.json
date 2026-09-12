@@ -24,6 +24,7 @@
     "src/convergence/IntegrationResultHydrator.ts",
     "src/convergence/scenarioProjectionAccounting.ts",
     "src/convergence/evidenceUnderstanding.ts",
+    "src/features/evidence/EvidenceReplayWorkspace.tsx",
     "src/convergence/replayRequestGuard.ts",
     "src/convergence/evidenceSlot.ts",
     "src/convergence/EvidenceGateway.ts",
