@@ -1,0 +1,170 @@
+{
+  "adapter": {
+    "id": "orbitfabric-openc3-cosmos",
+    "version": "0.2.0"
+  },
+  "artifacts": [
+    {
+      "derived_from_mappings": [
+        "mapping.op-0001",
+        "mapping.op-0002"
+      ],
+      "id": "scenario.accounting",
+      "kind": "orbitfabric.scenario_projection_accounting",
+      "media_type": "application/json",
+      "path": "verification_projection/scenario_projection_accounting.json",
+      "reason": null,
+      "requirement": "required",
+      "retained_partial": false,
+      "sha256": "f0e9459af501e2c6b161cd9c6349197ae20280d1e553d82867ef8b2ef3e11d39",
+      "status": "generated"
+    },
+    {
+      "derived_from_mappings": [
+        "mapping.op-0001",
+        "mapping.op-0002"
+      ],
+      "id": "verification.plan",
+      "kind": "openc3_cosmos.verification_projection_plan",
+      "media_type": "application/json",
+      "path": "verification_projection/verification_projection_plan.json",
+      "reason": null,
+      "requirement": "required",
+      "retained_partial": false,
+      "sha256": "50b05f506d8b1531a9d486d34faad15fb9a713dcf71a67180e46f84be71324d0",
+      "status": "generated"
+    },
+    {
+      "derived_from_mappings": [
+        "mapping.op-0001",
+        "mapping.op-0002"
+      ],
+      "id": "verification.cosmos_procedure",
+      "kind": "openc3_cosmos.python_procedure",
+      "media_type": "text/x-python",
+      "path": "verification_projection/cosmos/verification.py",
+      "reason": null,
+      "requirement": "required",
+      "retained_partial": false,
+      "sha256": "12e3beed7f8bb1deaa416a5db4618ac10fc8f8d966cc00a277c5b282eaa2db71",
+      "status": "generated"
+    },
+    {
+      "derived_from_mappings": [
+        "mapping.op-0001",
+        "mapping.op-0002"
+      ],
+      "id": "verification.cosmos_suite",
+      "kind": "openc3_cosmos.python_suite",
+      "media_type": "text/x-python",
+      "path": "verification_projection/cosmos/verification_suite.py",
+      "reason": null,
+      "requirement": "required",
+      "retained_partial": false,
+      "sha256": "286f355bb78b46f2d0b95e62824aa81c521c09ec4e74081827fb27d22462a450",
+      "status": "generated"
+    }
+  ],
+  "capabilities": [
+    "profile_validation",
+    "projection",
+    "artifact_generation",
+    "traceability"
+  ],
+  "coverage": {
+    "reason": "Generic Scenario atom accounting is retained in the Result-owned scenario.accounting artifact; release-level Integration Coverage is analyzed separately.",
+    "records": [],
+    "scope": {
+      "domains": []
+    },
+    "status": "unavailable",
+    "summary": {}
+  },
+  "diagnostics": [],
+  "evidence": [],
+  "external_tools": [],
+  "inputs": {
+    "core_input_set": {
+      "kind": "orbitfabric.integration_input_set",
+      "reason": null,
+      "sha256": "4bbdca769e4b8fdee51719a47acaa49e9a552b4360f96d8664947514b074ef34",
+      "status": "available",
+      "version": "0.1-candidate"
+    },
+    "operation_inputs": [
+      {
+        "id": "payload_stop_acquisition_verification",
+        "reason": null,
+        "role": "scenario",
+        "sha256": "b19ff6e1cf3c45cdb81e239d30aad97e8b6f037703c06f27102b762e69a1146a",
+        "status": "available"
+      }
+    ],
+    "profile": {
+      "id": "engineering-story-flight-ground-cosmos",
+      "kind": "orbitfabric.projection_profile",
+      "profile_version": "0.1-candidate",
+      "reason": null,
+      "sha256": "3ac68f9bace16775812a9b3bbe17650c9e26a9e09e4d50b49f99b31322c08b41",
+      "status": "available",
+      "version": "0.1.0"
+    }
+  },
+  "integration": {
+    "id": "orbitfabric-openc3-cosmos",
+    "schema_version": "0.1-candidate"
+  },
+  "kind": "orbitfabric.integration_result",
+  "mappings": [
+    {
+      "id": "mapping.op-0001",
+      "profile_bindings": [
+        "cmd.stop_acquisition"
+      ],
+      "sources": [
+        {
+          "domain": "commands",
+          "id": "payload.stop_acquisition"
+        }
+      ],
+      "targets": [
+        {
+          "id": "FPRIME Ref.payload.OF_StopAcquisition",
+          "kind": "command",
+          "namespace": "openc3.cosmos"
+        }
+      ]
+    },
+    {
+      "id": "mapping.op-0002",
+      "profile_bindings": [
+        "tm.acquisition_active"
+      ],
+      "sources": [
+        {
+          "domain": "telemetry",
+          "id": "radiation_payload.acquisition_active"
+        }
+      ],
+      "targets": [
+        {
+          "id": "FPRIME Ref.payload.OF_AcquisitionActive OF_AcquisitionActive",
+          "kind": "telemetry_wait",
+          "namespace": "openc3.cosmos"
+        }
+      ]
+    }
+  ],
+  "mission": {
+    "id": "of-rm-1",
+    "model_version": "0.1.0-reference-skeleton",
+    "reason": null,
+    "status": "available"
+  },
+  "operation": {
+    "id": "verification_projection"
+  },
+  "resolutions": [],
+  "result": "succeeded",
+  "result_version": "0.2-candidate"
+}

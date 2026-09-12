@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const require = createRequire(import.meta.url);
 const { parseAndValidateScenarioAccounting, parseScenarioAccounting, validateAccountingAgainstScenario, UnsupportedAccountingVersion } = require("../../.test-dist/convergence/scenarioProjectionAccounting.js");
 const { buildEvidenceUnderstanding } = require("../../.test-dist/convergence/evidenceUnderstanding.js");
 const { ReplayRequestGuard } = require("../../.test-dist/convergence/replayRequestGuard.js");
+const { parseIntegrationResult } = require("../../.test-dist/integrations/result.js");
+const { parseScenarioDeclaration } = require("../../.test-dist/convergence/consumer-contracts.js");
+const { EvidenceManifestHydrator } = require("../../.test-dist/convergence/EvidenceManifestHydrator.js");
+const { emptyEvidenceSlot, reduceEvidenceSlot } = require("../../.test-dist/convergence/evidenceSlot.js");
+const React = require("react");
+const { renderToStaticMarkup } = require("react-dom/server");
+const { ExactProjectionProvenance } = require("../../.test-dist/features/evidence/EvidenceReplayWorkspace.js");
 
 const SHA = "a".repeat(64);
 const RESULT_SHA = "b".repeat(64);
@@ -78,6 +86,7 @@ test("replay follows exact atom to producer disposition, mapping, artifact and c
   assert.deepEqual(projected.artifacts.map((item) => item.id), ["scenario.accounting", "native.output"]);
   assert.equal(projected.evidence[0].id, "runtime");
   assert.equal(projected.evidence[0].verdict, "unavailable");
+  assert.deepEqual(projected.accountingArtifact, { id: "scenario.accounting", sha256: digest });
 });
 
 function evidence(subjects, states = []) {
@@ -190,8 +199,10 @@ test("picker/preview completions reject old session, generation and request toke
   guard.invalidate(); assert.equal(guard.accepts(second, membership), false);
 });
 
-test("Scenario-free Result stays unavailable and expected intent never becomes observed PASS", () => {
-  const scenarioFree = { resultSha256: RESULT_SHA, result: { ...result("f".repeat(64)), inputs: { operationInputs: [] } }, scenarioAccounting: null };
+test("Scenario-free Result stays unavailable and expected intent never becomes observed PASS", async () => {
+  const scenarioFreeResult = { ...result("f".repeat(64)), inputs: { operationInputs: [] } };
+  scenarioFreeResult.adapter = { id: "orbitfabric-fprime", version: "0.1.1" };
+  const scenarioFree = { resultSha256: RESULT_SHA, result: scenarioFreeResult, scenarioAccounting: null };
   const declared = declaration();
   declared.atoms[2].declaration = { expected: "PASSED" };
   const model = buildEvidenceUnderstanding({ accepted: { declaration: declared } }, { contexts: new Map([["fprime", { accepted: scenarioFree }]]) }, { accepted: null });
@@ -201,6 +212,36 @@ test("Scenario-free Result stays unavailable and expected intent never becomes o
   assert.equal(JSON.stringify(model).includes('"verdict":"PASS"'), false);
   assert.equal("executionState" in model.atoms[2], false);
   assert.equal("timestamp" in model.atoms[2].projections[0], false);
+
+  const fprimeProvenance = renderToStaticMarkup(React.createElement(ExactProjectionProvenance, {
+    projection: model.atoms[2].projections[0], scenarioSha256: SHA, atomId: "atom-0003",
+  }));
+  assert.match(fprimeProvenance, new RegExp(RESULT_SHA));
+  assert.match(fprimeProvenance, /orbitfabric-fprime@0\.1\.1/);
+  assert.doesNotMatch(fprimeProvenance, /Scenario SHA-256/);
+  assert.doesNotMatch(fprimeProvenance, /Atom id/);
+
+  const currentObservation = await observed();
+  currentObservation.result.adapter = { id: "orbitfabric-openc3-cosmos", version: "0.2.0" };
+  const currentProjection = modelFor(currentObservation).atoms[2].projections[0];
+  const cosmosProvenance = renderToStaticMarkup(React.createElement(ExactProjectionProvenance, {
+    projection: currentProjection, scenarioSha256: SHA, atomId: "atom-0003",
+  }));
+  assert.match(cosmosProvenance, /Scenario SHA-256/);
+  assert.match(cosmosProvenance, new RegExp(SHA));
+  assert.match(cosmosProvenance, /Atom id/);
+  assert.match(cosmosProvenance, /atom-0003/);
+
+  const staleDeclaration = declaration();
+  staleDeclaration.source.scenarioSha256 = "f".repeat(64);
+  const staleProjection = modelFor(currentObservation, [], staleDeclaration).atoms[2].projections[0];
+  assert.equal(staleProjection.accountingArtifact !== null, true);
+  assert.equal(staleProjection.disposition, "unavailable");
+  const staleProvenance = renderToStaticMarkup(React.createElement(ExactProjectionProvenance, {
+    projection: staleProjection, scenarioSha256: staleDeclaration.source.scenarioSha256, atomId: "atom-0003",
+  }));
+  assert.doesNotMatch(staleProvenance, /Scenario SHA-256/);
+  assert.doesNotMatch(staleProvenance, /Atom id/);
 });
 
 test("asynchronous picker failure and finalizer cannot replace newer UI state", async () => {
@@ -223,4 +264,77 @@ test("asynchronous picker failure and finalizer cannot replace newer UI state", 
   finish(new Error("old failure"));
   await oldCompletion;
   assert.deepEqual(ui, { busy: "new", failure: "new failure" });
+});
+
+test("exact changed COSMOS R1 generation produces all eight generic atom dispositions", async () => {
+  const fixture = (path) => readFileSync(new URL(`../fixtures/sp3-r1/${path}`, import.meta.url), "utf8");
+  const declarationText = fixture("scenario-declaration.json");
+  const resultText = fixture("cosmos/integration_result.json");
+  const accountingText = fixture("cosmos/verification_projection/scenario_projection_accounting.json");
+  const evidenceText = fixture("evidence-set.json");
+  const declared = parseScenarioDeclaration(declarationText);
+  const parent = parseIntegrationResult(resultText);
+  const artifact = parent.artifacts.find((candidate) => candidate.id === "scenario.accounting");
+  const resultSha = createHash("sha256").update(resultText).digest("hex");
+  const accounting = await parseAndValidateScenarioAccounting(accountingText, artifact, parent, "/retained/r1/cosmos/verification_projection/scenario_projection_accounting.json", resultSha);
+  const observation = { resultSha256: resultSha, result: parent, scenarioAccounting: accounting };
+  const membership = { sessionId: "r1", generation: 1 };
+  const scenarioSlot = { accepted: { membership, targetPath: "/retained/r1/scenario.yaml", declaration: declared }, pending: null, hydrationFailure: null };
+  observation.membership = membership;
+  observation.context = { integrationId: parent.integration.id, adapterId: parent.adapter.id, adapterVersion: parent.adapter.version, operationId: parent.operation.id };
+  observation.resultPath = "/retained/r1/cosmos/integration_result.json";
+  observation.bundle = { resultPath: observation.resultPath, resultText, artifactChecks: [] };
+  const integrationSlot = { contexts: new Map([["cosmos", { accepted: observation, pending: null, hydrationFailure: null }]]) };
+  const request = { membership, requestToken: "r1-evidence", targetPath: "/retained/r1/evidence-set.json", mode: "replace" };
+  const evidenceObservation = await new EvidenceManifestHydrator({
+    async readTextFile(path) { return { path, text: evidenceText }; },
+    async readRetainedReference(reference) {
+      const sources = new Map([
+        ["cosmos/integration_result.json", resultText],
+        ["cosmos/verification_projection/scenario_projection_accounting.json", accountingText],
+      ]);
+      const text = sources.get(reference.relativePath);
+      assert.ok(text);
+      const sha256 = createHash("sha256").update(text).digest("hex");
+      assert.equal(sha256, reference.expectedSha256);
+      return { status: "verified", path: `/retained/r1/${reference.relativePath}`, sha256, text, reason: null };
+    },
+  }).hydrate(request);
+  let evidenceSlot = reduceEvidenceSlot(emptyEvidenceSlot(), membership, scenarioSlot, integrationSlot, { type: "requested", request });
+  evidenceSlot = reduceEvidenceSlot(evidenceSlot, membership, scenarioSlot, integrationSlot, { type: "ready", request, observation: evidenceObservation });
+  const model = buildEvidenceUnderstanding(scenarioSlot, integrationSlot, evidenceSlot);
+  assert.equal(createHash("sha256").update(declarationText).digest("hex"), "24fab5d26923229636e3269af78aef0ff3c91dad6761f1d75235f94fe208e51f");
+  assert.equal(resultSha, "21eafa806e7553eb9dccac89f9443c17079222731a2f36bc035aa1fc3db033ba");
+  assert.equal(accounting.artifactSha256, "f0e9459af501e2c6b161cd9c6349197ae20280d1e553d82867ef8b2ef3e11d39");
+  assert.equal(model.atoms.length, 8);
+  assert.deepEqual(model.atoms.map((atom) => atom.projections[0].disposition), ["projected", "not_projected", "not_projected", "projected", "not_projected", "projected", "not_projected", "not_projected"]);
+  assert.deepEqual(model.atoms[0].projections[0].mappings, []);
+  assert.deepEqual(model.atoms[2].projections[0].mappings, []);
+  assert.deepEqual(model.atoms[5].projections[0].mappings.map((mapping) => mapping.id), ["mapping.op-0002"]);
+  assert.equal(model.atoms[5].projections[0].mappings[0].targets.length, 1);
+  assert.deepEqual(model.atoms[5].projections[0].mappings[0].targets[0], parent.mappings[1].targets[0]);
+  assert.equal(model.atoms[0].projections[0].availability, "current");
+  assert.equal(model.records.length, 2);
+  assert.deepEqual(model.records.map((record) => record.reference.status), ["verified", "verified"]);
+  assert.equal(model.atoms[2].directEvidence[0].id, "cosmos-scenario-projection-accounting");
+  assert.equal(model.atoms[2].projections[0].evidence.length, 0); // Co-membership with mappings does not create an atom-to-mapping edge.
+  assert.equal(model.atoms[5].projections[0].evidence[0].id, "cosmos-scenario-projection-accounting");
+  assert.deepEqual(model.atoms[5].projections[0].evidence[0].matchedSubjects.map((subject) => subject.subject.type), ["integration_mapping", "integration_artifact"]);
+  assert.equal(model.atoms[5].projections[0].evidence[0].matchedSubjects[0].subject.mappingId, "mapping.op-0002");
+  assert.equal(model.atoms[5].projections[0].evidence[0].matchedSubjects[1].subject.artifactId, "scenario.accounting");
+  assert.equal(JSON.stringify(model).includes('"verdict":"PASS"'), false);
+  assert.equal(JSON.stringify(model).includes("executed"), false);
+});
+
+test("generic model preserves zero, one and multiple explicit downstream targets without interpretation", async () => {
+  const observation = await observed();
+  observation.result.mappings[0].targets = [
+    { namespace: "producer.one", kind: "opaque-a", id: "target-a" },
+    { namespace: "producer.two", kind: "opaque-b", id: "target-b" },
+  ];
+  let model = modelFor(observation);
+  assert.deepEqual(model.atoms[2].projections[0].mappings[0].targets, observation.result.mappings[0].targets);
+  observation.result.mappings[0].targets = [];
+  model = modelFor(observation);
+  assert.deepEqual(model.atoms[2].projections[0].mappings[0].targets, []);
 });

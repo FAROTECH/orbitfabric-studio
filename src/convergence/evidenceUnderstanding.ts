@@ -28,6 +28,7 @@ export interface ReplayProjection {
   availability: ProjectionAvailability;
   disposition: ScenarioProjectionAccountingRecord["disposition"] | "unavailable";
   reason: string;
+  accountingArtifact: { id: string; sha256: string } | null;
   mappings: IntegrationMapping[];
   artifacts: IntegrationArtifact[];
   evidence: ReplayEvidenceRecord[];
@@ -115,22 +116,24 @@ function projectionForAtom(
     adapterVersion: observation.result.adapter.version,
     operationId: observation.result.operation.id,
   };
-  const accounting = observation.scenarioAccounting?.accounting;
+  const accountingObservation = observation.scenarioAccounting;
+  const accounting = accountingObservation?.accounting;
   if (!accounting) {
-    return { ...base, availability: observation.accountingIssue?.state ?? "unavailable", disposition: "unavailable", reason: observation.accountingIssue?.reason ?? "This Result supplies no generic Scenario Projection Accounting artifact.", mappings: [], artifacts: [], evidence: [] };
+    return { ...base, availability: observation.accountingIssue?.state ?? "unavailable", disposition: "unavailable", reason: observation.accountingIssue?.reason ?? "This Result supplies no generic Scenario Projection Accounting artifact.", accountingArtifact: null, mappings: [], artifacts: [], evidence: [] };
   }
-  if (observation.scenarioAccounting?.resultSha256 !== observation.resultSha256) return { ...base, availability: "failure", disposition: "unavailable", reason: "Accounting observation belongs to another exact parent Result.", mappings: [], artifacts: [], evidence: [] };
-  if (accounting.scenario.id !== declaration.scenario.id) return { ...base, availability: "unresolved", disposition: "unavailable", reason: "Accounting identifies another Scenario id.", mappings: [], artifacts: [], evidence: [] };
-  if (accounting.scenario.sha256 !== declaration.source.scenarioSha256) return { ...base, availability: "stale", disposition: "unavailable", reason: "Accounting identifies different bytes of this Scenario.", mappings: [], artifacts: [], evidence: [] };
+  const accountingArtifact = { id: accountingObservation.artifactId, sha256: accountingObservation.artifactSha256 };
+  if (accountingObservation.resultSha256 !== observation.resultSha256) return { ...base, availability: "failure", disposition: "unavailable", reason: "Accounting observation belongs to another exact parent Result.", accountingArtifact, mappings: [], artifacts: [], evidence: [] };
+  if (accounting.scenario.id !== declaration.scenario.id) return { ...base, availability: "unresolved", disposition: "unavailable", reason: "Accounting identifies another Scenario id.", accountingArtifact, mappings: [], artifacts: [], evidence: [] };
+  if (accounting.scenario.sha256 !== declaration.source.scenarioSha256) return { ...base, availability: "stale", disposition: "unavailable", reason: "Accounting identifies different bytes of this Scenario.", accountingArtifact, mappings: [], artifacts: [], evidence: [] };
   try {
     if (observation.result.mission.status !== "available" || observation.result.mission.id !== declaration.mission.id || observation.result.mission.model_version !== declaration.mission.modelVersion) throw new Error("Result and Scenario Declaration mission binding differs.");
     validateAccountingAgainstScenario(accounting, declaration);
   } catch (error) {
-    return { ...base, availability: "failure", disposition: "unavailable", reason: error instanceof Error ? error.message : String(error), mappings: [], artifacts: [], evidence: [] };
+    return { ...base, availability: "failure", disposition: "unavailable", reason: error instanceof Error ? error.message : String(error), accountingArtifact, mappings: [], artifacts: [], evidence: [] };
   }
   const record = accounting.records.find((candidate) => candidate.atomId === atomId);
   if (!record) {
-    return { ...base, availability: "unavailable", disposition: "unavailable", reason: accounting.completeness === "partial" ? accounting.reason ?? "Partial producer accounting omits this atom." : "Accounting record unavailable.", mappings: [], artifacts: [], evidence: [] };
+    return { ...base, availability: "unavailable", disposition: "unavailable", reason: accounting.completeness === "partial" ? accounting.reason ?? "Partial producer accounting omits this atom." : "Accounting record unavailable.", accountingArtifact, mappings: [], artifacts: [], evidence: [] };
   }
   const mappings = record.mappingIds.map((mappingId) => observation.result.mappings.find((mapping) => mapping.id === mappingId)!).filter(Boolean);
   const mappingIds = new Set(record.mappingIds);
@@ -140,6 +143,7 @@ function projectionForAtom(
     availability: "current",
     disposition: record.disposition,
     reason: record.reason ?? "Producer supplied no additional reason.",
+    accountingArtifact,
     mappings,
     artifacts,
     evidence: recordsForProjection(evidence, observation.resultSha256, mappingIds, new Set(artifacts.map((artifact) => artifact.id))),

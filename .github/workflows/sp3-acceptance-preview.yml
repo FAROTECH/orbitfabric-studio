@@ -1,0 +1,152 @@
+name: SP3 acceptance preview
+
+on:
+  push:
+    branches:
+      - feature/sp3-evidence-replay
+
+permissions: {}
+
+concurrency:
+  group: sp3-acceptance-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build exact SP3 acceptance preview
+    if: github.repository == 'FAROTECH/orbitfabric-studio' && github.ref == 'refs/heads/feature/sp3-evidence-replay'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact candidate identity and diff
+        env:
+          EXPECTED_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_BASE_SHA: a73a824c4180bc86b8408d75eae814a21c378612
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD_SHA"
+          git diff --check "$EXPECTED_BASE_SHA...HEAD"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run Studio logic regression
+        run: npm run test:logic
+
+      - name: Run TypeScript check
+        run: ./node_modules/.bin/tsc --noEmit
+
+      - name: Run normal minified production build
+        run: npm run build
+
+      - name: Checkout accepted OrbitFabric Core
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: b4e1185de4931ff125be699dfe09f63ab3746015
+          path: .acceptance/orbitfabric-core
+
+      - name: Checkout accepted Reference Mission
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric-reference-mission
+          ref: 6d4e4663e6dd135ca0b7b5239efa986cf63bd336
+          path: .acceptance/reference-mission
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare retained Core acceptance reports
+        run: |
+          python -m pip install -e ./.acceptance/orbitfabric-core
+          python tools/test/scenario-browser/prepare.py .acceptance/reference-mission --core orbitfabric
+
+      - name: Build Pages-scoped real R1 browser harness
+        run: ./node_modules/.bin/vite build --config tools/test/scenario-browser/vite.config.ts --base=/orbitfabric-studio/
+
+      - name: Assemble exact acceptance preview
+        env:
+          SP3_REPOSITORY: ${{ github.repository }}
+          SP3_PR_NUMBER: "348"
+          SP3_BRANCH: ${{ github.ref_name }}
+          SP3_HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .sp3-browser-dist/.sp2-acceptance
+          cp .sp2-acceptance/reports.json .sp3-browser-dist/.sp2-acceptance/reports.json
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          identity = {
+              "repository": os.environ["SP3_REPOSITORY"],
+              "pull_request": int(os.environ["SP3_PR_NUMBER"]),
+              "branch": os.environ["SP3_BRANCH"],
+              "commit_sha": os.environ["SP3_HEAD_SHA"],
+          }
+          Path(".sp3-browser-dist/source-commit.json").write_text(
+              json.dumps(identity, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Verify Pages artifact identity and route
+        env:
+          EXPECTED_HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test -f .sp3-browser-dist/tools/test/scenario-browser/index.html
+          test -f .sp3-browser-dist/.sp2-acceptance/reports.json
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          identity = json.loads(Path(".sp3-browser-dist/source-commit.json").read_text(encoding="utf-8"))
+          assert identity == {
+              "repository": "FAROTECH/orbitfabric-studio",
+              "pull_request": 348,
+              "branch": "feature/sp3-evidence-replay",
+              "commit_sha": os.environ["EXPECTED_HEAD_SHA"],
+          }
+          PY
+          grep -q '/orbitfabric-studio/assets/' .sp3-browser-dist/tools/test/scenario-browser/index.html
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .sp3-browser-dist
+
+  deploy:
+    name: Deploy exact SP3 acceptance preview
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy static acceptance artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

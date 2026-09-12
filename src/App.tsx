@@ -21,6 +21,15 @@ import { ScenarioHydrator } from "./convergence/ScenarioHydrator";
 import { requestScenario } from "./convergence/requestScenario";
 import { buildScenarioUnderstanding } from "./convergence/scenarioUnderstanding";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
+import { buildEvidenceUnderstanding } from "./convergence/evidenceUnderstanding";
+import { IntegrationResultHydrator, IntegrationResultConsistencyError, IntegrationResultProtocolError } from "./convergence/IntegrationResultHydrator";
+import { TauriIntegrationGateway } from "./integrations/TauriIntegrationGateway";
+import { parseIntegrationResult } from "./integrations/result";
+import { EvidenceManifestHydrator, EvidenceManifestProtocolError } from "./convergence/EvidenceManifestHydrator";
+import { TauriEvidenceGateway } from "./convergence/TauriEvidenceGateway";
+import { sha256Utf8 } from "./integrations/sha256";
+import { ReplayRequestGuard } from "./convergence/replayRequestGuard";
+import { EvidenceReplayWorkspace } from "./features/evidence/EvidenceReplayWorkspace";
 
 const CORE_EXECUTABLE_KEY = "orbitfabric-studio.core-executable";
 const RECENT_MISSIONS_KEY = "orbitfabric-studio.recent-missions";
@@ -37,6 +46,68 @@ function App() {
   const [scenarioPickerFailure, setScenarioPickerFailure] = useState<string | null>(null);
   const scenarioHydrator = useMemo(() => new ScenarioHydrator(new TauriCoreGateway()), []);
   const scenarioModel = useMemo(() => buildScenarioUnderstanding(state.scenario), [state.scenario]);
+  const evidenceModel = useMemo(() => buildEvidenceUnderstanding(state.scenario, state.integration, state.evidence), [state.scenario, state.integration, state.evidence]);
+  const integrationGateway = useMemo(() => new TauriIntegrationGateway(), []);
+  const integrationHydrator = useMemo(() => new IntegrationResultHydrator(integrationGateway), [integrationGateway]);
+  const evidenceHydrator = useMemo(() => new EvidenceManifestHydrator(new TauriEvidenceGateway()), []);
+  const [evidenceBusy, setEvidenceBusy] = useState<string | null>(null);
+  const [evidenceFailure, setEvidenceFailure] = useState<string | null>(null);
+  const replayGuard = useRef(new ReplayRequestGuard());
+  const replayMembership = useRef(state.activeSession);
+  replayMembership.current = state.opening ? null : state.activeSession;
+
+  async function chooseReplayResult() {
+    if (!state.activeSession || state.opening) return;
+    const ticket = { membership: { sessionId: state.activeSession.sessionId, generation: state.activeSession.generation }, requestToken: createRequestId(state.activeSession.generation) };
+    replayGuard.current.begin(ticket);
+    const current = () => replayGuard.current.accepts(ticket, replayMembership.current);
+    setEvidenceBusy("result"); setEvidenceFailure(null);
+    try {
+      const selected = await open({ multiple: false, directory: false, title: "Load exact Integration Result", filters: [{ name: "Integration Result", extensions: ["json"] }] });
+      if (!current() || typeof selected !== "string") return;
+      const previewBytes = (await integrationGateway.readResultBundle(selected)).resultText;
+      const preview = parseIntegrationResult(previewBytes);
+      const expectedResultSha256 = await sha256Utf8(previewBytes);
+      if (!current()) return;
+      const request = {
+        ...ticket,
+        expectedResultSha256,
+        context: { integrationId: preview.integration.id, adapterId: preview.adapter.id, adapterVersion: preview.adapter.version, operationId: preview.operation.id },
+        resultPath: selected,
+      };
+      dispatch({ type: "INTEGRATION_RESULT_REQUESTED", request });
+      try {
+        const observation = await integrationHydrator.hydrate(request);
+        dispatch({ type: "INTEGRATION_RESULT_READY", request, observation });
+      } catch (error) {
+        const failure = { class: error instanceof IntegrationResultProtocolError ? "protocol" as const : error instanceof IntegrationResultConsistencyError ? "consistency" as const : "transport" as const, message: errorMessage(error) };
+        dispatch({ type: "INTEGRATION_RESULT_HYDRATION_FAILED", request, failure });
+        throw error;
+      }
+    } catch (error) { if (current()) setEvidenceFailure(errorMessage(error)); } finally { if (current()) setEvidenceBusy(null); }
+  }
+
+  async function chooseEvidenceSet() {
+    if (!state.activeSession || state.opening) return;
+    const ticket = { membership: { sessionId: state.activeSession.sessionId, generation: state.activeSession.generation }, requestToken: createRequestId(state.activeSession.generation) };
+    replayGuard.current.begin(ticket);
+    const current = () => replayGuard.current.accepts(ticket, replayMembership.current);
+    setEvidenceBusy("evidence"); setEvidenceFailure(null);
+    try {
+      const selected = await open({ multiple: false, directory: false, title: "Load retained Evidence Set", filters: [{ name: "Evidence Set", extensions: ["json"] }] });
+      if (!current() || typeof selected !== "string") return;
+      const request = { ...ticket, targetPath: selected, mode: "replace" as const };
+      dispatch({ type: "EVIDENCE_SET_REQUESTED", request });
+      try {
+      const observation = await evidenceHydrator.hydrate(request);
+      dispatch({ type: "EVIDENCE_SET_READY", request, observation });
+      } catch (error) {
+        dispatch({ type: "EVIDENCE_SET_HYDRATION_FAILED", request, failure: { class: error instanceof EvidenceManifestProtocolError ? "protocol" : "transport", message: errorMessage(error) } });
+        throw error;
+      }
+    } catch (error) { if (current()) setEvidenceFailure(errorMessage(error)); }
+    finally { if (current()) setEvidenceBusy(null); }
+  }
 
   async function chooseScenario() {
     const capturedSession = state.activeSession;
@@ -83,6 +154,9 @@ function App() {
   }
 
   async function beginOpen(selectedPath: string, isRefresh: boolean) {
+    replayGuard.current.invalidate();
+    setEvidenceBusy(null);
+    setEvidenceFailure(null);
     setValidationOpen(false);
     setScenarioPickerFailure(null);
     const generation = ++generationRef.current;
@@ -201,7 +275,7 @@ function App() {
   const mission = session.snapshot.mission;
   const isOpeningReplacement = state.opening !== null;
   const selectedEntity = state.selection.subject;
-  const supportsXRay = state.view !== "operations" && state.view !== "integrations";
+  const supportsXRay = state.view !== "operations" && state.view !== "integrations" && state.view !== "evidence";
 
   return (
     <main className="studio-shell">
@@ -266,6 +340,10 @@ function App() {
           >
             Integrations
           </button>
+          <button type="button" className={state.view === "evidence" ? "is-active" : ""}
+            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "evidence" })}>
+            Evidence
+          </button>
         </nav>
 
         <div className="topbar-actions">
@@ -328,7 +406,10 @@ function App() {
           className={`workspace-layout${selectedEntity && supportsXRay ? " has-xray" : ""}`}
         >
           <div className="workspace-primary">
-            {state.view === "scenarios" ? (
+            {state.view === "evidence" ? (
+              <EvidenceReplayWorkspace key={`${session.sessionId}:${session.generation}:${evidenceModel.scenario?.sha256 ?? "none"}`} model={evidenceModel} busy={state.opening ? "mission" : evidenceBusy} failure={evidenceFailure}
+                onChooseResult={chooseReplayResult} onChooseEvidence={chooseEvidenceSet} />
+            ) : state.view === "scenarios" ? (
               <ScenarioWorkspace model={scenarioModel} session={session}
                 disabled={isOpeningReplacement} pickerFailure={scenarioPickerFailure}
                 onChoose={chooseScenario} onRefresh={refreshScenario}
