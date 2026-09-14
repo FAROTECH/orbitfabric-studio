@@ -26,6 +26,12 @@ struct MissionSourceResolution {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+struct ResolvedCoreExecutable {
+    configured_executable: String,
+    resolved_executable: String,
+}
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct CoreInvocationResult {
     operation: String,
     executable: String,
@@ -70,10 +76,40 @@ fn resolve_mission_source(path: String) -> Result<MissionSourceResolution, Strin
         mission_dir: display_path(&mission),
     })
 }
+#[tauri::command]
+fn resolve_core_executable(
+    configured_executable: String,
+) -> Result<ResolvedCoreExecutable, String> {
+    let configured = configured_executable.trim();
+    if configured.is_empty() {
+        return Err("OrbitFabric executable configuration is empty.".to_string());
+    }
+
+    let resolved = resolve_core_executable_path(configured)?;
+    Ok(ResolvedCoreExecutable {
+        configured_executable: configured.to_string(),
+        resolved_executable: display_path(&resolved),
+    })
+}
 
 #[tauri::command]
 fn run_core_version(executable: String) -> Result<CoreInvocationResult, String> {
     run_core_command(executable, "version", &["--version"], None)
+}
+#[tauri::command]
+fn run_core_interface_manifest(
+    executable: String,
+    request_id: String,
+) -> Result<CoreInvocationResult, String> {
+    let report_path = request_report_path(&request_id, "core_interface.json", true)?;
+    let report_display = display_path(&report_path);
+
+    run_core_command(
+        executable,
+        "core-interface",
+        &["export", "core-interface", "--json", report_display.as_str()],
+        Some(report_path),
+    )
 }
 
 #[tauri::command]
@@ -246,6 +282,67 @@ fn clear_core_request_temp(request_id: String) -> Result<(), String> {
     Ok(())
 }
 
+fn resolve_core_executable_path(configured: &str) -> Result<PathBuf, String> {
+    let configured_path = Path::new(configured);
+    if configured_path.is_absolute() || configured.contains('/') || configured.contains('\\') {
+        return canonicalize_executable(configured_path);
+    }
+
+    let path_value = env::var_os("PATH")
+        .ok_or_else(|| "PATH is unavailable while resolving OrbitFabric Core.".to_string())?;
+    for directory in env::split_paths(&path_value) {
+        for candidate in executable_candidates(&directory, configured) {
+            if candidate.is_file() {
+                return canonicalize_executable(&candidate);
+            }
+        }
+    }
+
+    Err(format!(
+        "OrbitFabric executable '{configured}' was not found on PATH."
+    ))
+}
+
+fn canonicalize_executable(path: &Path) -> Result<PathBuf, String> {
+    if !path.is_file() {
+        return Err(format!(
+            "OrbitFabric executable is not an existing file: {}",
+            display_path(path)
+        ));
+    }
+
+    path.canonicalize().map_err(|error| {
+        format!(
+            "Unable to resolve OrbitFabric executable {}: {error}",
+            display_path(path)
+        )
+    })
+}
+
+fn executable_candidates(directory: &Path, configured: &str) -> Vec<PathBuf> {
+    let direct = directory.join(configured);
+    #[cfg(not(windows))]
+    {
+        vec![direct]
+    }
+    #[cfg(windows)]
+    {
+        if Path::new(configured).extension().is_some() {
+            return vec![direct];
+        }
+        let extensions = env::var_os("PATHEXT")
+            .and_then(|value| value.into_string().ok())
+            .unwrap_or_else(|| ".COM;.EXE;.BAT;.CMD".to_string());
+        let mut candidates = vec![direct];
+        candidates.extend(
+            extensions
+                .split(';')
+                .filter(|extension| !extension.is_empty())
+                .map(|extension| directory.join(format!("{configured}{extension}"))),
+        );
+        candidates
+    }
+}
 fn run_core_command(
     executable: String,
     operation: &str,
@@ -351,7 +448,7 @@ fn read_stream<R: Read>(mut stream: R) -> Result<Vec<u8>, String> {
 }
 
 fn core_timeout_for_operation(operation: &str) -> Duration {
-    if operation == "version" {
+    if matches!(operation, "version" | "core-interface") {
         CORE_VERSION_TIMEOUT
     } else {
         CORE_OPERATION_TIMEOUT
@@ -436,6 +533,101 @@ fn display_path(path: &Path) -> String {
 mod tests {
     use super::*;
 
+    #[test]
+    fn explicit_core_executable_resolves_to_canonical_file() {
+        let current = env::current_exe().expect("current test executable");
+        let resolved = resolve_core_executable(display_path(&current))
+            .expect("explicit executable should resolve");
+        assert_eq!(
+            PathBuf::from(resolved.resolved_executable),
+            current.canonicalize().unwrap()
+        );
+    }
+
+    #[test]
+    fn nonexistent_core_executable_fails_resolution() {
+        let error = resolve_core_executable(
+            "orbitfabric-studio-h4-nonexistent-executable".to_string(),
+        )
+        .expect_err("missing bare command must fail");
+        assert!(error.contains("was not found on PATH"));
+    }
+
+    #[test]
+    #[ignore = "requires exact historical/current Core; explicitly run by H4 CI"]
+    fn h4_core_interface_acceptance() {
+        let historical_configured = env::var("ORBITFABRIC_STUDIO_H4_HISTORICAL_CORE")
+            .expect("historical Core executable required");
+        let current_configured = env::var("ORBITFABRIC_STUDIO_H4_CURRENT_CORE")
+            .expect("current Core executable required");
+        let output = PathBuf::from(
+            env::var("ORBITFABRIC_STUDIO_H4_OUTPUT").expect("H4 output directory required"),
+        );
+        fs::create_dir_all(&output).expect("H4 output directory");
+
+        let historical = resolve_core_executable(historical_configured)
+            .expect("historical executable resolution");
+        let current = resolve_core_executable(current_configured)
+            .expect("current executable resolution");
+        let bare = resolve_core_executable("orbitfabric".to_string())
+            .expect("bare PATH command resolution");
+        assert_eq!(bare.resolved_executable, current.resolved_executable);
+
+        let historical_version = run_core_version(historical.resolved_executable.clone())
+            .expect("historical version invocation");
+        let current_version = run_core_version(current.resolved_executable.clone())
+            .expect("current version invocation");
+        assert_eq!(historical_version.stdout.trim(), "orbitfabric 1.3.0");
+        assert_eq!(current_version.stdout.trim(), "orbitfabric 1.3.0");
+
+        let historical_interface = run_core_interface_manifest(
+            historical.resolved_executable.clone(),
+            "h4-historical".to_string(),
+        )
+        .expect("historical interface invocation transport");
+        assert_ne!(historical_interface.exit_code, Some(0));
+        assert!(historical_interface.report_text.is_none());
+
+        let current_interface = run_core_interface_manifest(
+            current.resolved_executable.clone(),
+            "h4-current".to_string(),
+        )
+        .expect("current interface invocation");
+        assert_eq!(current_interface.exit_code, Some(0));
+        let manifest: serde_json::Value = serde_json::from_str(
+            current_interface.report_text.as_ref().expect("current manifest"),
+        )
+        .expect("valid current manifest JSON");
+        assert_eq!(manifest["kind"], "orbitfabric.core_interface");
+        assert_eq!(manifest["interface_version"], "0.1-candidate");
+        assert_eq!(manifest["orbitfabric_version"], "1.3.0");
+        assert!(manifest["capabilities"].as_array().unwrap().iter().any(|item| {
+            item["id"] == "scenario_declaration"
+                && item["contract_kind"] == "orbitfabric.scenario_declaration"
+                && item["contract_version"] == "0.1-candidate"
+        }));
+
+        let evidence = serde_json::json!({
+            "historical": {
+                "resolution": historical,
+                "version": historical_version,
+                "interface": historical_interface,
+            },
+            "current": {
+                "resolution": current,
+                "bareResolution": bare,
+                "version": current_version,
+                "interface": current_interface,
+            },
+        });
+        fs::write(
+            output.join("core-compatibility.json"),
+            serde_json::to_vec_pretty(&evidence).unwrap(),
+        )
+        .expect("write H4 evidence");
+        clear_core_request_temp("h4-historical".to_string()).unwrap();
+        clear_core_request_temp("h4-current".to_string()).unwrap();
+    }
     #[test]
     #[ignore = "requires pinned Core and Reference Mission; explicitly run by SP2 CI"]
     fn scenario_r1_acceptance_through_native_command() {
@@ -543,7 +735,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             resolve_mission_source,
+            resolve_core_executable,
             run_core_version,
+            run_core_interface_manifest,
             run_core_export_mission_snapshot,
             run_core_export_entity_index,
             run_core_export_relationship_manifest,
