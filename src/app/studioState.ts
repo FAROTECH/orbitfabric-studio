@@ -45,6 +45,7 @@ import {
   type ScenarioSlotState,
 } from "../convergence/scenarioSlot";
 import type {
+  CoreCompatibilityState,
   CoreDiagnosticDto,
   EntityIndexDto,
   LintReportDto,
@@ -79,6 +80,7 @@ export interface MissionOpeningState {
 export interface MissionOpenFailure {
   message: string;
   diagnostics: CoreDiagnosticDto[];
+  coreState?: CoreCompatibilityState;
 }
 
 export interface StudioState {
