@@ -1,9 +1,11 @@
 import type { CoreGateway } from "../core/CoreGateway";
 import type {
   CoreDiagnosticDto,
+  CoreProbeResult,
   EntityIndexDto,
   LintReportDto,
   MissionSnapshotDto,
+  MissionSource,
   RelationshipManifestDto,
 } from "../core/contracts";
 import { requireCoreDomain } from "../core/coreCompatibility";
@@ -42,7 +44,7 @@ export class MissionHydrator {
 
   async openPrimary(options: OpenPrimaryOptions): Promise<MissionSession> {
     const executable = await this.core.resolveCoreExecutable(options.configuredExecutable);
-    let probe;
+    let probe: CoreProbeResult;
     try {
       probe = await this.core.probeCore(executable, options.requestId);
       requireCoreDomain(probe.compatibility, "primary");
@@ -51,8 +53,14 @@ export class MissionHydrator {
       throw error;
     }
 
-    const source = await this.core.resolveMissionSource(options.selectedPath);
-    let snapshotResult;
+    let source: MissionSource;
+    try {
+      source = await this.core.resolveMissionSource(options.selectedPath);
+    } catch (error) {
+      await this.clearRequestTempBestEffort(options.requestId);
+      throw error;
+    }
+    let snapshotResult: Awaited<ReturnType<CoreGateway["exportMissionSnapshot"]>>;
     try {
       snapshotResult = await this.core.exportMissionSnapshot(
         probe.resolvedExecutable,
