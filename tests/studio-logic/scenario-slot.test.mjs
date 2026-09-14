@@ -89,7 +89,7 @@ function missionSession(sessionId = "session-1", generation = 1) {
     sessionId,
     generation,
     source: { selectedPath: "/tmp", missionDir: "/tmp/mission" },
-    core: { executable: "orbitfabric", orbitfabricVersion: "1.3.0", versionText: "orbitfabric 1.3.0" },
+    core: { resolvedExecutable: "/resolved/orbitfabric", compatibility: { domains: { scenarios: { state: "compatible" } } } },
     snapshot: {
       kind: "orbitfabric.mission_snapshot",
       snapshot_version: "0.1-candidate",
