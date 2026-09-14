@@ -20,10 +20,84 @@ export interface CoreInvocationResult {
   reportText: string | null;
 }
 
-export interface CoreProbeResult {
-  executable: string;
-  versionText: string;
-  orbitfabricVersion: string | null;
+export interface CoreExecutableResolution {
+  configuredExecutable: string;
+  resolvedExecutable: string;
+}
+
+export interface CoreCapabilityDeclaration {
+  id: string;
+  contract_kind: string;
+  contract_version: string;
+}
+
+export interface CoreInterfaceManifest {
+  kind: "orbitfabric.core_interface";
+  interface_version: "0.1-candidate";
+  orbitfabric_version: string;
+  interface_sha256: string;
+  capabilities: CoreCapabilityDeclaration[];
+}
+
+export type StudioCoreCapabilityDomain =
+  | "primary"
+  | "entities"
+  | "relationships"
+  | "scenarios"
+  | "integrations";
+
+export interface StudioCoreCapabilityRequirement {
+  domain: StudioCoreCapabilityDomain;
+  id: string;
+  contractKind: string;
+  contractVersion: string;
+}
+
+export type CoreCompatibilityFindingReason =
+  | "missing_capability"
+  | "contract_kind_mismatch"
+  | "contract_version_mismatch";
+
+export interface CoreCompatibilityFinding {
+  domain: StudioCoreCapabilityDomain;
+  capabilityId: string;
+  reason: CoreCompatibilityFindingReason;
+  requiredContractKind: string;
+  requiredContractVersion: string;
+  declaredContractKind: string | null;
+  declaredContractVersion: string | null;
+}
+
+export interface CoreDomainCompatibility {
+  state: "compatible" | "known_incompatible";
+  requirements: StudioCoreCapabilityRequirement[];
+  findings: CoreCompatibilityFinding[];
+}
+
+export interface CoreCompatibilityAssessment {
+  state: "compatible" | "known_incompatible";
+  domains: Record<StudioCoreCapabilityDomain, CoreDomainCompatibility>;
+  findings: CoreCompatibilityFinding[];
+}
+
+export type CoreCompatibilityState =
+  | "executable_unavailable"
+  | "invocation_failed"
+  | "compatibility_protocol_failed"
+  | "version_unavailable"
+  | "interface_identity_unavailable"
+  | "compatibility_response_malformed"
+  | "known_incompatible"
+  | "compatible"
+  | "configuration_changed";
+
+export interface CoreProbeResult extends CoreExecutableResolution {
+  orbitfabricVersion: string;
+  interfaceVersion: string;
+  interfaceSha256: string;
+  capabilities: CoreCapabilityDeclaration[];
+  manifest: CoreInterfaceManifest;
+  compatibility: CoreCompatibilityAssessment;
 }
 
 export interface MissionIdentityDto {
