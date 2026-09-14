@@ -295,6 +295,36 @@ test("complete coverage accounting can contain not_projected entities", () => {
   assert.deepEqual(parsed.coverage.summary, { projected: 1, not_projected: 1 });
 });
 
+test("classifies generated artifact availability and digest findings independently", () => {
+  const parsed = parseIntegrationResult(JSON.stringify(resultFixture()));
+  const findingCodes = (check) => validateIntegrationResult(parsed, {
+    resultPath: "/tmp/result/integration_result.json",
+    resultText: JSON.stringify(resultFixture()),
+    artifactChecks: [{
+      artifactId: "artifact.contract",
+      path: "artifacts/contract.h",
+      ...check,
+    }],
+  }).issues.map((issue) => issue.code);
+
+  assert.deepEqual(
+    findingCodes({ contained: true, exists: false, sha256Matches: false }),
+    ["artifact.missing"],
+  );
+  assert.deepEqual(
+    findingCodes({ contained: true, exists: true, sha256Matches: false }),
+    ["artifact.digest"],
+  );
+  assert.deepEqual(
+    findingCodes({ contained: true, exists: true, sha256Matches: true }),
+    [],
+  );
+  assert.deepEqual(
+    findingCodes({ contained: false, exists: false, sha256Matches: false }),
+    ["artifact.path_escape", "artifact.missing"],
+  );
+});
+
 test("accepts explicit empty operation-input provenance only in vNext Result", () => {
   const next = resultFixture();
   next.result_version = "0.2-candidate";

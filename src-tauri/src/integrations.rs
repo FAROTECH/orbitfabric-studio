@@ -355,6 +355,29 @@ mod tests {
     }
 
     #[test]
+    fn result_reader_reports_missing_generated_artifact() {
+        let root = temp_dir("missing");
+        let result_path = root.join("integration_result.json");
+        let result = serde_json::json!({
+            "artifacts": [{
+                "id": "artifact.test",
+                "status": "generated",
+                "path": "artifacts/missing.txt",
+                "sha256": "deadbeef"
+            }]
+        });
+        fs::write(&result_path, serde_json::to_vec(&result).unwrap()).unwrap();
+
+        let read = read_integration_result_bundle(display_path(&result_path)).unwrap();
+        let check = &read.artifact_checks[0];
+        assert_eq!(check.contained, Some(true));
+        assert_eq!(check.exists, Some(false));
+        assert_eq!(check.sha256_matches, Some(false));
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
     fn result_reader_reports_bundle_path_escape_without_reading_it() {
         let root = temp_dir("escape");
         let result_path = root.join("integration_result.json");
