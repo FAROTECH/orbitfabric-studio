@@ -6,6 +6,7 @@ import type {
   MissionSnapshotDto,
   RelationshipManifestDto,
 } from "../core/contracts";
+import { requireCoreDomain } from "../core/coreCompatibility";
 import { entityKey } from "./entityRef";
 import {
   buildMissionReadModel,
@@ -31,7 +32,7 @@ export class SecondarySurfaceConsistencyError extends Error {
 
 export interface OpenPrimaryOptions {
   selectedPath: string;
-  executable: string;
+  configuredExecutable: string;
   requestId: string;
   generation: number;
 }
@@ -40,13 +41,21 @@ export class MissionHydrator {
   constructor(private readonly core: CoreGateway) {}
 
   async openPrimary(options: OpenPrimaryOptions): Promise<MissionSession> {
-    const source = await this.core.resolveMissionSource(options.selectedPath);
-    const probe = await this.core.probeCore(options.executable);
+    const executable = await this.core.resolveCoreExecutable(options.configuredExecutable);
+    let probe;
+    try {
+      probe = await this.core.probeCore(executable, options.requestId);
+      requireCoreDomain(probe.compatibility, "primary");
+    } catch (error) {
+      await this.clearRequestTempBestEffort(options.requestId);
+      throw error;
+    }
 
+    const source = await this.core.resolveMissionSource(options.selectedPath);
     let snapshotResult;
     try {
       snapshotResult = await this.core.exportMissionSnapshot(
-        options.executable,
+        probe.resolvedExecutable,
         source,
         options.requestId,
       );
@@ -73,10 +82,13 @@ export class MissionHydrator {
       generation: options.generation,
       source,
       core: {
-        executable: options.executable,
-        orbitfabricVersion:
-          probe.orbitfabricVersion ?? snapshot.orbitfabric_version,
-        versionText: probe.versionText,
+        configuredExecutable: probe.configuredExecutable,
+        resolvedExecutable: probe.resolvedExecutable,
+        orbitfabricVersion: probe.orbitfabricVersion,
+        interfaceVersion: probe.interfaceVersion,
+        interfaceSha256: probe.interfaceSha256,
+        capabilities: probe.capabilities,
+        compatibility: probe.compatibility,
       },
       snapshot,
       entityIndex: null,
@@ -95,8 +107,9 @@ export class MissionHydrator {
   }
 
   async hydrateEntityIndex(session: MissionSession): Promise<EntityIndexDto> {
+    requireCoreDomain(session.core.compatibility, "entities");
     const result = await this.core.exportEntityIndex(
-      session.core.executable,
+      session.core.resolvedExecutable,
       session.source,
       session.sessionId,
     );
@@ -108,8 +121,9 @@ export class MissionHydrator {
     session: MissionSession,
     entityIndex: EntityIndexDto,
   ): Promise<RelationshipManifestDto> {
+    requireCoreDomain(session.core.compatibility, "relationships");
     const result = await this.core.exportRelationships(
-      session.core.executable,
+      session.core.resolvedExecutable,
       session.source,
       session.sessionId,
     );
@@ -128,7 +142,7 @@ export class MissionHydrator {
 
   async hydrateLint(session: MissionSession): Promise<LintReportDto> {
     const result = await this.core.lintMission(
-      session.core.executable,
+      session.core.resolvedExecutable,
       session.source,
       session.sessionId,
     );
