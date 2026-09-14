@@ -24,6 +24,10 @@ test("native R1 invocations traverse the actual gateway, hydrators, reducer and 
   global.window = {};
   mockIPC((command, args) => {
     calls.push({ command, args });
+    if (command === "resolve_core_executable") return {
+      configuredExecutable: args.configuredExecutable,
+      resolvedExecutable: "/resolved/orbitfabric",
+    };
     if (command === "resolve_mission_source") return { selectedPath: reports.missionPath, missionDir: reports.missionPath };
     if (command === "clear_core_request_temp") return null;
     if (command === "run_core_export_scenario_declaration") return scenarioResponse;
@@ -33,7 +37,7 @@ test("native R1 invocations traverse the actual gateway, hydrators, reducer and 
   try {
     const core = new TauriCoreGateway();
     const missionHydrator = new MissionHydrator(core);
-    const session = await missionHydrator.openPrimary({ selectedPath: reports.missionPath, executable: "orbitfabric", requestId: "r1-native", generation: 1 });
+    const session = await missionHydrator.openPrimary({ selectedPath: reports.missionPath, configuredExecutable: "orbitfabric", requestId: "r1-native", generation: 1 });
     let state = initialStudioState;
     const dispatch = action => { state = studioReducer(state, action); };
     dispatch({ type: "MISSION_OPEN_REQUESTED", opening: { requestId: session.sessionId, generation: 1 } });
