@@ -92,6 +92,7 @@ function MissionOpenFailureView({ failure }: { failure: MissionOpenFailure }) {
   return (
     <section className="open-failure" aria-live="polite">
       <strong>Mission could not be opened</strong>
+      {failure.coreState ? <code>{failure.coreState}</code> : null}
       <p>{failure.message}</p>
       {failure.diagnostics.length > 0 ? (
         <ul>
