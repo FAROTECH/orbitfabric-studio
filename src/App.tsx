@@ -7,10 +7,16 @@ import {
   type MissionOpenFailure,
 } from "./app/studioState";
 import { TauriCoreGateway } from "./core/TauriCoreGateway";
+import {
+  CORE_EXECUTABLE_STORAGE_KEY,
+  CoreCompatibilityError,
+  normalizeCoreExecutable,
+} from "./core/coreCompatibility";
 import { MissionAtlas } from "./features/atlas/MissionAtlas";
 import { SurfaceCaptureButton } from "./features/capture/SurfaceCaptureButton";
 import { EntityExplorer } from "./features/explorer/EntityExplorer";
 import { IntegrationsWorkspace } from "./features/integrations/IntegrationsWorkspace";
+import { CoreProvenance } from "./features/core/CoreProvenance";
 import { MissionLauncher } from "./features/launcher/MissionLauncher";
 import { OperationsWorkspace } from "./features/operations/OperationsWorkspace";
 import { RelationsWorkspace } from "./features/relationships/RelationsWorkspace";
@@ -31,14 +37,13 @@ import { sha256Utf8 } from "./integrations/sha256";
 import { ReplayRequestGuard } from "./convergence/replayRequestGuard";
 import { EvidenceReplayWorkspace } from "./features/evidence/EvidenceReplayWorkspace";
 
-const CORE_EXECUTABLE_KEY = "orbitfabric-studio.core-executable";
 const RECENT_MISSIONS_KEY = "orbitfabric-studio.recent-missions";
 const MAX_RECENTS = 8;
 
 function App() {
   const [state, dispatch] = useReducer(studioReducer, initialStudioState);
   const [coreExecutable, setCoreExecutableState] = useState(() =>
-    localStorage.getItem(CORE_EXECUTABLE_KEY) ?? "orbitfabric",
+    localStorage.getItem(CORE_EXECUTABLE_STORAGE_KEY) ?? "orbitfabric",
   );
   const [recentMissions, setRecentMissions] = useState<string[]>(loadRecentMissions);
   const [validationOpen, setValidationOpen] = useState(false);
@@ -136,7 +141,7 @@ function App() {
 
   function setCoreExecutable(value: string) {
     setCoreExecutableState(value);
-    localStorage.setItem(CORE_EXECUTABLE_KEY, value);
+    localStorage.setItem(CORE_EXECUTABLE_STORAGE_KEY, value);
   }
 
   async function chooseAndOpenMission() {
@@ -175,7 +180,7 @@ function App() {
     try {
       const primary = await hydrator.openPrimary({
         selectedPath,
-        executable: coreExecutable.trim() || "orbitfabric",
+        configuredExecutable: normalizeCoreExecutable(coreExecutable),
         requestId,
         generation,
       });
@@ -347,9 +352,11 @@ function App() {
         </nav>
 
         <div className="topbar-actions">
-          <span className="core-version" title={session.core.versionText}>
-            Core {session.core.orbitfabricVersion ?? "connected"}
-          </span>
+          <CoreProvenance
+            session={session}
+            configuredExecutable={coreExecutable}
+            onConfiguredExecutableChange={setCoreExecutable}
+          />
           <SurfaceCaptureButton
             missionId={mission?.id ?? "mission"}
             view={state.view}
@@ -539,6 +546,7 @@ function openFailure(error: unknown): MissionOpenFailure {
   return {
     message: errorMessage(error),
     diagnostics: [],
+    coreState: error instanceof CoreCompatibilityError ? error.state : undefined,
   };
 }
 
