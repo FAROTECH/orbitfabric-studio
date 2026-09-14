@@ -1,4 +1,5 @@
 import type { StudioAction } from "../app/studioState";
+import { CoreCompatibilityError } from "../core/coreCompatibility";
 import { MalformedCoreSurfaceError, UnsupportedCoreSurfaceError } from "../core/surfaceValidation";
 import type { MissionSession } from "../mission/MissionSession";
 import { ScenarioConsistencyError, type ScenarioHydrator } from "./ScenarioHydrator";
@@ -24,7 +25,9 @@ export async function requestScenario(
   } catch (error) {
     dispatch({ type: "SCENARIO_HYDRATION_FAILED", request, failure: {
       class: error instanceof ScenarioConsistencyError ? "consistency"
-        : error instanceof MalformedCoreSurfaceError || error instanceof UnsupportedCoreSurfaceError
+        : error instanceof CoreCompatibilityError ||
+            error instanceof MalformedCoreSurfaceError ||
+            error instanceof UnsupportedCoreSurfaceError
           ? "protocol" : "transport",
       message: error instanceof Error ? error.message : String(error),
     } });
