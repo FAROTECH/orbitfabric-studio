@@ -578,7 +578,12 @@ export function validateIntegrationResult(
           message: `Generated artifact ${artifactValue.id} is missing from the bundle.`,
         });
       }
-      if (check.sha256Matches !== true) {
+      if (
+        check.contained === true &&
+        check.exists === true &&
+        artifactValue.sha256 !== null &&
+        check.sha256Matches === false
+      ) {
         issues.push({
           code: "artifact.digest",
           message: `Generated artifact ${artifactValue.id} does not match its declared SHA-256.`,
