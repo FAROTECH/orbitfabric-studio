@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
 
@@ -84,6 +85,11 @@ settings: {}
 bindings: []
 `;
 
+const FPRIME_FIXTURE_ROOT = new URL("../fixtures/h1-fprime-profile-0.1.1/", import.meta.url);
+const FPRIME_PACKAGE = readFileSync(new URL("integration_package.json", FPRIME_FIXTURE_ROOT), "utf8");
+const FPRIME_SCHEMA = readFileSync(new URL("schemas/profile-0.1.schema.json", FPRIME_FIXTURE_ROOT), "utf8");
+const FPRIME_PROFILE = readFileSync(new URL("profile.yaml", FPRIME_FIXTURE_ROOT), "utf8");
+
 function descriptor() {
   return parseIntegrationPackageManifest("/tmp/package/integration_package.json", JSON.stringify(PACKAGE));
 }
@@ -119,6 +125,23 @@ async function validateWithSchema(schemaText) {
   }, profile);
 }
 
+async function validateRealFprimeProfile(profileText = FPRIME_PROFILE) {
+  const packagePath = "/pinned/fprime-0.1.1/integration_package.json";
+  const descriptor = parseIntegrationPackageManifest(packagePath, FPRIME_PACKAGE);
+  const profile = parseProjectionProfile(
+    "/pinned/reference-mission/profiles/fprime.yaml",
+    await sha256Utf8(profileText),
+    profileText,
+  );
+  return validateProjectionProfile(descriptor, {
+    path: "/pinned/fprime-0.1.1/schemas/profile-0.1.schema.json",
+    text: FPRIME_SCHEMA,
+    sha256: await sha256Utf8(FPRIME_SCHEMA),
+    contained: true,
+    sha256Matches: true,
+  }, profile);
+}
+
 test("parses YAML 1.2 Profile and validates it with the package JSON Schema", async () => {
   const validation = await validateWithSchema(SCHEMA);
   assert.equal(validation.valid, true, validation.errors.join("\n"));
@@ -131,6 +154,45 @@ test("parses YAML 1.2 Profile and validates it with the package JSON Schema", as
 test("accepts Draft 2020-12 composed schemas without imposing AJV strictTypes authoring style", async () => {
   const validation = await validateWithSchema(COMPOSED_SCHEMA);
   assert.equal(validation.valid, true, validation.errors.join("\n"));
+});
+
+test("accepts the exact published F Prime 0.1.1 schema and Reference Mission Profile", async () => {
+  const validation = await validateRealFprimeProfile();
+  assert.equal(validation.valid, true, validation.errors.join("\n"));
+});
+
+test("the real F Prime schema still rejects independent Profile contract violations", async (t) => {
+  const cases = [
+    {
+      name: "missing required telemetry limit",
+      profile: FPRIME_PROFILE.replace("    warning: yellow\n", ""),
+      error: /required property 'warning'/,
+    },
+    {
+      name: "forbidden additional property",
+      profile: `${FPRIME_PROFILE}unexpected: true\n`,
+      error: /additional properties/,
+    },
+    {
+      name: "invalid constrained telemetry limit",
+      profile: FPRIME_PROFILE.replace("    critical: red\n", "    critical: purple\n"),
+      error: /equal to one of the allowed values/,
+    },
+    {
+      name: "source domain does not match command binding kind",
+      profile: FPRIME_PROFILE.replace("      - domain: commands\n", "      - domain: telemetry\n"),
+      error: /equal to constant|exactly one schema in oneOf/,
+    },
+  ];
+
+  for (const item of cases) {
+    await t.test(item.name, async () => {
+      assert.notEqual(item.profile, FPRIME_PROFILE);
+      const validation = await validateRealFprimeProfile(item.profile);
+      assert.equal(validation.valid, false);
+      assert.match(validation.errors.join("\n"), item.error);
+    });
+  }
 });
 
 test("rejects duplicate YAML keys instead of silently accepting authored ambiguity", async () => {
