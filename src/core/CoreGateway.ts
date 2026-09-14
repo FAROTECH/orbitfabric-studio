@@ -1,5 +1,6 @@
 import type { ScenarioDeclaration } from "../convergence/consumer-contracts";
 import type {
+  CoreExecutableResolution,
   CoreInvocationResult,
   CoreProbeResult,
   EntityIndexDto,
@@ -23,7 +24,12 @@ export interface CoreIntegrationInputExport {
 export interface CoreGateway {
   resolveMissionSource(selectedPath: string): Promise<MissionSource>;
 
-  probeCore(executable: string): Promise<CoreProbeResult>;
+  resolveCoreExecutable(configuredExecutable: string): Promise<CoreExecutableResolution>;
+
+  probeCore(
+    executable: CoreExecutableResolution,
+    requestId: string,
+  ): Promise<CoreProbeResult>;
 
   exportMissionSnapshot(
     executable: string,
