@@ -14,6 +14,7 @@ mission = root / "mission"
 scenario = root / "scenarios/payload_stop_acquisition_verification.yaml"
 commands = {
     "run_core_version": ["--version"],
+    "run_core_interface_manifest": ["export", "core-interface"],
     "run_core_export_mission_snapshot": ["export", "mission-snapshot", str(mission)],
     "run_core_export_entity_index": ["export", "entity-index", str(mission)],
     "run_core_export_relationship_manifest": ["export", "relationship-manifest", str(mission)],
