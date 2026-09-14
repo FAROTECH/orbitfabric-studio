@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import { TauriCoreGateway } from "../../core/TauriCoreGateway";
+import { requireCoreDomain } from "../../core/coreCompatibility";
 import type { MissionSession } from "../../mission/MissionSession";
 import type { EntityRef } from "../../mission/entityRef";
 import { createBundledIntegrationPluginRegistry } from "../../integrations/bundled-plugin-registry";
@@ -203,9 +204,10 @@ export function IntegrationsWorkspace({
     setBusy("input");
     setError(null);
     try {
+      requireCoreDomain(session.core.compatibility, "integrations");
       const requestId = createRequestId("integration-input");
       const exported = await coreGateway.exportIntegrationInputSet(
-        session.core.executable,
+        session.core.resolvedExecutable,
         session.source,
         requestId,
       );
