@@ -13,7 +13,7 @@ const { buildScenarioUnderstanding } = require("../../.test-dist/convergence/sce
 const wire = JSON.parse(readFileSync("tests/fixtures/convergence/r1-scenario-declaration.json", "utf8"));
 const declaration = consumeScenarioReport(JSON.stringify(wire));
 function session(generation = 1) {
-  return { sessionId: `mission-${generation}`, generation, core: { executable: "orbitfabric" },
+  return { sessionId: `mission-${generation}`, generation, core: { resolvedExecutable: "/resolved/orbitfabric", compatibility: { domains: { scenarios: { state: "compatible" } } } },
     snapshot: { mission: { id: wire.mission.id, model_version: wire.mission.model_version }, model: null },
     readModel: emptyMissionReadModel() };
 }

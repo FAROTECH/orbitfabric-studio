@@ -32,6 +32,7 @@ try {
 
   const tests = [
     "tests/studio-logic/entity-ref.test.mjs",
+    "tests/studio-logic/core-compatibility.test.mjs",
     "tests/studio-logic/context-graph.test.mjs",
     "tests/studio-logic/context-map-evidence.test.mjs",
     "tests/studio-logic/studio-state.test.mjs",
@@ -60,6 +61,10 @@ try {
     "tests/studio-logic/adapter-lifecycle-exit-code.test.mjs",
     "tests/studio-logic/session-spine-acceptance.test.mjs",
   ];
+
+  if (process.env.ORBITFABRIC_STUDIO_H4_OUTPUT) {
+    tests.push("tests/studio-logic/core-compatibility-native.test.mjs");
+  }
 
   if (process.env.ORBITFABRIC_STUDIO_CORE_SURFACES) {
     tests.push("tests/studio-logic/context-map-core-regression.test.mjs");

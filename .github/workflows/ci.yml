@@ -68,11 +68,11 @@ jobs:
       - name: Cargo test
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml
 
-      - name: Checkout SP2 pinned Core
+      - name: Checkout accepted H4 Core
         uses: actions/checkout@v4
         with:
           repository: FAROTECH/orbitfabric
-          ref: 760f364875515c4f4ac0675b5545a2ee0ebc22ad
+          ref: 55b94665a76865b9d4f49861b2e3ec6ae93c3dea
           path: scenario-core
 
       - name: Checkout SP2 pinned Reference Mission
@@ -87,7 +87,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install SP2 pinned Core without adapters
+      - name: Install accepted H4 Core without adapters
         run: python -m pip install -e ./scenario-core
 
       - name: R1 through the native Scenario command
@@ -117,6 +117,41 @@ jobs:
             .sp2-acceptance/native/native-loaded.json
             .sp2-acceptance/native/native-failed.json
 
+      - name: Checkout historical public Core v1.3.0
+        uses: actions/checkout@v4
+        with:
+          repository: FAROTECH/orbitfabric
+          ref: a25917e81c90396df2b189834e83cf852fa4da5f
+          path: historical-core
+
+      - name: Install exact H4 comparison executables
+        run: |
+          python -m venv /tmp/orbitfabric-studio-h4-current
+          python -m venv /tmp/orbitfabric-studio-h4-historical
+          /tmp/orbitfabric-studio-h4-current/bin/python -m pip install ./scenario-core
+          /tmp/orbitfabric-studio-h4-historical/bin/python -m pip install ./historical-core
+
+      - name: Native same-version different-interface acceptance
+        env:
+          ORBITFABRIC_STUDIO_H4_CURRENT_CORE: /tmp/orbitfabric-studio-h4-current/bin/orbitfabric
+          ORBITFABRIC_STUDIO_H4_HISTORICAL_CORE: /tmp/orbitfabric-studio-h4-historical/bin/orbitfabric
+          ORBITFABRIC_STUDIO_H4_OUTPUT: ${{ github.workspace }}/.h4-acceptance
+        run: |
+          export PATH="/tmp/orbitfabric-studio-h4-current/bin:$PATH"
+          cargo test --locked --manifest-path src-tauri/Cargo.toml \
+            h4_core_interface_acceptance -- --ignored --nocapture
+
+      - name: Studio compatibility negotiation against exact Core revisions
+        env:
+          ORBITFABRIC_STUDIO_H4_OUTPUT: ${{ github.workspace }}/.h4-acceptance
+        run: npm run test:logic
+
+      - name: Retain H4 Core compatibility evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: h4-core-compatibility-acceptance
+          include-hidden-files: true
+          path: .h4-acceptance/core-compatibility.json
       - name: Cargo check
         run: cargo check --locked --manifest-path src-tauri/Cargo.toml
 

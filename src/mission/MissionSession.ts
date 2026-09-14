@@ -1,4 +1,6 @@
 import type {
+  CoreCapabilityDeclaration,
+  CoreCompatibilityAssessment,
   EntityIndexDto,
   EntityIndexRecordDto,
   LintReportDto,
@@ -25,9 +27,13 @@ export interface SecondaryHydrationFailure {
 }
 
 export interface CoreSessionInfo {
-  executable: string;
-  orbitfabricVersion: string | null;
-  versionText: string;
+  configuredExecutable: string;
+  resolvedExecutable: string;
+  orbitfabricVersion: string;
+  interfaceVersion: string;
+  interfaceSha256: string;
+  capabilities: CoreCapabilityDeclaration[];
+  compatibility: CoreCompatibilityAssessment;
 }
 
 export interface MissionReadModel {

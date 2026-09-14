@@ -7,6 +7,7 @@ import type {
   CoreSurfaceResult,
 } from "./CoreGateway";
 import type {
+  CoreExecutableResolution,
   CoreInvocationResult,
   CoreProbeResult,
   EntityIndexDto,
@@ -21,6 +22,11 @@ import {
   parseMissionSnapshot,
   parseRelationshipManifest,
 } from "./surfaceValidation";
+import {
+  CoreCompatibilityError,
+  evaluateCoreCompatibility,
+  parseCoreInterfaceManifest,
+} from "./coreCompatibility";
 
 interface MissionSourceResolutionDto {
   selectedPath: string;
@@ -49,25 +55,72 @@ export class TauriCoreGateway implements CoreGateway {
     };
   }
 
-  async probeCore(executable: string): Promise<CoreProbeResult> {
-    const invocation = await invoke<CoreInvocationResult>("run_core_version", {
-      executable,
-    });
+  async resolveCoreExecutable(
+    configuredExecutable: string,
+  ): Promise<CoreExecutableResolution> {
+    try {
+      return await invoke<CoreExecutableResolution>("resolve_core_executable", {
+        configuredExecutable,
+      });
+    } catch (error) {
+      throw new CoreCompatibilityError(
+        "executable_unavailable",
+        `OrbitFabric Core executable is unavailable: ${errorMessage(error)}`,
+      );
+    }
+  }
 
-    if (!invocation.processCompleted || invocation.timedOut || invocation.exitCode !== 0) {
-      throw new CoreTransportError(
-        formatInvocationFailure("Unable to start compatible OrbitFabric Core", invocation),
-        invocation,
+  async probeCore(
+    executable: CoreExecutableResolution,
+    requestId: string,
+  ): Promise<CoreProbeResult> {
+    let invocation: CoreInvocationResult;
+    try {
+      invocation = await invoke<CoreInvocationResult>("run_core_interface_manifest", {
+        executable: executable.resolvedExecutable,
+        requestId,
+      });
+    } catch (error) {
+      throw new CoreCompatibilityError(
+        "invocation_failed",
+        `Core Interface Manifest invocation failed: ${errorMessage(error)}`,
       );
     }
 
-    const versionText = invocation.stdout.trim();
-    const match = /^orbitfabric\s+([^\s]+)$/im.exec(versionText);
+    if (!invocation.processCompleted || invocation.timedOut) {
+      throw new CoreCompatibilityError(
+        "invocation_failed",
+        formatInvocationFailure(
+          "Core Interface Manifest invocation did not complete",
+          invocation,
+        ),
+      );
+    }
+    if (invocation.exitCode !== 0) {
+      throw new CoreCompatibilityError(
+        "interface_identity_unavailable",
+        formatInvocationFailure(
+          "Core executable does not expose a usable Core Interface Manifest",
+          invocation,
+        ),
+      );
+    }
+    if (invocation.reportText === null || invocation.reportText.trim().length === 0) {
+      throw new CoreCompatibilityError(
+        "interface_identity_unavailable",
+        "Core executable did not produce a Core Interface Manifest.",
+      );
+    }
 
+    const manifest = parseCoreInterfaceManifest(invocation.reportText);
     return {
-      executable,
-      versionText,
-      orbitfabricVersion: match?.[1] ?? null,
+      ...executable,
+      orbitfabricVersion: manifest.orbitfabric_version,
+      interfaceVersion: manifest.interface_version,
+      interfaceSha256: manifest.interface_sha256,
+      capabilities: manifest.capabilities,
+      manifest,
+      compatibility: evaluateCoreCompatibility(manifest),
     };
   }
 
@@ -236,4 +289,8 @@ function formatInvocationFailure(
   const stderr = invocation.stderr.trim();
   const suffix = stderr.length > 0 ? `: ${stderr}` : "";
   return `${prefix} (exit ${invocation.exitCode ?? "unknown"})${suffix}`;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

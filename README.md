@@ -74,12 +74,15 @@ Studio makes the fact understandable.
 
 ## Current Core integration
 
-The preview consumes these machine-readable OrbitFabric Core surfaces:
+The preview first consumes the Core Interface Manifest, then evaluates the capabilities required by each Studio domain:
 
-- Mission Snapshot (C1);
+- Mission Snapshot for primary Mission open;
 - Entity Index;
-- Relationship Manifest, including the explicit FDIR extension (C4 minimum);
-- lint JSON.
+- Relationship Manifest, including the explicit FDIR extension;
+- Scenario Declaration;
+- Core Integration Input Set.
+
+Lint JSON remains a legacy secondary report outside manifest negotiation because it has no independent contract kind/version identity. See [Core Compatibility and Provenance](docs/CORE_COMPATIBILITY.md).
 
 Studio writes temporary hydration reports only to Studio-owned OS temporary storage; opening a mission does not write generated reports into the user's mission repository.
 
@@ -169,11 +172,13 @@ python --version
 
 Studio deliberately does not embed or replace OrbitFabric Core in this source preview.
 
-The preview CI is validated against Core commit:
+The H4 compatibility path is validated against Core commit:
 
 ```text
-47d37ec2c50eae40e13303eea900eb119bd2e0dd
+55b94665a76865b9d4f49861b2e3ec6ae93c3dea
 ```
+
+The same CI matrix also executes historical Core commit `a25917e81c90396df2b189834e83cf852fa4da5f` to prove that product version `1.3.0` alone does not establish interface compatibility.
 
 Install that baseline on Debian/Ubuntu:
 

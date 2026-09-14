@@ -1,4 +1,5 @@
 import type { CoreGateway } from "../core/CoreGateway";
+import { requireCoreDomain } from "../core/coreCompatibility";
 import type { MissionSession } from "../mission/MissionSession";
 import type { ScenarioDeclaration } from "./consumer-contracts";
 
@@ -24,9 +25,10 @@ export class ScenarioHydrator {
   ): Promise<ScenarioHydrationResult> {
     const requestId = `${session.sessionId}-scenario-${requestToken}`;
 
+    requireCoreDomain(session.core.compatibility, "scenarios");
     try {
       const result = await this.core.exportScenarioDeclaration(
-        session.core.executable,
+        session.core.resolvedExecutable,
         targetPath,
         requestId,
       );
