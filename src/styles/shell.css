@@ -577,7 +577,7 @@
   border: 1px solid var(--line-subtle);
   border-radius: 999px;
   color: var(--text-secondary);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   font-size: 10px;
 }
 
@@ -601,7 +601,7 @@
   background: var(--bg-raised);
   box-shadow: 0 18px 56px rgba(0, 0, 0, 0.42);
   color: var(--text-secondary);
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
 }
 
 .core-provenance-panel h2 {
