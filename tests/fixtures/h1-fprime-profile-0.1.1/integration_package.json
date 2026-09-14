@@ -1,0 +1,87 @@
+{
+  "adapter": {
+    "id": "orbitfabric-fprime",
+    "version": "0.1.1"
+  },
+  "capabilities": [
+    "profile_validation",
+    "projection",
+    "artifact_generation",
+    "traceability"
+  ],
+  "core_input_compatibility": {
+    "input_set_versions": [
+      "0.1-candidate"
+    ],
+    "relationship_families": [],
+    "surfaces": [
+      {
+        "role": "entity_index",
+        "kind": "orbitfabric.entity_index",
+        "format_versions": ["0.1"]
+      },
+      {
+        "role": "lint_report",
+        "kind": "orbitfabric-lint",
+        "format_versions": ["v1"]
+      },
+      {
+        "role": "mission_snapshot",
+        "kind": "orbitfabric.mission_snapshot",
+        "format_versions": ["0.1-candidate"]
+      },
+      {
+        "role": "model_summary",
+        "kind": "orbitfabric.model_summary",
+        "format_versions": ["0.1"]
+      },
+      {
+        "role": "relationship_manifest",
+        "kind": "orbitfabric.relationship_manifest",
+        "format_versions": ["0.1-candidate"]
+      }
+    ]
+  },
+  "execution": {
+    "argv_prefix": [
+      "orbitfabric-fprime"
+    ],
+    "protocol": "orbitfabric.adapter_cli.v1"
+  },
+  "integration": {
+    "id": "orbitfabric-fprime"
+  },
+  "kind": "orbitfabric.integration_package",
+  "manifest_version": "0.2-candidate",
+  "operations": [
+    {
+      "capabilities": [
+        "profile_validation",
+        "projection",
+        "artifact_generation",
+        "traceability"
+      ],
+      "id": "fpp_contract_projection",
+      "input_requirements": []
+    }
+  ],
+  "profile_compatibility": {
+    "profile_versions": [
+      "0.1-candidate"
+    ]
+  },
+  "profile_schemas": [
+    {
+      "format": "json-schema-2020-12",
+      "path": "schemas/profile-0.1.schema.json",
+      "schema_version": "0.1-candidate",
+      "sha256": "18758f80ce24a5a4777452daa21d8dbb28acc2c0ff16dffb745a4a01b87f01fa"
+    }
+  ],
+  "result_compatibility": {
+    "default_result_version": "0.2-candidate",
+    "result_versions": [
+      "0.2-candidate"
+    ]
+  }
+}
