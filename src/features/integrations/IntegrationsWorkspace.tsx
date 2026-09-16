@@ -401,7 +401,7 @@ export function IntegrationsWorkspace({
             <div className="integration-row">
               <label>
                 Registered package
-                <select value={selectedPath ?? ""} onChange={(event) => setSelectedPath(event.target.value)}>
+                <select value={selectedPath ?? ""} title={selectedPath ?? undefined} onChange={(event) => setSelectedPath(event.target.value)}>
                   {entries.map((entry) => (
                     <option key={entry.manifestPath} value={entry.manifestPath}>{entry.manifestPath}</option>
                   ))}
@@ -438,7 +438,7 @@ export function IntegrationsWorkspace({
               <button className="secondary-action" type="button" onClick={chooseProfile} disabled={busy !== null}>
                 {busy === "profile" ? "Reading…" : profile ? "Change Profile" : "Associate Profile"}
               </button>
-              {profile ? <code className="integration-path">{profile.document.path}</code> : null}
+              {profile ? <code className="integration-path" title={profile.document.path}>{profile.document.path}</code> : null}
             </div>
             {profile ? <ProfileFacts profile={profile} /> : null}
           </section>
@@ -457,7 +457,7 @@ export function IntegrationsWorkspace({
               <label>
                 Output root
                 <div className="integration-row compact">
-                  <input readOnly value={outputDir} placeholder="Choose an explicit output directory" />
+                  <input readOnly value={outputDir} title={outputDir || undefined} placeholder="Choose an explicit output directory" />
                   <button className="secondary-action" type="button" onClick={chooseOutputDirectory}>Choose</button>
                 </div>
               </label>
