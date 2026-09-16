@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Ref } from "react";
 
 import type { EntityIndexRecordDto } from "../../core/contracts";
 import { entityKey, type EntityRef } from "../../mission/entityRef";
@@ -17,6 +17,7 @@ export function EntityExplorer({
 }: EntityExplorerProps) {
   const [query, setQuery] = useState("");
   const [domain, setDomain] = useState("all");
+  const selectedRowRef = useRef<HTMLButtonElement>(null);
 
   const entities = session.entityIndex?.entities ?? [];
   const domains = useMemo(
@@ -38,6 +39,10 @@ export function EntityExplorer({
       );
     });
   }, [domain, entities, query]);
+
+  useEffect(() => {
+    selectedRowRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selectedEntity, results]);
 
   if (session.readiness.entities === "pending") {
     return (
@@ -105,6 +110,11 @@ export function EntityExplorer({
               selectedEntity?.domain === entity.domain && selectedEntity.id === entity.id
             }
             onSelect={() => onSelectEntity({ domain: entity.domain, id: entity.id })}
+            rowRef={
+              selectedEntity?.domain === entity.domain && selectedEntity.id === entity.id
+                ? selectedRowRef
+                : undefined
+            }
           />
         ))}
         {results.length === 0 ? (
@@ -119,22 +129,25 @@ function EntityRow({
   entity,
   selected,
   onSelect,
+  rowRef,
 }: {
   entity: EntityIndexRecordDto;
   selected: boolean;
   onSelect: () => void;
+  rowRef?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
       className={`entity-row${selected ? " is-selected" : ""}`}
       type="button"
+      ref={rowRef}
       role="listitem"
       onClick={onSelect}
     >
       <span className="entity-type">{humanize(entity.entity_type)}</span>
       <span className="entity-main">
-        <strong>{entity.display_name}</strong>
-        <code>{entity.id}</code>
+        <strong title={entity.display_name}>{entity.display_name}</strong>
+        <code title={entity.id}>{entity.id}</code>
       </span>
       <span className="entity-domain">{humanize(entity.domain)}</span>
     </button>
