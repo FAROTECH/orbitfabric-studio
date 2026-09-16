@@ -91,12 +91,28 @@ export function ExactProjectionProvenance({
 function shortSha(value: string): string { return `${value.slice(0, 12)}…`; }
 
 function EvidenceRecord({ record }: { record: ReplayEvidenceRecord }) {
+  const subjectSummary = summarizeSubjects(record);
   return <details className="evidence-record"><summary>{record.id} · {record.reference?.status ?? "unavailable"}</summary>
-    <p>{record.producerId} · {record.kind}</p><code>{record.sha256}</code><code>{record.path}</code>
+    <p>{record.producerId} · {record.kind}</p>
+    <dl className="evidence-reference"><div><dt>SHA-256</dt><dd><code>{record.sha256}</code></dd></div><div><dt>Path</dt><dd><code>{record.path}</code></dd></div></dl>
     <p>Generic observation / verdict interpretation: unavailable.</p>
     <h4>Explicit subjects matching this view</h4>{record.matchedSubjects.map((subject, index) => <div key={index}><span className={`evidence-state ${subject.state}`}>{subject.state}</span><pre>{JSON.stringify(subject.subject, null, 2)}</pre><p>{subject.reason}</p></div>)}
-    <details><summary>All curator-authored subjects (independent assertions)</summary><pre>{JSON.stringify(record.subjects, null, 2)}</pre></details>
+    <details><summary>All curator-authored subjects (independent assertions)</summary>
+      <div className="evidence-subject-summary" aria-label="Curator-authored subject summary">{subjectSummary.map((item) => <span key={item.key}><code>{item.type}</code><span className={`evidence-state ${item.state}`}>{item.state}</span><strong>{item.count}</strong></span>)}</div>
+      <pre>{JSON.stringify(record.subjects, null, 2)}</pre>
+    </details>
     {record.reference?.reason ? <p>{record.reference.reason}</p> : null}
     {record.reference?.status === "verified" && record.reference.text !== null ? <details><summary>Digest-verified producer bytes · unclassified content</summary><pre>{record.reference.text}</pre></details> : <p>Text preview unavailable; byte availability is independent of subject correlation.</p>}
   </details>;
+}
+
+function summarizeSubjects(record: ReplayEvidenceRecord) {
+  const counts = new Map<string, { key: string; type: string; state: string; count: number }>();
+  for (const item of record.subjects) {
+    const type = item.subject.type;
+    const key = `${type}:${item.state}`;
+    const current = counts.get(key);
+    counts.set(key, { key, type, state: item.state, count: (current?.count ?? 0) + 1 });
+  }
+  return [...counts.values()].sort((left, right) => left.type.localeCompare(right.type) || left.state.localeCompare(right.state));
 }
