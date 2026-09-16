@@ -465,9 +465,7 @@ function App() {
                     origin: "context-map",
                   })
                 }
-                onOpenExplore={() =>
-                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" })
-                }
+                onOpenExplore={() => changeWorkspaceView("explore")}
               />
             ) : state.view === "integrations" ? (
               <IntegrationsWorkspace
