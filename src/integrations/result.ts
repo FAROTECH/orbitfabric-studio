@@ -339,6 +339,15 @@ function coverageForVersion(
   throw new Error(`Unsupported Result version: ${resultVersion}.`);
 }
 
+export function parseSelectedIntegrationResult(text: string): IntegrationResult {
+  const root = record(JSON.parse(text) as unknown, "Selected document");
+  const kind = stringValue(root.kind, "Selected document kind");
+  if (kind !== "orbitfabric.integration_result") {
+    throw new Error(`Selected document has kind "${kind}". Choose an OrbitFabric Integration Result.`);
+  }
+  return parseIntegrationResult(text);
+}
+
 export function parseIntegrationResult(text: string): IntegrationResult {
   const root = record(JSON.parse(text) as unknown, "Integration Result");
   const resultVersion = stringValue(root.result_version, "result_version");
