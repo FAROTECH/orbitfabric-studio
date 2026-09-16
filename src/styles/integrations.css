@@ -114,10 +114,9 @@
 
 .integration-path {
   min-width: 0;
-  overflow: hidden;
   color: var(--text-code);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .integration-grid {
