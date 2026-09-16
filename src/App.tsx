@@ -31,7 +31,7 @@ import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { buildEvidenceUnderstanding } from "./convergence/evidenceUnderstanding";
 import { IntegrationResultHydrator, IntegrationResultConsistencyError, IntegrationResultProtocolError } from "./convergence/IntegrationResultHydrator";
 import { TauriIntegrationGateway } from "./integrations/TauriIntegrationGateway";
-import { parseIntegrationResult } from "./integrations/result";
+import { parseSelectedIntegrationResult } from "./integrations/result";
 import { EvidenceManifestHydrator, EvidenceManifestProtocolError } from "./convergence/EvidenceManifestHydrator";
 import { TauriEvidenceGateway } from "./convergence/TauriEvidenceGateway";
 import { sha256Utf8 } from "./integrations/sha256";
@@ -73,7 +73,7 @@ function App() {
       const selected = await open({ multiple: false, directory: false, title: "Load exact Integration Result", filters: [{ name: "Integration Result", extensions: ["json"] }] });
       if (!current() || typeof selected !== "string") return;
       const previewBytes = (await integrationGateway.readResultBundle(selected)).resultText;
-      const preview = parseIntegrationResult(previewBytes);
+      const preview = parseSelectedIntegrationResult(previewBytes);
       const expectedResultSha256 = await sha256Utf8(previewBytes);
       if (!current()) return;
       const request = {
