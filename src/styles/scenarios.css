@@ -25,7 +25,7 @@
 .scenario-atom-location span { display: block; margin-top: 4px; }
 .scenario-entity { display: grid; gap: 3px; text-align: left; background: transparent; border: 1px solid var(--line-subtle); border-radius: 5px; padding: 7px 9px; cursor: pointer; max-width: 100%; }
 .scenario-entity:hover:not(:disabled), .scenario-entity:focus-visible { background: var(--bg-hover); border-color: var(--accent); }
-.scenario-entity.is-selected { border-color: var(--accent-strong); background: var(--selection-bg); box-shadow: inset 3px 0 0 var(--accent-strong); }
+.scenario-entity.is-selected { border-color: var(--accent-strong); background: var(--bg-selected); box-shadow: inset 3px 0 0 var(--accent-strong); }
 .scenario-entity code { font-size: 12px; overflow-wrap: anywhere; white-space: normal; }
 .scenario-entity span, .scenario-entity small { font-size: 10px; color: var(--text-secondary); }
 .scenario-entity:disabled { cursor: default; opacity: .65; }
