@@ -41,8 +41,8 @@ export function EntityExplorer({
   }, [domain, entities, query]);
 
   useEffect(() => {
-    selectedRowRef.current?.scrollIntoView({ block: "nearest" });
-  }, [selectedEntity, results]);
+    selectedRowRef.current?.scrollIntoView({ block: "center" });
+  }, [selectedEntity]);
 
   if (session.readiness.entities === "pending") {
     return (
