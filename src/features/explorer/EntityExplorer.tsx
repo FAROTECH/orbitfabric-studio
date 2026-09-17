@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type Ref } from "react";
+import { useMemo, useState } from "react";
 
 import type { EntityIndexRecordDto } from "../../core/contracts";
 import { entityKey, type EntityRef } from "../../mission/entityRef";
@@ -17,8 +17,6 @@ export function EntityExplorer({
 }: EntityExplorerProps) {
   const [query, setQuery] = useState("");
   const [domain, setDomain] = useState("all");
-  const selectedRowRef = useRef<HTMLButtonElement>(null);
-
   const entities = session.entityIndex?.entities ?? [];
   const domains = useMemo(
     () => [...new Set(entities.map((entity) => entity.domain))].sort(),
@@ -39,10 +37,6 @@ export function EntityExplorer({
       );
     });
   }, [domain, entities, query]);
-
-  useEffect(() => {
-    selectedRowRef.current?.scrollIntoView({ block: "center" });
-  }, [selectedEntity]);
 
   if (session.readiness.entities === "pending") {
     return (
@@ -110,11 +104,6 @@ export function EntityExplorer({
               selectedEntity?.domain === entity.domain && selectedEntity.id === entity.id
             }
             onSelect={() => onSelectEntity({ domain: entity.domain, id: entity.id })}
-            rowRef={
-              selectedEntity?.domain === entity.domain && selectedEntity.id === entity.id
-                ? selectedRowRef
-                : undefined
-            }
           />
         ))}
         {results.length === 0 ? (
@@ -129,18 +118,15 @@ function EntityRow({
   entity,
   selected,
   onSelect,
-  rowRef,
 }: {
   entity: EntityIndexRecordDto;
   selected: boolean;
   onSelect: () => void;
-  rowRef?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
       className={`entity-row${selected ? " is-selected" : ""}`}
       type="button"
-      ref={rowRef}
       role="listitem"
       onClick={onSelect}
     >
