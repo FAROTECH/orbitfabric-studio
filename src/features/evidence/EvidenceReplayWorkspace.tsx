@@ -91,14 +91,20 @@ export function ExactProjectionProvenance({
 function shortSha(value: string): string { return `${value.slice(0, 12)}…`; }
 
 function EvidenceRecord({ record }: { record: ReplayEvidenceRecord }) {
-  const subjectSummary = summarizeSubjects(record);
+  const matchedSubjectSummary = summarizeSubjects(record.matchedSubjects);
+  const subjectSummary = summarizeSubjects(record.subjects);
   return <details className="evidence-record"><summary>{record.id} · {record.reference?.status ?? "unavailable"}</summary>
     <p>{record.producerId} · {record.kind}</p>
     <dl className="evidence-reference"><div><dt>SHA-256</dt><dd><code>{record.sha256}</code></dd></div><div><dt>Path</dt><dd><code>{record.path}</code></dd></div></dl>
     <p>Generic observation / verdict interpretation: unavailable.</p>
-    <h4>Explicit subjects matching this view</h4>{record.matchedSubjects.map((subject, index) => <div key={index}><span className={`evidence-state ${subject.state}`}>{subject.state}</span><pre>{JSON.stringify(subject.subject, null, 2)}</pre><p>{subject.reason}</p></div>)}
-    <details><summary>All curator-authored subjects (independent assertions)</summary>
-      <div className="evidence-subject-summary" aria-label="Curator-authored subject summary">{subjectSummary.map((item) => <span key={item.key}><code>{item.type}</code><span className={`evidence-state ${item.state}`}>{item.state}</span><strong>{item.count}</strong></span>)}</div>
+    <h4>Explicit subjects matching this view</h4>
+    <div className="evidence-subject-summary" aria-label="Matching subject summary">{matchedSubjectSummary.map((item) => <span key={item.key}><code>{item.type}</code><span className={`evidence-state ${item.state}`}>{item.state}</span><strong>{item.count}</strong></span>)}</div>
+    <details><summary>Full exact matching subject details · {record.matchedSubjects.length}</summary>
+      {record.matchedSubjects.map((subject, index) => <div key={index}><span className={`evidence-state ${subject.state}`}>{subject.state}</span><pre>{JSON.stringify(subject.subject, null, 2)}</pre><p>{subject.reason}</p></div>)}
+    </details>
+    <h4>All curator-authored subjects (independent assertions)</h4>
+    <div className="evidence-subject-summary" aria-label="Curator-authored subject summary">{subjectSummary.map((item) => <span key={item.key}><code>{item.type}</code><span className={`evidence-state ${item.state}`}>{item.state}</span><strong>{item.count}</strong></span>)}</div>
+    <details><summary>Full exact curator-authored subject JSON · {record.subjects.length}</summary>
       <pre>{JSON.stringify(record.subjects, null, 2)}</pre>
     </details>
     {record.reference?.reason ? <p>{record.reference.reason}</p> : null}
@@ -106,9 +112,9 @@ function EvidenceRecord({ record }: { record: ReplayEvidenceRecord }) {
   </details>;
 }
 
-function summarizeSubjects(record: ReplayEvidenceRecord) {
+function summarizeSubjects(subjects: ReplayEvidenceRecord["subjects"]) {
   const counts = new Map<string, { key: string; type: string; state: string; count: number }>();
-  for (const item of record.subjects) {
+  for (const item of subjects) {
     const type = item.subject.type;
     const key = `${type}:${item.state}`;
     const current = counts.get(key);
