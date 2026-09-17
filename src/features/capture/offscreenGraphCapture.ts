@@ -98,6 +98,7 @@ async function captureGraphSurfaceOffscreen(
 
   const liveRect = liveTarget.getBoundingClientRect();
   const width = Math.max(1, Math.ceil(liveRect.width));
+  const edgeSnapshots = snapshotReactFlowEdges(liveTarget, liveRect);
   const background = captureBackgroundColor();
   const clone = createCaptureClone(liveTarget, width, background);
 
@@ -109,12 +110,6 @@ async function captureGraphSurfaceOffscreen(
     await nextAnimationFrame();
     await nextAnimationFrame();
 
-    // Capture paths in the same expanded coordinate space that html2canvas will rasterize.
-    // Measuring the live graph before clone expansion detached edges from reflowed cards.
-    const edgeSnapshots = snapshotReactFlowEdges(
-      clone.target,
-      clone.target.getBoundingClientRect(),
-    );
     const measuredHeight = measureExpandedHeight(clone.target);
     const height = measuredHeight + CAPTURE_BOTTOM_GUARD;
     if (!Number.isFinite(height) || height <= 0) {
@@ -215,6 +210,8 @@ function createCaptureClone(
 }
 
 function expandCloneLayout(target: HTMLElement) {
+  hideClosedDetailsContent(target);
+
   const structuralSelectors = [
     ".workspace-primary",
     ".entity-xray",
@@ -255,6 +252,16 @@ function expandCloneLayout(target: HTMLElement) {
   for (const element of target.querySelectorAll<HTMLElement>("*")) {
     element.scrollTop = 0;
     element.scrollLeft = 0;
+  }
+}
+
+function hideClosedDetailsContent(target: HTMLElement) {
+  for (const details of target.querySelectorAll<HTMLDetailsElement>("details:not([open])")) {
+    for (const child of details.children) {
+      if (child.tagName !== "SUMMARY" && child instanceof HTMLElement) {
+        child.style.setProperty("display", "none", "important");
+      }
+    }
   }
 }
 
