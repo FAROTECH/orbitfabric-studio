@@ -17,7 +17,6 @@ export function EntityExplorer({
 }: EntityExplorerProps) {
   const [query, setQuery] = useState("");
   const [domain, setDomain] = useState("all");
-
   const entities = session.entityIndex?.entities ?? [];
   const domains = useMemo(
     () => [...new Set(entities.map((entity) => entity.domain))].sort(),
@@ -133,8 +132,8 @@ function EntityRow({
     >
       <span className="entity-type">{humanize(entity.entity_type)}</span>
       <span className="entity-main">
-        <strong>{entity.display_name}</strong>
-        <code>{entity.id}</code>
+        <strong title={entity.display_name}>{entity.display_name}</strong>
+        <code title={entity.id}>{entity.id}</code>
       </span>
       <span className="entity-domain">{humanize(entity.domain)}</span>
     </button>

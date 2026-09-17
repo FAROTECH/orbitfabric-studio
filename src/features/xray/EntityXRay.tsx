@@ -37,8 +37,8 @@ export function EntityXRay({
         <div>
           <p className="eyebrow">Entity X-Ray</p>
           <span className="xray-domain">{humanize(indexRecord?.entity_type ?? subject.domain)}</span>
-          <h2>{displayName(indexRecord, contract, subject)}</h2>
-          <code>{subject.id}</code>
+          <h2 title={displayName(indexRecord, contract, subject)}>{displayName(indexRecord, contract, subject)}</h2>
+          <code title={subject.id}>{subject.id}</code>
         </div>
         <button className="icon-action" type="button" onClick={onClose} aria-label="Close Entity X-Ray">
           ×
@@ -476,8 +476,8 @@ function RelationshipButton({
         {!presentation ? <code>{relationship.relationship_type}</code> : null}
       </span>
       <span className="relationship-target">
-        <strong>{record?.display_name ?? neighbor.id}</strong>
-        <code>{neighbor.id}</code>
+        <strong title={record?.display_name ?? neighbor.id}>{record?.display_name ?? neighbor.id}</strong>
+        <code title={neighbor.id}>{neighbor.id}</code>
       </span>
       <span aria-hidden="true">→</span>
     </button>

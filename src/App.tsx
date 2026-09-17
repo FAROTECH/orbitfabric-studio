@@ -5,6 +5,7 @@ import {
   initialStudioState,
   studioReducer,
   type MissionOpenFailure,
+  type MissionWorkspaceView,
 } from "./app/studioState";
 import { TauriCoreGateway } from "./core/TauriCoreGateway";
 import {
@@ -30,7 +31,7 @@ import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { buildEvidenceUnderstanding } from "./convergence/evidenceUnderstanding";
 import { IntegrationResultHydrator, IntegrationResultConsistencyError, IntegrationResultProtocolError } from "./convergence/IntegrationResultHydrator";
 import { TauriIntegrationGateway } from "./integrations/TauriIntegrationGateway";
-import { parseIntegrationResult } from "./integrations/result";
+import { parseSelectedIntegrationResult } from "./integrations/result";
 import { EvidenceManifestHydrator, EvidenceManifestProtocolError } from "./convergence/EvidenceManifestHydrator";
 import { TauriEvidenceGateway } from "./convergence/TauriEvidenceGateway";
 import { sha256Utf8 } from "./integrations/sha256";
@@ -48,6 +49,7 @@ function App() {
   const [recentMissions, setRecentMissions] = useState<string[]>(loadRecentMissions);
   const [validationOpen, setValidationOpen] = useState(false);
   const generationRef = useRef(0);
+  const workspacePrimaryRef = useRef<HTMLDivElement>(null);
   const [scenarioPickerFailure, setScenarioPickerFailure] = useState<string | null>(null);
   const scenarioHydrator = useMemo(() => new ScenarioHydrator(new TauriCoreGateway()), []);
   const scenarioModel = useMemo(() => buildScenarioUnderstanding(state.scenario), [state.scenario]);
@@ -71,7 +73,7 @@ function App() {
       const selected = await open({ multiple: false, directory: false, title: "Load exact Integration Result", filters: [{ name: "Integration Result", extensions: ["json"] }] });
       if (!current() || typeof selected !== "string") return;
       const previewBytes = (await integrationGateway.readResultBundle(selected)).resultText;
-      const preview = parseIntegrationResult(previewBytes);
+      const preview = parseSelectedIntegrationResult(previewBytes);
       const expectedResultSha256 = await sha256Utf8(previewBytes);
       if (!current()) return;
       const request = {
@@ -280,6 +282,10 @@ function App() {
   const mission = session.snapshot.mission;
   const isOpeningReplacement = state.opening !== null;
   const selectedEntity = state.selection.subject;
+  const changeWorkspaceView = (view: MissionWorkspaceView) => {
+    workspacePrimaryRef.current?.scrollTo({ top: 0, left: 0 });
+    dispatch({ type: "WORKSPACE_VIEW_CHANGED", view });
+  };
   const supportsXRay = state.view !== "operations" && state.view !== "integrations" && state.view !== "evidence";
 
   return (
@@ -300,7 +306,7 @@ function App() {
           <button
             type="button"
             className={state.view === "overview" ? "is-active" : ""}
-            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "overview" })}
+            onClick={() => changeWorkspaceView("overview")}
           >
             Overview
           </button>
@@ -308,7 +314,7 @@ function App() {
             <button
               type="button"
               className={state.view === "operations" ? "is-active" : ""}
-              onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "operations" })}
+              onClick={() => changeWorkspaceView("operations")}
             >
               Operations
             </button>
@@ -317,7 +323,7 @@ function App() {
             <button
               type="button"
               className={state.view === "explore" ? "is-active" : ""}
-              onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" })}
+              onClick={() => changeWorkspaceView("explore")}
             >
               Explore
             </button>
@@ -326,7 +332,7 @@ function App() {
             <button
               type="button"
               className={state.view === "relations" ? "is-active" : ""}
-              onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "relations" })}
+              onClick={() => changeWorkspaceView("relations")}
             >
               Relations
             </button>
@@ -334,19 +340,19 @@ function App() {
           <button
             type="button"
             className={state.view === "scenarios" ? "is-active" : ""}
-            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "scenarios" })}
+            onClick={() => changeWorkspaceView("scenarios")}
           >
             Scenarios
           </button>
           <button
             type="button"
             className={state.view === "integrations" ? "is-active" : ""}
-            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "integrations" })}
+            onClick={() => changeWorkspaceView("integrations")}
           >
             Integrations
           </button>
           <button type="button" className={state.view === "evidence" ? "is-active" : ""}
-            onClick={() => dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "evidence" })}>
+            onClick={() => changeWorkspaceView("evidence")}>
             Evidence
           </button>
         </nav>
@@ -412,12 +418,12 @@ function App() {
         <div
           className={`workspace-layout${selectedEntity && supportsXRay ? " has-xray" : ""}`}
         >
-          <div className="workspace-primary">
+          <div className="workspace-primary" ref={workspacePrimaryRef}>
             {state.view === "evidence" ? (
               <EvidenceReplayWorkspace key={`${session.sessionId}:${session.generation}:${evidenceModel.scenario?.sha256 ?? "none"}`} model={evidenceModel} busy={state.opening ? "mission" : evidenceBusy} failure={evidenceFailure}
                 onChooseResult={chooseReplayResult} onChooseEvidence={chooseEvidenceSet} />
             ) : state.view === "scenarios" ? (
-              <ScenarioWorkspace model={scenarioModel} session={session}
+              <ScenarioWorkspace model={scenarioModel} session={session} selectedEntity={selectedEntity}
                 disabled={isOpeningReplacement} pickerFailure={scenarioPickerFailure}
                 onChoose={chooseScenario} onRefresh={refreshScenario}
                 onInspectEntity={(subject) => dispatch({ type: "SELECTION_CHANGED", subject, origin: "scenarios" })}
@@ -431,7 +437,7 @@ function App() {
                   dispatch({ type: "SELECTION_CHANGED", subject, origin: "operations" })
                 }
                 onInspectEntity={(subject) => {
-                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" });
+                  changeWorkspaceView("explore");
                   dispatch({ type: "SELECTION_CHANGED", subject, origin: "operations" });
                 }}
               />
@@ -459,16 +465,14 @@ function App() {
                     origin: "context-map",
                   })
                 }
-                onOpenExplore={() =>
-                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" })
-                }
+                onOpenExplore={() => changeWorkspaceView("explore")}
               />
             ) : state.view === "integrations" ? (
               <IntegrationsWorkspace
                 session={session}
                 selectedEntity={selectedEntity}
                 onInspectEntity={(subject) => {
-                  dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" });
+                  changeWorkspaceView("explore");
                   dispatch({ type: "SELECTION_CHANGED", subject, origin: "integrations" });
                 }}
               />
@@ -514,7 +518,7 @@ function App() {
           onClose={() => setValidationOpen(false)}
           onInspectEntity={(subject) => {
             setValidationOpen(false);
-            dispatch({ type: "WORKSPACE_VIEW_CHANGED", view: "explore" });
+            changeWorkspaceView("explore");
             dispatch({ type: "SELECTION_CHANGED", subject, origin: "validation" });
           }}
         />

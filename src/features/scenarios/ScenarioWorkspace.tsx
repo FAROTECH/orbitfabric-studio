@@ -8,6 +8,7 @@ import { declarationFields, presentScenarioAtom } from "./scenarioPresentation";
 interface Props {
   model: ScenarioUnderstandingModel;
   session: MissionSession;
+  selectedEntity: EntityRef | null;
   disabled: boolean;
   pickerFailure: string | null;
   onChoose: () => void;
@@ -15,10 +16,12 @@ interface Props {
   onInspectEntity: (entity: EntityRef) => void;
 }
 
-export function ScenarioWorkspace({ model, session, disabled, pickerFailure, onChoose, onRefresh, onInspectEntity }: Props) {
+export function ScenarioWorkspace({ model, session, selectedEntity, disabled, pickerFailure, onChoose, onRefresh, onInspectEntity }: Props) {
   function entityLink(entity: EntityRef, label?: string) {
     const resolved = resolveEntityContract(session.snapshot, entity) !== null;
-    return <button type="button" className="scenario-entity" disabled={!resolved}
+    const selected = selectedEntity !== null && entityKey(selectedEntity) === entityKey(entity);
+    return <button type="button" className={`scenario-entity${selected ? " is-selected" : ""}`} disabled={!resolved}
+      aria-pressed={selected}
       title={resolved ? `Inspect ${entity.domain}:${entity.id}` : "Entity unavailable in the current Mission Snapshot"}
       onClick={() => onInspectEntity(entity)}>
       {label ? <span>{label}</span> : null}<code>{entity.domain}:{entity.id}</code>

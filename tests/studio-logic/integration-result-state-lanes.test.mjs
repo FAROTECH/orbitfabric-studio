@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import test from "node:test";
 
 const require = createRequire(import.meta.url);
-const { parseIntegrationResult, validateIntegrationResult } = require(
+const { parseIntegrationResult, parseSelectedIntegrationResult, validateIntegrationResult } = require(
   "../../.test-dist/integrations/result.js",
 );
 const { assessAdapterInvocation } = require("../../.test-dist/integrations/execution.js");
@@ -126,4 +126,17 @@ test("Result v1 rejects succeeded_with_warnings and propagates the contract fail
   );
   assert.equal(assessment.valid, false);
   assert.ok(assessment.issues.some((item) => item.code === "result.result.state"));
+});
+
+
+test("selected documents report their wrong kind before Integration Result shape errors", () => {
+  const evidenceSet = JSON.stringify({
+    kind: "orbitfabric.evidence_set_manifest",
+    records: [],
+  });
+
+  assert.throws(
+    () => parseSelectedIntegrationResult(evidenceSet),
+    /Selected document has kind "orbitfabric\.evidence_set_manifest"\. Choose an OrbitFabric Integration Result\./,
+  );
 });
