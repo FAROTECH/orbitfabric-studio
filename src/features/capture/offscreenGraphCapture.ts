@@ -25,18 +25,8 @@ interface PointSnapshot {
   y: number;
 }
 
-interface MatrixSnapshot {
-  a: number;
-  b: number;
-  c: number;
-  d: number;
-  e: number;
-  f: number;
-}
-
 interface EdgePathSnapshot {
-  d: string;
-  matrix: MatrixSnapshot;
+  points: PointSnapshot[];
   stroke: string;
   strokeWidth: number;
   opacity: number;
@@ -257,6 +247,13 @@ function expandCloneLayout(target: HTMLElement) {
 
 function hideClosedDetailsContent(target: HTMLElement) {
   for (const details of target.querySelectorAll<HTMLDetailsElement>("details:not([open])")) {
+    const summary = details.querySelector<HTMLElement>(":scope > summary");
+    if (summary) {
+      summary.style.setProperty("display", "block", "important");
+      summary.style.setProperty("list-style", "none", "important");
+      summary.textContent = `▶ ${summary.textContent ?? ""}`;
+    }
+
     for (const child of details.children) {
       if (child.tagName !== "SUMMARY" && child instanceof HTMLElement) {
         child.style.setProperty("display", "none", "important");
@@ -308,9 +305,8 @@ function snapshotReactFlowEdges(
   const snapshots: ReactFlowEdgeSnapshot[] = [];
 
   for (const path of target.querySelectorAll<SVGPathElement>(".react-flow__edge-path")) {
-    const d = path.getAttribute("d");
-    const matrix = path.getScreenCTM();
-    if (!d || !matrix) {
+    const points = snapshotRenderedPath(path, targetRect);
+    if (points.length < 2) {
       continue;
     }
 
@@ -323,15 +319,7 @@ function snapshotReactFlowEdges(
 
     snapshots.push({
       path: {
-        d,
-        matrix: {
-          a: matrix.a,
-          b: matrix.b,
-          c: matrix.c,
-          d: matrix.d,
-          e: matrix.e - targetRect.left,
-          f: matrix.f - targetRect.top,
-        },
+        points,
         stroke: visiblePaint(style.stroke, "#405064"),
         strokeWidth: cssNumber(style.strokeWidth, 1.45),
         opacity: cssNumber(style.strokeOpacity, 1) * cssNumber(style.opacity, 1),
@@ -341,7 +329,10 @@ function snapshotReactFlowEdges(
         lineJoin: canvasLineJoin(style.strokeLinejoin),
         arrow:
           markerEnd && markerEnd !== "none"
-            ? snapshotPathEnd(path, matrix, targetRect)
+            ? {
+                tip: points[points.length - 1],
+                previous: points[Math.max(0, points.length - 3)],
+              }
             : null,
       },
       label: text ? snapshotEdgeLabel(text, textBackground, targetRect) : null,
@@ -351,39 +342,56 @@ function snapshotReactFlowEdges(
   return snapshots;
 }
 
-function snapshotPathEnd(
+function snapshotRenderedPath(
   path: SVGPathElement,
-  matrix: DOMMatrix,
   targetRect: DOMRect,
-): { tip: PointSnapshot; previous: PointSnapshot } | null {
+): PointSnapshot[] {
   try {
     const length = path.getTotalLength();
+    const bounds = path.getBBox();
+    const rendered = path.getBoundingClientRect();
     if (!Number.isFinite(length) || length <= 0) {
-      return null;
+      return [];
     }
 
-    const tip = transformSvgPoint(path.getPointAtLength(length), matrix, targetRect);
-    const previous = transformSvgPoint(
-      path.getPointAtLength(Math.max(0, length - 8)),
-      matrix,
-      targetRect,
-    );
-    return { tip, previous };
+    const samples = Math.max(2, Math.min(512, Math.ceil(length / 4)));
+    const points: PointSnapshot[] = [];
+    for (let index = 0; index <= samples; index += 1) {
+      const point = path.getPointAtLength((length * index) / samples);
+      points.push({
+        x: mapRenderedCoordinate(
+          point.x,
+          bounds.x,
+          bounds.width,
+          rendered.left - targetRect.left,
+          rendered.width,
+        ),
+        y: mapRenderedCoordinate(
+          point.y,
+          bounds.y,
+          bounds.height,
+          rendered.top - targetRect.top,
+          rendered.height,
+        ),
+      });
+    }
+    return points;
   } catch {
-    return null;
+    return [];
   }
 }
 
-function transformSvgPoint(
-  point: DOMPoint,
-  matrix: DOMMatrix,
-  targetRect: DOMRect,
-): PointSnapshot {
-  const transformed = new DOMPoint(point.x, point.y).matrixTransform(matrix);
-  return {
-    x: transformed.x - targetRect.left,
-    y: transformed.y - targetRect.top,
-  };
+function mapRenderedCoordinate(
+  value: number,
+  sourceStart: number,
+  sourceExtent: number,
+  renderedStart: number,
+  renderedExtent: number,
+): number {
+  if (Math.abs(sourceExtent) < 0.001 || Math.abs(renderedExtent) < 0.001) {
+    return renderedStart + renderedExtent / 2;
+  }
+  return renderedStart + ((value - sourceStart) / sourceExtent) * renderedExtent;
 }
 
 function snapshotEdgeLabel(
@@ -469,16 +477,13 @@ function drawEdgePath(
   snapshot: EdgePathSnapshot,
   pixelRatio: number,
 ) {
-  const matrix = snapshot.matrix;
+  const first = snapshot.points[0];
+  if (!first) {
+    return;
+  }
+
   context.save();
-  context.setTransform(
-    matrix.a * pixelRatio,
-    matrix.b * pixelRatio,
-    matrix.c * pixelRatio,
-    matrix.d * pixelRatio,
-    matrix.e * pixelRatio,
-    matrix.f * pixelRatio,
-  );
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   context.strokeStyle = snapshot.stroke;
   context.lineWidth = snapshot.strokeWidth;
   context.lineCap = snapshot.lineCap;
@@ -486,7 +491,12 @@ function drawEdgePath(
   context.globalAlpha = snapshot.opacity;
   context.setLineDash(snapshot.dash);
   context.lineDashOffset = snapshot.dashOffset;
-  context.stroke(new Path2D(snapshot.d));
+  context.beginPath();
+  context.moveTo(first.x, first.y);
+  for (const point of snapshot.points.slice(1)) {
+    context.lineTo(point.x, point.y);
+  }
+  context.stroke();
   context.restore();
 }
 
