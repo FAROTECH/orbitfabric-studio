@@ -7,6 +7,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  ORBITFABRIC_CORE_REPOSITORY: FAROTECH/orbitfabric
+  ORBITFABRIC_REFERENCE_MISSION_REPOSITORY: FAROTECH/orbitfabric-reference-mission
+  ORBITFABRIC_OPENOBSW_POC_REPOSITORY: FAROTECH/OrbitFabric-OpenOBSW-PoC
+
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -71,14 +76,14 @@ jobs:
       - name: Checkout accepted H4 Core
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: 55b94665a76865b9d4f49861b2e3ec6ae93c3dea
           path: scenario-core
 
       - name: Checkout SP2 pinned Reference Mission
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric-reference-mission
+          repository: ${{ env.ORBITFABRIC_REFERENCE_MISSION_REPOSITORY }}
           ref: 75c6e336755430584c0cc39d15190193e255c4a0
           path: scenario-reference
 
@@ -120,7 +125,7 @@ jobs:
       - name: Checkout historical public Core v1.3.0
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: a25917e81c90396df2b189834e83cf852fa4da5f
           path: historical-core
 
@@ -168,7 +173,7 @@ jobs:
       - name: Checkout OrbitFabric Core integration baseline
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: 47d37ec2c50eae40e13303eea900eb119bd2e0dd
           path: orbitfabric-core
 
@@ -291,7 +296,7 @@ jobs:
       - name: Checkout OrbitFabric Core v1.3.0 release commit
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: a25917e81c90396df2b189834e83cf852fa4da5f
           path: orbitfabric-core
 
@@ -497,14 +502,14 @@ jobs:
       - name: Checkout pinned reference Integration Package
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          repository: ${{ env.ORBITFABRIC_OPENOBSW_POC_REPOSITORY }}
           ref: 80034335d7dfca3a715de217d981983616944cc0
           path: reference-poc
 
       - name: Checkout pinned Core producer
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: 82c103a6dec32eeadc5acfcb01d1a9c641a54a42
           path: reference-core
 
