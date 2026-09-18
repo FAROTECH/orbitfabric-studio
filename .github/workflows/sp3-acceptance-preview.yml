@@ -7,6 +7,10 @@ on:
 
 permissions: {}
 
+env:
+  ORBITFABRIC_CORE_REPOSITORY: FAROTECH/orbitfabric
+  ORBITFABRIC_REFERENCE_MISSION_REPOSITORY: FAROTECH/orbitfabric-reference-mission
+
 concurrency:
   group: sp3-acceptance-preview-${{ github.ref }}
   cancel-in-progress: true
@@ -14,7 +18,7 @@ concurrency:
 jobs:
   build:
     name: Build exact SP3 acceptance preview
-    if: github.repository == 'FAROTECH/orbitfabric-studio' && github.ref == 'refs/heads/feature/sp3-evidence-replay'
+    if: github.event.repository.name == 'orbitfabric-studio' && github.ref == 'refs/heads/feature/sp3-evidence-replay'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -55,14 +59,14 @@ jobs:
       - name: Checkout accepted OrbitFabric Core
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: b4e1185de4931ff125be699dfe09f63ab3746015
           path: .acceptance/orbitfabric-core
 
       - name: Checkout accepted Reference Mission
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric-reference-mission
+          repository: ${{ env.ORBITFABRIC_REFERENCE_MISSION_REPOSITORY }}
           ref: 6d4e4663e6dd135ca0b7b5239efa986cf63bd336
           path: .acceptance/reference-mission
 
@@ -109,6 +113,7 @@ jobs:
       - name: Verify Pages artifact identity and route
         env:
           EXPECTED_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           test -f .sp3-browser-dist/tools/test/scenario-browser/index.html
@@ -120,7 +125,7 @@ jobs:
 
           identity = json.loads(Path(".sp3-browser-dist/source-commit.json").read_text(encoding="utf-8"))
           assert identity == {
-              "repository": "FAROTECH/orbitfabric-studio",
+              "repository": os.environ["EXPECTED_REPOSITORY"],
               "pull_request": 348,
               "branch": "feature/sp3-evidence-replay",
               "commit_sha": os.environ["EXPECTED_HEAD_SHA"],
