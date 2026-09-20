@@ -6,6 +6,10 @@ on:
       - architecture/operation-input-vnext-pressure-test
   workflow_dispatch:
 
+env:
+  ORBITFABRIC_CORE_REPOSITORY: FAROTECH/orbitfabric
+  ORBITFABRIC_OPENOBSW_POC_REPOSITORY: FAROTECH/OrbitFabric-OpenOBSW-PoC
+
 jobs:
   studio-dual-lane-zero-input-control:
     runs-on: ubuntu-22.04
@@ -49,21 +53,21 @@ jobs:
       - name: Checkout pinned OrbitFabric Core
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/orbitfabric
+          repository: ${{ env.ORBITFABRIC_CORE_REPOSITORY }}
           ref: b1aa95408710f697b0ee144a7b41f2376395e01f
           path: .work/orbitfabric-core
 
       - name: Checkout accepted OpenSVF v0 package control
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          repository: ${{ env.ORBITFABRIC_OPENOBSW_POC_REPOSITORY }}
           ref: 59a235b428a63449bbdb6a1b6c7acda582606090
           path: .work/openobsw-v0
 
       - name: Checkout OpenSVF vNext zero-input producer
         uses: actions/checkout@v4
         with:
-          repository: FAROTECH/OrbitFabric-OpenOBSW-PoC
+          repository: ${{ env.ORBITFABRIC_OPENOBSW_POC_REPOSITORY }}
           ref: 061e4903b50d80863384903c4d9f268ea3d2ae4e
           path: .work/openobsw-vnext
 
