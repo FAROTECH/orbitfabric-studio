@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 env:
-  ORBITFABRIC_CORE_REPOSITORY: FAROTECH/orbitfabric
-  ORBITFABRIC_REFERENCE_MISSION_REPOSITORY: FAROTECH/orbitfabric-reference-mission
+  ORBITFABRIC_CORE_REPOSITORY: OrbitFabric/orbitfabric
+  ORBITFABRIC_REFERENCE_MISSION_REPOSITORY: OrbitFabric/orbitfabric-reference-mission
   ORBITFABRIC_OPENOBSW_POC_REPOSITORY: FAROTECH/OrbitFabric-OpenOBSW-PoC
 
 concurrency:
