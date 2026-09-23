@@ -173,7 +173,9 @@ export function AdapterLifecyclePanel({
           </>
         ) : (
           <p className="integration-empty">
-            No Project Lock comparison is loaded. Installed state remains independently available.
+            {model.projectLock.availability === "pending"
+              ? "Reading the Core Project Lock comparison…"
+              : "No Project Lock comparison is loaded. Installed state remains independently available."}
           </p>
         )}
       </section>
@@ -242,7 +244,9 @@ export function AdapterLifecyclePanel({
           </div>
         ) : (
           <p className="integration-empty">
-            No exact Catalog release or provider provenance is loaded.
+            {model.catalog.availability === "pending"
+              ? "Reading the exact Catalog release through Core…"
+              : "No exact Catalog release or provider provenance is loaded."}
           </p>
         )}
       </section>
@@ -305,6 +309,13 @@ function InstalledInstance({ instance }: { instance: InstalledAdapterLifecycleVi
           <strong>Exact digest-bound Integration Package</strong>
         </div>
         <LifecycleFailure label="Integration Package binding" observation={instance.packageBinding} />
+        {!instance.packageBinding.value && !instance.packageBinding.failure ? (
+          <span className="integration-muted">
+            {instance.packageBinding.availability === "pending"
+              ? "Reading and digest-checking the installed Integration Package…"
+              : "No digest-bound Integration Package observation is available."}
+          </span>
+        ) : null}
         {instance.packageBinding.value ? (
           <>
             <div className="lifecycle-contract-summary">
@@ -364,6 +375,9 @@ function Verification({
         <LifecycleFailure label="Verification" observation={observation} />
         {observation.availability === "unavailable" ? (
           <span className="integration-muted">Verification has not been observed.</span>
+        ) : null}
+        {observation.availability === "pending" ? (
+          <span className="integration-muted">Reading independent Core verification dimensions…</span>
         ) : null}
       </>
     );
