@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import {
@@ -37,6 +37,20 @@ import { TauriEvidenceGateway } from "./convergence/TauriEvidenceGateway";
 import { sha256Utf8 } from "./integrations/sha256";
 import { ReplayRequestGuard } from "./convergence/replayRequestGuard";
 import { EvidenceReplayWorkspace } from "./features/evidence/EvidenceReplayWorkspace";
+import {
+  AdapterLifecycleConsistencyError,
+  AdapterLifecycleHydrator,
+  AdapterLifecycleProtocolError,
+} from "./convergence/AdapterLifecycleHydrator";
+import { TauriAdapterLifecycleGateway } from "./convergence/TauriAdapterLifecycleGateway";
+import { buildAdapterLifecycleReadModel } from "./convergence/adapterLifecycleReadModel";
+import type {
+  CatalogLifecycleRequest,
+  LifecycleHydrationFailure,
+  LifecycleRequest,
+  PackageBindingRequest,
+  TargetedLifecycleRequest,
+} from "./convergence/adapterLifecycleSlot";
 
 const RECENT_MISSIONS_KEY = "orbitfabric-studio.recent-missions";
 const MAX_RECENTS = 8;
@@ -62,6 +76,174 @@ function App() {
   const replayGuard = useRef(new ReplayRequestGuard());
   const replayMembership = useRef(state.activeSession);
   replayMembership.current = state.opening ? null : state.activeSession;
+  const lifecycleHydrator = useMemo(
+    () => new AdapterLifecycleHydrator(new TauriAdapterLifecycleGateway()),
+    [],
+  );
+  const lifecycleModel = useMemo(
+    () => buildAdapterLifecycleReadModel(state.lifecycle),
+    [state.lifecycle],
+  );
+  const autoLifecycleMembership = useRef<string | null>(null);
+  const hydratedInventories = useRef(new WeakSet<object>());
+
+  useEffect(() => {
+    const session = state.activeSession;
+    if (!session || state.opening) return;
+    const key = `${session.sessionId}\u0000${session.generation}`;
+    if (autoLifecycleMembership.current === key) return;
+    autoLifecycleMembership.current = key;
+    void hydrateInstalledLifecycle(session, "replace");
+    // The membership key is the deliberate automatic hydration boundary.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.activeSession?.sessionId, state.activeSession?.generation, state.opening]);
+
+  useEffect(() => {
+    const session = state.activeSession;
+    const records = state.lifecycle.installed.accepted;
+    if (!session || state.opening || !records || hydratedInventories.current.has(records)) return;
+    hydratedInventories.current.add(records);
+    for (const record of records) {
+      void hydrateInstalledVerification(session, record.instanceId);
+      void hydrateInstalledPackage(session, {
+        instanceId: record.instanceId,
+        manifestPath: record.manifestPath,
+        expectedManifestSha256: record.manifestSha256,
+      });
+    }
+    // Accepted inventory object identity ensures stale inventory completions cannot start children.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.lifecycle.installed.accepted, state.activeSession?.sessionId, state.activeSession?.generation, state.opening]);
+
+  async function hydrateInstalledLifecycle(
+    session: NonNullable<typeof state.activeSession>,
+    mode: "replace" | "refresh",
+  ) {
+    const request: LifecycleRequest = {
+      membership: lifecycleMembership(session),
+      requestToken: createRequestId(session.generation),
+      mode,
+    };
+    dispatch({ type: "ADAPTER_LIFECYCLE_INSTALLED_REQUESTED", request });
+    try {
+      const records = await lifecycleHydrator.hydrateInstalled(
+        session.core.resolvedExecutable,
+        request,
+      );
+      dispatch({ type: "ADAPTER_LIFECYCLE_INSTALLED_READY", request, records });
+    } catch (error) {
+      dispatch({
+        type: "ADAPTER_LIFECYCLE_INSTALLED_FAILED",
+        request,
+        failure: lifecycleFailure(error),
+      });
+    }
+  }
+
+  async function hydrateInstalledVerification(
+    session: NonNullable<typeof state.activeSession>,
+    instanceId: string,
+  ) {
+    const request: TargetedLifecycleRequest = {
+      membership: lifecycleMembership(session),
+      requestToken: createRequestId(session.generation),
+      mode: "replace",
+      target: instanceId,
+    };
+    dispatch({ type: "ADAPTER_LIFECYCLE_VERIFY_REQUESTED", request });
+    try {
+      const report = await lifecycleHydrator.hydrateVerify(
+        session.core.resolvedExecutable,
+        request,
+      );
+      dispatch({ type: "ADAPTER_LIFECYCLE_VERIFY_READY", request, report });
+    } catch (error) {
+      dispatch({
+        type: "ADAPTER_LIFECYCLE_VERIFY_FAILED",
+        request,
+        failure: lifecycleFailure(error),
+      });
+    }
+  }
+
+  async function hydrateInstalledPackage(
+    session: NonNullable<typeof state.activeSession>,
+    binding: Pick<PackageBindingRequest, "instanceId" | "manifestPath" | "expectedManifestSha256">,
+  ) {
+    const request: PackageBindingRequest = {
+      membership: lifecycleMembership(session),
+      requestToken: createRequestId(session.generation),
+      mode: "replace",
+      ...binding,
+    };
+    dispatch({ type: "ADAPTER_LIFECYCLE_PACKAGE_BINDING_REQUESTED", request });
+    try {
+      const observation = await lifecycleHydrator.hydratePackageBinding(request);
+      dispatch({ type: "ADAPTER_LIFECYCLE_PACKAGE_BINDING_READY", request, observation });
+    } catch (error) {
+      dispatch({
+        type: "ADAPTER_LIFECYCLE_PACKAGE_BINDING_FAILED",
+        request,
+        failure: lifecycleFailure(error),
+      });
+    }
+  }
+
+  async function checkAdapterProjectLock(lockPath: string) {
+    const session = state.activeSession;
+    if (!session || state.opening) return;
+    const request: TargetedLifecycleRequest = {
+      membership: lifecycleMembership(session),
+      requestToken: createRequestId(session.generation),
+      mode: state.lifecycle.projectLock.accepted?.lockPath === lockPath ? "refresh" : "replace",
+      target: lockPath,
+    };
+    dispatch({ type: "ADAPTER_LIFECYCLE_PROJECT_LOCK_REQUESTED", request });
+    try {
+      const report = await lifecycleHydrator.hydrateProjectLock(
+        session.core.resolvedExecutable,
+        request,
+      );
+      dispatch({ type: "ADAPTER_LIFECYCLE_PROJECT_LOCK_READY", request, report });
+    } catch (error) {
+      dispatch({
+        type: "ADAPTER_LIFECYCLE_PROJECT_LOCK_FAILED",
+        request,
+        failure: lifecycleFailure(error),
+      });
+    }
+  }
+
+  async function selectAdapterCatalogRelease(
+    catalogPath: string,
+    sourceCoordinate: string,
+    releaseVersion: string,
+  ) {
+    const session = state.activeSession;
+    if (!session || state.opening) return;
+    const request: CatalogLifecycleRequest = {
+      membership: lifecycleMembership(session),
+      requestToken: createRequestId(session.generation),
+      mode: "replace",
+      catalogPath,
+      sourceCoordinate,
+      releaseVersion,
+    };
+    dispatch({ type: "ADAPTER_LIFECYCLE_CATALOG_REQUESTED", request });
+    try {
+      const selection = await lifecycleHydrator.hydrateCatalogRelease(
+        session.core.resolvedExecutable,
+        request,
+      );
+      dispatch({ type: "ADAPTER_LIFECYCLE_CATALOG_READY", request, selection });
+    } catch (error) {
+      dispatch({
+        type: "ADAPTER_LIFECYCLE_CATALOG_FAILED",
+        request,
+        failure: lifecycleFailure(error),
+      });
+    }
+  }
 
   async function chooseReplayResult() {
     if (!state.activeSession || state.opening) return;
@@ -470,7 +652,12 @@ function App() {
             ) : state.view === "integrations" ? (
               <IntegrationsWorkspace
                 session={session}
+                lifecycle={lifecycleModel}
+                lifecycleDisabled={isOpeningReplacement}
                 selectedEntity={selectedEntity}
+                onRefreshLifecycle={() => hydrateInstalledLifecycle(session, "refresh")}
+                onCheckProjectLock={checkAdapterProjectLock}
+                onSelectCatalogRelease={selectAdapterCatalogRelease}
                 onInspectEntity={(subject) => {
                   changeWorkspaceView("explore");
                   dispatch({ type: "SELECTION_CHANGED", subject, origin: "integrations" });
@@ -556,6 +743,22 @@ function openFailure(error: unknown): MissionOpenFailure {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function lifecycleMembership(session: { sessionId: string; generation: number }) {
+  return { sessionId: session.sessionId, generation: session.generation };
+}
+
+function lifecycleFailure(error: unknown): LifecycleHydrationFailure {
+  return {
+    class:
+      error instanceof AdapterLifecycleProtocolError
+        ? "protocol"
+        : error instanceof AdapterLifecycleConsistencyError
+          ? "consistency"
+          : "transport",
+    message: errorMessage(error),
+  };
 }
 
 function createRequestId(generation: number): string {
