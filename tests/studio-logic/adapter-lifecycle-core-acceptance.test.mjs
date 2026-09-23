@@ -12,6 +12,15 @@ const {
   parseProjectLockCheckReport,
 } = require("../../.test-dist/convergence/adapterLifecycleContracts.js");
 const { AdapterLifecycleHydrator } = require("../../.test-dist/convergence/AdapterLifecycleHydrator.js");
+const { buildAdapterLifecycleReadModel } = require("../../.test-dist/convergence/adapterLifecycleReadModel.js");
+const {
+  emptyAdapterLifecycleState,
+  reduceCatalogFacet,
+  reduceInstalledFacet,
+  reducePackageBindingFacet,
+  reduceProjectLockFacet,
+  reduceVerifyFacet,
+} = require("../../.test-dist/convergence/adapterLifecycleSlot.js");
 
 const root = process.env.ORBITFABRIC_STUDIO_LIFECYCLE_SURFACES;
 if (!root) {
@@ -106,4 +115,44 @@ test("Studio consumes exact Core v1.3.0 Adapter Lifecycle surfaces without reint
   });
   assert.equal(binding.manifestSha256, record.manifestSha256);
   assert.equal(binding.descriptor.integrationId, "fixture-zero");
+
+  const inventoryRequest = { membership, requestToken: "inventory", mode: "replace" };
+  const verifyRequest = { membership, requestToken: "verify-model", mode: "replace", target: record.instanceId };
+  const lockRequest = { membership, requestToken: "lock-model", mode: "replace", target: lock.lockPath };
+  const catalogRequest = {
+    membership,
+    requestToken: "catalog-model",
+    mode: "replace",
+    catalogPath: join(root, "adapter-catalog.json"),
+    sourceCoordinate: `${catalog.sourceCoordinate.authority}:${catalog.sourceCoordinate.publisher}/${catalog.sourceCoordinate.name}`,
+    releaseVersion: catalog.releaseVersion,
+  };
+  const packageRequest = {
+    membership,
+    requestToken: "package-model",
+    mode: "replace",
+    instanceId: record.instanceId,
+    manifestPath: record.manifestPath,
+    expectedManifestSha256: record.manifestSha256,
+  };
+  let state = emptyAdapterLifecycleState();
+  state = reduceInstalledFacet(state, membership, { type: "requested", request: inventoryRequest });
+  state = reduceInstalledFacet(state, membership, { type: "ready", request: inventoryRequest, records });
+  state = reduceVerifyFacet(state, membership, { type: "requested", request: verifyRequest });
+  state = reduceVerifyFacet(state, membership, { type: "ready", request: verifyRequest, report: hydratedVerify });
+  state = reduceProjectLockFacet(state, membership, { type: "requested", request: lockRequest });
+  state = reduceProjectLockFacet(state, membership, { type: "ready", request: lockRequest, report: hydratedLock });
+  state = reduceCatalogFacet(state, membership, { type: "requested", request: catalogRequest });
+  state = reduceCatalogFacet(state, membership, { type: "ready", request: catalogRequest, selection: catalog });
+  state = reducePackageBindingFacet(state, membership, { type: "requested", request: packageRequest });
+  state = reducePackageBindingFacet(state, membership, { type: "ready", request: packageRequest, observation: binding });
+
+  const model = buildAdapterLifecycleReadModel(state);
+  assert.equal(model.installed.length, 1);
+  assert.equal(model.installed[0].identity.display, "test.local:fixture/studio-lifecycle@1.0.0");
+  assert.equal(model.installed[0].verification.value.backendMaterialization.status, "FAIL");
+  assert.equal(model.installed[0].desiredComparisons[0].status, "MISMATCH");
+  assert.equal(model.installed[0].packageBinding.value.manifestSha256, record.manifestSha256);
+  assert.equal(model.installed[0].operations[0].id, "project");
+  assert.equal(model.catalog.value.sources[0].binding.provider, "fixture");
 });
