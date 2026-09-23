@@ -35,6 +35,8 @@ import { parseIntegrationResult, validateIntegrationResult } from "../../integra
 import { sha256Utf8 } from "../../integrations/sha256";
 import { assessIntegrationFreshness } from "../../integrations/staleness";
 import { IntegrationTargetInspectorHost } from "./IntegrationTargetInspectorHost";
+import { AdapterLifecyclePanel } from "./AdapterLifecyclePanel";
+import type { AdapterLifecycleReadModel } from "../../convergence/adapterLifecycleReadModel";
 
 const REGISTERED_PACKAGES_KEY = "orbitfabric-studio.integration-packages";
 const PROFILE_ASSOCIATIONS_KEY = "orbitfabric-studio.integration-profiles";
@@ -60,11 +62,25 @@ interface ResultState {
 
 export function IntegrationsWorkspace({
   session,
+  lifecycle,
+  lifecycleDisabled,
   selectedEntity,
+  onRefreshLifecycle,
+  onCheckProjectLock,
+  onSelectCatalogRelease,
   onInspectEntity,
 }: {
   session: MissionSession;
+  lifecycle: AdapterLifecycleReadModel;
+  lifecycleDisabled: boolean;
   selectedEntity: EntityRef | null;
+  onRefreshLifecycle: () => Promise<void>;
+  onCheckProjectLock: (path: string) => Promise<void>;
+  onSelectCatalogRelease: (
+    catalogPath: string,
+    sourceCoordinate: string,
+    releaseVersion: string,
+  ) => Promise<void>;
   onInspectEntity: (subject: EntityRef) => void;
 }) {
   const integrationGateway = useMemo(() => new TauriIntegrationGateway(), []);
@@ -391,6 +407,14 @@ export function IntegrationsWorkspace({
       </section>
 
       {error ? <pre className="integration-error" role="alert">{error}</pre> : null}
+
+      <AdapterLifecyclePanel
+        model={lifecycle}
+        disabled={lifecycleDisabled}
+        onRefresh={onRefreshLifecycle}
+        onCheckProjectLock={onCheckProjectLock}
+        onSelectCatalogRelease={onSelectCatalogRelease}
+      />
 
       <section className="integration-card">
         <CardTitle title="Package" status={descriptor ? "registered" : selected?.error ? "invalid" : "none"} />
