@@ -224,11 +224,91 @@ function prepareCaptureLayout(target: HTMLElement): () => void {
     );
   }
 
+  restorers.push(replaceNativeSelectsForCapture(target));
+
   return () => {
     for (const restore of restorers.reverse()) {
       restore();
     }
   };
+}
+
+function replaceNativeSelectsForCapture(target: HTMLElement): () => void {
+  const restorers: Array<() => void> = [];
+
+  // WebKit can reject the SVG data URL produced by html-to-image when a
+  // foreignObject contains a populated native select. Keep the selected text
+  // visible in the capture while removing the native control from that SVG.
+  for (const select of target.querySelectorAll<HTMLSelectElement>("select")) {
+    const parent = select.parentNode;
+    if (!parent) {
+      continue;
+    }
+
+    const nextSibling = select.nextSibling;
+    const rect = select.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(select);
+    const surrogate = document.createElement("div");
+
+    surrogate.dataset.surfaceCaptureControl = "select";
+    surrogate.setAttribute("aria-hidden", "true");
+    const selectedText = Array.from(select.selectedOptions)
+      .map((option) => option.label || option.textContent?.trim() || option.value)
+      .filter(Boolean)
+      .join(", ");
+    surrogate.textContent = selectedText || select.value;
+
+    copyComputedStyle(computedStyle, surrogate);
+    surrogate.style.setProperty("box-sizing", "border-box");
+    surrogate.style.setProperty("display", "flex");
+    surrogate.style.setProperty("align-items", "center");
+    surrogate.style.setProperty("width", `${rect.width}px`);
+    surrogate.style.setProperty("height", `${rect.height}px`);
+    surrogate.style.setProperty("min-width", "0");
+    surrogate.style.setProperty("overflow", "hidden");
+    surrogate.style.setProperty("text-overflow", "ellipsis");
+    surrogate.style.setProperty("white-space", "nowrap");
+    surrogate.style.setProperty("appearance", "none");
+    surrogate.style.setProperty("-webkit-appearance", "none");
+
+    parent.replaceChild(surrogate, select);
+    restorers.push(() => {
+      if (surrogate.parentNode) {
+        surrogate.parentNode.replaceChild(select, surrogate);
+        return;
+      }
+
+      if (!select.isConnected && parent.isConnected) {
+        parent.insertBefore(
+          select,
+          nextSibling?.parentNode === parent ? nextSibling : null,
+        );
+      }
+    });
+  }
+
+  return () => {
+    for (const restore of restorers.reverse()) {
+      restore();
+    }
+  };
+}
+
+function copyComputedStyle(
+  source: CSSStyleDeclaration,
+  target: HTMLElement,
+) {
+  for (let index = 0; index < source.length; index += 1) {
+    const property = source.item(index);
+    if (!property) {
+      continue;
+    }
+    target.style.setProperty(
+      property,
+      source.getPropertyValue(property),
+      source.getPropertyPriority(property),
+    );
+  }
 }
 
 function snapshotReactFlowEdges(

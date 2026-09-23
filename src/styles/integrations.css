@@ -527,7 +527,9 @@
 
 .lifecycle-status {
   display: inline-flex;
-  width: fit-content;
+  width: auto;
+  justify-self: start;
+  align-self: start;
   padding: 3px 8px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
