@@ -58,6 +58,7 @@ try {
     "tests/studio-logic/evidence-slot-r1.test.mjs",
     "tests/studio-logic/evidence-slot-reducer.test.mjs",
     "tests/studio-logic/adapter-lifecycle.test.mjs",
+    "tests/studio-logic/adapter-lifecycle-read-model.test.mjs",
     "tests/studio-logic/adapter-lifecycle-exit-code.test.mjs",
     "tests/studio-logic/session-spine-acceptance.test.mjs",
   ];
